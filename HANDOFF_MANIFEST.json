@@ -1,23 +1,7 @@
 {
-  ".github/pull_request_template.md": {
-    "bytes": 443,
-    "sha256": "e6345289c3a07202d9d92d969c1a90b40817daed86182c2dfce40bda07bc2d73"
-  },
-  ".github/workflows/ci.yml.template": {
-    "bytes": 447,
-    "sha256": "52ec7b1a72eb9d2c40b27b4e37c8b2f36d39ea9aaa288d46dff10643beffe007"
-  },
-  ".python-version": {
-    "bytes": 5,
-    "sha256": "7b55f8e67b5623c4bef3fa691288da9437d79d3aba156de48d481db32ac7d16d"
-  },
   "AGENTS.md": {
     "bytes": 4409,
     "sha256": "c90bdc4ef8c6d389a74bc82468c77d39916679c43b4fb19708e16be42ede9cd1"
-  },
-  "CODEX_CLOUD_SETUP_SCRIPT.sh": {
-    "bytes": 223,
-    "sha256": "e21f1d292f0f73ce7ea0212663d0c754fe3910ef5d93e7eaa7986b058930e916"
   },
   "README.md": {
     "bytes": 2011,
