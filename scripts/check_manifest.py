@@ -75,13 +75,9 @@ def main() -> int:
         expected_size = int(metadata["bytes"])
         expected_hash = str(metadata["sha256"])
         if actual_size != expected_size:
-            errors.append(
-                f"size mismatch: {relative}: expected {expected_size}, got {actual_size}"
-            )
+            errors.append(f"size mismatch: {relative}: expected {expected_size}, got {actual_size}")
         if actual_hash != expected_hash:
-            errors.append(
-                f"hash mismatch: {relative}: expected {expected_hash}, got {actual_hash}"
-            )
+            errors.append(f"hash mismatch: {relative}: expected {expected_hash}, got {actual_hash}")
 
     if errors:
         print("Manifest integrity check failed:")
