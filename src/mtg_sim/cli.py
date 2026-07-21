@@ -7,6 +7,11 @@ import typer
 app = typer.Typer(help="Malcolm and Breeches simulator tooling.")
 
 
+@app.callback()
+def main() -> None:
+    """Malcolm and Breeches simulator tooling."""
+
+
 @app.command()
 def version() -> None:
     """Print the package version."""
