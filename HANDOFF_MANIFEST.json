@@ -1,0 +1,142 @@
+{
+  ".github/pull_request_template.md": {
+    "bytes": 443,
+    "sha256": "e6345289c3a07202d9d92d969c1a90b40817daed86182c2dfce40bda07bc2d73"
+  },
+  ".github/workflows/ci.yml.template": {
+    "bytes": 447,
+    "sha256": "52ec7b1a72eb9d2c40b27b4e37c8b2f36d39ea9aaa288d46dff10643beffe007"
+  },
+  ".python-version": {
+    "bytes": 5,
+    "sha256": "7b55f8e67b5623c4bef3fa691288da9437d79d3aba156de48d481db32ac7d16d"
+  },
+  "AGENTS.md": {
+    "bytes": 4409,
+    "sha256": "c90bdc4ef8c6d389a74bc82468c77d39916679c43b4fb19708e16be42ede9cd1"
+  },
+  "CODEX_CLOUD_SETUP_SCRIPT.sh": {
+    "bytes": 223,
+    "sha256": "e21f1d292f0f73ce7ea0212663d0c754fe3910ef5d93e7eaa7986b058930e916"
+  },
+  "README.md": {
+    "bytes": 2011,
+    "sha256": "5821e3540015fff4d5e913c742e9e5026dcdfec9bd991a304b78f57622547b1a"
+  },
+  "docs/architecture/PROPOSED_ARCHITECTURE.md": {
+    "bytes": 5835,
+    "sha256": "81d57de507585b9f9b4083b0a24015a613a69e092978a10ce8011ecb69f2ddbd"
+  },
+  "docs/architecture/TRACEABILITY_TEMPLATE.csv": {
+    "bytes": 103,
+    "sha256": "d550dcb449ef09e403fc2ec9e65597ecb29a808c787870c2236700991bd7212a"
+  },
+  "docs/audit/AUDIT_CHECKLIST.md": {
+    "bytes": 1464,
+    "sha256": "077ced5cc5117f3a8eca3bd69f17230bbb408b200fefab72d08af2d5d43017c3"
+  },
+  "docs/source/MagicCompRules_2026-06-19.txt": {
+    "bytes": 975632,
+    "sha256": "e99cd70eb64ca854acb6420ebbf06e369e3f258e0cfba4f03f70bd881386f79b"
+  },
+  "docs/source/commanders.txt": {
+    "bytes": 60,
+    "sha256": "4d067d975ca66190473915cf8938e53c07ed752864db96242a0e2a84a2cd211c"
+  },
+  "docs/source/decklist.txt": {
+    "bytes": 1284,
+    "sha256": "dfc06c3b276e39c9bacbd18b13bd7f51b839c0e5fc5ce9cc7b7c9c272a3a7d61"
+  },
+  "docs/spec/EXPLORATORY_BRANCH.md": {
+    "bytes": 14206,
+    "sha256": "318f6c6fbd18db62f6e37ae7c94704a93d49c8ca7c75eca8fb4d1f1ff416c399"
+  },
+  "docs/spec/EXPLORATORY_SEARCH_LIMITS.md": {
+    "bytes": 1066,
+    "sha256": "46ff7275c49f242b2524fa104cfaae2027c23b3bb0ef62861e698c8db4f07460"
+  },
+  "docs/spec/LEAGUE_MULLIGAN.md": {
+    "bytes": 817,
+    "sha256": "a95b9e52152a36009463ea348115a94cca3281bc36a94b87eff7cc7d97690754"
+  },
+  "docs/spec/MEASUREMENTS.md": {
+    "bytes": 2805,
+    "sha256": "7486e5155bf25148c643a27c040f5c3396018d14e0587414855b667997a5419e"
+  },
+  "docs/spec/OPEN_DECISIONS.md": {
+    "bytes": 1914,
+    "sha256": "a8ab7b0a821c62837efa4cca4218f392c420bb389806efa1676d2dd23cb6f274"
+  },
+  "docs/spec/PILOT_PROTOCOL.md": {
+    "bytes": 2353,
+    "sha256": "90df7e718001aa4ef67752a4186ded9e06362de146314f25d464412c448a187c"
+  },
+  "docs/spec/POLICY_CANDIDATES.md": {
+    "bytes": 1326,
+    "sha256": "4fd510cddde5884c683e9ae844e0641e91c6d8a52dbdd0161c249b8f73fe0c12"
+  },
+  "docs/spec/PROJECT_BRIEF.md": {
+    "bytes": 2409,
+    "sha256": "68c962f53b9ac25f98e7acfaaef00b879941c0ec4ab349151056056a2853dc77"
+  },
+  "docs/spec/RULES_ACCEPTANCE.md": {
+    "bytes": 6175,
+    "sha256": "9417689f4ccca125526ffc7fd5d94010c591fb279e6d44579ed254c36fb8168d"
+  },
+  "prompts/00_REPO_ORIENTATION.md": {
+    "bytes": 623,
+    "sha256": "7432a2667645ed732923a40def5518e7bac94d33b24e93a0e00dbcb7c9980cf8"
+  },
+  "prompts/01_FREEZE_SOURCES.md": {
+    "bytes": 1050,
+    "sha256": "cec8e0b8f4602e400718b1d87f3c55d210087956900bc837d32784de5c8572a0"
+  },
+  "prompts/02_ARCHITECTURE_ONLY.md": {
+    "bytes": 1252,
+    "sha256": "3a98a2f56e19515e5852c4de1e15b6bd845bc11957857901fff86de8e30d376a"
+  },
+  "prompts/03_CORE_DOMAIN_AND_RNG.md": {
+    "bytes": 1086,
+    "sha256": "cc8368b244e0f861da34e373a3d26fc7d196b168229afe5a3eb7b3d8c650ec28"
+  },
+  "prompts/04_RULES_ENGINE.md": {
+    "bytes": 994,
+    "sha256": "12109a191913c29f08bc80bf9219dd0de08d5f86d5f8b80e0bb1f18451e3efaf"
+  },
+  "prompts/05_CARD_IMPLEMENTATION_AND_COVERAGE.md": {
+    "bytes": 1140,
+    "sha256": "061b44bed3a9f7dfe4be6461761a6d0c1f25177d567fab37b14295bc1ad93782"
+  },
+  "prompts/06_COMPETENCY_TEST_GATE.md": {
+    "bytes": 838,
+    "sha256": "3f3b2a78fea8c951ef647b7a7472ed3274963da2f984a4abb7189f3ed2acc766"
+  },
+  "prompts/07_POLICY_FRAMEWORK.md": {
+    "bytes": 995,
+    "sha256": "c25da2fab0d9e67e21187e2390f4235cbe97708ba1908862bc7f8c4e57ad9766"
+  },
+  "prompts/08_EXPLORATORY_SEARCH.md": {
+    "bytes": 1089,
+    "sha256": "2fed1df72adec8ab51ce978c042c2eb198e931709ce6a48fc2454479f2b87cbb"
+  },
+  "prompts/09_PILOT_HARNESS_DRY_RUN.md": {
+    "bytes": 929,
+    "sha256": "229a555e8fb7603fd025d1e8923e063ca8184466aeb49ea3f8bd8b683d690a5b"
+  },
+  "prompts/10_EXECUTE_PILOT.md": {
+    "bytes": 1072,
+    "sha256": "435c11752b545ec8a45e5b73a2e49d6bc0604b43b4a0a6f297e8255a09ca0f0c"
+  },
+  "prompts/11_AUDIT_AND_PILOT_REPORT.md": {
+    "bytes": 1031,
+    "sha256": "22843742be1f3e0e04c784b86d929fff1bc1f1edd7566cc4bf148bed91a3f6d2"
+  },
+  "prompts/12_FULL_STUDY_LOCKED.md": {
+    "bytes": 608,
+    "sha256": "471d902d61d0c51183b4973cff6eaabd4cd8929631f9afbd6a9aff57de97ab67"
+  },
+  "pyproject.toml.template": {
+    "bytes": 616,
+    "sha256": "013aedafa6e9693749b848d99276fea2f276f1cd557bfbd7054a8a0c5423fd8e"
+  }
+}

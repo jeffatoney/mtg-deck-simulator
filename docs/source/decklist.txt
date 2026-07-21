@@ -1,0 +1,78 @@
+1 Abrade
+1 Aetherize
+1 Arcane Denial
+1 Arcane Signet
+1 Ash Barrens
+1 Brotherhood's End
+1 By Force
+1 Cascade Bluffs
+1 Change the Equation
+1 Chart a Course
+1 Command Tower
+1 Commit // Memory
+1 Crab Umbra
+1 Curiosity
+1 Curse of the Swine
+1 Demolition Field
+1 Dispel
+1 Dizzy Spell
+1 Drift of Phantasms
+1 Dualcaster Mage
+1 Echoing Truth
+1 Electroduplicate
+1 Evolving Wilds
+1 Exotic Orchard
+1 Expedite
+1 Fact or Fiction
+1 Fading Hope
+1 Faithless Looting
+1 Fellwar Stone
+1 Fiery Cannonade
+1 Frantic Search
+1 Frostboil Snarl
+1 Glint-Horn Buccaneer
+1 Impulse
+1 Into the Roil
+1 Introduction to Annihilation
+1 Invert // Invent
+12 Island
+1 Izzet Boilerworks
+1 Izzet Signet
+1 Lazotep Plating
+1 Lightning-Rig Crew
+1 Long-Term Plans
+1 Mind Stone
+10 Mountain
+1 Muddle the Mixture
+1 Negate
+1 Niv-Mizzet, the Firemind
+1 Opt
+1 Path of Ancestry
+1 Prismari Command
+1 Prismatic Lens
+1 Psychosis Crawler
+1 Ravenform
+1 Reality Ripple
+1 Reality Shift
+1 Rebuild
+1 Resculpt
+1 Scavenger Grounds
+1 Sentinel Totem
+1 Shivan Reef
+1 Siren Stormtamer
+1 Sleight of Hand
+1 Sol Ring
+1 Soul-Guide Lantern
+1 Spectral Sailor
+1 Spell Pierce
+1 Step Through
+1 Storm Fleet Sprinter
+1 Syncopate
+1 Temple of Epiphany
+1 Terramorphic Expanse
+1 Thriving Isle
+1 Twinflame
+1 Vandalblast
+1 Vedalken Aethermage
+1 Wash Away
+1 Wily Goblin
