@@ -1,34 +1,43 @@
 # Open decisions and required explicit assumptions
 
-Resolve or encode these before the pilot. They are game-state assumptions, not pilot priorities.
+Phase 1B resolves the baseline-blocking assumptions below for source validation and future baseline runs. No baseline decision remains blocking after this phase.
 
 ## 1. Exotic Orchard and Fellwar Stone
 
-Their colored mana depends on lands opponents control. The baseline specifies no interaction but does not define opponent lands or color identities.
+Resolved baseline: `primary_opponent_mana_profile = "blue_red_available"`.
 
-Recommended implementation:
+Resolved sensitivity profile: `sensitivity_opponent_mana_profile = "no_known_colors"`.
 
-- Add an `OpponentManaProfile` configuration.
-- Provide at least two sensitivity profiles: `no_known_colors` and `blue_red_available`.
-- Select and document one primary pilot profile before running.
-- Never silently treat these cards as Command Tower.
+The baseline must never silently treat these cards as Command Tower; implementations must read the configured opponent mana profile.
 
 ## 2. Opponent choices required by cards
 
-Fact or Fiction and any other opponent-choice effect need a deterministic policy. Recommended baseline: enumerate legal choices and select the choice that minimizes this deck's frozen evaluation function. Record the chosen partition and score.
+Resolved baseline: `fact_or_fiction_policy = "minimize_deck_frozen_evaluation"`.
+
+Opponent-choice effects must enumerate legal choices and select the choice minimizing this deck's frozen evaluation function, recording the chosen option and score when the engine exists.
 
 ## 3. Opponent battlefield scope
 
-Define whether opponent mana-profile lands are actual targetable permanents or abstract mana metadata. Recommended baseline: abstract metadata only, so they do not create unspecified targets for removal or bounce.
+Resolved baseline: `opponent_mana_lands_are_targetable = false` and `opponent_mana_lands_are_abstract_metadata = true`.
+
+Opponent mana-profile lands are abstract metadata only and do not create unspecified targets.
 
 ## 4. Recovery after losing a first line
 
-No opponent interaction means natural disruption is absent. Measure independent second-line availability in baseline. If true recovery is desired, create a separate scripted perturbation study and never combine it with baseline percentages.
+Resolved baseline: `baseline_recovery_measurement = "independent_second_line_availability"`.
+
+Resolved separation requirement: `true_disrupted_recovery_study = "separate"`.
+
+True disrupted recovery is not part of baseline percentages and requires a separate scripted perturbation study if authorized.
 
 ## 5. Oracle snapshot
 
-Choose a retrieval date and source, commit the exact card data, record a hash, and disable live card-text refresh during simulations. Any later refresh creates a new simulation version.
+Resolved baseline: current Oracle data is frozen under `docs/source/oracle/snapshot_v1.json` with live fetching disabled during tests and simulations. A later Oracle refresh must create a new snapshot version and a new hash.
 
 ## 6. Policy-run counts
 
-Policy discovery requires replaying candidate policies on the same base seeds. The canonical pilot remains 500 standard plus 200 exploratory games, but total executions will be larger. The dry run must print all counts before execution.
+Resolved baseline: the canonical pilot remains 500 standard plus 200 exploratory games; future dry-run tooling must print all replay and candidate-policy execution counts before execution.
+
+## 7. Breeches unknown cards
+
+Resolved baseline: `breeches_unknown_cards = "record_trigger_but_exclude_from_deterministic_resources"`.

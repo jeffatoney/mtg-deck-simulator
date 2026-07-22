@@ -34,6 +34,27 @@
       "size_bytes": 981,
       "source_category": "oracle_schema",
       "status": "frozen"
+    },
+    {
+      "path": "docs/source/oracle/snapshot_v1.json",
+      "sha256": "a385392ea05f543a1fa0a4c131be948003295c5f488bee09bd89ca5e98368216",
+      "size_bytes": 65406,
+      "source_category": "oracle_snapshot",
+      "status": "frozen"
+    },
+    {
+      "path": "configs/baseline.toml",
+      "sha256": "3128dec74863c45749905928dde6307e054a11da0440dfe54550a579d061a214",
+      "size_bytes": 494,
+      "source_category": "baseline_config",
+      "status": "frozen"
+    },
+    {
+      "path": "docs/spec/OPEN_DECISIONS.md",
+      "sha256": "0fda27debdf87f9505000fcb2e18ee406eeef85edcdab0a32b8a6687b651dabb",
+      "size_bytes": 2059,
+      "source_category": "baseline_decisions",
+      "status": "frozen"
     }
   ],
   "generated_by": "uv run mtg-sim validate-sources --write-inventory",
