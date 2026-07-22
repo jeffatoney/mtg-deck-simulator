@@ -1,6 +1,8 @@
-"""Malcolm and Breeches simulator package.
+"""Malcolm and Breeches simulator package."""
 
-Game-engine implementation is intentionally deferred to later focused changes.
-"""
+from .phase5d_cards import install as _install_phase5d
 
 __version__ = "0.1.0"
+
+_install_phase5d()
+del _install_phase5d
