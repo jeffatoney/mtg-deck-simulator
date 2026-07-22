@@ -35,15 +35,9 @@ def create_malcolm_treasures_for_pirate_damage(
     """Create one Treasure per unique eligible opponent actually damaged."""
     prevented = prevented or set()
     eligible = (
-        eligible_opponents
-        if eligible_opponents is not None
-        else set(state.active_opponents())
+        eligible_opponents if eligible_opponents is not None else set(state.active_opponents())
     )
-    count = sum(
-        1
-        for idx in eligible
-        if damaged_by_pirate.get(idx, 0) > 0 and idx not in prevented
-    )
+    count = sum(1 for idx in eligible if damaged_by_pirate.get(idx, 0) > 0 and idx not in prevented)
     _engine.create_treasure(state, count)
     state.record_event("malcolm_treasures", str(count))
     return count
@@ -56,9 +50,7 @@ def record_breeches_triggers_for_pirate_damage(
 ) -> int:
     """Record Breeches triggers without inventing unknown opponent cards."""
     eligible = (
-        eligible_opponents
-        if eligible_opponents is not None
-        else set(state.active_opponents())
+        eligible_opponents if eligible_opponents is not None else set(state.active_opponents())
     )
     count = len([idx for idx in damaged_opponents if idx in eligible])
     if count:
@@ -170,15 +162,11 @@ def activate_niv_mizzet_draw(state: GameState, niv: Permanent) -> None:
     """Activate Niv-Mizzet's tap-to-draw ability with tap restrictions."""
     _engine.ensure_not_terminal(state)
     if niv not in state.battlefield or niv.name != "Niv-Mizzet, the Firemind":
-        raise RulesError(
-            "Niv-Mizzet activated ability requires Niv-Mizzet on battlefield"
-        )
+        raise RulesError("Niv-Mizzet activated ability requires Niv-Mizzet on battlefield")
     if niv.tapped:
         raise RulesError("Niv-Mizzet is already tapped")
     if niv.summoning_sick and not niv.haste:
-        raise RulesError(
-            "Niv-Mizzet activated ability is restricted by summoning sickness"
-        )
+        raise RulesError("Niv-Mizzet activated ability is restricted by summoning sickness")
     niv.tapped = True
     state.stack.append(
         StackObject(
@@ -214,9 +202,7 @@ def activate_lightning_rig_crew(state: GameState, crew: Permanent) -> None:
     if crew.tapped:
         raise RulesError("Lightning-Rig Crew is already tapped")
     if crew.summoning_sick and not crew.haste:
-        raise RulesError(
-            "Lightning-Rig Crew activated ability is restricted by summoning sickness"
-        )
+        raise RulesError("Lightning-Rig Crew activated ability is restricted by summoning sickness")
     crew.tapped = True
 
     def effect(current: GameState) -> None:
@@ -250,10 +236,7 @@ def _fund_cost_from_treasures(state: GameState, cost: dict[str, int]) -> None:
     for _ in range(blue_needed):
         _engine.sacrifice_treasure_for_mana(state, "U")
 
-    while (
-        _engine.solve_mana_payment(state.mana_pool, cost) is None
-        and state.treasures > 0
-    ):
+    while _engine.solve_mana_payment(state.mana_pool, cost) is None and state.treasures > 0:
         _engine.sacrifice_treasure_for_mana(state, "C")
 
 
@@ -309,12 +292,8 @@ def run_glint_horn_iterations(
 def install() -> None:
     """Install Phase 5D functions into the shared engine module."""
     functions = {
-        "create_malcolm_treasures_for_pirate_damage": (
-            create_malcolm_treasures_for_pirate_damage
-        ),
-        "record_breeches_triggers_for_pirate_damage": (
-            record_breeches_triggers_for_pirate_damage
-        ),
+        "create_malcolm_treasures_for_pirate_damage": (create_malcolm_treasures_for_pirate_damage),
+        "record_breeches_triggers_for_pirate_damage": (record_breeches_triggers_for_pirate_damage),
         "pirate_damage_event": pirate_damage_event,
         "deal_noncombat_damage": deal_noncombat_damage,
         "activate_niv_mizzet_draw": activate_niv_mizzet_draw,
