@@ -1,0 +1,41 @@
+{
+  "entries": [
+    {
+      "path": "docs/source/MagicCompRules_2026-06-19.txt",
+      "sha256": "e99cd70eb64ca854acb6420ebbf06e369e3f258e0cfba4f03f70bd881386f79b",
+      "size_bytes": 975632,
+      "source_category": "comprehensive_rules",
+      "status": "frozen"
+    },
+    {
+      "path": "docs/source/commanders.txt",
+      "sha256": "9815e727648a0e4ecfc6179511a2aef4a0724c3b33db6540b793ea4f93965800",
+      "size_bytes": 56,
+      "source_category": "commanders",
+      "status": "frozen"
+    },
+    {
+      "path": "docs/source/decklist.txt",
+      "sha256": "dfc06c3b276e39c9bacbd18b13bd7f51b839c0e5fc5ce9cc7b7c9c272a3a7d61",
+      "size_bytes": 1284,
+      "source_category": "decklist",
+      "status": "frozen"
+    },
+    {
+      "path": "docs/source/oracle/SCHEMA.md",
+      "sha256": "e4bce1f8b915e844bea24970e643cd6c911b056ed667eb5e3b5ebc4f2ffa81e4",
+      "size_bytes": 1298,
+      "source_category": "oracle_schema",
+      "status": "frozen"
+    },
+    {
+      "path": "docs/source/oracle/REFRESH_PROCESS.md",
+      "sha256": "c23b5106557c74ba7d79d285bdb844dbe768a549684594623661b6992f97e4ee",
+      "size_bytes": 981,
+      "source_category": "oracle_schema",
+      "status": "frozen"
+    }
+  ],
+  "generated_by": "uv run mtg-sim validate-sources --write-inventory",
+  "schema_version": 1
+}
