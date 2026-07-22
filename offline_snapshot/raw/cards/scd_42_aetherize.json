@@ -1,0 +1,123 @@
+{
+  "object": "card",
+  "id": "ead56c6e-889c-48d9-87bb-9f80e5bac9b3",
+  "oracle_id": "7c779721-cd1b-4696-9ae9-68ccc284ed2a",
+  "multiverse_ids": [],
+  "mtgo_id": 103662,
+  "mtgo_foil_id": 103663,
+  "tcgplayer_id": 456718,
+  "cardmarket_id": 688937,
+  "name": "Aetherize",
+  "lang": "en",
+  "released_at": "2022-12-02",
+  "uri": "https://api.scryfall.com/cards/ead56c6e-889c-48d9-87bb-9f80e5bac9b3",
+  "scryfall_uri": "https://scryfall.com/card/scd/42/aetherize?utm_source=api",
+  "layout": "normal",
+  "highres_image": true,
+  "image_status": "highres_scan",
+  "image_updated_at": "2026-07-13T04:58:44Z",
+  "image_uris": {
+    "small": "https://cards.scryfall.io/small/front/e/a/ead56c6e-889c-48d9-87bb-9f80e5bac9b3.jpg?1783918724",
+    "normal": "https://cards.scryfall.io/normal/front/e/a/ead56c6e-889c-48d9-87bb-9f80e5bac9b3.jpg?1783918724",
+    "large": "https://cards.scryfall.io/large/front/e/a/ead56c6e-889c-48d9-87bb-9f80e5bac9b3.jpg?1783918724",
+    "png": "https://cards.scryfall.io/png/front/e/a/ead56c6e-889c-48d9-87bb-9f80e5bac9b3.png?1783918724",
+    "art_crop": "https://cards.scryfall.io/art_crop/front/e/a/ead56c6e-889c-48d9-87bb-9f80e5bac9b3.jpg?1783918724",
+    "border_crop": "https://cards.scryfall.io/border_crop/front/e/a/ead56c6e-889c-48d9-87bb-9f80e5bac9b3.jpg?1783918724"
+  },
+  "mana_cost": "{3}{U}",
+  "cmc": 4.0,
+  "type_line": "Instant",
+  "oracle_text": "Return all attacking creatures to their owner's hand.",
+  "colors": [
+    "U"
+  ],
+  "color_identity": [
+    "U"
+  ],
+  "keywords": [],
+  "legalities": {
+    "standard": "legal",
+    "future": "legal",
+    "historic": "legal",
+    "timeless": "legal",
+    "gladiator": "legal",
+    "pioneer": "legal",
+    "modern": "legal",
+    "legacy": "legal",
+    "pauper": "not_legal",
+    "vintage": "legal",
+    "penny": "not_legal",
+    "commander": "legal",
+    "oathbreaker": "legal",
+    "standardbrawl": "legal",
+    "brawl": "legal",
+    "competitivebrawl": "legal",
+    "alchemy": "legal",
+    "paupercommander": "not_legal",
+    "duel": "legal",
+    "oldschool": "not_legal",
+    "premodern": "not_legal",
+    "predh": "not_legal",
+    "tlr": "not_legal"
+  },
+  "games": [
+    "paper",
+    "mtgo"
+  ],
+  "reserved": false,
+  "game_changer": false,
+  "foil": false,
+  "nonfoil": true,
+  "finishes": [
+    "nonfoil"
+  ],
+  "oversized": false,
+  "promo": false,
+  "reprint": true,
+  "variation": false,
+  "set_id": "adc5d965-43ea-46bc-aebd-8a39282ce168",
+  "set": "scd",
+  "set_name": "Starter Commander Decks",
+  "set_type": "commander",
+  "set_uri": "https://api.scryfall.com/sets/adc5d965-43ea-46bc-aebd-8a39282ce168",
+  "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Ascd&unique=prints",
+  "scryfall_set_uri": "https://scryfall.com/sets/scd?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/ead56c6e-889c-48d9-87bb-9f80e5bac9b3/rulings",
+  "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A7c779721-cd1b-4696-9ae9-68ccc284ed2a&unique=prints",
+  "collector_number": "42",
+  "digital": false,
+  "rarity": "uncommon",
+  "flavor_text": "\"You can come back once you've learned some manners—and figured out how to reconstitute your physical forms.\"",
+  "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+  "artist": "Ryan Barger",
+  "artist_ids": [
+    "a4e0102e-bbeb-497c-babc-1c0741fea914"
+  ],
+  "illustration_id": "52128406-9aff-4392-8e06-0892df04c38b",
+  "border_color": "black",
+  "frame": "2015",
+  "full_art": false,
+  "textless": false,
+  "booster": false,
+  "story_spotlight": false,
+  "edhrec_rank": 300,
+  "penny_rank": 2961,
+  "prices": {
+    "usd": "0.30",
+    "usd_foil": null,
+    "usd_etched": null,
+    "eur": "0.56",
+    "eur_foil": null,
+    "tix": "0.46"
+  },
+  "related_uris": {
+    "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DAetherize",
+    "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DAetherize",
+    "edhrec": "https://edhrec.com/route/?cc=Aetherize"
+  },
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F456718%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=688937&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards/103662?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  }
+}

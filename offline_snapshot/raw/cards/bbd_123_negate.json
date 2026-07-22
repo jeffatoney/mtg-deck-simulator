@@ -1,0 +1,124 @@
+{
+  "object": "card",
+  "id": "fbd28be5-c493-433a-a19f-cace2214b83e",
+  "oracle_id": "3407fe41-fdd3-4119-8f70-4bc4590a379f",
+  "multiverse_ids": [
+    446091
+  ],
+  "tcgplayer_id": 167870,
+  "cardmarket_id": 358961,
+  "name": "Negate",
+  "lang": "en",
+  "released_at": "2018-06-08",
+  "uri": "https://api.scryfall.com/cards/fbd28be5-c493-433a-a19f-cace2214b83e",
+  "scryfall_uri": "https://scryfall.com/card/bbd/123/negate?utm_source=api",
+  "layout": "normal",
+  "highres_image": true,
+  "image_status": "highres_scan",
+  "image_updated_at": "2026-07-13T09:27:13Z",
+  "image_uris": {
+    "small": "https://cards.scryfall.io/small/front/f/b/fbd28be5-c493-433a-a19f-cace2214b83e.jpg?1783934833",
+    "normal": "https://cards.scryfall.io/normal/front/f/b/fbd28be5-c493-433a-a19f-cace2214b83e.jpg?1783934833",
+    "large": "https://cards.scryfall.io/large/front/f/b/fbd28be5-c493-433a-a19f-cace2214b83e.jpg?1783934833",
+    "png": "https://cards.scryfall.io/png/front/f/b/fbd28be5-c493-433a-a19f-cace2214b83e.png?1783934833",
+    "art_crop": "https://cards.scryfall.io/art_crop/front/f/b/fbd28be5-c493-433a-a19f-cace2214b83e.jpg?1783934833",
+    "border_crop": "https://cards.scryfall.io/border_crop/front/f/b/fbd28be5-c493-433a-a19f-cace2214b83e.jpg?1783934833"
+  },
+  "mana_cost": "{1}{U}",
+  "cmc": 2.0,
+  "type_line": "Instant",
+  "oracle_text": "Counter target noncreature spell.",
+  "colors": [
+    "U"
+  ],
+  "color_identity": [
+    "U"
+  ],
+  "keywords": [],
+  "legalities": {
+    "standard": "legal",
+    "future": "legal",
+    "historic": "legal",
+    "timeless": "legal",
+    "gladiator": "legal",
+    "pioneer": "legal",
+    "modern": "legal",
+    "legacy": "legal",
+    "pauper": "legal",
+    "vintage": "legal",
+    "penny": "not_legal",
+    "commander": "legal",
+    "oathbreaker": "legal",
+    "standardbrawl": "legal",
+    "brawl": "legal",
+    "competitivebrawl": "legal",
+    "alchemy": "legal",
+    "paupercommander": "legal",
+    "duel": "legal",
+    "oldschool": "not_legal",
+    "premodern": "not_legal",
+    "predh": "legal",
+    "tlr": "legal"
+  },
+  "games": [
+    "paper"
+  ],
+  "reserved": false,
+  "game_changer": false,
+  "foil": true,
+  "nonfoil": true,
+  "finishes": [
+    "nonfoil",
+    "foil"
+  ],
+  "oversized": false,
+  "promo": false,
+  "reprint": true,
+  "variation": false,
+  "set_id": "95f97fbc-58ef-4645-982e-43e2db6f1124",
+  "set": "bbd",
+  "set_name": "Battlebond",
+  "set_type": "draft_innovation",
+  "set_uri": "https://api.scryfall.com/sets/95f97fbc-58ef-4645-982e-43e2db6f1124",
+  "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Abbd&unique=prints",
+  "scryfall_set_uri": "https://scryfall.com/sets/bbd?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/fbd28be5-c493-433a-a19f-cace2214b83e/rulings",
+  "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A3407fe41-fdd3-4119-8f70-4bc4590a379f&unique=prints",
+  "collector_number": "123",
+  "digital": false,
+  "rarity": "common",
+  "flavor_text": "\"It is fascinating to see how the people of this plane replicate magical techniques without a natural gift. Also frustrating.\"\n—Jace Beleren",
+  "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+  "artist": "Zack Stella",
+  "artist_ids": [
+    "17bc7f55-958b-43f4-bb40-09746d05b3f9"
+  ],
+  "illustration_id": "86ce46b3-799d-4811-a58b-7db5fe6a12e1",
+  "border_color": "black",
+  "frame": "2015",
+  "full_art": false,
+  "textless": false,
+  "booster": true,
+  "story_spotlight": false,
+  "edhrec_rank": 54,
+  "penny_rank": 185,
+  "prices": {
+    "usd": "0.29",
+    "usd_foil": null,
+    "usd_etched": null,
+    "eur": "0.15",
+    "eur_foil": "0.67",
+    "tix": null
+  },
+  "related_uris": {
+    "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=446091&printed=false",
+    "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DNegate",
+    "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DNegate",
+    "edhrec": "https://edhrec.com/route/?cc=Negate"
+  },
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F167870%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=358961&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards?affiliate_id=scryfall&data%5Bsearch%5D=Negate&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  }
+}

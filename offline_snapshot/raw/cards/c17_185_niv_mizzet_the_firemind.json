@@ -1,0 +1,129 @@
+{
+  "object": "card",
+  "id": "110bc297-06bd-42e2-8ea1-59f6a81e5c53",
+  "oracle_id": "959acb66-84ca-4535-bca2-ad591895735e",
+  "multiverse_ids": [
+    433117
+  ],
+  "tcgplayer_id": 140000,
+  "cardmarket_id": 300499,
+  "name": "Niv-Mizzet, the Firemind",
+  "lang": "en",
+  "released_at": "2017-08-25",
+  "uri": "https://api.scryfall.com/cards/110bc297-06bd-42e2-8ea1-59f6a81e5c53",
+  "scryfall_uri": "https://scryfall.com/card/c17/185/niv-mizzet-the-firemind?utm_source=api",
+  "layout": "normal",
+  "highres_image": true,
+  "image_status": "highres_scan",
+  "image_updated_at": "2026-07-13T09:44:37Z",
+  "image_uris": {
+    "small": "https://cards.scryfall.io/small/front/1/1/110bc297-06bd-42e2-8ea1-59f6a81e5c53.jpg?1783935877",
+    "normal": "https://cards.scryfall.io/normal/front/1/1/110bc297-06bd-42e2-8ea1-59f6a81e5c53.jpg?1783935877",
+    "large": "https://cards.scryfall.io/large/front/1/1/110bc297-06bd-42e2-8ea1-59f6a81e5c53.jpg?1783935877",
+    "png": "https://cards.scryfall.io/png/front/1/1/110bc297-06bd-42e2-8ea1-59f6a81e5c53.png?1783935877",
+    "art_crop": "https://cards.scryfall.io/art_crop/front/1/1/110bc297-06bd-42e2-8ea1-59f6a81e5c53.jpg?1783935877",
+    "border_crop": "https://cards.scryfall.io/border_crop/front/1/1/110bc297-06bd-42e2-8ea1-59f6a81e5c53.jpg?1783935877"
+  },
+  "mana_cost": "{2}{U}{U}{R}{R}",
+  "cmc": 6.0,
+  "type_line": "Legendary Creature — Dragon Wizard",
+  "oracle_text": "Flying\nWhenever you draw a card, Niv-Mizzet deals 1 damage to any target.\n{T}: Draw a card.",
+  "power": "4",
+  "toughness": "4",
+  "colors": [
+    "R",
+    "U"
+  ],
+  "color_identity": [
+    "R",
+    "U"
+  ],
+  "keywords": [
+    "Flying"
+  ],
+  "legalities": {
+    "standard": "not_legal",
+    "future": "not_legal",
+    "historic": "not_legal",
+    "timeless": "not_legal",
+    "gladiator": "not_legal",
+    "pioneer": "not_legal",
+    "modern": "legal",
+    "legacy": "legal",
+    "pauper": "not_legal",
+    "vintage": "legal",
+    "penny": "legal",
+    "commander": "legal",
+    "oathbreaker": "legal",
+    "standardbrawl": "not_legal",
+    "brawl": "not_legal",
+    "competitivebrawl": "not_legal",
+    "alchemy": "not_legal",
+    "paupercommander": "not_legal",
+    "duel": "legal",
+    "oldschool": "not_legal",
+    "premodern": "not_legal",
+    "predh": "legal",
+    "tlr": "not_legal"
+  },
+  "games": [
+    "paper"
+  ],
+  "reserved": false,
+  "game_changer": false,
+  "foil": false,
+  "nonfoil": true,
+  "finishes": [
+    "nonfoil"
+  ],
+  "oversized": false,
+  "promo": false,
+  "reprint": true,
+  "variation": false,
+  "set_id": "5caec427-0c78-4c37-b4ec-30f7e0ba9abf",
+  "set": "c17",
+  "set_name": "Commander 2017",
+  "set_type": "commander",
+  "set_uri": "https://api.scryfall.com/sets/5caec427-0c78-4c37-b4ec-30f7e0ba9abf",
+  "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Ac17&unique=prints",
+  "scryfall_set_uri": "https://scryfall.com/sets/c17?utm_source=api",
+  "rulings_uri": "https://api.scryfall.com/cards/110bc297-06bd-42e2-8ea1-59f6a81e5c53/rulings",
+  "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A959acb66-84ca-4535-bca2-ad591895735e&unique=prints",
+  "collector_number": "185",
+  "digital": false,
+  "rarity": "rare",
+  "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+  "artist": "Todd Lockwood",
+  "artist_ids": [
+    "d0b9f3cc-13fb-42b6-bc43-b034728e5c7b"
+  ],
+  "illustration_id": "4fe18888-ae07-4e02-a99b-bdc95194494c",
+  "border_color": "black",
+  "frame": "2015",
+  "security_stamp": "oval",
+  "full_art": false,
+  "textless": false,
+  "booster": false,
+  "story_spotlight": false,
+  "edhrec_rank": 2452,
+  "penny_rank": 4415,
+  "prices": {
+    "usd": "1.74",
+    "usd_foil": null,
+    "usd_etched": null,
+    "eur": "0.82",
+    "eur_foil": null,
+    "tix": null
+  },
+  "related_uris": {
+    "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=433117&printed=false",
+    "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DNiv-Mizzet%252C%2Bthe%2BFiremind",
+    "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DNiv-Mizzet%252C%2Bthe%2BFiremind",
+    "edhrec": "https://edhrec.com/route/?cc=Niv-Mizzet%2C+the+Firemind"
+  },
+  "purchase_uris": {
+    "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F140000%3Fpage%3D1",
+    "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=300499&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+    "cardhoarder": "https://www.cardhoarder.com/cards?affiliate_id=scryfall&data%5Bsearch%5D=Niv-Mizzet%2C+the+Firemind&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall"
+  }
+}

@@ -1,0 +1,80 @@
+1 Malcolm, Keen-Eyed Navigator (LCC) 161 *CMDR*
+1 Breeches, Brazen Plunderer (LCC) 217 *CMDR*
+1 Glint-Horn Buccaneer (PM20) 141p
+1 Curiosity (A25) 52
+1 Niv-Mizzet, the Firemind (C17) 185
+1 Psychosis Crawler (BLC) 282
+1 Dualcaster Mage (C20) 150
+1 Twinflame (SOC) 258
+1 Electroduplicate (FDN) 85
+1 Lightning-Rig Crew (XLN) 150
+1 Crab Umbra (ROE) 58
+1 Drift of Phantasms (PLST) RAV-46
+1 Muddle the Mixture (RVR) 50
+1 Dizzy Spell (RAV) 43
+1 Step Through (MH2) 392
+1 Vedalken Aethermage (FUT) 61
+1 Invert // Invent (GRN) 228
+1 Long-Term Plans (SCG) 38
+1 Siren Stormtamer (XLN) 79
+1 Spectral Sailor (JMP) 178
+1 Storm Fleet Sprinter (RIX) 172
+1 Wily Goblin (XLN) 174
+1 Sol Ring (M3C) 305
+1 Arcane Signet (ONC) 125
+1 Izzet Signet (GPT) 152
+1 Prismatic Lens (CMM) 403
+1 Fellwar Stone (SOC) 347
+1 Mind Stone (KHC) 102
+1 Prismari Command (SOC) 323
+1 Commit // Memory (LCC) 147
+1 Expedite (BBD) 177
+1 Opt (FDN) 512
+1 Sleight of Hand (WOE) 67
+1 Faithless Looting (LTC) 215
+1 Frantic Search (TDC) 153
+1 Impulse (DMU) 55
+1 Chart a Course (PLST) XLN-48
+1 Fact or Fiction (ZNC) 25
+1 Arcane Denial (DRC) 70
+1 Negate (BBD) 123
+1 Dispel (BFZ) 76
+1 Spell Pierce (MM3) 51
+1 Wash Away (VOW) 87
+1 Change the Equation (MOM) 50
+1 Syncopate (RTR) 54
+1 Lazotep Plating (PLST) WAR-59
+1 Reality Ripple (MIR) 87
+1 Fading Hope (MID) 51
+1 Ravenform (KHM) 72
+1 Reality Shift (NEC) 95
+1 Resculpt (SOC) 201
+1 Abrade (SOC) 234
+1 Into the Roil (FDN) 509
+1 Curse of the Swine (SOC) 192
+1 Vandalblast (FIC) 298
+1 By Force (AKH) 123
+1 Rebuild (MH1) 66
+1 Brotherhood's End (BRO) 128
+1 Fiery Cannonade (XLN) 143
+1 Aetherize (SCD) 42
+1 Introduction to Annihilation (STX) 3
+1 Echoing Truth (PLST) DMC-109
+1 Soul-Guide Lantern (DRC) 139
+1 Sentinel Totem (XLN) 245
+1 Command Tower (WHO) 266
+1 Exotic Orchard (SOC) 369
+1 Shivan Reef (M3C) 375
+1 Cascade Bluffs (TDC) 345
+1 Temple of Epiphany (M3C) 387
+1 Izzet Boilerworks (M3C) 350
+1 Frostboil Snarl (LCC) 332
+1 Thriving Isle (J25) 778
+1 Ash Barrens (M3C) 318
+1 Evolving Wilds (FIC) 389
+1 Terramorphic Expanse (C17) 285
+1 Scavenger Grounds (CMM) 1027
+1 Demolition Field (FDN) 687
+1 Path of Ancestry (DRC) 166
+12 Island (FDN) 285
+10 Mountain (FDN) 288

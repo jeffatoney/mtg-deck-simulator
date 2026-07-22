@@ -1,0 +1,1099 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-22T06:59:55.596280+00:00",
+  "deck_sha256": "d620c125d5cbb422196a2037fb9dafaaa60ce4e4b449198a84473540fc265edd",
+  "behavior_registry": [
+    {
+      "name": "Malcolm, Keen-Eyed Navigator",
+      "set": "lcc",
+      "collector_number": "161",
+      "implementation": "malcolm_treasure_trigger_v1",
+      "version": 1,
+      "roles": [
+        "commander",
+        "pirate",
+        "mana_engine",
+        "combo_piece"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Breeches, Brazen Plunderer",
+      "set": "lcc",
+      "collector_number": "217",
+      "implementation": "breeches_exile_top_cards_v1",
+      "version": 1,
+      "roles": [
+        "commander",
+        "pirate",
+        "card_advantage"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Glint-Horn Buccaneer",
+      "set": "pm20",
+      "collector_number": "141p",
+      "implementation": "glint_horn_buccaneer_v1",
+      "version": 1,
+      "roles": [
+        "pirate",
+        "combo_piece",
+        "discard_engine",
+        "damage_engine"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Curiosity",
+      "set": "a25",
+      "collector_number": "52",
+      "implementation": "curiosity_optional_damage_draw_v1",
+      "version": 1,
+      "roles": [
+        "combo_piece",
+        "draw_engine",
+        "aura"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Niv-Mizzet, the Firemind",
+      "set": "c17",
+      "collector_number": "185",
+      "implementation": "niv_mizzet_firemind_v1",
+      "version": 1,
+      "roles": [
+        "combo_piece",
+        "draw_engine",
+        "damage_engine"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Psychosis Crawler",
+      "set": "blc",
+      "collector_number": "282",
+      "implementation": "psychosis_crawler_v1",
+      "version": 1,
+      "roles": [
+        "combo_piece",
+        "damage_engine"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Dualcaster Mage",
+      "set": "c20",
+      "collector_number": "150",
+      "implementation": "dualcaster_mage_copy_trigger_v1",
+      "version": 1,
+      "roles": [
+        "combo_piece",
+        "wizard",
+        "copy_effect"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Twinflame",
+      "set": "soc",
+      "collector_number": "258",
+      "implementation": "twinflame_strive_copy_v1",
+      "version": 1,
+      "roles": [
+        "combo_piece",
+        "copy_spell"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Electroduplicate",
+      "set": "fdn",
+      "collector_number": "85",
+      "implementation": "electroduplicate_flashback_v1",
+      "version": 1,
+      "roles": [
+        "combo_piece",
+        "copy_spell",
+        "graveyard_value"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Lightning-Rig Crew",
+      "set": "xln",
+      "collector_number": "150",
+      "implementation": "lightning_rig_crew_v1",
+      "version": 1,
+      "roles": [
+        "pirate",
+        "combo_piece",
+        "damage_engine"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Crab Umbra",
+      "set": "roe",
+      "collector_number": "58",
+      "implementation": "crab_umbra_untap_totem_armor_v1",
+      "version": 1,
+      "roles": [
+        "combo_piece",
+        "untap_engine",
+        "aura"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Drift of Phantasms",
+      "set": "plst",
+      "collector_number": "RAV-46",
+      "implementation": "drift_phantasms_transmute_mv3_v1",
+      "version": 1,
+      "roles": [
+        "tutor",
+        "dual_access",
+        "glint_access"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Muddle the Mixture",
+      "set": "rvr",
+      "collector_number": "50",
+      "implementation": "muddle_counter_transmute_mv2_v1",
+      "version": 1,
+      "roles": [
+        "tutor",
+        "copy_spell_access",
+        "counterspell"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Dizzy Spell",
+      "set": "rav",
+      "collector_number": "43",
+      "implementation": "dizzy_spell_transmute_mv1_v1",
+      "version": 1,
+      "roles": [
+        "tutor",
+        "curiosity_access"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Step Through",
+      "set": "mh2",
+      "collector_number": "392",
+      "implementation": "step_through_wizardcycling_v1",
+      "version": 1,
+      "roles": [
+        "tutor",
+        "wizard_access",
+        "draw"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Vedalken Aethermage",
+      "set": "fut",
+      "collector_number": "61",
+      "implementation": "vedalken_aethermage_wizardcycling_v1",
+      "version": 1,
+      "roles": [
+        "tutor",
+        "wizard_access"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Invert // Invent",
+      "set": "grn",
+      "collector_number": "228",
+      "implementation": "invert_invent_split_instant_v1",
+      "version": 1,
+      "roles": [
+        "tutor",
+        "copy_spell_access",
+        "split_card"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Long-Term Plans",
+      "set": "scg",
+      "collector_number": "38",
+      "implementation": "long_term_plans_third_from_top_v1",
+      "version": 1,
+      "roles": [
+        "tutor",
+        "universal_access"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Siren Stormtamer",
+      "set": "xln",
+      "collector_number": "79",
+      "implementation": "siren_stormtamer_protection_v1",
+      "version": 1,
+      "roles": [
+        "pirate",
+        "wizard",
+        "protection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Spectral Sailor",
+      "set": "jmp",
+      "collector_number": "178",
+      "implementation": "spectral_sailor_flash_draw_v1",
+      "version": 1,
+      "roles": [
+        "pirate",
+        "draw_engine"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Storm Fleet Sprinter",
+      "set": "rix",
+      "collector_number": "172",
+      "implementation": "storm_fleet_sprinter_v1",
+      "version": 1,
+      "roles": [
+        "pirate",
+        "evasive_attacker"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Wily Goblin",
+      "set": "xln",
+      "collector_number": "174",
+      "implementation": "wily_goblin_treasure_etb_v1",
+      "version": 1,
+      "roles": [
+        "pirate",
+        "ramp"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Sol Ring",
+      "set": "m3c",
+      "collector_number": "305",
+      "implementation": "sol_ring_mana_v1",
+      "version": 1,
+      "roles": [
+        "ramp",
+        "mana_rock"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Arcane Signet",
+      "set": "onc",
+      "collector_number": "125",
+      "implementation": "arcane_signet_mana_v1",
+      "version": 1,
+      "roles": [
+        "ramp",
+        "mana_rock"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Izzet Signet",
+      "set": "gpt",
+      "collector_number": "152",
+      "implementation": "izzet_signet_filter_v1",
+      "version": 1,
+      "roles": [
+        "ramp",
+        "mana_rock",
+        "filter"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Prismatic Lens",
+      "set": "cmm",
+      "collector_number": "403",
+      "implementation": "prismatic_lens_filter_v1",
+      "version": 1,
+      "roles": [
+        "ramp",
+        "mana_rock",
+        "filter"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Fellwar Stone",
+      "set": "soc",
+      "collector_number": "347",
+      "implementation": "fellwar_stone_opponent_color_v1",
+      "version": 1,
+      "roles": [
+        "ramp",
+        "mana_rock",
+        "opponent_dependent"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Mind Stone",
+      "set": "khc",
+      "collector_number": "102",
+      "implementation": "mind_stone_mana_draw_v1",
+      "version": 1,
+      "roles": [
+        "ramp",
+        "mana_rock",
+        "draw"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Prismari Command",
+      "set": "soc",
+      "collector_number": "323",
+      "implementation": "prismari_command_modes_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "loot",
+        "treasure",
+        "artifact_removal"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Commit // Memory",
+      "set": "lcc",
+      "collector_number": "147",
+      "implementation": "commit_memory_aftermath_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "wheel",
+        "split_card"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Expedite",
+      "set": "bbd",
+      "collector_number": "177",
+      "implementation": "expedite_haste_draw_v1",
+      "version": 1,
+      "roles": [
+        "cantrip",
+        "haste"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Opt",
+      "set": "fdn",
+      "collector_number": "512",
+      "implementation": "opt_scry_draw_v1",
+      "version": 1,
+      "roles": [
+        "cantrip",
+        "selection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Sleight of Hand",
+      "set": "woe",
+      "collector_number": "67",
+      "implementation": "sleight_of_hand_selection_v1",
+      "version": 1,
+      "roles": [
+        "cantrip",
+        "selection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Faithless Looting",
+      "set": "ltc",
+      "collector_number": "215",
+      "implementation": "faithless_looting_flashback_v1",
+      "version": 1,
+      "roles": [
+        "selection",
+        "discard",
+        "graveyard_value"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Frantic Search",
+      "set": "tdc",
+      "collector_number": "153",
+      "implementation": "frantic_search_untap_v1",
+      "version": 1,
+      "roles": [
+        "selection",
+        "discard",
+        "mana_neutral"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Impulse",
+      "set": "dmu",
+      "collector_number": "55",
+      "implementation": "impulse_top_four_v1",
+      "version": 1,
+      "roles": [
+        "selection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Chart a Course",
+      "set": "plst",
+      "collector_number": "XLN-48",
+      "implementation": "chart_a_course_raid_v1",
+      "version": 1,
+      "roles": [
+        "draw",
+        "discard"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Fact or Fiction",
+      "set": "znc",
+      "collector_number": "25",
+      "implementation": "fact_or_fiction_piles_v1",
+      "version": 1,
+      "roles": [
+        "draw",
+        "selection",
+        "opponent_choice"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Arcane Denial",
+      "set": "drc",
+      "collector_number": "70",
+      "implementation": "arcane_denial_v1",
+      "version": 1,
+      "roles": [
+        "counterspell",
+        "protection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Negate",
+      "set": "bbd",
+      "collector_number": "123",
+      "implementation": "negate_v1",
+      "version": 1,
+      "roles": [
+        "counterspell",
+        "protection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Dispel",
+      "set": "bfz",
+      "collector_number": "76",
+      "implementation": "dispel_v1",
+      "version": 1,
+      "roles": [
+        "counterspell",
+        "protection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Spell Pierce",
+      "set": "mm3",
+      "collector_number": "51",
+      "implementation": "spell_pierce_v1",
+      "version": 1,
+      "roles": [
+        "counterspell",
+        "protection",
+        "conditional"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Wash Away",
+      "set": "vow",
+      "collector_number": "87",
+      "implementation": "wash_away_cleave_v1",
+      "version": 1,
+      "roles": [
+        "counterspell",
+        "protection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Change the Equation",
+      "set": "mom",
+      "collector_number": "50",
+      "implementation": "change_the_equation_v1",
+      "version": 1,
+      "roles": [
+        "counterspell",
+        "protection",
+        "conditional"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Syncopate",
+      "set": "rtr",
+      "collector_number": "54",
+      "implementation": "syncopate_x_exile_v1",
+      "version": 1,
+      "roles": [
+        "counterspell",
+        "protection",
+        "conditional"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Lazotep Plating",
+      "set": "plst",
+      "collector_number": "WAR-59",
+      "implementation": "lazotep_plating_hexproof_v1",
+      "version": 1,
+      "roles": [
+        "protection",
+        "token"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Reality Ripple",
+      "set": "mir",
+      "collector_number": "87",
+      "implementation": "reality_ripple_phase_v1",
+      "version": 1,
+      "roles": [
+        "protection",
+        "phasing"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Fading Hope",
+      "set": "mid",
+      "collector_number": "51",
+      "implementation": "fading_hope_bounce_scry_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "bounce",
+        "selection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Ravenform",
+      "set": "khm",
+      "collector_number": "72",
+      "implementation": "ravenform_foretell_exile_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "exile"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Reality Shift",
+      "set": "nec",
+      "collector_number": "95",
+      "implementation": "reality_shift_manifest_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "exile"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Resculpt",
+      "set": "soc",
+      "collector_number": "201",
+      "implementation": "resculpt_exile_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "exile",
+        "artifact_removal"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Abrade",
+      "set": "soc",
+      "collector_number": "234",
+      "implementation": "abrade_modes_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "damage",
+        "artifact_removal"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Into the Roil",
+      "set": "fdn",
+      "collector_number": "509",
+      "implementation": "into_the_roil_kicker_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "bounce",
+        "draw"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Curse of the Swine",
+      "set": "soc",
+      "collector_number": "192",
+      "implementation": "curse_of_the_swine_x_exile_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "mass_exile"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Vandalblast",
+      "set": "fic",
+      "collector_number": "298",
+      "implementation": "vandalblast_overload_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "artifact_removal",
+        "mass_artifact_removal"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "By Force",
+      "set": "akh",
+      "collector_number": "123",
+      "implementation": "by_force_x_targets_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "mass_artifact_removal"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Rebuild",
+      "set": "mh1",
+      "collector_number": "66",
+      "implementation": "rebuild_cycling_bounce_artifacts_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "mass_artifact_bounce"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Brotherhood's End",
+      "set": "bro",
+      "collector_number": "128",
+      "implementation": "brotherhoods_end_modes_v1",
+      "version": 1,
+      "roles": [
+        "board_wipe",
+        "artifact_removal"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Fiery Cannonade",
+      "set": "xln",
+      "collector_number": "143",
+      "implementation": "fiery_cannonade_nonpirates_v1",
+      "version": 1,
+      "roles": [
+        "board_wipe",
+        "pirate_asymmetry"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Aetherize",
+      "set": "scd",
+      "collector_number": "42",
+      "implementation": "aetherize_attacking_bounce_v1",
+      "version": 1,
+      "roles": [
+        "board_wipe",
+        "combat_interaction"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Introduction to Annihilation",
+      "set": "stx",
+      "collector_number": "3",
+      "implementation": "introduction_annihilation_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "exile",
+        "opponent_draw"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Echoing Truth",
+      "set": "plst",
+      "collector_number": "DMC-109",
+      "implementation": "echoing_truth_v1",
+      "version": 1,
+      "roles": [
+        "interaction",
+        "bounce",
+        "token_control"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Soul-Guide Lantern",
+      "set": "drc",
+      "collector_number": "139",
+      "implementation": "soul_guide_lantern_v1",
+      "version": 1,
+      "roles": [
+        "graveyard_hate",
+        "draw"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Sentinel Totem",
+      "set": "xln",
+      "collector_number": "245",
+      "implementation": "sentinel_totem_v1",
+      "version": 1,
+      "roles": [
+        "graveyard_hate",
+        "scry"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Command Tower",
+      "set": "who",
+      "collector_number": "266",
+      "implementation": "command_tower_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "colored_source"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Exotic Orchard",
+      "set": "soc",
+      "collector_number": "369",
+      "implementation": "exotic_orchard_opponent_color_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "colored_source",
+        "opponent_dependent"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Shivan Reef",
+      "set": "m3c",
+      "collector_number": "375",
+      "implementation": "shivan_reef_painland_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "colored_source"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Cascade Bluffs",
+      "set": "tdc",
+      "collector_number": "345",
+      "implementation": "cascade_bluffs_filter_land_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "colored_source",
+        "filter"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Temple of Epiphany",
+      "set": "m3c",
+      "collector_number": "387",
+      "implementation": "temple_epiphany_tapped_scry_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "colored_source",
+        "enters_tapped",
+        "selection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Izzet Boilerworks",
+      "set": "m3c",
+      "collector_number": "350",
+      "implementation": "izzet_boilerworks_bounceland_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "colored_source",
+        "enters_tapped",
+        "bounce_land"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Frostboil Snarl",
+      "set": "lcc",
+      "collector_number": "332",
+      "implementation": "frostboil_snarl_reveal_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "colored_source",
+        "conditional_tapped"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Thriving Isle",
+      "set": "j25",
+      "collector_number": "778",
+      "implementation": "thriving_isle_choose_color_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "colored_source",
+        "enters_tapped"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Ash Barrens",
+      "set": "m3c",
+      "collector_number": "318",
+      "implementation": "ash_barrens_basic_landcycling_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "color_fixing",
+        "cycling"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Evolving Wilds",
+      "set": "fic",
+      "collector_number": "389",
+      "implementation": "evolving_wilds_fetch_tapped_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "color_fixing",
+        "fetch"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Terramorphic Expanse",
+      "set": "c17",
+      "collector_number": "285",
+      "implementation": "terramorphic_expanse_fetch_tapped_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "color_fixing",
+        "fetch"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Scavenger Grounds",
+      "set": "cmm",
+      "collector_number": "1027",
+      "implementation": "scavenger_grounds_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "graveyard_hate",
+        "colorless_source"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Demolition Field",
+      "set": "fdn",
+      "collector_number": "687",
+      "implementation": "demolition_field_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "land_interaction",
+        "colorless_source"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Path of Ancestry",
+      "set": "drc",
+      "collector_number": "166",
+      "implementation": "path_of_ancestry_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "colored_source",
+        "enters_tapped",
+        "selection"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Island",
+      "set": "fdn",
+      "collector_number": "285",
+      "implementation": "basic_island_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "blue_source",
+        "basic"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    },
+    {
+      "name": "Mountain",
+      "set": "fdn",
+      "collector_number": "288",
+      "implementation": "basic_mountain_v1",
+      "version": 1,
+      "roles": [
+        "land",
+        "red_source",
+        "basic"
+      ],
+      "declaration_status": "declared",
+      "rules_test_status": "pending_pilot_rules_validation"
+    }
+  ]
+}

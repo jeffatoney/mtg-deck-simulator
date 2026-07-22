@@ -1,0 +1,25 @@
+{
+  "card_data_status": "PASS",
+  "exact_printing_validation_passed": true,
+  "exact_entries_expected": 80,
+  "exact_entries_resolved": 80,
+  "bulk_record_count": 116138,
+  "commander_illegal_count": 0,
+  "digital_only_count": 0,
+  "game_changer_count": 0,
+  "multiface_missing_count": 0,
+  "behavior_declaration_missing_count": 0,
+  "image_manifest_entries": 164,
+  "image_urls_missing": 0,
+  "image_cache_status": "PENDING_EXTERNAL_DOWNLOAD",
+  "rules_engine_tests_status": "PENDING",
+  "pilot_allowed_under_original_requirements": false,
+  "pilot_blockers": [
+    "Small/normal image files are not cached yet.",
+    "Behavior names are declared, but executable behavior implementations and rules tests are not yet validated."
+  ],
+  "validation_errors": [],
+  "bulk_sha256": "6dc3ad46f5bbfaa77a556e73aafb0521cf33ccd5bfaba2590b95de2405739f71",
+  "deck_sha256": "d620c125d5cbb422196a2037fb9dafaaa60ce4e4b449198a84473540fc265edd",
+  "exact_snapshot_sha256": "b0878c024de49c7cb7a74a61f77d40aa82a1752440ad1f8f65a19e4e5e6cb25e"
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "ingested_at_utc": "2026-07-22T07:38:33.590228+00:00",
+  "source": "Scryfall default-cards JSONL gzip supplied by user",
+  "source_filename": "default-cards-20260721211623.jsonl (1).gz",
+  "bulk_record_count": 116138,
+  "bulk_sha256": "6dc3ad46f5bbfaa77a556e73aafb0521cf33ccd5bfaba2590b95de2405739f71",
+  "deck_sha256": "d620c125d5cbb422196a2037fb9dafaaa60ce4e4b449198a84473540fc265edd",
+  "exact_entries_expected": 80,
+  "exact_entries_resolved": 80,
+  "total_deck_cards": 100,
+  "exact_snapshot_sha256": "b0878c024de49c7cb7a74a61f77d40aa82a1752440ad1f8f65a19e4e5e6cb25e"
+}
