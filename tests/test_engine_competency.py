@@ -7,6 +7,12 @@ from mtg_sim.engine import (
     Permanent,
     Phase,
     RulesError,
+    declare_attackers,
+    deal_damage,
+    move_commander_to_zone,
+    retarget_stack_object,
+    sacrifice_treasure_for_mana,
+    solve_mana_payment,
     activate_glint_horn,
     cast_commander,
     cast_dualcaster_mage,
@@ -196,7 +202,9 @@ def test_one_tutor_cannot_provide_both_halves_of_combo():
 def test_commander_tax_increases_after_each_command_zone_casting():
     s = GameState()
     assert cast_commander("Malcolm, Keen-Eyed Navigator", 3, s) == 3
+    move_commander_to_zone(s, "Malcolm, Keen-Eyed Navigator", "graveyard", choose_command_zone=True)
     assert cast_commander("Malcolm, Keen-Eyed Navigator", 3, s) == 5
+    move_commander_to_zone(s, "Malcolm, Keen-Eyed Navigator", "graveyard", choose_command_zone=True)
     assert cast_commander("Malcolm, Keen-Eyed Navigator", 3, s) == 7
 
 
@@ -216,3 +224,141 @@ def test_tapped_lands_and_colored_mana_are_sequenced_legally():
 def test_same_seed_reproduces_same_shuffle_and_result():
     cards = [str(i) for i in range(10)]
     assert shuffled_library(cards, 8675309) == shuffled_library(cards, 8675309)
+
+
+def test_phase4b_001_colored_mana_legality():
+    assert solve_mana_payment({"U": 1}, {"U": 1})["U"] == 0
+    with pytest.raises(RulesError):
+        solve_mana_payment({"R": 1}, {"U": 1})
+
+
+def test_phase4b_002_generic_mana_legality():
+    assert solve_mana_payment({"R": 1, "U": 1}, {"generic": 2}) == {
+        "C": 0,
+        "W": 0,
+        "U": 0,
+        "B": 0,
+        "R": 0,
+        "G": 0,
+    }
+    with pytest.raises(RulesError):
+        solve_mana_payment({"R": 1}, {"generic": 2})
+
+
+def test_phase4b_003_tapped_lands_cannot_produce_mana():
+    s = GameState()
+    land = play_land(s, "Island")
+    tap_for_mana(s, land)
+    with pytest.raises(RulesError):
+        tap_for_mana(s, land)
+
+
+def test_phase4b_004_entry_tapped_sequencing_and_choice():
+    s = GameState()
+    gate = play_land(s, "Izzet Guildgate")
+    assert gate.tapped
+    with pytest.raises(RulesError):
+        tap_for_mana(s, gate)
+    s.advance_phase(Phase.BEGINNING)
+    pathway = play_land(s, "Riverglide Pathway", enter_tapped=False)
+    assert not pathway.tapped
+
+
+def test_phase4b_005_treasure_colored_mana_use():
+    s = GameState(treasures=1)
+    sacrifice_treasure_for_mana(s, "G")
+    assert s.treasures == 0 and s.mana_pool["G"] == 1
+
+
+def test_phase4b_006_summoning_sickness():
+    s = GameState(battlefield=[Permanent("Lightning-Rig Crew", {"Creature"}, {"Pirate"})])
+    with pytest.raises(RulesError):
+        declare_attackers(s, s.battlefield)
+
+
+def test_phase4b_007_haste():
+    p = Permanent("Hasty Pirate", {"Creature"}, {"Pirate"}, haste=True)
+    s = GameState(battlefield=[p])
+    declare_attackers(s, [p])
+    assert p.attacking and p.tapped
+
+
+def test_phase4b_008_attacking_status():
+    p = Permanent("Pirate", {"Creature"}, {"Pirate"}, summoning_sick=False)
+    s = GameState(battlefield=[p])
+    declare_attackers(s, [p])
+    assert p.attacking
+
+
+def test_phase4b_009_damage_prevention():
+    p = Permanent("Prevented Pirate", {"Creature"}, {"Pirate"}, damage_prevented=True)
+    s = GameState(opponent_life=[3, 3, 3])
+    deal_damage(s, p, [0], 3, combat=True)
+    assert s.opponent_life == [3, 3, 3]
+
+
+def test_phase4b_010_unequal_opponent_life_totals():
+    s = GameState(opponent_life=[1, 5, 9])
+    deal_damage(s, "Lightning Bolt", [1], 3, combat=False)
+    assert s.opponent_life == [1, 2, 9] and not s.won
+
+
+def test_phase4b_011_simultaneous_opponent_loss():
+    s = GameState(opponent_life=[2, 2, 2])
+    deal_damage(s, "Earthquake", [0, 1, 2], 2, combat=False)
+    assert s.won and s.terminal
+
+
+def test_phase4b_012_independent_commander_tax():
+    s = GameState()
+    assert cast_commander("Malcolm, Keen-Eyed Navigator", 3, s) == 3
+    move_commander_to_zone(s, "Malcolm, Keen-Eyed Navigator", "graveyard", choose_command_zone=True)
+    assert cast_commander("Breeches, Brazen Plunderer", 4, s) == 4
+    assert cast_commander("Malcolm, Keen-Eyed Navigator", 3, s) == 5
+
+
+def test_phase4b_013_command_zone_choices():
+    s = GameState()
+    move_commander_to_zone(
+        s, "Malcolm, Keen-Eyed Navigator", "graveyard", choose_command_zone=False
+    )
+    assert "Malcolm, Keen-Eyed Navigator" in s.graveyard
+    move_commander_to_zone(s, "Breeches, Brazen Plunderer", "exile", choose_command_zone=True)
+    assert (
+        "Breeches, Brazen Plunderer" in s.command_zone
+        and "Breeches, Brazen Plunderer" not in s.exile
+    )
+
+
+def test_phase4b_014_copied_spell_is_not_cast():
+    target = Permanent("Siren", {"Creature"})
+    s = GameState(battlefield=[target])
+    cast_twinflame(s, target)
+    cast_dualcaster_mage(s)
+    assert s.stack[-1].kind == "copy" and not s.stack[-1].cast
+
+
+def test_phase4b_015_legal_and_illegal_retargeting():
+    target = Permanent("Siren", {"Creature"})
+    replacement = Permanent("Dualcaster Mage", {"Creature"})
+    s = GameState(battlefield=[target, replacement])
+    copy = cast_twinflame(s, target)
+    retarget_stack_object(copy, [replacement], s.battlefield)
+    assert copy.targets == [replacement]
+    with pytest.raises(RulesError):
+        retarget_stack_object(copy, [Permanent("Mountain", {"Land"})], s.battlefield)
+
+
+def test_phase4b_016_additional_cleanup_steps():
+    s = GameState(cleanup_trigger_pending=True)
+    cleanup_step(s)
+    assert s.cleanup_steps == 2
+
+
+def test_phase4b_017_game_ends_before_another_activation_or_draw_when_all_opponents_lose():
+    s = GameState(opponent_life=[1, 1, 1])
+    deal_damage(s, "Glint-Horn Buccaneer", [0, 1, 2], 1, combat=False)
+    with pytest.raises(RulesError):
+        sacrifice_treasure_for_mana(s, "R")
+    with pytest.raises(RulesError):
+        s.draw()
