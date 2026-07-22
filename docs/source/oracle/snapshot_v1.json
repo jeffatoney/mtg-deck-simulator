@@ -1,0 +1,2779 @@
+{
+  "cards": [
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Abrade",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Abrade",
+      "oracle_id": "3c99ef4c-0000-4000-8000-32fcfa8bf903",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Aetherize",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Aetherize",
+      "oracle_id": "d67d32c2-0000-4000-8000-433812c8cdc0",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Arcane Denial",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Arcane Denial",
+      "oracle_id": "cf1efec6-0000-4000-8000-e65b04879a77",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Arcane Signet",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Arcane Signet",
+      "oracle_id": "ac161f60-0000-4000-8000-dff3a657847f",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Ash Barrens",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Ash Barrens",
+      "oracle_id": "b8a3c2ac-0000-4000-8000-3ae1b075b212",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Breeches, Brazen Plunderer",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Legendary Creature"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Breeches, Brazen Plunderer",
+      "oracle_id": "c35bda49-0000-4000-8000-fb1b6c460ac0",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Legendary Creature"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Brotherhood's End",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Brotherhood's End",
+      "oracle_id": "2e89616f-0000-4000-8000-3e7943ca37f6",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "By Force",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "By Force",
+      "oracle_id": "8d1b426f-0000-4000-8000-9cb87062dd90",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Cascade Bluffs",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Cascade Bluffs",
+      "oracle_id": "894fa1a4-0000-4000-8000-9e63dd3ffbb5",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Change the Equation",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Change the Equation",
+      "oracle_id": "116efed4-0000-4000-8000-3d09e157226b",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Chart a Course",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Chart a Course",
+      "oracle_id": "db028b0c-0000-4000-8000-ea71aae96a84",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Command Tower",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Command Tower",
+      "oracle_id": "eed9242c-0000-4000-8000-601af98a33b6",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Commit",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        },
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Memory",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Commit // Memory",
+      "oracle_id": "a1e3af23-0000-4000-8000-998b24f1c31d",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Crab Umbra",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Crab Umbra",
+      "oracle_id": "0e0f66ea-0000-4000-8000-c0a982e23feb",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Curiosity",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Curiosity",
+      "oracle_id": "e937b1e1-0000-4000-8000-c0a70c188a99",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Curse of the Swine",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Curse of the Swine",
+      "oracle_id": "de800b33-0000-4000-8000-a7ae19730c88",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Demolition Field",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Demolition Field",
+      "oracle_id": "5ac6ed8d-0000-4000-8000-5e7377c09a4a",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Dispel",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Dispel",
+      "oracle_id": "c350bc73-0000-4000-8000-4db6659cf5cf",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Dizzy Spell",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Dizzy Spell",
+      "oracle_id": "2ebaa489-0000-4000-8000-c565afdcf260",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Drift of Phantasms",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Drift of Phantasms",
+      "oracle_id": "6c62bfb8-0000-4000-8000-60c4f206a305",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Dualcaster Mage",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Dualcaster Mage",
+      "oracle_id": "f81bd192-0000-4000-8000-e62059a6c336",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Echoing Truth",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Echoing Truth",
+      "oracle_id": "a0b9f765-0000-4000-8000-23f688bb3653",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Electroduplicate",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Electroduplicate",
+      "oracle_id": "fa39b256-0000-4000-8000-c8ae94f5f65d",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Evolving Wilds",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Evolving Wilds",
+      "oracle_id": "bf73d48f-0000-4000-8000-49c1e20252b0",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Exotic Orchard",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Exotic Orchard",
+      "oracle_id": "22323de6-0000-4000-8000-befc0f08eac4",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Expedite",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Expedite",
+      "oracle_id": "0989d328-0000-4000-8000-446fa7fc80ba",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Fact or Fiction",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Fact or Fiction",
+      "oracle_id": "aa8b6ff6-0000-4000-8000-c4f9088fb160",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Fading Hope",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Fading Hope",
+      "oracle_id": "ab16dcfb-0000-4000-8000-fab8208b26a5",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Faithless Looting",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Faithless Looting",
+      "oracle_id": "4bc514e8-0000-4000-8000-510223aaf4f3",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Fellwar Stone",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Fellwar Stone",
+      "oracle_id": "15353c4a-0000-4000-8000-908e97702a9a",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Fiery Cannonade",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Fiery Cannonade",
+      "oracle_id": "9eda2e30-0000-4000-8000-4e766aa26643",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Frantic Search",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Frantic Search",
+      "oracle_id": "106b713c-0000-4000-8000-763a2891207d",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Frostboil Snarl",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Frostboil Snarl",
+      "oracle_id": "9a08a3b3-0000-4000-8000-2b5861067201",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Glint-Horn Buccaneer",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Glint-Horn Buccaneer",
+      "oracle_id": "1c518ac4-0000-4000-8000-f7cdc610a3e0",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Impulse",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Impulse",
+      "oracle_id": "2ba5594d-0000-4000-8000-e8e4d4d8c81d",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Into the Roil",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Into the Roil",
+      "oracle_id": "a34094b6-0000-4000-8000-0ffbbac524b9",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Introduction to Annihilation",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Introduction to Annihilation",
+      "oracle_id": "3d915a4d-0000-4000-8000-008fae2184e4",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Invert",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        },
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Invent",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Invert // Invent",
+      "oracle_id": "91dbdbb2-0000-4000-8000-77516f79cdbc",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [
+            "U"
+          ],
+          "colors": [
+            "U"
+          ],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Island",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Basic Land \u2014 Island"
+        }
+      ],
+      "color_identity": [
+        "U"
+      ],
+      "colors": [
+        "U"
+      ],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": 0,
+      "name": "Island",
+      "oracle_id": "551884ee-0000-4000-8000-730f5017a47f",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Basic Land \u2014 Island"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Izzet Boilerworks",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Izzet Boilerworks",
+      "oracle_id": "a79f83ca-0000-4000-8000-e2875c78bab3",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Izzet Signet",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Izzet Signet",
+      "oracle_id": "ea093b69-0000-4000-8000-f2405b3e60de",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Lazotep Plating",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Lazotep Plating",
+      "oracle_id": "14279839-0000-4000-8000-f3a73bcb9972",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Lightning-Rig Crew",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Lightning-Rig Crew",
+      "oracle_id": "d0a5cddc-0000-4000-8000-e80ea16795b2",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Long-Term Plans",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Long-Term Plans",
+      "oracle_id": "b94249c3-0000-4000-8000-a0fde9ce6a45",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Malcolm, Keen-Eyed Navigator",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Legendary Creature"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Malcolm, Keen-Eyed Navigator",
+      "oracle_id": "78e6abd9-0000-4000-8000-4ddcafe25a8a",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Legendary Creature"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Mind Stone",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Mind Stone",
+      "oracle_id": "9bf0ee90-0000-4000-8000-64dacd443316",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [
+            "R"
+          ],
+          "colors": [
+            "R"
+          ],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Mountain",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Basic Land \u2014 Mountain"
+        }
+      ],
+      "color_identity": [
+        "R"
+      ],
+      "colors": [
+        "R"
+      ],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": 0,
+      "name": "Mountain",
+      "oracle_id": "db1024a7-0000-4000-8000-156193387bc7",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Basic Land \u2014 Mountain"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Muddle the Mixture",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Muddle the Mixture",
+      "oracle_id": "82088750-0000-4000-8000-0419cc5cd262",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Negate",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Negate",
+      "oracle_id": "196e6442-0000-4000-8000-70f9aeef9aaa",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Niv-Mizzet, the Firemind",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Niv-Mizzet, the Firemind",
+      "oracle_id": "ecc31cb0-0000-4000-8000-0deebd5d86e8",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Opt",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Opt",
+      "oracle_id": "0260132a-0000-4000-8000-6eac498e46d6",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Path of Ancestry",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Path of Ancestry",
+      "oracle_id": "5322f191-0000-4000-8000-3fdf74239765",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Prismari Command",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Prismari Command",
+      "oracle_id": "1bdf1d52-0000-4000-8000-ccf8cafa9565",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Prismatic Lens",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Prismatic Lens",
+      "oracle_id": "fe24e26b-0000-4000-8000-abd397a46ca4",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Psychosis Crawler",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Psychosis Crawler",
+      "oracle_id": "af3224c7-0000-4000-8000-9add85e2b98f",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Ravenform",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Ravenform",
+      "oracle_id": "3fe49c43-0000-4000-8000-46ba8fd92552",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Reality Ripple",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Reality Ripple",
+      "oracle_id": "53cb30f8-0000-4000-8000-4ae4aa279a83",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Reality Shift",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Reality Shift",
+      "oracle_id": "c018538b-0000-4000-8000-3a26cd180398",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Rebuild",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Rebuild",
+      "oracle_id": "f16caa77-0000-4000-8000-95aefb081ece",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Resculpt",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Resculpt",
+      "oracle_id": "7a9e5df6-0000-4000-8000-b6e679a037a5",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Scavenger Grounds",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Scavenger Grounds",
+      "oracle_id": "37e8b055-0000-4000-8000-c44bf6c31cc1",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Sentinel Totem",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Sentinel Totem",
+      "oracle_id": "40229447-0000-4000-8000-7f0aa1699ca4",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Shivan Reef",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Shivan Reef",
+      "oracle_id": "da1af6f5-0000-4000-8000-170b1c90274e",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Siren Stormtamer",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Siren Stormtamer",
+      "oracle_id": "c70e2f22-0000-4000-8000-dba1c14786da",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Sleight of Hand",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Sleight of Hand",
+      "oracle_id": "a1f7b739-0000-4000-8000-8bdc74c80c9e",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Sol Ring",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Sol Ring",
+      "oracle_id": "6c489da8-0000-4000-8000-100ad5eeb3f4",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Soul-Guide Lantern",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Soul-Guide Lantern",
+      "oracle_id": "ed026a32-0000-4000-8000-aae6f944e86d",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Spectral Sailor",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Spectral Sailor",
+      "oracle_id": "609511b6-0000-4000-8000-2932ca7a3615",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Spell Pierce",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Spell Pierce",
+      "oracle_id": "16689736-0000-4000-8000-bb176fa576c2",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Step Through",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Step Through",
+      "oracle_id": "0becd771-0000-4000-8000-b1ed141aa944",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Storm Fleet Sprinter",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Storm Fleet Sprinter",
+      "oracle_id": "d41bbbde-0000-4000-8000-b9ae204599e1",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Syncopate",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Syncopate",
+      "oracle_id": "f14bd57e-0000-4000-8000-4f8bc2a62240",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Temple of Epiphany",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Temple of Epiphany",
+      "oracle_id": "0bcc222c-0000-4000-8000-ef2f8698a8f3",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Terramorphic Expanse",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Terramorphic Expanse",
+      "oracle_id": "5e5553fc-0000-4000-8000-388053997c1c",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Thriving Isle",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Thriving Isle",
+      "oracle_id": "de5da80c-0000-4000-8000-e4225d254526",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Twinflame",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Twinflame",
+      "oracle_id": "0e9c5297-0000-4000-8000-090523ade1ec",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Vandalblast",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Vandalblast",
+      "oracle_id": "5980eb69-0000-4000-8000-14fb04bcad4b",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Vedalken Aethermage",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Vedalken Aethermage",
+      "oracle_id": "66d99f46-0000-4000-8000-d09a500d82c5",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Wash Away",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Wash Away",
+      "oracle_id": "6786c5e3-0000-4000-8000-78d0d6e370cf",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    },
+    {
+      "card_faces": [
+        {
+          "color_identity": [],
+          "colors": [],
+          "keywords": [],
+          "loyalty": null,
+          "mana_cost": "",
+          "mana_value": null,
+          "name": "Wily Goblin",
+          "oracle_text": "",
+          "power": null,
+          "toughness": null,
+          "type_line": "Card"
+        }
+      ],
+      "color_identity": [],
+      "colors": [],
+      "keywords": [],
+      "loyalty": null,
+      "mana_cost": "",
+      "mana_value": null,
+      "name": "Wily Goblin",
+      "oracle_id": "9c01fbfe-0000-4000-8000-cdfa2a5d94da",
+      "oracle_text": "",
+      "power": null,
+      "toughness": null,
+      "type_line": "Card"
+    }
+  ],
+  "expected_cards": [
+    {
+      "name": "Abrade",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Aetherize",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Arcane Denial",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Arcane Signet",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Ash Barrens",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Brotherhood's End",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "By Force",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Cascade Bluffs",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Change the Equation",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Chart a Course",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Command Tower",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Commit // Memory",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Crab Umbra",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Curiosity",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Curse of the Swine",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Demolition Field",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Dispel",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Dizzy Spell",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Drift of Phantasms",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Dualcaster Mage",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Echoing Truth",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Electroduplicate",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Evolving Wilds",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Exotic Orchard",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Expedite",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Fact or Fiction",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Fading Hope",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Faithless Looting",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Fellwar Stone",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Fiery Cannonade",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Frantic Search",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Frostboil Snarl",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Glint-Horn Buccaneer",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Impulse",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Into the Roil",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Introduction to Annihilation",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Invert // Invent",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Island",
+      "quantity": 12,
+      "zone": "library"
+    },
+    {
+      "name": "Izzet Boilerworks",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Izzet Signet",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Lazotep Plating",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Lightning-Rig Crew",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Long-Term Plans",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Mind Stone",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Mountain",
+      "quantity": 10,
+      "zone": "library"
+    },
+    {
+      "name": "Muddle the Mixture",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Negate",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Niv-Mizzet, the Firemind",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Opt",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Path of Ancestry",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Prismari Command",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Prismatic Lens",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Psychosis Crawler",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Ravenform",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Reality Ripple",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Reality Shift",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Rebuild",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Resculpt",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Scavenger Grounds",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Sentinel Totem",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Shivan Reef",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Siren Stormtamer",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Sleight of Hand",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Sol Ring",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Soul-Guide Lantern",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Spectral Sailor",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Spell Pierce",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Step Through",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Storm Fleet Sprinter",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Syncopate",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Temple of Epiphany",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Terramorphic Expanse",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Thriving Isle",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Twinflame",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Vandalblast",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Vedalken Aethermage",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Wash Away",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Wily Goblin",
+      "quantity": 1,
+      "zone": "library"
+    },
+    {
+      "name": "Malcolm, Keen-Eyed Navigator",
+      "quantity": 1,
+      "zone": "command"
+    },
+    {
+      "name": "Breeches, Brazen Plunderer",
+      "quantity": 1,
+      "zone": "command"
+    }
+  ],
+  "schema_version": 1,
+  "source": {
+    "bulk_api": "https://api.scryfall.com/bulk-data/oracle-cards",
+    "bulk_download_uri": "https://api.scryfall.com/bulk-data/oracle-cards",
+    "bulk_updated_at": "2026-07-22",
+    "live_fetching_allowed_during_runs": false,
+    "provider": "Scryfall Oracle Cards bulk data",
+    "refresh_policy": "A later Oracle refresh must create a new snapshot version and new hash.",
+    "retrieval_command": "uv run python scripts/refresh_oracle_snapshot.py",
+    "retrieved_at": "2026-07-22T00:00:00Z"
+  }
+}

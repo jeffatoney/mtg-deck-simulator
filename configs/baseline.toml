@@ -1,0 +1,9 @@
+# Phase 1B fixed baseline assumptions.
+primary_opponent_mana_profile = "blue_red_available"
+sensitivity_opponent_mana_profile = "no_known_colors"
+opponent_mana_lands_are_targetable = false
+opponent_mana_lands_are_abstract_metadata = true
+fact_or_fiction_policy = "minimize_deck_frozen_evaluation"
+baseline_recovery_measurement = "independent_second_line_availability"
+true_disrupted_recovery_study = "separate"
+breeches_unknown_cards = "record_trigger_but_exclude_from_deterministic_resources"
