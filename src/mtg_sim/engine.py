@@ -10,11 +10,16 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 import random
-from typing import Callable, Literal
+from typing import Callable, Literal, TypeAlias
 
 
 class RulesError(ValueError):
     """Raised when a requested game action is illegal or unsupported."""
+
+
+MANA_TYPES = ("C", "U", "R", "W", "B", "G")
+COLORED_MANA = ("U", "R", "W", "B", "G")
+ManaCost: TypeAlias = dict[str, int]
 
 
 class ActionType(str, Enum):
@@ -28,7 +33,7 @@ class Action:
     action_type: ActionType
     source_name: str | None = None
     targets: tuple[Permanent, ...] = ()
-    mana_cost: dict[str, int] | None = None
+    mana_cost: ManaCost | None = None
     additional_costs: tuple[str, ...] = ()
     timing: Literal["instant", "sorcery"] = "instant"
     effect: Callable[["GameState"], None] | None = None
@@ -62,6 +67,9 @@ class Permanent:
     attacking: bool = False
     enchanted_by_curiosity: bool = False
     damage_prevented: bool = False
+    haste: bool = False
+    is_token: bool = False
+    mana_abilities: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -88,12 +96,11 @@ class GameState:
     stack: list[StackObject] = field(default_factory=list)
     phase: Phase = Phase.PRECOMBAT_MAIN
     turn: int = 1
-    mana_pool: dict[str, int] = field(
-        default_factory=lambda: {"C": 0, "U": 0, "R": 0, "W": 0, "B": 0, "G": 0}
-    )
+    mana_pool: dict[str, int] = field(default_factory=lambda: dict.fromkeys(MANA_TYPES, 0))
     land_played: bool = False
     opponent_life: list[int] = field(default_factory=lambda: [40, 40, 40])
     treasures: int = 0
+    command_zone_replacements: dict[str, bool] = field(default_factory=dict)
     attempted_empty_draw: bool = False
     lost: bool = False
     won: bool = False
@@ -178,23 +185,63 @@ class GameState:
         while self.stack and not (self.won or self.lost):
             self.resolve_top()
 
-    def pay_mana(self, cost: dict[str, int]) -> None:
-        pool = self.mana_pool
-        generic = cost.get("C", 0)
-        for color in ("U", "R", "W", "B", "G"):
-            needed = cost.get(color, 0)
-            if pool.get(color, 0) < needed:
-                raise RulesError(f"insufficient {color} mana")
-            pool[color] -= needed
-        available_generic = sum(pool.values())
-        if available_generic < generic:
-            raise RulesError("insufficient generic mana")
-        for color in ("C", "U", "R", "W", "B", "G"):
-            spend = min(pool[color], generic)
-            pool[color] -= spend
-            generic -= spend
-            if generic == 0:
-                break
+    def pay_mana(self, cost: ManaCost) -> None:
+        payment = solve_mana_payment(self.mana_pool, cost)
+        if payment is None:
+            raise RulesError("insufficient mana")
+        for mana_type, amount in payment.items():
+            self.mana_pool[mana_type] -= amount
+        self.record_event("mana_paid", str(normalize_mana(cost)))
+
+    def empty_mana_pool(self) -> None:
+        if any(self.mana_pool.values()):
+            self.record_event("mana_pool_emptied")
+        self.mana_pool = dict.fromkeys(MANA_TYPES, 0)
+
+    def advance_phase(self, phase: Phase) -> None:
+        if phase is not self.phase:
+            self.empty_mana_pool()
+        self.phase = phase
+
+    def advance_step(self) -> None:
+        self.empty_mana_pool()
+
+
+def normalize_mana(cost: ManaCost | None) -> ManaCost:
+    normalized = {mana_type: 0 for mana_type in MANA_TYPES}
+    normalized["generic"] = 0
+    for mana_type, amount in (cost or {}).items():
+        if mana_type not in normalized:
+            raise RulesError(f"unknown mana symbol: {mana_type}")
+        if amount < 0:
+            raise RulesError("mana costs cannot be negative")
+        normalized[mana_type] += amount
+    return normalized
+
+
+def solve_mana_payment(pool: ManaCost, cost: ManaCost) -> ManaCost | None:
+    normalized_pool = {mana_type: pool.get(mana_type, 0) for mana_type in MANA_TYPES}
+    normalized_cost = normalize_mana(cost)
+    payment = {mana_type: 0 for mana_type in MANA_TYPES}
+    for mana_type in MANA_TYPES:
+        required = normalized_cost[mana_type]
+        if normalized_pool[mana_type] < required:
+            return None
+        payment[mana_type] = required
+        normalized_pool[mana_type] -= required
+    generic = normalized_cost["generic"]
+    for mana_type in MANA_TYPES:
+        spend = min(normalized_pool[mana_type], generic)
+        payment[mana_type] += spend
+        generic -= spend
+        if generic == 0:
+            return payment
+    return None
+
+
+def ensure_not_terminal(state: GameState) -> None:
+    if state.terminal:
+        raise RulesError("No action is legal after a terminal game state")
 
 
 def shuffled_library(cards: list[str], seed: int) -> list[str]:
@@ -212,7 +259,7 @@ def create_malcolm_treasures_for_pirate_damage(
         for idx in state.active_opponents()
         if damaged_by_pirate.get(idx, 0) > 0 and idx not in prevented
     )
-    state.treasures += count
+    create_treasure(state, count)
     state.record_event("malcolm_treasures", str(count))
     return count
 
@@ -231,18 +278,18 @@ def deal_pirate_combat_damage(
         state.opponent_life[opponent] -= amount
         damaged[opponent] = damaged.get(opponent, 0) + 1
     treasures = create_malcolm_treasures_for_pirate_damage(state, damaged, prevented)
-    state.check_state_based_actions()
+    if not state.resolving:
+        state.would_receive_priority()
     return treasures
 
 
 def activate_glint_horn(state: GameState, glint_horn: Permanent) -> None:
-    if state.terminal:
-        raise RulesError("No action is legal after a terminal game state")
+    ensure_not_terminal(state)
     if not glint_horn.attacking:
         raise RulesError("Glint-Horn Buccaneer can activate only while attacking")
     if not state.hand:
         raise RulesError("Glint-Horn activation requires a discarded card")
-    state.pay_mana({"C": 1, "R": 1})
+    state.pay_mana({"generic": 1, "R": 1})
     discarded = state.hand.pop(0)
     state.graveyard.append(discarded)
     state.record_event("cost", "discard")
@@ -251,8 +298,7 @@ def activate_glint_horn(state: GameState, glint_horn: Permanent) -> None:
         s.draw(1)
 
     def damage_effect(s: GameState) -> None:
-        for idx in s.active_opponents():
-            s.opponent_life[idx] -= 1
+        deal_noncombat_damage(s, list(s.active_opponents()), 1, source_name="Glint-Horn Buccaneer")
         s.record_event("glint_horn_discard_damage")
 
     state.stack.append(StackObject("Glint-Horn draw ability", "ability", draw_effect, cast=False))
@@ -281,8 +327,7 @@ def cleanup_step(state: GameState) -> None:
     state.cleanup_steps += 1
     had_trigger = any(p.enchanted_by_curiosity for p in state.battlefield)
     if had_trigger:
-        curiosity_trigger(state, decline=True)
-        state.resolve_all()
+        curiosity_trigger(state, decline=False)
         state.cleanup_steps += 1
 
 
@@ -290,6 +335,7 @@ def cast_twinflame(state: GameState, target: Permanent | None) -> StackObject:
     if target is None or target not in state.battlefield or "Creature" not in target.types:
         raise RulesError("Twinflame requires a legal original creature target")
     obj = StackObject("Twinflame", "spell", lambda _s: None, targets=[target], mana_value=2)
+    obj.legal_targets = _is_creature_target
     state.stack.append(obj)
     return obj
 
@@ -307,9 +353,10 @@ def cast_dualcaster_mage(state: GameState) -> Permanent:
             f"Copy of {original.name}",
             "copy",
             lambda _s: None,
-            targets=[dualcaster],
+            targets=retarget_copy(state, original, [dualcaster]),
             cast=False,
             mana_value=original.mana_value,
+            legal_targets=original.legal_targets,
         )
     )
     return dualcaster
@@ -322,7 +369,14 @@ def flashback_electroduplicate(state: GameState, target: Permanent) -> None:
         raise RulesError("Electroduplicate flashback requires a creature target")
     state.graveyard.remove("Electroduplicate")
     state.stack.append(
-        StackObject("Electroduplicate", "spell", lambda _s: None, targets=[target], mana_value=3)
+        StackObject(
+            "Electroduplicate",
+            "spell",
+            lambda _s: None,
+            targets=[target],
+            mana_value=3,
+            legal_targets=_is_creature_target,
+        )
     )
     state.exile.append("Electroduplicate")
 
@@ -372,25 +426,108 @@ def cast_split_card(face: str) -> int:
 
 
 LAND_MANA = {"Island": "U", "Mountain": "R", "Command Tower": "U", "Shivan Reef": "U"}
+TAPPED_LANDS = {"Izzet Boilerworks"}
 
 
 def play_land(state: GameState, name: str) -> Permanent:
     if state.land_played:
         raise RulesError("only one land play per turn")
-    land = Permanent(name, {"Land"})
+    land = Permanent(name, {"Land"}, tapped=name in TAPPED_LANDS)
     state.battlefield.append(land)
     state.land_played = True
     return land
 
 
 def tap_for_mana(state: GameState, permanent: Permanent, color: str | None = None) -> None:
+    ensure_not_terminal(state)
     if permanent.tapped:
         raise RulesError("permanent is already tapped")
-    produced = color or LAND_MANA.get(permanent.name)
+    if color is not None and color not in MANA_TYPES:
+        raise RulesError("illegal mana choice")
+    produced = color or permanent.mana_abilities.get("tap") or LAND_MANA.get(permanent.name)
     if produced is None:
         raise RulesError(f"no mana behavior for {permanent.name}")
     permanent.tapped = True
     state.mana_pool[produced] += 1
+
+
+def create_treasure(state: GameState, count: int = 1) -> None:
+    if count <= 0:
+        return
+    state.treasures += count
+    for _ in range(count):
+        state.battlefield.append(Permanent("Treasure", {"Artifact"}, {"Treasure"}, is_token=True))
+    state.record_event("treasure_created", str(count))
+
+
+def sacrifice_treasure_for_mana(state: GameState, color: str) -> None:
+    ensure_not_terminal(state)
+    if color not in MANA_TYPES:
+        raise RulesError("Treasure can produce one mana of a legal type")
+    treasure = next((p for p in state.battlefield if p.name == "Treasure" and p.is_token), None)
+    if treasure is None or state.treasures <= 0:
+        raise RulesError("no Treasure available to sacrifice")
+    state.battlefield.remove(treasure)
+    state.treasures -= 1
+    state.mana_pool[color] += 1
+    state.record_event("treasure_sacrificed", color)
+
+
+def declare_attackers(state: GameState, attackers: list[Permanent]) -> None:
+    ensure_not_terminal(state)
+    if state.phase is not Phase.COMBAT:
+        raise RulesError("attackers are declared only during combat")
+    for attacker in attackers:
+        if attacker not in state.battlefield or "Creature" not in attacker.types:
+            raise RulesError("only battlefield creatures can attack")
+        if attacker.tapped:
+            raise RulesError("tapped creatures cannot attack")
+        if attacker.summoning_sick and not attacker.haste:
+            raise RulesError("creature cannot attack due to summoning sickness")
+    for attacker in attackers:
+        attacker.attacking = True
+        attacker.tapped = True
+    state.record_event("declare_attackers", ",".join(p.name for p in attackers))
+    state.would_receive_priority()
+
+
+def deal_noncombat_damage(
+    state: GameState, opponents: list[int], amount: int, *, source_name: str = "source"
+) -> None:
+    for opponent in opponents:
+        if opponent in state.active_opponents():
+            state.opponent_life[opponent] -= amount
+    state.record_event("noncombat_damage", f"{source_name}:{amount}")
+    if not state.resolving:
+        state.would_receive_priority()
+
+
+def move_to_graveyard_or_command_zone(
+    state: GameState, permanent: Permanent, *, use_command_zone: bool = True
+) -> None:
+    if permanent not in state.battlefield:
+        raise RulesError("permanent is not on battlefield")
+    state.battlefield.remove(permanent)
+    if (
+        permanent.name in {"Malcolm, Keen-Eyed Navigator", "Breeches, Brazen Plunderer"}
+        and use_command_zone
+    ):
+        state.command_zone.append(permanent.name)
+        state.command_zone_replacements[permanent.name] = True
+        state.record_event("command_zone_replacement", permanent.name)
+    elif not permanent.is_token:
+        state.graveyard.append(permanent.name)
+        state.record_event("move_to_graveyard", permanent.name)
+    else:
+        state.record_event("token_ceased_to_exist", permanent.name)
+
+
+def retarget_copy(
+    state: GameState, original: StackObject, targets: list[Permanent]
+) -> list[Permanent]:
+    if original.legal_targets is not None and not original.legal_targets(state, targets):
+        raise RulesError("copy retargeting requires legal targets")
+    return list(targets)
 
 
 def use_single_tutor_for_combo_halves() -> None:
