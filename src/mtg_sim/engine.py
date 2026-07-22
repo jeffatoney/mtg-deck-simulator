@@ -70,6 +70,8 @@ class Permanent:
     haste: bool = False
     is_token: bool = False
     mana_abilities: dict[str, str] = field(default_factory=dict)
+    power: int | None = None
+    toughness: int | None = None
 
 
 @dataclass(slots=True)
@@ -382,30 +384,120 @@ def flashback_electroduplicate(state: GameState, target: Permanent) -> None:
 
 
 TRANSMUTE_VALUES = {"Drift of Phantasms": 3, "Muddle the Mixture": 2, "Dizzy Spell": 1}
-WIZARDS = {"Dualcaster Mage", "Niv-Mizzet, the Firemind", "Vedalken Aethermage"}
+WIZARDCYCLING_COSTS: dict[str, ManaCost] = {
+    "Step Through": {"generic": 2},
+    "Vedalken Aethermage": {"generic": 3},
+}
+CYCLING_COSTS: dict[str, ManaCost] = {"Rebuild": {"generic": 2}}
+CARD_TYPES = {
+    "Curiosity": {"Enchantment"},
+    "Twinflame": {"Sorcery"},
+    "Electroduplicate": {"Sorcery"},
+    "Dualcaster Mage": {"Creature"},
+    "Niv-Mizzet, the Firemind": {"Creature"},
+    "Vedalken Aethermage": {"Creature"},
+    "Step Through": {"Sorcery"},
+    "Long-Term Plans": {"Instant"},
+    "Rebuild": {"Instant"},
+    "Muddle the Mixture": {"Instant"},
+    "Dizzy Spell": {"Instant"},
+    "Drift of Phantasms": {"Creature"},
+    "Commit // Memory": {"Instant", "Sorcery"},
+    "Invert // Invent": {"Instant"},
+}
+CARD_SUBTYPES = {
+    "Dualcaster Mage": {"Human", "Wizard"},
+    "Niv-Mizzet, the Firemind": {"Dragon", "Wizard"},
+    "Vedalken Aethermage": {"Vedalken", "Wizard"},
+    "Siren Stormtamer": {"Siren", "Pirate", "Wizard"},
+    "Spectral Sailor": {"Spirit", "Pirate"},
+}
 MANA_VALUES = {"Twinflame": 2, "Electroduplicate": 3, "Curiosity": 1, "Niv-Mizzet, the Firemind": 6}
+SPLIT_FACE_MANA_VALUES = {"Invert": 1, "Invent": 6, "Commit": 4, "Memory": 6}
+SPLIT_CARD_FACES = {
+    "Invert // Invent": ("Invert", "Invent"),
+    "Commit // Memory": ("Commit", "Memory"),
+}
+
+
+def mana_value(card_name: str, *, zone: str = "library", face: str | None = None) -> int:
+    if card_name in SPLIT_CARD_FACES:
+        if zone == "stack":
+            if face not in SPLIT_CARD_FACES[card_name]:
+                raise RulesError("split spell on stack requires the chosen half")
+            return SPLIT_FACE_MANA_VALUES[face]
+        return sum(SPLIT_FACE_MANA_VALUES[part] for part in SPLIT_CARD_FACES[card_name])
+    if card_name in SPLIT_FACE_MANA_VALUES:
+        return SPLIT_FACE_MANA_VALUES[card_name]
+    if card_name in TRANSMUTE_VALUES:
+        return TRANSMUTE_VALUES[card_name]
+    if card_name == "Rebuild" or card_name == "Long-Term Plans":
+        return 3
+    if card_name in {"Step Through"}:
+        return 5
+    if card_name == "Vedalken Aethermage":
+        return 2
+    try:
+        return MANA_VALUES[card_name]
+    except KeyError as exc:
+        raise RulesError(f"unknown mana value for {card_name}") from exc
+
+
+def _search_one(state: GameState, target_name: str) -> str:
+    if target_name not in state.library:
+        raise RulesError(f"tutor target is not in library: {target_name}")
+    state.library.remove(target_name)
+    state.hand.append(target_name)
+    state.record_event("tutor_found", target_name)
+    state.record_event("shuffle_library")
+    return target_name
 
 
 def transmute(state: GameState, card_name: str, target_name: str) -> str:
-    if state.phase is not Phase.PRECOMBAT_MAIN and state.phase is not Phase.POSTCOMBAT_MAIN:
+    if state.phase not in {Phase.PRECOMBAT_MAIN, Phase.POSTCOMBAT_MAIN} or state.stack:
         raise RulesError("Transmute is sorcery speed")
+    if card_name not in state.hand:
+        raise RulesError("Transmute source must be in hand")
     required = TRANSMUTE_VALUES[card_name]
-    if MANA_VALUES.get(target_name) != required:
+    if mana_value(target_name, zone="library") != required:
         raise RulesError(f"{card_name} can find only mana value {required}")
-    return target_name
+    state.pay_mana({"generic": 1, "U": 2})
+    state.hand.remove(card_name)
+    state.graveyard.append(card_name)
+    state.record_event("cost", f"discard:{card_name}")
+    return _search_one(state, target_name)
 
 
-def wizardcycle(_state: GameState, target_name: str) -> str:
-    if target_name not in WIZARDS:
+def wizardcycle(state: GameState, target_name: str, source_name: str = "Step Through") -> str:
+    if source_name not in WIZARDCYCLING_COSTS or source_name not in state.hand:
+        raise RulesError("Wizardcycling source must be in hand")
+    if "Wizard" not in CARD_SUBTYPES.get(target_name, set()):
         raise RulesError("Wizardcycling finds only Wizards")
-    return target_name
+    state.pay_mana(WIZARDCYCLING_COSTS[source_name])
+    state.hand.remove(source_name)
+    state.graveyard.append(source_name)
+    state.record_event("cost", f"discard:{source_name}")
+    return _search_one(state, target_name)
+
+
+def cycle(state: GameState, source_name: str) -> None:
+    if source_name not in CYCLING_COSTS or source_name not in state.hand:
+        raise RulesError("Cycling source must be in hand")
+    state.pay_mana(CYCLING_COSTS[source_name])
+    state.hand.remove(source_name)
+    state.graveyard.append(source_name)
+    state.record_event("cost", f"discard:{source_name}")
+    state.draw(1)
 
 
 def long_term_plans(state: GameState, target_name: str) -> None:
     if target_name not in state.library:
         raise RulesError("Long-Term Plans target must be in library")
     state.library.remove(target_name)
+    while len(state.library) < 2:
+        state.library.append("<empty slot after Long-Term Plans shuffle>")
     state.library.insert(2, target_name)
+    state.record_event("tutor_found_third_from_top", target_name)
 
 
 def commander_cost(name: str, base_generic: int, state: GameState) -> int:
@@ -419,10 +511,73 @@ def cast_commander(name: str, base_generic: int, state: GameState) -> int:
 
 
 def cast_split_card(face: str) -> int:
-    values = {"Invert": 1, "Invent": 6, "Commit": 4, "Memory": 6}
-    if face not in values:
+    if face not in SPLIT_FACE_MANA_VALUES:
         raise RulesError("unknown split-card face")
-    return values[face]
+    return SPLIT_FACE_MANA_VALUES[face]
+
+
+def invent(
+    state: GameState, *, instant: str | None = None, sorcery: str | None = None
+) -> tuple[str, ...]:
+    choices = tuple(name for name in (instant, sorcery) if name is not None)
+    if not choices or len(set(choices)) != len(choices):
+        raise RulesError("Invent must choose separate instant and/or sorcery branches")
+    for name in choices:
+        types = CARD_TYPES.get(name, set())
+        if name == instant and "Instant" not in types:
+            raise RulesError("Invent instant choice must be an instant card")
+        if name == sorcery and "Sorcery" not in types:
+            raise RulesError("Invent sorcery choice must be a sorcery card")
+        _search_one(state, name)
+    return choices
+
+
+def invert(_state: GameState, targets: list[Permanent]) -> None:
+    if len(targets) > 2:
+        raise RulesError("Invert targets up to two creatures")
+    for target in targets:
+        if "Creature" not in target.types or target.power is None or target.toughness is None:
+            raise RulesError("Invert target must be a creature with modeled power/toughness")
+    for target in targets:
+        target.power, target.toughness = target.toughness, target.power
+
+
+def commit(state: GameState, target: StackObject | Permanent) -> None:
+    if isinstance(target, StackObject):
+        if target not in state.stack:
+            raise RulesError("Commit spell target must be on stack")
+        state.stack.remove(target)
+        state.library.insert(1, target.name)
+    else:
+        if target not in state.battlefield or "Land" in target.types:
+            raise RulesError("Commit permanent target must be a nonland permanent")
+        state.battlefield.remove(target)
+        state.library.insert(1, target.name)
+    state.record_event("commit_second_from_top", target.name)
+
+
+def memory(state: GameState) -> None:
+    if "Commit // Memory" not in state.graveyard:
+        raise RulesError("Memory can be cast only from graveyard due to aftermath")
+    state.graveyard.remove("Commit // Memory")
+    state.library.extend(state.hand)
+    state.library.extend(state.graveyard)
+    state.hand.clear()
+    state.graveyard.clear()
+    state.exile.append("Commit // Memory")
+    state.record_event("aftermath_exile", "Commit // Memory")
+    state.draw(7)
+
+
+def rebuild(state: GameState) -> None:
+    for permanent in list(state.battlefield):
+        if "Artifact" in permanent.types:
+            state.battlefield.remove(permanent)
+            if permanent.is_token:
+                state.record_event("token_ceased_to_exist", permanent.name)
+            else:
+                state.hand.append(permanent.name)
+                state.record_event("artifact_returned", permanent.name)
 
 
 LAND_MANA = {"Island": "U", "Mountain": "R", "Command Tower": "U", "Shivan Reef": "U"}

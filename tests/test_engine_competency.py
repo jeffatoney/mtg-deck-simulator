@@ -11,6 +11,8 @@ from mtg_sim.engine import (
     cast_commander,
     cast_dualcaster_mage,
     cast_split_card,
+    commit,
+    cycle,
     create_treasure,
     cast_twinflame,
     cleanup_step,
@@ -19,9 +21,14 @@ from mtg_sim.engine import (
     deal_pirate_combat_damage,
     declare_attackers,
     flashback_electroduplicate,
+    invent,
+    invert,
     long_term_plans,
+    mana_value,
+    memory,
     move_to_graveyard_or_command_zone,
     play_land,
+    rebuild,
     retarget_copy,
     shuffled_library,
     sacrifice_treasure_for_mana,
@@ -175,18 +182,45 @@ def test_lightning_rig_crew_crab_umbra_uses_opponent_dependent_treasures():
     ],
 )
 def test_transmute_finds_only_matching_mana_value(card, target):
-    assert transmute(GameState(), card, target) == target
+    s = GameState(
+        hand=[card], library=[target], mana_pool={"C": 1, "U": 2, "R": 0, "W": 0, "B": 0, "G": 0}
+    )
+    assert transmute(s, card, target) == target
+    assert card in s.graveyard and target in s.hand and target not in s.library
 
 
 def test_transmute_is_sorcery_speed():
     with pytest.raises(RulesError):
-        transmute(GameState(phase=Phase.COMBAT), "Muddle the Mixture", "Twinflame")
+        transmute(
+            GameState(
+                phase=Phase.COMBAT,
+                hand=["Muddle the Mixture"],
+                library=["Twinflame"],
+                mana_pool={"C": 1, "U": 2, "R": 0, "W": 0, "B": 0, "G": 0},
+            ),
+            "Muddle the Mixture",
+            "Twinflame",
+        )
 
 
 def test_wizardcycling_finds_only_wizards():
-    assert wizardcycle(GameState(), "Dualcaster Mage") == "Dualcaster Mage"
+    s = GameState(
+        hand=["Step Through"],
+        library=["Dualcaster Mage"],
+        mana_pool={"C": 2, "U": 0, "R": 0, "W": 0, "B": 0, "G": 0},
+    )
+    assert wizardcycle(s, "Dualcaster Mage", "Step Through") == "Dualcaster Mage"
+    assert "Step Through" in s.graveyard and "Dualcaster Mage" in s.hand
     with pytest.raises(RulesError):
-        wizardcycle(GameState(), "Twinflame")
+        wizardcycle(
+            GameState(
+                hand=["Vedalken Aethermage"],
+                library=["Twinflame"],
+                mana_pool={"C": 3, "U": 0, "R": 0, "W": 0, "B": 0, "G": 0},
+            ),
+            "Twinflame",
+            "Vedalken Aethermage",
+        )
 
 
 def test_long_term_plans_places_card_third_from_top():
@@ -209,6 +243,63 @@ def test_commander_tax_increases_after_each_command_zone_casting():
 
 def test_split_card_casting_and_mana_values_handled_correctly():
     assert cast_split_card("Invert") == 1 and cast_split_card("Invent") == 6
+    assert mana_value("Invert // Invent", zone="library") == 7
+    assert mana_value("Commit // Memory", zone="graveyard") == 10
+    assert mana_value("Commit // Memory", zone="stack", face="Commit") == 4
+    assert mana_value("Commit // Memory", zone="stack", face="Memory") == 6
+
+
+def test_transmute_rejects_wrong_mana_value_and_nonempty_stack():
+    s = GameState(
+        hand=["Drift of Phantasms"],
+        library=["Twinflame"],
+        mana_pool={"C": 1, "U": 2, "R": 0, "W": 0, "B": 0, "G": 0},
+    )
+    with pytest.raises(RulesError):
+        transmute(s, "Drift of Phantasms", "Twinflame")
+    s = GameState(
+        hand=["Dizzy Spell"],
+        library=["Curiosity"],
+        stack=[StackObject("x", "spell", lambda _s: None)],
+        mana_pool={"C": 1, "U": 2, "R": 0, "W": 0, "B": 0, "G": 0},
+    )
+    with pytest.raises(RulesError):
+        transmute(s, "Dizzy Spell", "Curiosity")
+
+
+def test_rebuild_cycling_pays_discards_and_draws():
+    s = GameState(
+        hand=["Rebuild"],
+        library=["drawn"],
+        mana_pool={"C": 2, "U": 0, "R": 0, "W": 0, "B": 0, "G": 0},
+    )
+    cycle(s, "Rebuild")
+    assert s.hand == ["drawn"] and s.graveyard == ["Rebuild"] and s.cards_drawn == 1
+
+
+def test_invert_and_invent_legal_modes_are_separate_branches():
+    creature = Permanent("Wizard", {"Creature"}, power=1, toughness=3)
+    invert(GameState(), [creature])
+    assert (creature.power, creature.toughness) == (3, 1)
+    s = GameState(library=["Long-Term Plans", "Twinflame"])
+    assert invent(s, instant="Long-Term Plans") == ("Long-Term Plans",)
+    assert invent(s, sorcery="Twinflame") == ("Twinflame",)
+
+
+def test_commit_memory_zones_and_rebuild_spell_effect():
+    spell = StackObject("Twinflame", "spell", lambda _s: None)
+    artifact = Permanent("Sol Ring", {"Artifact"})
+    land = Permanent("Island", {"Land"})
+    s = GameState(library=["a", "b"], stack=[spell], battlefield=[artifact, land])
+    commit(s, spell)
+    assert s.library[1] == "Twinflame" and spell not in s.stack
+    rebuild(s)
+    assert "Sol Ring" in s.hand and land in s.battlefield
+    s = GameState(
+        library=[str(i) for i in range(7)], hand=["x"], graveyard=["Commit // Memory", "y"]
+    )
+    memory(s)
+    assert "Commit // Memory" in s.exile and len(s.hand) == 7 and "x" in s.library
 
 
 def test_tapped_lands_and_colored_mana_are_sequenced_legally():
