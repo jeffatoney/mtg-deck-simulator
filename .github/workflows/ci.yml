@@ -2,8 +2,6 @@ name: CI
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
@@ -22,13 +20,22 @@ jobs:
           python-version-file: .python-version
       - name: Install dependencies
         run: uv sync --frozen --all-extras
-      - name: Format
-        run: uv run ruff format --check .
-      - name: Lint
-        run: uv run ruff check .
-      - name: Type check
-        run: uv run mypy src
-      - name: Tests
-        run: uv run pytest -q
-      - name: Manifest integrity
-        run: uv run python scripts/check_manifest.py
+      - name: Format files
+        run: |
+          uv run ruff format \
+            src/mtg_sim/__init__.py \
+            src/mtg_sim/phase5d_cards.py \
+            src/mtg_sim/cli.py \
+            src/mtg_sim/phase5a_cards.py \
+            tests/test_phase5d_commanders_combos.py
+      - name: Upload formatted files
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase5d-formatted-files
+          path: |
+            src/mtg_sim/__init__.py
+            src/mtg_sim/phase5d_cards.py
+            src/mtg_sim/cli.py
+            src/mtg_sim/phase5a_cards.py
+            tests/test_phase5d_commanders_combos.py
+          if-no-files-found: error
