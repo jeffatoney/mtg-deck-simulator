@@ -72,6 +72,13 @@ class Permanent:
     mana_abilities: dict[str, str] = field(default_factory=dict)
     power: int | None = None
     toughness: int | None = None
+    mana_value: int = 0
+    controller: int = 0
+    damage: int = 0
+    flying: bool = False
+    phased_out: bool = False
+    hexproof_until_eot: bool = False
+    manifested_card: str | None = None
 
 
 @dataclass(slots=True)
@@ -83,6 +90,10 @@ class StackObject:
     cast: bool = True
     mana_value: int | None = None
     legal_targets: Callable[["GameState", list[Permanent]], bool] | None = None
+    types: set[str] = field(default_factory=set)
+    colors: set[str] = field(default_factory=set)
+    cast_from_hand: bool = True
+    targets_player: bool = False
 
 
 @dataclass(slots=True)
@@ -113,6 +124,7 @@ class GameState:
     pending_triggers: list[StackObject] = field(default_factory=list)
     resolving: bool = False
     priority_player: int = 0
+    self_hexproof_until_eot: bool = False
 
     def record_event(self, event_type: str, detail: str = "") -> None:
         self.event_log.append(f"{event_type}:{detail}" if detail else event_type)
@@ -793,3 +805,407 @@ def execute_action(state: GameState, action: Action) -> None:
         state.record_event("action", f"activate:{action.source_name}")
         activate_glint_horn(state, source)
         state.would_receive_priority()
+
+
+# Phase 5C deck-scoped interaction and zone-changing primitives.
+
+
+def _controlled_by_us(permanent: Permanent) -> bool:
+    return getattr(permanent, "controller", 0) == 0
+
+
+def _is_spell(obj: StackObject) -> bool:
+    return obj.kind in {"spell", "copy"}
+
+
+def _spell_types(obj: StackObject) -> set[str]:
+    return getattr(obj, "types", set())
+
+
+def _spell_colors(obj: StackObject) -> set[str]:
+    return getattr(obj, "colors", set())
+
+
+def _put_spell_in_graveyard(state: GameState, obj: StackObject) -> None:
+    if obj in state.stack:
+        state.stack.remove(obj)
+    if obj.kind != "copy":
+        state.graveyard.append(obj.name)
+    state.record_event("spell_countered", obj.name)
+
+
+def counter_spell(state: GameState, target: StackObject, *, exile: bool = False) -> None:
+    if target not in state.stack or not _is_spell(target):
+        raise RulesError("counter target must be a spell on the stack")
+    state.stack.remove(target)
+    if target.kind != "copy":
+        (state.exile if exile else state.graveyard).append(target.name)
+    state.record_event("spell_countered_exiled" if exile else "spell_countered", target.name)
+
+
+def counter_unless_pays(
+    state: GameState, target: StackObject, amount: int, *, exile: bool = False, pays: bool = False
+) -> bool:
+    if amount < 0:
+        raise RulesError("conditional counter amount cannot be negative")
+    if target not in state.stack or not _is_spell(target):
+        raise RulesError("counter target must be a spell on the stack")
+    if pays:
+        state.record_event("conditional_counter_paid", target.name)
+        return False
+    counter_spell(state, target, exile=exile)
+    return True
+
+
+def arcane_denial(
+    state: GameState, target: StackObject, *, target_controller_draws: int = 0
+) -> None:
+    if target_controller_draws not in {0, 1, 2}:
+        raise RulesError("Arcane Denial target controller may draw up to two cards")
+    counter_spell(state, target)
+    state.record_event(
+        "delayed_draw", f"Arcane Denial:self:1:target_controller:{target_controller_draws}"
+    )
+
+
+def negate(state: GameState, target: StackObject) -> None:
+    if "Creature" in _spell_types(target):
+        raise RulesError("Negate targets only noncreature spells")
+    counter_spell(state, target)
+
+
+def dispel(state: GameState, target: StackObject) -> None:
+    if "Instant" not in _spell_types(target):
+        raise RulesError("Dispel targets only instant spells")
+    counter_spell(state, target)
+
+
+def spell_pierce(state: GameState, target: StackObject, *, pays: bool = False) -> bool:
+    if "Creature" in _spell_types(target):
+        raise RulesError("Spell Pierce targets only noncreature spells")
+    return counter_unless_pays(state, target, 2, pays=pays)
+
+
+def syncopate(state: GameState, target: StackObject, x_value: int, *, pays: bool = False) -> bool:
+    if x_value < 0:
+        raise RulesError("Syncopate X must be nonnegative")
+    return counter_unless_pays(state, target, x_value, exile=True, pays=pays)
+
+
+def wash_away(state: GameState, target: StackObject, *, cleave: bool = False) -> None:
+    if not cleave and getattr(target, "cast_from_hand", True):
+        raise RulesError("Wash Away without cleave targets only spells not cast from hand")
+    counter_spell(state, target)
+
+
+def change_the_equation(
+    state: GameState, target: StackObject, mode: Literal["small", "red_green"]
+) -> None:
+    mv = target.mana_value
+    if mv is None:
+        raise RulesError("target spell must have modeled mana value")
+    if mode == "small":
+        if mv > 2:
+            raise RulesError("Change the Equation small mode requires mana value 2 or less")
+    elif mode == "red_green":
+        if mv > 6 or not (_spell_colors(target) & {"R", "G"}):
+            raise RulesError(
+                "Change the Equation color mode requires red or green spell mana value 6 or less"
+            )
+    else:
+        raise RulesError("unsupported Change the Equation mode")
+    counter_spell(state, target)
+
+
+def _destroy_permanent(state: GameState, permanent: Permanent) -> None:
+    if permanent not in state.battlefield:
+        raise RulesError("target permanent is not on battlefield")
+    state.battlefield.remove(permanent)
+    if permanent.is_token:
+        state.record_event("token_ceased_to_exist", permanent.name)
+    else:
+        state.graveyard.append(permanent.name)
+        state.record_event("destroy", permanent.name)
+
+
+def _bounce_permanent(state: GameState, permanent: Permanent) -> None:
+    if permanent not in state.battlefield:
+        raise RulesError("target permanent is not on battlefield")
+    state.battlefield.remove(permanent)
+    if permanent.is_token:
+        state.record_event("token_ceased_to_exist", permanent.name)
+    else:
+        state.hand.append(permanent.name)
+        state.record_event("bounce", permanent.name)
+
+
+def _exile_permanent(state: GameState, permanent: Permanent) -> bool:
+    if permanent not in state.battlefield:
+        raise RulesError("target permanent is not on battlefield")
+    state.battlefield.remove(permanent)
+    if permanent.is_token:
+        state.record_event("token_ceased_to_exist", permanent.name)
+        return False
+    state.exile.append(permanent.name)
+    state.record_event("exile", permanent.name)
+    return True
+
+
+def abrade(
+    state: GameState, mode: Literal["damage_creature", "destroy_artifact"], target: Permanent
+) -> None:
+    if mode == "damage_creature":
+        if target not in state.battlefield or "Creature" not in target.types:
+            raise RulesError("Abrade damage mode targets a creature")
+        setattr(target, "damage", getattr(target, "damage", 0) + 3)
+        state.record_event("damage", f"Abrade:{target.name}:3")
+    elif mode == "destroy_artifact":
+        if "Artifact" not in target.types:
+            raise RulesError("Abrade destroy mode targets an artifact")
+        _destroy_permanent(state, target)
+    else:
+        raise RulesError("unsupported Abrade mode")
+
+
+def aetherize(state: GameState) -> None:
+    for permanent in list(state.battlefield):
+        if "Creature" in permanent.types and permanent.attacking:
+            _bounce_permanent(state, permanent)
+
+
+def echoing_truth(state: GameState, target: Permanent) -> None:
+    if target not in state.battlefield or "Land" in target.types:
+        raise RulesError("Echoing Truth targets a nonland permanent")
+    name = target.name
+    for permanent in list(state.battlefield):
+        if permanent.name == name and "Land" not in permanent.types:
+            _bounce_permanent(state, permanent)
+
+
+def fading_hope(state: GameState, target: Permanent, *, bottom: bool = False) -> None:
+    if target not in state.battlefield or "Creature" not in target.types:
+        raise RulesError("Fading Hope targets a creature")
+    mv = target.mana_value if hasattr(target, "mana_value") else None
+    _bounce_permanent(state, target)
+    if mv is not None and mv <= 3:
+        state.record_event("scry", "1_bottom" if bottom else "1_top")
+
+
+def into_the_roil(state: GameState, target: Permanent, *, kicked: bool = False) -> None:
+    if target not in state.battlefield or "Land" in target.types:
+        raise RulesError("Into the Roil targets a nonland permanent")
+    _bounce_permanent(state, target)
+    if kicked:
+        state.draw(1)
+
+
+def reality_ripple(state: GameState, target: Permanent) -> None:
+    if target not in state.battlefield or not (target.types & {"Artifact", "Creature", "Land"}):
+        raise RulesError("Reality Ripple targets an artifact, creature, or land")
+    setattr(target, "phased_out", True)
+    state.record_event("phase_out", target.name)
+
+
+def _create_token(
+    state: GameState, name: str, types: set[str], subtypes: set[str], power: int, toughness: int
+) -> Permanent:
+    token = Permanent(name, types, subtypes, is_token=True, power=power, toughness=toughness)
+    state.battlefield.append(token)
+    state.record_event("token_created", name)
+    return token
+
+
+def ravenform(state: GameState, target: Permanent) -> None:
+    if target not in state.battlefield or not (target.types & {"Artifact", "Creature"}):
+        raise RulesError("Ravenform targets an artifact or creature")
+    _exile_permanent(state, target)
+    _create_token(state, "Bird", {"Creature"}, {"Bird"}, 1, 1).flying = True
+
+
+def reality_shift(state: GameState, target: Permanent) -> None:
+    if target not in state.battlefield or "Creature" not in target.types:
+        raise RulesError("Reality Shift targets a creature")
+    _exile_permanent(state, target)
+    manifested = state.library.pop(0) if state.library else None
+    token = _create_token(state, "Manifest", {"Creature"}, set(), 2, 2)
+    setattr(token, "manifested_card", manifested)
+
+
+def resculpt(state: GameState, target: Permanent) -> None:
+    if target not in state.battlefield or not (target.types & {"Artifact", "Creature"}):
+        raise RulesError("Resculpt targets an artifact or creature")
+    _exile_permanent(state, target)
+    _create_token(state, "Elemental", {"Creature"}, {"Elemental"}, 4, 4)
+
+
+def curse_of_the_swine(state: GameState, targets: list[Permanent], x_value: int) -> None:
+    if x_value != len(targets) or x_value < 0 or len(set(map(id, targets))) != len(targets):
+        raise RulesError("Curse of the Swine requires X distinct target creatures")
+    for target in targets:
+        if target not in state.battlefield or "Creature" not in target.types:
+            raise RulesError("Curse of the Swine targets only creatures")
+    for target in list(targets):
+        if _exile_permanent(state, target):
+            pass
+        _create_token(state, "Boar", {"Creature"}, {"Boar"}, 2, 2)
+
+
+def introduction_to_annihilation(state: GameState, target: Permanent) -> None:
+    if target not in state.battlefield or "Land" in target.types:
+        raise RulesError("Introduction to Annihilation targets a nonland permanent")
+    _exile_permanent(state, target)
+    state.record_event("opponent_draw_or_self_draw", target.name)
+
+
+def by_force(state: GameState, targets: list[Permanent], x_value: int) -> None:
+    if x_value != len(targets) or x_value < 0 or len(set(map(id, targets))) != len(targets):
+        raise RulesError("By Force requires X distinct target artifacts")
+    for target in targets:
+        if target not in state.battlefield or "Artifact" not in target.types:
+            raise RulesError("By Force targets only artifacts")
+    for target in list(targets):
+        _destroy_permanent(state, target)
+
+
+def vandalblast(
+    state: GameState, target: Permanent | None = None, *, overload: bool = False
+) -> None:
+    if overload:
+        for permanent in list(state.battlefield):
+            if "Artifact" in permanent.types and not _controlled_by_us(permanent):
+                _destroy_permanent(state, permanent)
+        return
+    if (
+        target is None
+        or target not in state.battlefield
+        or "Artifact" not in target.types
+        or _controlled_by_us(target)
+    ):
+        raise RulesError("Vandalblast targets an artifact you don't control")
+    _destroy_permanent(state, target)
+
+
+def brotherhoods_end(state: GameState, mode: Literal["damage", "artifacts"]) -> None:
+    if mode == "damage":
+        for permanent in state.battlefield:
+            if permanent.types & {"Creature", "Planeswalker"}:
+                setattr(permanent, "damage", getattr(permanent, "damage", 0) + 3)
+        state.record_event("sweeper_damage", "Brotherhood's End:3")
+    elif mode == "artifacts":
+        for permanent in list(state.battlefield):
+            if "Artifact" in permanent.types and getattr(permanent, "mana_value", 0) <= 3:
+                _destroy_permanent(state, permanent)
+    else:
+        raise RulesError("unsupported Brotherhood's End mode")
+
+
+def fiery_cannonade(state: GameState) -> None:
+    for permanent in state.battlefield:
+        if "Creature" in permanent.types and "Pirate" not in permanent.subtypes:
+            setattr(permanent, "damage", getattr(permanent, "damage", 0) + 2)
+    state.record_event("sweeper_damage", "Fiery Cannonade:2")
+
+
+def prismari_command(
+    state: GameState,
+    modes: tuple[str, str],
+    *,
+    damage_target: Permanent | int | None = None,
+    draw_discard: tuple[int, int] | None = None,
+    treasure_player: int | None = None,
+    artifact_target: Permanent | None = None,
+) -> None:
+    if len(modes) != 2 or len(set(modes)) != 2:
+        raise RulesError("Prismari Command must choose two different modes")
+    for mode in modes:
+        if mode == "damage":
+            if damage_target is None:
+                raise RulesError("Prismari damage mode requires any target")
+            if isinstance(damage_target, Permanent):
+                if damage_target not in state.battlefield:
+                    raise RulesError("Prismari damage permanent target must be on battlefield")
+                setattr(damage_target, "damage", getattr(damage_target, "damage", 0) + 2)
+            else:
+                state.opponent_life[damage_target] -= 2
+            state.record_event("damage", "Prismari Command:2")
+        elif mode == "draw_discard":
+            state.draw(2)
+            state.record_event("discard", "2")
+        elif mode == "treasure":
+            if treasure_player not in {0, None}:
+                state.record_event("opponent_create_treasure", str(treasure_player))
+            else:
+                create_treasure(state, 1)
+        elif mode == "destroy_artifact":
+            if artifact_target is None or "Artifact" not in artifact_target.types:
+                raise RulesError("Prismari destroy mode targets an artifact")
+            _destroy_permanent(state, artifact_target)
+        else:
+            raise RulesError("unsupported Prismari Command mode")
+
+
+def lazotep_plating(state: GameState) -> Permanent:
+    army = next((p for p in state.battlefield if "Army" in p.subtypes), None)
+    if army is None:
+        army = _create_token(state, "Zombie Army", {"Creature"}, {"Zombie", "Army"}, 0, 0)
+    army.power = (army.power or 0) + 1
+    army.toughness = (army.toughness or 0) + 1
+    setattr(state, "self_hexproof_until_eot", True)
+    for permanent in state.battlefield:
+        if _controlled_by_us(permanent):
+            setattr(permanent, "hexproof_until_eot", True)
+    state.record_event("hexproof_until_eot", "self_and_permanents")
+    return army
+
+
+def sentinel_totem_etb(state: GameState, *, bottom: bool = False) -> None:
+    state.record_event("scry", "1_bottom" if bottom else "1_top")
+
+
+def sentinel_totem_exile_all_graveyards(state: GameState, source: Permanent) -> None:
+    if source not in state.battlefield or source.tapped or source.name != "Sentinel Totem":
+        raise RulesError("Sentinel Totem ability requires untapped source on battlefield")
+    state.battlefield.remove(source)
+    state.exile.append(source.name)
+    state.exile.extend(state.graveyard)
+    state.graveyard.clear()
+    state.record_event("exile_all_graveyards", "Sentinel Totem")
+
+
+def soul_guide_lantern_etb(state: GameState, card_name: str) -> None:
+    if card_name not in state.graveyard:
+        raise RulesError("Soul-Guide Lantern ETB targets a card in a graveyard")
+    state.graveyard.remove(card_name)
+    state.exile.append(card_name)
+    state.record_event("exile_graveyard_card", card_name)
+
+
+def soul_guide_lantern_exile_opponents(state: GameState, source: Permanent) -> None:
+    if source not in state.battlefield or source.tapped or source.name != "Soul-Guide Lantern":
+        raise RulesError("Soul-Guide Lantern ability requires untapped source on battlefield")
+    state.battlefield.remove(source)
+    state.graveyard.append(source.name)
+    state.record_event("exile_opponents_graveyards", "Soul-Guide Lantern")
+
+
+def soul_guide_lantern_draw(state: GameState, source: Permanent) -> None:
+    if source not in state.battlefield or source.tapped or source.name != "Soul-Guide Lantern":
+        raise RulesError("Soul-Guide Lantern draw ability requires untapped source on battlefield")
+    state.battlefield.remove(source)
+    state.graveyard.append(source.name)
+    state.draw(1)
+
+
+def siren_stormtamer_counter(state: GameState, source: Permanent, target: StackObject) -> None:
+    if source not in state.battlefield or source.name != "Siren Stormtamer":
+        raise RulesError("Siren Stormtamer ability requires source on battlefield")
+    if not (
+        getattr(target, "targets_player", False)
+        or any(_controlled_by_us(t) and "Creature" in t.types for t in target.targets)
+    ):
+        raise RulesError(
+            "Siren Stormtamer targets only spells or abilities targeting you or your creature"
+        )
+    state.battlefield.remove(source)
+    state.graveyard.append(source.name)
+    counter_spell(state, target)
