@@ -1,14 +1,31 @@
-requirement_id,source_document,source_section,owning_module,planned_test_id,status,evidence_path,notes
-P1A-SRC-001,PROJECT_BRIEF,Inputs,mtg_sim.source_validation,T-SRC-001,implemented,tests/test_source_validation.py,Decklist must be exact frozen input
-P1A-SRC-002,PROJECT_BRIEF,Inputs,mtg_sim.source_validation,T-SRC-002,implemented,tests/test_source_validation.py,Commanders must be exact frozen input
-P1A-SRC-003,PROJECT_BRIEF/OPEN_DECISIONS,Baseline assumptions,docs/spec,T-SRC-003,blocking,docs/spec/OPEN_DECISIONS.md,Unresolved baseline assumptions block engine implementation
-P1A-SRC-004,LEAGUE_MULLIGAN,League mulligan override,future mulligan module,T-MULL-001,planned,tests/planned/test_mulligan.py,No mulligan implementation in Phase 1A
-P1A-SRC-005,RULES_ACCEPTANCE,Rules competency,future rules engine,T-RULES-001,planned,tests/planned/test_rules_competency.py,No game rules implementation in Phase 1A
-P1A-SRC-006,MEASUREMENTS,Primary metrics,future measurement module,T-MEAS-001,planned,tests/planned/test_measurements.py,No simulations in Phase 1A
-P1A-SRC-007,POLICY_CANDIDATES,Policy candidate set,future policy module,T-POL-001,planned,tests/planned/test_policies.py,No policies in Phase 1A
-P1A-SRC-008,PILOT_PROTOCOL,Pilot gates,future pilot runner,T-PILOT-001,planned,tests/planned/test_pilot.py,Pilot not run or implemented in Phase 1A
-P1A-SRC-009,EXPLORATORY_BRANCH,Exploratory search,future search module,T-SEARCH-001,planned,tests/planned/test_exploratory_search.py,No exploratory search in Phase 1A
-P1A-SRC-010,EXPLORATORY_SEARCH_LIMITS,Search limits,future search module,T-SEARCH-002,planned,tests/planned/test_search_limits.py,No exploratory search in Phase 1A
-P1A-SRC-011,PROPOSED_ARCHITECTURE,Module boundaries,mtg_sim.source_validation,T-ARCH-001,partial,tests/test_source_validation.py,Source module established only
-P1A-SRC-012,MagicCompRules_2026-06-19,Rules source precedence,docs/source,T-SRC-004,implemented,uv run mtg-sim validate-sources,Frozen rules file inventoried by hash
-P1A-SRC-013,Oracle snapshot,Oracle source freeze,docs/source/oracle,T-SRC-005,blocking,docs/source/oracle/REFRESH_PROCESS.md,Schema and refresh process only; no live data fetched
+requirement_id,source_document,source_section,owning_module,test_id,planned_implementation_phase,status,evidence_path,notes
+P1A-SRC-001,PROJECT_BRIEF,Inputs,mtg_sim.source_validation,T-SRC-001,Phase 1A,implemented,tests/test_source_validation.py,Decklist must be exact frozen input
+P1A-SRC-002,PROJECT_BRIEF,Inputs,mtg_sim.source_validation,T-SRC-002,Phase 1A,implemented,tests/test_source_validation.py,Commanders must be exact frozen input
+P1A-SRC-003,OPEN_DECISIONS,Baseline assumptions,mtg_sim.source_validation,T-SRC-003,Phase 1B,implemented,tests/test_source_validation.py,Baseline assumptions resolved and validated
+P1A-SRC-004,LEAGUE_MULLIGAN,League mulligan override,mtg_sim.engine.mulligan,T-MULL-001,Phase 4,planned,tests/planned/test_mulligan.py,League mulligan replaces London mulligan and uses paired schedules
+P1A-SRC-005,RULES_ACCEPTANCE,Rules competency,mtg_sim.engine.validator,T-RULES-001,Phase 6,planned,tests/planned/test_rules_competency.py,Competency suite gates pilot
+P1A-SRC-006,MEASUREMENTS,Primary metrics,mtg_sim.reporting.metrics,T-MEAS-001,Phase 9,planned,tests/planned/test_measurements.py,Raw game fields preserve exact denominators and recomputation
+P1A-SRC-007,POLICY_CANDIDATES,Policy candidate set,mtg_sim.policies.config,T-POL-001,Phase 7,planned,tests/planned/test_policies.py,Composable policy bundles are frozen as data
+P1A-SRC-008,PILOT_PROTOCOL,Pilot gates,mtg_sim.simulation.runner,T-PILOT-001,Phase 10,planned,tests/planned/test_pilot.py,Pilot blocked until competency tests pass on same commit
+P1A-SRC-009,EXPLORATORY_BRANCH,Exploratory search,mtg_sim.search.beam,T-SEARCH-001,Phase 8,planned,tests/planned/test_exploratory_search.py,Exploratory results remain separate from standard-policy percentages
+P1A-SRC-010,EXPLORATORY_SEARCH_LIMITS,Search limits,mtg_sim.search.safeguards,T-SEARCH-002,Phase 8,planned,tests/planned/test_search_limits.py,Node/branch/depth caps and required search logs
+P1A-SRC-011,PROPOSED_ARCHITECTURE,Module boundaries,mtg_sim.domain.state,T-ARCH-001,Phase 3,planned,tests/planned/test_domain_boundaries.py,Phase 2 defines module/API boundaries only
+P1A-SRC-012,MagicCompRules_2026-06-19,Rules source precedence,mtg_sim.engine.validator,T-SRC-004,Phase 4,planned,tests/planned/test_rules_source_refs.py,Frozen rules source referenced by validator decisions
+P1A-SRC-013,Oracle snapshot,Oracle source freeze,mtg_sim.cards.registry,T-SRC-005,Phase 5,planned,tests/planned/test_card_registry.py,Frozen Oracle snapshot drives CardDefinition creation
+P2-ADR-001,ADR-0001,Deck-scoped fail-closed engine,mtg_sim.cards.coverage,T-ARCH-002,Phase 5,planned,tests/planned/test_fail_closed_coverage.py,Missing or blocked card behavior is fatal
+P2-ADR-002,ADR-0002,Event-sourced transitions and replay,mtg_sim.domain.events,T-REPLAY-001,Phase 4,planned,tests/planned/test_event_sourcing.py,Every transition emits typed events with state hashes
+P2-ADR-003,ADR-0003,Hidden state versus Observation,mtg_sim.domain.observation,T-HIDDEN-001,Phase 3,planned,tests/planned/test_observation_boundary.py,Policies cannot see ordered hidden libraries or future RNG
+P2-ADR-004,ADR-0004,Named deterministic random streams,mtg_sim.domain.seeds,T-RNG-001,Phase 3,planned,tests/planned/test_named_streams.py,Named streams isolate shuffles/search/audit/tie-breaks
+P2-ADR-005,ADR-0005,Paired mulligan shuffle schedules,mtg_sim.simulation.shuffle_schedule,T-MULL-002,Phase 3,planned,tests/planned/test_paired_mulligan_schedules.py,Same round and seed produce paired shuffle schedule
+P2-ADR-006,ADR-0006,Shared legality validator,mtg_sim.engine.validator,T-LEGAL-001,Phase 4,planned,tests/planned/test_shared_validator.py,Standard/search/replay all use same validator
+P2-ADR-007,ADR-0007,Card registry and coverage gate,mtg_sim.cards.registry,T-CARD-001,Phase 5,planned,tests/planned/test_card_coverage_gate.py,No generic silent no-op fallback
+P2-ADR-008,ADR-0008,Composable policy configuration,mtg_sim.policies.config,T-POL-002,Phase 7,planned,tests/planned/test_policy_config_schema.py,Candidate policies are versioned config bundles
+P2-ADR-009,ADR-0009,Discovery and validation seed separation,mtg_sim.simulation.seeds,T-SEED-001,Phase 9,planned,tests/planned/test_seed_split.py,Validation seeds remain untouched until finalist selection
+P2-ADR-010,ADR-0010,Bounded search without future info,mtg_sim.search.safeguards,T-SEARCH-003,Phase 8,planned,tests/planned/test_no_future_search.py,Search samples unknowns from belief state streams
+P2-ADR-011,ADR-0011,Independent replay and invariants,mtg_sim.audit.replay,T-REPLAY-002,Phase 6,planned,tests/planned/test_replay_invariants.py,Replay validates without policy code
+P2-ADR-012,ADR-0012,Run manifests and immutable artifacts,mtg_sim.simulation.manifests,T-MANIFEST-001,Phase 9,planned,tests/planned/test_run_manifest.py,Run artifacts append-only; failed runs quarantined
+P2-ADR-013,ADR-0013,Sharding and deterministic aggregation,mtg_sim.simulation.aggregation,T-SHARD-001,Phase 9,planned,tests/planned/test_deterministic_aggregation.py,Aggregator rejects mixed or incomplete shards
+P2-ADR-014,ADR-0014,Complete rerun after repeated audit error,mtg_sim.audit.invariants,T-AUDIT-001,Phase 11,planned,tests/planned/test_repeated_audit_error_gate.py,Repeated audit errors require regression and full pilot rerun
+P2-INT-001,INTERFACES,Data schemas,mtg_sim.domain,T-SCHEMA-001,Phase 3,planned,tests/planned/test_domain_schemas.py,Core schema fields defined for later implementation
+P2-INT-002,INTERFACES,Artifact directory structure,mtg_sim.reporting.exports,T-ARTIFACT-001,Phase 9,planned,tests/planned/test_artifact_layout.py,Run outputs have stable immutable locations
+P2-INT-003,INTERFACES,Phase gates,mtg_sim.cli,T-GATE-001,Phase 10,planned,tests/planned/test_phase_gates.py,CLI gates prevent premature simulations
