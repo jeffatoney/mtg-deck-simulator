@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import csv
-import json
 from pathlib import Path
 
 import typer
 
 from mtg_sim.phase5a_cards import ASSIGNED_CARDS
-from mtg_sim.offline_sources import audit_offline_snapshot, build_simulation_deck
+from mtg_sim.rules_competency import run_competency
+from mtg_sim.offline_sources import build_simulation_deck
 from mtg_sim.source_validation import validate_sources as run_source_validation
 from mtg_sim.source_validation import write_inventory
 
@@ -83,28 +83,9 @@ def validate_coverage(path: Path = typer.Option(Path("card_coverage.csv"), "--pa
 
 @app.command("verify-rules")
 def verify_rules(output: Path = typer.Option(..., "--output")) -> None:
-    """Write the current rules competency gate report without running pilots."""
-    output.mkdir(parents=True, exist_ok=True)
-    audit = audit_offline_snapshot()
-    deck = build_simulation_deck()
-    report = {
-        "status": "PASS",
-        "reason": "rules competency primitives and Phase 5D commander/combo interactions are covered by the repository test suite; pilot remains intentionally not run",
-        "coverage": {
-            "library_cards_covered": len(deck.library),
-            "library_cards_total": len(deck.library),
-            "commanders_covered": len(deck.commanders),
-            "commanders_total": len(deck.commanders),
-            "blocked": 0,
-            "missing": 0,
-            "silent_fallbacks": 0,
-        },
-        "offline_snapshot_audit": audit,
-    }
-    (output / "rules_competency_report.json").write_text(
-        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
-    typer.echo(f"Rules competency report written to {output / 'rules_competency_report.json'}")
+    """Run the complete Phase 6 rules competency gate and write an immutable report."""
+    run_dir = run_competency(output)
+    typer.echo(f"Rules competency report written to {run_dir / 'rules_competency_report.json'}")
 
 
 @app.command()
