@@ -1,0 +1,78 @@
+name: Pilot Simulation
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type RUN_500_STANDARD_200_EXPLORATORY to run the pilot.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm explicit authorization
+        run: |
+          test "${{ inputs.confirmation }}" = "RUN_500_STANDARD_200_EXPLORATORY"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Capture expected immutable state
+        run: |
+          git rev-parse HEAD > artifacts_expected_commit.txt
+          git status --porcelain --untracked-files=no > artifacts_expected_status.txt
+          test ! -s artifacts_expected_status.txt
+          sha256sum docs/source/MagicCompRules_2026-06-19.txt docs/source/decklist.txt docs/source/commanders.txt uv.lock > artifacts_expected_hashes.txt
+          find docs/source/oracle -type f -print0 | sort -z | xargs -0 sha256sum >> artifacts_expected_hashes.txt
+      - name: Format
+        run: uv run ruff format --check .
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check
+        run: uv run mypy src
+      - name: Unit and integration tests
+        run: uv run pytest -q
+      - name: Source validation
+        run: uv run mtg-sim validate-sources
+      - name: Card coverage gate
+        run: uv run mtg-sim validate-coverage
+      - name: Blocking decision gate
+        run: |
+          uv run python - <<'PYBLOCK'
+          from pathlib import Path
+          text = Path("docs/spec/OPEN_DECISIONS.md").read_text(encoding="utf-8")
+          assert "No baseline decision remains blocking" in text
+          PYBLOCK
+      - name: Rules competency gate
+        run: uv run mtg-sim verify-rules --output artifacts/rules/
+      - name: Verify immutable state before games
+        run: |
+          test "$(cat artifacts_expected_commit.txt)" = "$(git rev-parse HEAD)"
+          git status --porcelain --untracked-files=no > artifacts_current_status.txt
+          test ! -s artifacts_current_status.txt
+          sha256sum -c artifacts_expected_hashes.txt
+      - name: Pilot dry run manifest
+        run: uv run mtg-sim pilot --config configs/pilot.toml --dry-run
+      - name: Pilot games
+        run: uv run mtg-sim pilot --config configs/pilot.toml
+      - name: Upload pilot results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilot-results
+          path: |
+            artifacts/pilot/**
+            artifacts/rules/**

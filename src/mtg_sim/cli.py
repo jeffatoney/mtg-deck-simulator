@@ -10,6 +10,7 @@ import typer
 from mtg_sim.phase5a_cards import ASSIGNED_CARDS
 from mtg_sim.rules_competency import run_competency
 from mtg_sim.offline_sources import build_simulation_deck
+from mtg_sim.pilot import dry_run as run_pilot_dry_run
 from mtg_sim.source_validation import validate_sources as run_source_validation
 from mtg_sim.source_validation import write_inventory
 
@@ -86,6 +87,20 @@ def verify_rules(output: Path = typer.Option(..., "--output")) -> None:
     """Run the complete Phase 6 rules competency gate and write an immutable report."""
     run_dir = run_competency(output)
     typer.echo(f"Rules competency report written to {run_dir / 'rules_competency_report.json'}")
+
+
+@app.command("pilot")
+def pilot(
+    config: Path = typer.Option(..., "--config"), dry_run: bool = typer.Option(False, "--dry-run")
+) -> None:
+    """Plan the Phase 9 pilot run or execute a dry run without games."""
+    if not dry_run:
+        typer.echo(
+            "Randomized pilot execution is not implemented in Phase 9 dry-run harness.", err=True
+        )
+        raise typer.Exit(1)
+    manifest_path = run_pilot_dry_run(config)
+    typer.echo(f"Pilot dry-run manifest written to {manifest_path}")
 
 
 @app.command()
