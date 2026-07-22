@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 
 import typer
 
+from mtg_sim.phase5a_cards import ASSIGNED_CARDS
 from mtg_sim.offline_sources import audit_offline_snapshot
 from mtg_sim.source_validation import validate_sources as run_source_validation
 from mtg_sim.source_validation import write_inventory
@@ -31,6 +33,32 @@ def validate_sources(write_inventory_flag: bool = typer.Option(False, "--write-i
             typer.echo(f"- {error}", err=True)
         raise typer.Exit(1)
     typer.echo("Source validation passed.")
+
+
+@app.command("validate-coverage")
+def validate_coverage(path: Path = typer.Option(Path("card_coverage.csv"), "--path")) -> None:
+    """Validate Phase 5A card coverage declarations fail-closed."""
+    if not path.exists():
+        typer.echo(f"Coverage validation failed: missing {path}", err=True)
+        raise typer.Exit(1)
+    rows = list(csv.DictReader(path.read_text(encoding="utf-8").splitlines()))
+    by_name = {row["card_name"]: row for row in rows}
+    missing = sorted(ASSIGNED_CARDS.difference(by_name))
+    bad = sorted(
+        name
+        for name in ASSIGNED_CARDS.intersection(by_name)
+        if by_name[name]["coverage_status"] not in {"FULL", "BASELINE_EXPLICIT"}
+        or not by_name[name]["handler_id"]
+        or not by_name[name]["test_file"]
+    )
+    if missing or bad:
+        typer.echo("Coverage validation failed:", err=True)
+        for name in missing:
+            typer.echo(f"- missing coverage row: {name}", err=True)
+        for name in bad:
+            typer.echo(f"- incomplete coverage row: {name}", err=True)
+        raise typer.Exit(1)
+    typer.echo(f"Coverage validation passed for {len(ASSIGNED_CARDS)} Phase 5A cards.")
 
 
 @app.command("verify-rules")
