@@ -11,14 +11,21 @@ from mtg_sim.engine import (
     cast_commander,
     cast_dualcaster_mage,
     cast_split_card,
+    create_treasure,
     cast_twinflame,
     cleanup_step,
     curiosity_trigger,
+    deal_noncombat_damage,
     deal_pirate_combat_damage,
+    declare_attackers,
     flashback_electroduplicate,
     long_term_plans,
+    move_to_graveyard_or_command_zone,
     play_land,
+    retarget_copy,
     shuffled_library,
+    sacrifice_treasure_for_mana,
+    StackObject,
     tap_for_mana,
     transmute,
     use_single_tutor_for_combo_halves,
@@ -216,3 +223,91 @@ def test_tapped_lands_and_colored_mana_are_sequenced_legally():
 def test_same_seed_reproduces_same_shuffle_and_result():
     cards = [str(i) for i in range(10)]
     assert shuffled_library(cards, 8675309) == shuffled_library(cards, 8675309)
+
+
+def test_generic_cost_can_be_paid_with_colorless_or_colored_mana():
+    s = GameState(mana_pool={"C": 1, "U": 0, "R": 1, "W": 0, "B": 0, "G": 0})
+    s.pay_mana({"generic": 1, "R": 1})
+    assert s.mana_pool == {"C": 0, "U": 0, "R": 0, "W": 0, "B": 0, "G": 0}
+
+
+def test_colorless_cost_cannot_be_paid_with_generic_symbol_confusion():
+    s = GameState(mana_pool={"C": 0, "U": 1, "R": 1, "W": 0, "B": 0, "G": 0})
+    s.pay_mana({"generic": 1, "R": 1})
+    with pytest.raises(RulesError):
+        s.pay_mana({"C": 1})
+
+
+def test_mana_pool_empties_on_phase_transition():
+    s = GameState(mana_pool={"C": 0, "U": 1, "R": 1, "W": 0, "B": 0, "G": 0})
+    s.advance_phase(Phase.COMBAT)
+    assert all(amount == 0 for amount in s.mana_pool.values())
+
+
+def test_treasure_sacrifices_for_any_legal_mana_type():
+    s = GameState()
+    create_treasure(s)
+    sacrifice_treasure_for_mana(s, "G")
+    assert s.treasures == 0 and s.mana_pool["G"] == 1
+
+
+def test_lands_with_tapped_entry_rules_cannot_immediately_tap():
+    s = GameState()
+    land = play_land(s, "Izzet Boilerworks")
+    assert land.tapped
+    with pytest.raises(RulesError):
+        tap_for_mana(s, land, "U")
+
+
+def test_declare_attackers_enforces_summoning_sickness_and_haste():
+    sick = Permanent("New Pirate", {"Creature"}, {"Pirate"})
+    hasty = Permanent("Hasty Pirate", {"Creature"}, {"Pirate"}, haste=True)
+    s = GameState(phase=Phase.COMBAT, battlefield=[sick, hasty])
+    with pytest.raises(RulesError):
+        declare_attackers(s, [sick])
+    declare_attackers(s, [hasty])
+    assert hasty.attacking and hasty.tapped
+
+
+def test_noncombat_damage_during_resolution_defers_state_based_actions():
+    s = GameState(opponent_life=[1, 1, 1])
+
+    def effect(state: GameState) -> None:
+        deal_noncombat_damage(state, [0, 1, 2], 1)
+        assert not state.won
+
+    s.stack.append(StackObject("lethal damage", "ability", effect, cast=False))
+    s.resolve_top()
+    assert s.won
+
+
+def test_simultaneous_opponent_elimination_marks_table_win():
+    s = GameState(opponent_life=[1, 1, 1])
+    deal_noncombat_damage(s, [0, 1, 2], 1)
+    assert s.won and s.terminal
+
+
+def test_independent_commander_taxes_are_tracked_separately():
+    s = GameState()
+    assert cast_commander("Malcolm, Keen-Eyed Navigator", 3, s) == 3
+    assert cast_commander("Breeches, Brazen Plunderer", 4, s) == 4
+    assert cast_commander("Malcolm, Keen-Eyed Navigator", 3, s) == 5
+
+
+def test_command_zone_replacement_is_choice_scoped_to_commander():
+    malcolm = Permanent("Malcolm, Keen-Eyed Navigator", {"Creature"})
+    token = Permanent("Treasure", {"Artifact"}, {"Treasure"}, is_token=True)
+    s = GameState(battlefield=[malcolm, token])
+    move_to_graveyard_or_command_zone(s, malcolm, use_command_zone=True)
+    move_to_graveyard_or_command_zone(s, token, use_command_zone=True)
+    assert s.command_zone_replacements["Malcolm, Keen-Eyed Navigator"] is True
+    assert token.name not in s.graveyard
+
+
+def test_copy_retargeting_rejects_illegal_targets():
+    creature = Permanent("Siren", {"Creature"})
+    artifact = Permanent("Sol Ring", {"Artifact"})
+    s = GameState(battlefield=[creature, artifact])
+    original = cast_twinflame(s, creature)
+    with pytest.raises(RulesError):
+        retarget_copy(s, original, [artifact])
