@@ -1,0 +1,34 @@
+card_name,coverage_status,handler_id,oracle_source,test_file,review_notes
+Ash Barrens,FULL,ash_barrens_basic_landcycling_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Cascade Bluffs,FULL,cascade_bluffs_filter_land_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Command Tower,FULL,command_tower_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Demolition Field,FULL,demolition_field_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Evolving Wilds,FULL,evolving_wilds_fetch_tapped_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Exotic Orchard,FULL,exotic_orchard_opponent_color_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Frostboil Snarl,FULL,frostboil_snarl_reveal_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Island,FULL,basic_island_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Izzet Boilerworks,FULL,izzet_boilerworks_bounceland_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Mountain,FULL,basic_mountain_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Path of Ancestry,FULL,path_of_ancestry_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Scavenger Grounds,FULL,scavenger_grounds_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Shivan Reef,FULL,shivan_reef_painland_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Temple of Epiphany,FULL,temple_epiphany_tapped_scry_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Terramorphic Expanse,FULL,terramorphic_expanse_fetch_tapped_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Thriving Isle,FULL,thriving_isle_choose_color_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Arcane Signet,FULL,arcane_signet_mana_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Fellwar Stone,FULL,fellwar_stone_opponent_color_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Izzet Signet,FULL,izzet_signet_filter_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Mind Stone,FULL,mind_stone_mana_draw_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Prismatic Lens,FULL,prismatic_lens_filter_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Sol Ring,FULL,sol_ring_mana_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Wily Goblin,FULL,wily_goblin_treasure_etb_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Chart a Course,FULL,chart_a_course_raid_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Expedite,FULL,expedite_haste_draw_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Fact or Fiction,FULL,fact_or_fiction_piles_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Faithless Looting,FULL,faithless_looting_flashback_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Frantic Search,FULL,frantic_search_untap_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Impulse,FULL,impulse_top_four_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Opt,FULL,opt_scry_draw_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Sleight of Hand,FULL,sleight_of_hand_selection_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Spectral Sailor,FULL,spectral_sailor_flash_draw_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
+Storm Fleet Sprinter,FULL,storm_fleet_sprinter_v1,offline_snapshot/normalized/cards_snapshot.json,tests/test_phase5a_cards.py,Phase 5A Oracle abilities implemented and unit/integration/property tested.
