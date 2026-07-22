@@ -17,6 +17,32 @@ class RulesError(ValueError):
     """Raised when a requested game action is illegal or unsupported."""
 
 
+class ActionType(str, Enum):
+    CAST_SPELL = "cast_spell"
+    ACTIVATE_ABILITY = "activate_ability"
+    PASS_PRIORITY = "pass_priority"
+
+
+@dataclass(frozen=True, slots=True)
+class Action:
+    action_type: ActionType
+    source_name: str | None = None
+    targets: tuple[Permanent, ...] = ()
+    mana_cost: dict[str, int] | None = None
+    additional_costs: tuple[str, ...] = ()
+    timing: Literal["instant", "sorcery"] = "instant"
+    effect: Callable[["GameState"], None] | None = None
+    optional_draw_decline: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class ValidationResult:
+    accepted: bool
+    errors: tuple[str, ...] = ()
+    rules_refs: tuple[str, ...] = ()
+    normalized_action: Action | None = None
+
+
 class Phase(str, Enum):
     BEGINNING = "beginning"
     PRECOMBAT_MAIN = "precombat_main"
@@ -46,6 +72,7 @@ class StackObject:
     targets: list[Permanent] = field(default_factory=list)
     cast: bool = True
     mana_value: int | None = None
+    legal_targets: Callable[["GameState", list[Permanent]], bool] | None = None
 
 
 @dataclass(slots=True)
@@ -74,42 +101,78 @@ class GameState:
     cards_drawn: int = 0
     cleanup_steps: int = 0
     event_log: list[str] = field(default_factory=list)
+    pending_triggers: list[StackObject] = field(default_factory=list)
+    resolving: bool = False
+    priority_player: int = 0
+
+    def record_event(self, event_type: str, detail: str = "") -> None:
+        self.event_log.append(f"{event_type}:{detail}" if detail else event_type)
+
+    @property
+    def terminal(self) -> bool:
+        return self.won or self.lost
 
     def active_opponents(self) -> list[int]:
         return [idx for idx, life in enumerate(self.opponent_life) if life > 0]
 
     def check_state_based_actions(self) -> None:
+        if self.resolving:
+            raise RulesError("state-based actions cannot be checked during resolution")
+        self.record_event("state_based_action_check")
         if self.attempted_empty_draw:
             self.lost = True
-            self.event_log.append("state_based_action:empty_library_loss")
+            self.record_event("state_based_action", "empty_library_loss")
         for idx, life in enumerate(self.opponent_life):
             if life <= 0:
-                self.event_log.append(f"state_based_action:opponent_{idx}_lost")
+                self.record_event("state_based_action", f"opponent_{idx}_lost")
         if self.opponent_life and all(life <= 0 for life in self.opponent_life):
             self.won = True
             self.stack.clear()
-            self.event_log.append("state_based_action:table_win")
+            self.record_event("state_based_action", "table_win")
 
     def draw(self, count: int = 1, *, optional: bool = False, decline: bool = False) -> None:
         for _ in range(count):
             if optional and decline:
-                self.event_log.append("optional_draw_declined")
+                self.record_event("optional_draw_declined")
                 continue
             if not self.library:
                 self.attempted_empty_draw = True
-                self.event_log.append("draw_attempt_empty_library")
+                self.record_event("draw_attempt_empty_library")
                 continue
             self.hand.append(self.library.pop(0))
             self.cards_drawn += 1
-            self.event_log.append("draw")
+            self.record_event("draw")
+
+    def would_receive_priority(self) -> None:
+        if self.terminal:
+            return
+        self.check_state_based_actions()
+        while self.pending_triggers and not self.terminal:
+            self.place_pending_triggers_on_stack()
+            self.check_state_based_actions()
+        self.record_event("priority", f"player_{self.priority_player}")
+
+    def place_pending_triggers_on_stack(self) -> None:
+        while self.pending_triggers:
+            trigger = self.pending_triggers.pop(0)
+            self.stack.append(trigger)
+            self.record_event("trigger_put_on_stack", trigger.name)
 
     def resolve_top(self) -> None:
         if self.won or self.lost:
             return
         obj = self.stack.pop()
-        self.event_log.append(f"resolve:{obj.name}")
-        obj.effect(self)
-        self.check_state_based_actions()
+        if obj.legal_targets is not None and not obj.legal_targets(self, obj.targets):
+            self.record_event("resolution_countered_illegal_targets", obj.name)
+            self.would_receive_priority()
+            return
+        self.record_event("resolve", obj.name)
+        self.resolving = True
+        try:
+            obj.effect(self)
+        finally:
+            self.resolving = False
+        self.would_receive_priority()
 
     def resolve_all(self) -> None:
         while self.stack and not (self.won or self.lost):
@@ -150,7 +213,7 @@ def create_malcolm_treasures_for_pirate_damage(
         if damaged_by_pirate.get(idx, 0) > 0 and idx not in prevented
     )
     state.treasures += count
-    state.event_log.append(f"malcolm_treasures:{count}")
+    state.record_event("malcolm_treasures", str(count))
     return count
 
 
@@ -173,6 +236,8 @@ def deal_pirate_combat_damage(
 
 
 def activate_glint_horn(state: GameState, glint_horn: Permanent) -> None:
+    if state.terminal:
+        raise RulesError("No action is legal after a terminal game state")
     if not glint_horn.attacking:
         raise RulesError("Glint-Horn Buccaneer can activate only while attacking")
     if not state.hand:
@@ -180,7 +245,7 @@ def activate_glint_horn(state: GameState, glint_horn: Permanent) -> None:
     state.pay_mana({"C": 1, "R": 1})
     discarded = state.hand.pop(0)
     state.graveyard.append(discarded)
-    state.event_log.append("cost:discard")
+    state.record_event("cost", "discard")
 
     def draw_effect(s: GameState) -> None:
         s.draw(1)
@@ -188,16 +253,18 @@ def activate_glint_horn(state: GameState, glint_horn: Permanent) -> None:
     def damage_effect(s: GameState) -> None:
         for idx in s.active_opponents():
             s.opponent_life[idx] -= 1
-        s.event_log.append("glint_horn_discard_damage")
+        s.record_event("glint_horn_discard_damage")
 
     state.stack.append(StackObject("Glint-Horn draw ability", "ability", draw_effect, cast=False))
-    state.stack.append(
+    state.pending_triggers.append(
         StackObject("Glint-Horn discard damage trigger", "trigger", damage_effect, cast=False)
     )
+    state.record_event("trigger_detected", "Glint-Horn discard damage trigger")
+    state.would_receive_priority()
 
 
 def curiosity_trigger(state: GameState, *, decline: bool) -> None:
-    state.stack.append(
+    state.pending_triggers.append(
         StackObject(
             "Curiosity optional draw",
             "trigger",
@@ -205,6 +272,8 @@ def curiosity_trigger(state: GameState, *, decline: bool) -> None:
             cast=False,
         )
     )
+    state.record_event("trigger_detected", "Curiosity optional draw")
+    state.would_receive_priority()
 
 
 def cleanup_step(state: GameState) -> None:
@@ -330,3 +399,105 @@ def use_single_tutor_for_combo_halves() -> None:
 
 def execute_placeholder(card_name: str) -> None:
     raise RulesError(f"placeholder behavior cannot be selected for deterministic line: {card_name}")
+
+
+TARGET_RULES_REFS = ("CR 601.2c", "CR 603.3d")
+TIMING_RULES_REFS = ("CR 117.1a", "CR 117.1b", "CR 602.5d")
+STACK_RULES_REFS = ("CR 117.4", "CR 117.7")
+SBA_RULES_REFS = ("CR 117.5", "CR 704.3", "CR 704.4", "CR 704.5b")
+
+
+def _is_creature_target(state: GameState, targets: list[Permanent]) -> bool:
+    return len(targets) == 1 and targets[0] in state.battlefield and "Creature" in targets[0].types
+
+
+def validate_timing(state: GameState, timing: str) -> tuple[str, ...]:
+    if state.terminal:
+        return ("No action is legal after a terminal game state",)
+    if timing == "sorcery" and (
+        state.phase not in {Phase.PRECOMBAT_MAIN, Phase.POSTCOMBAT_MAIN} or state.stack
+    ):
+        return ("Sorcery-speed actions require a main phase with an empty stack",)
+    return ()
+
+
+def validate_action(state: GameState, action: Action) -> ValidationResult:
+    errors: list[str] = []
+    refs: list[str] = ["CR 117.5"]
+    if action.action_type in {ActionType.CAST_SPELL, ActionType.ACTIVATE_ABILITY}:
+        errors.extend(validate_timing(state, action.timing))
+        refs.extend(TIMING_RULES_REFS)
+    if action.action_type is ActionType.CAST_SPELL:
+        if action.source_name not in state.hand:
+            errors.append(f"{action.source_name} is not in hand")
+        if action.source_name in {"Twinflame", "Electroduplicate"} and not _is_creature_target(
+            state, list(action.targets)
+        ):
+            errors.append(f"{action.source_name} requires one legal creature target")
+            refs.extend(TARGET_RULES_REFS)
+    elif action.action_type is ActionType.ACTIVATE_ABILITY:
+        if action.source_name == "Glint-Horn Buccaneer":
+            source = next((p for p in state.battlefield if p.name == "Glint-Horn Buccaneer"), None)
+            if source is None or not source.attacking:
+                errors.append("Glint-Horn Buccaneer can activate only while attacking")
+            if not state.hand:
+                errors.append("Glint-Horn activation requires a discarded card")
+        else:
+            errors.append(f"unsupported activated ability: {action.source_name}")
+    elif action.action_type is not ActionType.PASS_PRIORITY:
+        errors.append(f"unsupported action type: {action.action_type}")
+    return ValidationResult(
+        not errors, tuple(errors), tuple(dict.fromkeys(refs)), action if not errors else None
+    )
+
+
+def generate_legal_actions(state: GameState) -> list[Action]:
+    if state.terminal:
+        return []
+    actions = [Action(ActionType.PASS_PRIORITY)]
+    for card in state.hand:
+        if card in {"Twinflame", "Electroduplicate"}:
+            for permanent in state.battlefield:
+                candidate = Action(ActionType.CAST_SPELL, card, (permanent,), timing="sorcery")
+                if validate_action(state, candidate).accepted:
+                    actions.append(candidate)
+    if any(p.name == "Glint-Horn Buccaneer" for p in state.battlefield):
+        candidate = Action(ActionType.ACTIVATE_ABILITY, "Glint-Horn Buccaneer")
+        if validate_action(state, candidate).accepted:
+            actions.append(candidate)
+    return actions
+
+
+def execute_action(state: GameState, action: Action) -> None:
+    result = validate_action(state, action)
+    if not result.accepted:
+        raise RulesError("; ".join(result.errors))
+    if action.action_type is ActionType.PASS_PRIORITY:
+        state.record_event("action", "pass_priority")
+        if state.stack:
+            state.resolve_top()
+        else:
+            state.would_receive_priority()
+        return
+    if action.action_type is ActionType.CAST_SPELL:
+        assert action.source_name is not None
+        state.hand.remove(action.source_name)
+        state.pay_mana(action.mana_cost or {})
+        state.record_event("action", f"cast:{action.source_name}")
+        effect = action.effect or (lambda _s: None)
+        state.stack.append(
+            StackObject(
+                action.source_name,
+                "spell",
+                effect,
+                list(action.targets),
+                legal_targets=_is_creature_target,
+            )
+        )
+        state.would_receive_priority()
+        return
+    if action.action_type is ActionType.ACTIVATE_ABILITY:
+        source = next(p for p in state.battlefield if p.name == action.source_name)
+        state.record_event("action", f"activate:{action.source_name}")
+        activate_glint_horn(state, source)
+        state.would_receive_priority()
