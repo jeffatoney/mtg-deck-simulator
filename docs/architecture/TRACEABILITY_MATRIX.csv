@@ -1,0 +1,14 @@
+requirement_id,source_document,source_section,owning_module,planned_test_id,status,evidence_path,notes
+P1A-SRC-001,PROJECT_BRIEF,Inputs,mtg_sim.source_validation,T-SRC-001,implemented,tests/test_source_validation.py,Decklist must be exact frozen input
+P1A-SRC-002,PROJECT_BRIEF,Inputs,mtg_sim.source_validation,T-SRC-002,implemented,tests/test_source_validation.py,Commanders must be exact frozen input
+P1A-SRC-003,PROJECT_BRIEF/OPEN_DECISIONS,Baseline assumptions,docs/spec,T-SRC-003,blocking,docs/spec/OPEN_DECISIONS.md,Unresolved baseline assumptions block engine implementation
+P1A-SRC-004,LEAGUE_MULLIGAN,League mulligan override,future mulligan module,T-MULL-001,planned,tests/planned/test_mulligan.py,No mulligan implementation in Phase 1A
+P1A-SRC-005,RULES_ACCEPTANCE,Rules competency,future rules engine,T-RULES-001,planned,tests/planned/test_rules_competency.py,No game rules implementation in Phase 1A
+P1A-SRC-006,MEASUREMENTS,Primary metrics,future measurement module,T-MEAS-001,planned,tests/planned/test_measurements.py,No simulations in Phase 1A
+P1A-SRC-007,POLICY_CANDIDATES,Policy candidate set,future policy module,T-POL-001,planned,tests/planned/test_policies.py,No policies in Phase 1A
+P1A-SRC-008,PILOT_PROTOCOL,Pilot gates,future pilot runner,T-PILOT-001,planned,tests/planned/test_pilot.py,Pilot not run or implemented in Phase 1A
+P1A-SRC-009,EXPLORATORY_BRANCH,Exploratory search,future search module,T-SEARCH-001,planned,tests/planned/test_exploratory_search.py,No exploratory search in Phase 1A
+P1A-SRC-010,EXPLORATORY_SEARCH_LIMITS,Search limits,future search module,T-SEARCH-002,planned,tests/planned/test_search_limits.py,No exploratory search in Phase 1A
+P1A-SRC-011,PROPOSED_ARCHITECTURE,Module boundaries,mtg_sim.source_validation,T-ARCH-001,partial,tests/test_source_validation.py,Source module established only
+P1A-SRC-012,MagicCompRules_2026-06-19,Rules source precedence,docs/source,T-SRC-004,implemented,uv run mtg-sim validate-sources,Frozen rules file inventoried by hash
+P1A-SRC-013,Oracle snapshot,Oracle source freeze,docs/source/oracle,T-SRC-005,blocking,docs/source/oracle/REFRESH_PROCESS.md,Schema and refresh process only; no live data fetched
