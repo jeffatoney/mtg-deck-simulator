@@ -29,6 +29,7 @@ class ActionType(str, Enum):
     ACTIVATE_MANA_ABILITY = "activate_mana_ability"
     PASS_PRIORITY = "pass_priority"
     DECLARE_ATTACKERS = "declare_attackers"
+    COMBAT_DAMAGE = "combat_damage"
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,6 +43,8 @@ class Action:
     effect: Callable[["GameState"], None] | None = None
     optional_draw_decline: bool = False
     mana_choice: str | None = None
+    ability_id: str | None = None
+    origin_zone: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -610,8 +613,6 @@ LAND_MANA = {
     "Demolition Field": "C",
     "Path of Ancestry": "U",
     "Ash Barrens": "C",
-    "Evolving Wilds": "C",
-    "Terramorphic Expanse": "C",
     "Izzet Boilerworks": "U",
 }
 TAPPED_LANDS = {"Izzet Boilerworks", "Temple of Epiphany", "Thriving Isle", "Path of Ancestry"}
@@ -663,6 +664,23 @@ PIRATES = {
     "Spectral Sailor",
     "Storm Fleet Sprinter",
 }
+
+
+COMMANDER_BASE_COSTS: dict[str, ManaCost] = {
+    "Malcolm, Keen-Eyed Navigator": {"generic": 2, "U": 1},
+    "Breeches, Brazen Plunderer": {"generic": 3, "R": 1},
+}
+
+
+def commander_action_cost(name: str, state: GameState, origin_zone: str | None) -> ManaCost:
+    base = dict(COMMANDER_BASE_COSTS[name])
+    if origin_zone == "command_zone":
+        base["generic"] = base.get("generic", 0) + 2 * state.commander_casts.get(name, 0)
+    return base
+
+
+def _costs_equal(left: ManaCost | None, right: ManaCost | None) -> bool:
+    return normalize_mana(left) == normalize_mana(right)
 
 
 def play_land(state: GameState, name: str) -> Permanent:
@@ -809,6 +827,29 @@ def validate_timing(state: GameState, timing: str) -> tuple[str, ...]:
     return ()
 
 
+ABILITY_COSTS: dict[tuple[str, str], ManaCost] = {
+    ("Glint-Horn Buccaneer", "draw_discard_damage"): {"generic": 1, "R": 1},
+    ("Lightning-Rig Crew", "tap_damage_each_opponent"): {},
+    ("Mind Stone", "draw"): {"generic": 1},
+    ("Soul-Guide Lantern", "exile_opponents_graveyards"): {},
+    ("Soul-Guide Lantern", "draw"): {"generic": 1},
+    ("Sentinel Totem", "exile_all_graveyards"): {},
+    ("Evolving Wilds", "basic_fetch"): {},
+    ("Terramorphic Expanse", "basic_fetch"): {},
+}
+
+
+def _default_ability_id(name: str | None) -> str | None:
+    if name is None:
+        return None
+    return {
+        "Glint-Horn Buccaneer": "draw_discard_damage",
+        "Lightning-Rig Crew": "tap_damage_each_opponent",
+        "Mind Stone": "draw",
+        "Sentinel Totem": "exile_all_graveyards",
+    }.get(name)
+
+
 def validate_action(state: GameState, action: Action) -> ValidationResult:
     errors: list[str] = []
     refs: list[str] = ["CR 117.5"]
@@ -816,31 +857,78 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
         errors.extend(validate_timing(state, action.timing))
         refs.extend(TIMING_RULES_REFS)
     if action.action_type is ActionType.CAST_SPELL:
-        if action.source_name not in state.hand and action.source_name not in state.command_zone:
+        origin = action.origin_zone
+        if action.source_name in state.hand and origin is None:
+            origin = "hand"
+        elif action.source_name in state.command_zone and origin is None:
+            origin = "command_zone"
+        if origin == "hand":
+            if action.source_name not in state.hand:
+                errors.append(f"{action.source_name} is not in hand")
+        elif origin == "command_zone":
+            if action.source_name not in state.command_zone:
+                errors.append(f"{action.source_name} is not in command zone")
+        else:
             errors.append(f"{action.source_name} is not in hand or command zone")
+        if action.source_name in COMMANDER_BASE_COSTS:
+            expected = commander_action_cost(action.source_name, state, origin)
+            if not _costs_equal(action.mana_cost, expected):
+                errors.append(
+                    f"incorrect commander cost for {action.source_name}: expected {expected}"
+                )
+        elif (
+            action.source_name is not None
+            and action.mana_cost is not None
+            and not _costs_equal(action.mana_cost, CARD_COSTS.get(action.source_name, {}))
+        ):
+            errors.append(f"incorrect spell cost for {action.source_name}")
         if action.source_name in {"Twinflame", "Electroduplicate"} and not _is_creature_target(
             state, list(action.targets)
         ):
             errors.append(f"{action.source_name} requires one legal creature target")
             refs.extend(TARGET_RULES_REFS)
+        if solve_mana_payment(state.mana_pool, action.mana_cost or {}) is None:
+            errors.append("insufficient mana")
     elif action.action_type is ActionType.ACTIVATE_ABILITY:
-        if action.source_name == "Glint-Horn Buccaneer":
-            source = next((p for p in state.battlefield if p.name == "Glint-Horn Buccaneer"), None)
-            if source is None or not source.attacking:
-                errors.append("Glint-Horn Buccaneer can activate only while attacking")
-            if not state.hand:
-                errors.append("Glint-Horn activation requires a discarded card")
-        elif action.source_name not in {
-            "Lightning-Rig Crew",
-            "Mind Stone",
-            "Soul-Guide Lantern",
-            "Sentinel Totem",
-        }:
-            errors.append(f"unsupported activated ability: {action.source_name}")
+        ability_id = action.ability_id or _default_ability_id(action.source_name)
+        key = (action.source_name or "", ability_id or "")
+        if key not in ABILITY_COSTS:
+            errors.append(f"unsupported activated ability: {action.source_name}:{ability_id}")
+        else:
+            if not _costs_equal(action.mana_cost, ABILITY_COSTS[key]):
+                errors.append(f"incorrect ability cost for {action.source_name}:{ability_id}")
+            if solve_mana_payment(state.mana_pool, action.mana_cost or {}) is None:
+                errors.append("insufficient mana")
+            source = next((p for p in state.battlefield if p.name == action.source_name), None)
+            if source is None:
+                errors.append(f"{action.source_name} is not on battlefield")
+            elif source.tapped and action.source_name != "Glint-Horn Buccaneer":
+                errors.append("activated ability source is already tapped")
+            if action.source_name == "Glint-Horn Buccaneer":
+                if source is None or not source.attacking:
+                    errors.append("Glint-Horn Buccaneer can activate only while attacking")
+                if not state.hand:
+                    errors.append("Glint-Horn activation requires a discarded card")
+            if (
+                action.source_name == "Lightning-Rig Crew"
+                and source is not None
+                and source.summoning_sick
+                and not source.haste
+            ):
+                errors.append(
+                    "Lightning-Rig Crew activated ability is restricted by summoning sickness"
+                )
+            if action.source_name in {"Evolving Wilds", "Terramorphic Expanse"} and not any(
+                c in {"Island", "Mountain"} for c in state.library
+            ):
+                errors.append("fetch ability requires an Island or Mountain in library")
     elif action.action_type is ActionType.PLAY_LAND:
         if action.source_name not in state.hand:
             errors.append(f"{action.source_name} is not in hand")
-        if action.source_name not in LAND_MANA:
+        if action.source_name not in LAND_MANA and action.source_name not in {
+            "Evolving Wilds",
+            "Terramorphic Expanse",
+        }:
             errors.append(f"unsupported land play: {action.source_name}")
         if state.land_played:
             errors.append("only one land play per turn")
@@ -866,10 +954,34 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
                 errors.append("only battlefield creatures can attack")
             elif target.tapped or (target.summoning_sick and not target.haste):
                 errors.append("creature cannot legally attack")
+    elif action.action_type is ActionType.COMBAT_DAMAGE:
+        if state.phase is not Phase.COMBAT:
+            errors.append("combat damage occurs only during combat")
+        if not any(p.attacking for p in state.battlefield):
+            errors.append("combat damage requires attacking creatures")
     elif action.action_type is not ActionType.PASS_PRIORITY:
         errors.append(f"unsupported action type: {action.action_type}")
+    normalized = action
+    if (
+        not errors
+        and action.action_type is ActionType.ACTIVATE_ABILITY
+        and action.ability_id is None
+    ):
+        normalized = Action(
+            action.action_type,
+            action.source_name,
+            action.targets,
+            action.mana_cost,
+            action.additional_costs,
+            action.timing,
+            action.effect,
+            action.optional_draw_decline,
+            action.mana_choice,
+            _default_ability_id(action.source_name),
+            action.origin_zone,
+        )
     return ValidationResult(
-        not errors, tuple(errors), tuple(dict.fromkeys(refs)), action if not errors else None
+        not errors, tuple(errors), tuple(dict.fromkeys(refs)), normalized if not errors else None
     )
 
 
@@ -895,9 +1007,21 @@ def generate_legal_actions(state: GameState) -> list[Action]:
                     target_tuple,
                     CARD_COSTS.get(card, {}),
                     timing="sorcery",
+                    origin_zone="hand",
                 )
                 if validate_action(state, candidate).accepted:
                     actions.append(candidate)
+    for commander in sorted(set(state.command_zone)):
+        if commander in COMMANDER_BASE_COSTS:
+            candidate = Action(
+                ActionType.CAST_SPELL,
+                commander,
+                mana_cost=commander_action_cost(commander, state, "command_zone"),
+                timing="sorcery",
+                origin_zone="command_zone",
+            )
+            if validate_action(state, candidate).accepted:
+                actions.append(candidate)
     for permanent in state.battlefield:
         candidate = Action(
             ActionType.ACTIVATE_MANA_ABILITY,
@@ -906,9 +1030,14 @@ def generate_legal_actions(state: GameState) -> list[Action]:
         )
         if validate_action(state, candidate).accepted:
             actions.append(candidate)
-        ability = Action(ActionType.ACTIVATE_ABILITY, permanent.name)
-        if validate_action(state, ability).accepted:
-            actions.append(ability)
+        for ability_id, cost in sorted(
+            (aid, cost) for (name, aid), cost in ABILITY_COSTS.items() if name == permanent.name
+        ):
+            ability = Action(
+                ActionType.ACTIVATE_ABILITY, permanent.name, mana_cost=cost, ability_id=ability_id
+            )
+            if validate_action(state, ability).accepted:
+                actions.append(ability)
     attackers = tuple(
         p
         for p in state.battlefield
@@ -918,6 +1047,9 @@ def generate_legal_actions(state: GameState) -> list[Action]:
         candidate = Action(ActionType.DECLARE_ATTACKERS, "attack", attackers)
         if validate_action(state, candidate).accepted:
             actions.append(candidate)
+    damage = Action(ActionType.COMBAT_DAMAGE, "combat_damage")
+    if validate_action(state, damage).accepted:
+        actions.append(damage)
     return actions
 
 
@@ -934,15 +1066,18 @@ def execute_action(state: GameState, action: Action) -> None:
         return
     if action.action_type is ActionType.CAST_SPELL:
         assert action.source_name is not None
-        if action.source_name in state.hand:
+        normalized = result.normalized_action or action
+        origin_zone = normalized.origin_zone
+        if origin_zone == "hand":
             state.hand.remove(action.source_name)
-        elif action.source_name in state.command_zone:
+        elif origin_zone == "command_zone":
             state.command_zone.remove(action.source_name)
+        state.pay_mana(normalized.mana_cost or {})
+        if origin_zone == "command_zone":
             state.commander_casts[action.source_name] = (
                 state.commander_casts.get(action.source_name, 0) + 1
             )
-        state.pay_mana(action.mana_cost or {})
-        state.record_event("action", f"cast:{action.source_name}")
+        state.record_event("action", f"cast:{action.source_name}:from:{origin_zone}")
         effect = action.effect or (lambda _s: None)
         if action.source_name in CREATURES or action.source_name in MANA_ROCK_MANA:
             state.battlefield.append(_permanent_for_card(action.source_name))
@@ -978,18 +1113,91 @@ def execute_action(state: GameState, action: Action) -> None:
         return
     if action.action_type is ActionType.DECLARE_ATTACKERS:
         declare_attackers(state, list(action.targets))
-        pirates = [p for p in action.targets if "Pirate" in p.subtypes]
+        return
+    if action.action_type is ActionType.COMBAT_DAMAGE:
+        attackers = [p for p in state.battlefield if p.attacking]
+        pirates = [p for p in attackers if "Pirate" in p.subtypes]
         if pirates:
-            deal_pirate_combat_damage(
-                state, list(pirates), list(range(min(len(pirates), len(state.opponent_life))))
-            )
+            opponents = list(range(min(len(pirates), len(state.opponent_life))))
+            deal_pirate_combat_damage(state, list(pirates)[: len(opponents)], opponents)
+        for attacker in attackers:
+            attacker.attacking = False
         state.record_event("combat_damage", "unblocked")
         return
     if action.action_type is ActionType.ACTIVATE_ABILITY:
+        normalized = result.normalized_action or action
         source = next(p for p in state.battlefield if p.name == action.source_name)
-        state.record_event("action", f"activate:{action.source_name}")
-        activate_glint_horn(state, source)
+        state.record_event("action", f"activate:{action.source_name}:{normalized.ability_id}")
+        execute_activated_ability(state, source, normalized)
         state.would_receive_priority()
+
+
+def _activate_lightning_rig_crew(state: GameState, crew: Permanent) -> None:
+    if crew not in state.battlefield or crew.name != "Lightning-Rig Crew":
+        raise RulesError("Lightning-Rig Crew must be on battlefield")
+    if crew.tapped:
+        raise RulesError("Lightning-Rig Crew is already tapped")
+    if crew.summoning_sick and not crew.haste:
+        raise RulesError("Lightning-Rig Crew activated ability is restricted by summoning sickness")
+    crew.tapped = True
+
+    def effect(current: GameState) -> None:
+        deal_noncombat_damage(
+            current, list(current.active_opponents()), 1, source_name="Lightning-Rig Crew"
+        )
+
+    state.stack.append(
+        StackObject("Lightning-Rig Crew damage ability", "ability", effect, cast=False)
+    )
+
+
+def _activate_mind_stone_draw(state: GameState, source: Permanent) -> None:
+    state.pay_mana({"generic": 1})
+    if source.tapped or source not in state.battlefield or source.name != "Mind Stone":
+        raise RulesError("Mind Stone draw ability requires untapped source on battlefield")
+    source.tapped = True
+    state.battlefield.remove(source)
+    state.graveyard.append("Mind Stone")
+    state.draw(1)
+
+
+def _activate_fetch_land(state: GameState, source: Permanent) -> None:
+    if (
+        source.tapped
+        or source not in state.battlefield
+        or source.name not in {"Evolving Wilds", "Terramorphic Expanse"}
+    ):
+        raise RulesError("fetch ability requires untapped source on battlefield")
+    basic = next((card for card in state.library if card in {"Island", "Mountain"}), None)
+    if basic is None:
+        raise RulesError("fetch ability requires an Island or Mountain in library")
+    source.tapped = True
+    state.battlefield.remove(source)
+    state.graveyard.append(source.name)
+    state.library.remove(basic)
+    state.battlefield.append(Permanent(basic, {"Land"}, {basic}, tapped=True, summoning_sick=False))
+    random.Random(0).shuffle(state.library)
+    state.record_event("shuffle", source.name)
+
+
+def execute_activated_ability(state: GameState, source: Permanent, action: Action) -> None:
+    ability_id = action.ability_id
+    if source.name == "Glint-Horn Buccaneer" and ability_id == "draw_discard_damage":
+        activate_glint_horn(state, source)
+    elif source.name == "Lightning-Rig Crew" and ability_id == "tap_damage_each_opponent":
+        _activate_lightning_rig_crew(state, source)
+    elif source.name == "Mind Stone" and ability_id == "draw":
+        _activate_mind_stone_draw(state, source)
+    elif source.name == "Soul-Guide Lantern" and ability_id == "exile_opponents_graveyards":
+        soul_guide_lantern_exile_opponents(state, source)
+    elif source.name == "Soul-Guide Lantern" and ability_id == "draw":
+        soul_guide_lantern_draw(state, source)
+    elif source.name == "Sentinel Totem" and ability_id == "exile_all_graveyards":
+        sentinel_totem_exile_all_graveyards(state, source)
+    elif source.name in {"Evolving Wilds", "Terramorphic Expanse"} and ability_id == "basic_fetch":
+        _activate_fetch_land(state, source)
+    else:
+        raise RulesError(f"unregistered activated ability handler: {source.name}:{ability_id}")
 
 
 # Phase 5C deck-scoped interaction and zone-changing primitives.

@@ -33,6 +33,13 @@ REQUIRED_WIN_EVENTS = {"damage_dealt", "opponent_lost", "table_win", "game_ended
 
 
 @dataclass(frozen=True, slots=True)
+class ReplayResult:
+    terminal_status: str
+    event_hash: str
+    replay_event_count: int
+
+
+@dataclass(frozen=True, slots=True)
 class ExecutionResult:
     kept_hand_size: int
     mulligan_category: str
@@ -45,6 +52,7 @@ class ExecutionResult:
     events: list[dict[str, Any]]
     replay_status: str
     library_hash: str
+    replay_metadata: ReplayResult | None = None
 
 
 class GameExecutor:
@@ -348,7 +356,7 @@ def dualcaster_twinflame_fixture(game_id: int = 900001) -> ExecutionResult:
     )
 
 
-def replay_events(events: list[dict[str, Any]]) -> str:
+def verify_replay_events(events: list[dict[str, Any]]) -> ReplayResult:
     if not events or events[-1].get("event") != "game_ended":
         raise RulesError("missing game_ended")
     action_events = [
@@ -371,9 +379,8 @@ def replay_events(events: list[dict[str, Any]]) -> str:
         if not any(e.get("event") == "damage_dealt" for e in action_events):
             raise RulesError("win replay requires executed damage action")
     digest = hashlib.sha256(json.dumps(events, sort_keys=True, default=str).encode()).hexdigest()
-    terminal = str(events[-1].get("terminal_status"))
-    base = {k: events[-1].get(k) for k in ("game_id", "seed_id", "mode") if k in events[-1]}
-    events.append(
-        base | {"event": "real_replay_verified", "event_hash": digest, "terminal_status": terminal}
-    )
-    return terminal
+    return ReplayResult(str(events[-1].get("terminal_status")), digest, len(events))
+
+
+def replay_events(events: list[dict[str, Any]]) -> str:
+    return verify_replay_events(events).terminal_status
