@@ -177,7 +177,13 @@ class GameExecutor:
         priorities = {
             "prioritize_mana_rock": (ActionType.ACTIVATE_MANA_ABILITY, "Sol Ring"),
             "prioritize_cantrip": (ActionType.CAST_SPELL, "Opt"),
+            "cantrip_first": (ActionType.CAST_SPELL, "Opt"),
             "tutor_first": (ActionType.CAST_SPELL, "Long-Term Plans"),
+            "long_term_plans_target_selection": (ActionType.CAST_SPELL, "Long-Term Plans"),
+            "glint_horn_first_tutor_priority": (ActionType.CAST_SPELL, "Long-Term Plans"),
+            "dualcaster_first_tutor_priority": (ActionType.ACTIVATE_ABILITY, "Muddle the Mixture"),
+            "preserve_muddle_as_interaction": (ActionType.CAST_SPELL, "Long-Term Plans"),
+            "transmute_muddle": (ActionType.ACTIVATE_ABILITY, "Muddle the Mixture"),
             "mana_rock_first": (ActionType.CAST_SPELL, "Sol Ring"),
             "malcolm_first": (ActionType.CAST_SPELL, "Malcolm, Keen-Eyed Navigator"),
             "develop_and_wait_for_protection": (ActionType.CAST_SPELL, "Siren Stormtamer"),

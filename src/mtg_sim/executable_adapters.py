@@ -9,6 +9,25 @@ from pathlib import Path
 from mtg_sim.offline_sources import build_simulation_deck
 
 EXECUTABLE_CARDS = {
+    "Rebuild",
+    "Invert // Invent",
+    "Long-Term Plans",
+    "Step Through",
+    "Vedalken Aethermage",
+    "Muddle the Mixture",
+    "Drift of Phantasms",
+    "Dizzy Spell",
+    "Commit // Memory",
+    "Prismari Command",
+    "Spectral Sailor",
+    "Sleight of Hand",
+    "Opt",
+    "Impulse",
+    "Frantic Search",
+    "Faithless Looting",
+    "Fact or Fiction",
+    "Expedite",
+    "Chart a Course",
     "Arcane Signet",
     "Ash Barrens",
     "Breeches, Brazen Plunderer",
@@ -71,7 +90,11 @@ def _record(name: str) -> AdapterRecord:
         execution_handler=f"execute.{aid}" if executable else "blocked.not_executable",
         relevant_zones=("hand", "battlefield") if executable else ("blocked",),
         timing_restrictions=("rules_validated",) if executable else ("blocked",),
-        integration_test_ids=("tests/test_phase9f1_executable_adapters.py",) if executable else (),
+        integration_test_ids=(
+            "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py",
+        )
+        if executable
+        else (),
         status="EXECUTABLE" if executable else "BLOCKED",
     )
 

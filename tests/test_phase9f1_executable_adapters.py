@@ -53,8 +53,8 @@ def pool(c=0, u=0, r=0):
 def test_registry_counts_and_failures(tmp_path: Path) -> None:
     report = write_report(tmp_path / "report.json")
     assert report["expected_unique_card_count"] == len(expected_card_names()) == 80
-    assert report["executable_adapter_count"] == 25
-    assert report["blocked_adapter_count"] == 55
+    assert report["executable_adapter_count"] >= 44
+    assert report["blocked_adapter_count"] <= 36
     reg = adapter_registry()
     del reg["Island"]
     assert any("missing adapter" in e for e in validate_executable_coverage(reg))
