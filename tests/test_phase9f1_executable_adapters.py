@@ -114,10 +114,10 @@ def test_bounce_filter_and_entry_tapped() -> None:
     assert "Izzet Boilerworks" in s.hand
     s = GameState(battlefield=[Permanent("Cascade Bluffs", {"Land"})], mana_pool=pool())
     assert not validate_action(
-        s, Action(ActionType.ACTIVATE_MANA_ABILITY, "Cascade Bluffs", mana_choice="U")
+        s, Action(ActionType.ACTIVATE_MANA_ABILITY, "Cascade Bluffs", mana_choice="UR")
     ).accepted
     s.mana_pool["R"] = 1
-    execute_action(s, Action(ActionType.ACTIVATE_MANA_ABILITY, "Cascade Bluffs", mana_choice="U"))
+    execute_action(s, Action(ActionType.ACTIVATE_MANA_ABILITY, "Cascade Bluffs", mana_choice="UR"))
     assert s.mana_pool["U"] == 1
     s = GameState(hand=["Temple of Epiphany"])
     execute_action(s, Action(ActionType.PLAY_LAND, "Temple of Epiphany", timing="sorcery"))

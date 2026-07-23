@@ -161,6 +161,24 @@ class GameState:
         for idx, life in enumerate(self.opponent_life):
             if life <= 0:
                 self.record_event("state_based_action", f"opponent_{idx}_lost")
+        for permanent in list(self.battlefield):
+            lethal_damage = (
+                "Creature" in permanent.types
+                and permanent.toughness is not None
+                and permanent.damage >= permanent.toughness
+            )
+            zero_toughness = (
+                "Creature" in permanent.types
+                and permanent.toughness is not None
+                and permanent.toughness <= 0
+            )
+            if lethal_damage or zero_toughness:
+                move_to_graveyard_or_command_zone(
+                    self,
+                    permanent,
+                    use_command_zone=self.command_zone_replacements.get(permanent.name, True),
+                )
+                self.record_event("state_based_action", f"creature_removed:{permanent.name}")
         if self.opponent_life and all(life <= 0 for life in self.opponent_life):
             self.won = True
             self.stack.clear()
@@ -194,6 +212,8 @@ class GameState:
         if self.terminal:
             return
         self.check_state_based_actions()
+        if self.terminal:
+            return
         while self.pending_triggers and not self.terminal:
             self.place_pending_triggers_on_stack()
             self.check_state_based_actions()
@@ -1118,6 +1138,8 @@ def play_land(
 def _permanent_for_card(name: str) -> Permanent:
     if name in MANA_ROCK_MANA:
         return Permanent(name, {"Artifact"}, mana_abilities={"tap": MANA_ROCK_MANA[name]})
+    if name in {"Sentinel Totem", "Soul-Guide Lantern"}:
+        return Permanent(name, {"Artifact"}, mana_value=mana_value(name))
     if name in CREATURES:
         power, toughness = CREATURE_STATS[name]
         types = {"Artifact", "Creature"} if name == "Psychosis Crawler" else {"Creature"}
@@ -1151,7 +1173,9 @@ def _legal_mana_outputs(permanent: Permanent) -> tuple[str, ...]:
         return ("R",)
     if permanent.name == "Shivan Reef":
         return ("C", "U", "R")
-    if permanent.name in {"Cascade Bluffs", "Izzet Boilerworks"}:
+    if permanent.name == "Cascade Bluffs":
+        return ("C", "UU", "UR", "RR")
+    if permanent.name == "Izzet Boilerworks":
         return ("U", "R")
     if permanent.name in {"Temple of Epiphany", "Frostboil Snarl", "Path of Ancestry"}:
         return ("U", "R")
@@ -1179,9 +1203,21 @@ def tap_for_mana(state: GameState, permanent: Permanent, color: str | None = Non
     if produced not in outputs:
         raise RulesError(f"illegal mana choice for {permanent.name}")
     if permanent.name == "Cascade Bluffs":
+        if produced == "C":
+            permanent.tapped = True
+            state.mana_pool["C"] += 1
+            state.record_event("mana_produced", "Cascade Bluffs:C:1")
+            return
+        if produced not in {"UU", "UR", "RR"}:
+            raise RulesError("Cascade Bluffs filter must produce UU, UR, or RR")
         if state.mana_pool.get("U", 0) + state.mana_pool.get("R", 0) < 1:
             raise RulesError("Cascade Bluffs requires blue or red input mana")
         state.pay_mana({"U": 1} if state.mana_pool.get("U", 0) else {"R": 1})
+        permanent.tapped = True
+        for mana in produced:
+            state.mana_pool[mana] += 1
+        state.record_event("mana_produced", f"Cascade Bluffs:{produced}:2")
+        return
     if permanent.name == "Izzet Signet":
         state.pay_mana({"generic": 1})
         permanent.tapped = True
@@ -1392,6 +1428,16 @@ def _spell_action_is_legal_by_text(state: GameState, action: Action) -> bool:
                 and _is_spell(st)
                 and "Instant" in _spell_types(st)
             )
+        if card == "Commit // Memory":
+            if action.choice == "Memory":
+                return action.origin_zone == "graveyard" or "Commit // Memory" in state.graveyard
+            if st is not None:
+                return st in state.stack and _is_spell(st)
+            return (
+                len(targets) == 1
+                and targets[0] in state.battlefield
+                and "Land" not in targets[0].types
+            )
         if card == "Spell Pierce":
             return (
                 st is not None
@@ -1579,6 +1625,7 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
             "Change the Equation",
             "Curse of the Swine",
             "Dispel",
+            "Commit // Memory",
             "Echoing Truth",
             "Fading Hope",
             "Fiery Cannonade",
@@ -1706,6 +1753,7 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
             errors.append(f"illegal mana choice for {source.name}")
         elif (
             source.name == "Cascade Bluffs"
+            and action.mana_choice != "C"
             and state.mana_pool.get("U", 0) + state.mana_pool.get("R", 0) < 1
         ):
             errors.append("Cascade Bluffs requires blue or red input mana")
@@ -1840,6 +1888,32 @@ def generate_legal_actions(state: GameState) -> list[Action]:
                         timing="instant",
                         origin_zone="hand",
                         choice=target,
+                    )
+                    if validate_action(state, candidate).accepted:
+                        actions.append(candidate)
+                continue
+            if card == "Commit // Memory":
+                for obj in state.stack:
+                    candidate = Action(
+                        ActionType.CAST_SPELL,
+                        card,
+                        mana_cost=CARD_COSTS[card],
+                        timing="instant",
+                        origin_zone="hand",
+                        choice="Commit",
+                        stack_target=obj,
+                    )
+                    if validate_action(state, candidate).accepted:
+                        actions.append(candidate)
+                for permanent_target in state.battlefield:
+                    candidate = Action(
+                        ActionType.CAST_SPELL,
+                        card,
+                        (permanent_target,),
+                        CARD_COSTS[card],
+                        timing="instant",
+                        origin_zone="hand",
+                        choice="Commit",
                     )
                     if validate_action(state, candidate).accepted:
                         actions.append(candidate)
@@ -2228,7 +2302,11 @@ def execute_action(state: GameState, action: Action) -> None:
             )
         state.record_event("action", f"cast:{action.source_name}:from:{origin_zone}")
         effect = action.effect or _spell_effect_for_action(normalized)
-        if action.source_name in CREATURES or action.source_name in MANA_ROCK_MANA:
+        if (
+            action.source_name in CREATURES
+            or action.source_name in MANA_ROCK_MANA
+            or action.source_name in {"Sentinel Totem", "Soul-Guide Lantern"}
+        ):
             state.battlefield.append(_permanent_for_card(action.source_name))
             state.record_event("resolve", action.source_name)
             if action.source_name == "Wily Goblin":
@@ -2270,6 +2348,7 @@ def execute_action(state: GameState, action: Action) -> None:
                 else mana_value(action.source_name)
                 if action.source_name in MANA_VALUES or action.source_name in TRANSMUTE_VALUES
                 else None,
+                types=_stack_types(action.source_name, action.choice),
                 chosen_face=action.choice,
             )
         )
@@ -2303,6 +2382,8 @@ def execute_action(state: GameState, action: Action) -> None:
         if pirates:
             opponents = list(range(min(len(pirates), len(state.opponent_life))))
             deal_pirate_combat_damage(state, list(pirates)[: len(opponents)], opponents)
+            if state.terminal:
+                return
             if any(p.name == "Breeches, Brazen Plunderer" for p in state.battlefield):
                 for opponent in opponents:
                     unknown = f"unknown_opponent_{opponent}_top_card"
@@ -2471,8 +2552,19 @@ def _is_spell(obj: StackObject) -> bool:
     return obj.kind in {"spell", "copy"}
 
 
+def _stack_types(name: str | None, face: str | None = None) -> set[str]:
+    if name == "Commit // Memory" and face == "Commit":
+        return {"Instant"}
+    if name == "Commit // Memory" and face == "Memory":
+        return {"Sorcery"}
+    if name == "Invert // Invent" and face in {None, "Invert", "Invent"}:
+        return {"Instant"}
+    return set(CARD_TYPES.get(name or "", set()))
+
+
 def _spell_types(obj: StackObject) -> set[str]:
-    return getattr(obj, "types", set())
+    types: set[str] = getattr(obj, "types", set())
+    return set(types) if types else _stack_types(obj.name, obj.chosen_face)
 
 
 def _spell_colors(obj: StackObject) -> set[str]:

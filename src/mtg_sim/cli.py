@@ -108,6 +108,23 @@ def validate_executable_coverage(
     )
 
 
+@app.command("validate-prepolicy-readiness")
+def validate_prepolicy_readiness() -> None:
+    """Validate the pre-policy correctness gate without running production pilot."""
+    source_result = run_source_validation()
+    executable_errors = run_executable_coverage()
+    if not source_result.ok or executable_errors:
+        typer.echo("Pre-policy readiness validation failed:", err=True)
+        for error in source_result.errors:
+            typer.echo(f"- source: {error}", err=True)
+        for error in executable_errors:
+            typer.echo(f"- executable coverage: {error}", err=True)
+        raise typer.Exit(1)
+    typer.echo(
+        "Pre-policy readiness validation passed: sources and executable semantic evidence are valid; production pilot remains locked to explicit invocation."
+    )
+
+
 @app.command("verify-rules")
 def verify_rules(output: Path = typer.Option(..., "--output")) -> None:
     """Run the complete Phase 6 rules competency gate and write an immutable report."""

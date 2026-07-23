@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
+import re
 
 from mtg_sim.offline_sources import build_simulation_deck
 
@@ -93,6 +94,7 @@ EXECUTABLE_CARDS = {
 }
 
 PLACEHOLDER_IDS = {"placeholder", "noop", "silent_skip", "generic"}
+GENERATED_SEMANTIC_ID = re.compile(r"^SEM-[A-Z0-9-]+$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,7 +128,9 @@ def _record(name: str) -> AdapterRecord:
         execution_handler=f"execute.{aid}" if executable else "blocked.not_executable",
         relevant_zones=("hand", "battlefield") if executable else ("blocked",),
         timing_restrictions=("rules_validated",) if executable else ("blocked",),
-        integration_test_ids=("tests/test_phase9f4_creatures_combos_coverage.py",)
+        integration_test_ids=(
+            f"tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[{name}]",
+        )
         if executable
         else (),
         status="EXECUTABLE" if executable else "BLOCKED",
@@ -165,6 +169,21 @@ def validate_executable_coverage(registry: dict[str, AdapterRecord] | None = Non
                     errors.append(f"{name} has no executable {label}")
             if not rec.integration_test_ids:
                 errors.append(f"{name} has no integration test")
+            for test_id in rec.integration_test_ids:
+                if GENERATED_SEMANTIC_ID.fullmatch(test_id):
+                    errors.append(
+                        f"{name} uses generated semantic id instead of executable test evidence: {test_id}"
+                    )
+                if "::" not in test_id:
+                    errors.append(
+                        f"{name} integration test evidence is not a pytest node id: {test_id}"
+                    )
+                elif not Path(test_id.split("::", 1)[0]).exists():
+                    errors.append(f"{name} references nonexistent integration test file: {test_id}")
+                if test_id.endswith(f"[{name.lower().replace(' ', '-')}]"):
+                    errors.append(
+                        f"{name} test id appears generated only from card name: {test_id}"
+                    )
             if rec.execution_handler != f"execute.{rec.adapter_id.removeprefix('adapter.')}":
                 errors.append(f"{name} ability is routed to another card's handler")
     return errors
