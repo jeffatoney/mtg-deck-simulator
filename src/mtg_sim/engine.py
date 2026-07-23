@@ -86,6 +86,8 @@ class Permanent:
     phased_out: bool = False
     hexproof_until_eot: bool = False
     manifested_card: str | None = None
+    chosen_color: str | None = None
+    entered_turn: int = 0
 
 
 @dataclass(slots=True)
@@ -615,7 +617,13 @@ LAND_MANA = {
     "Ash Barrens": "C",
     "Izzet Boilerworks": "U",
 }
-TAPPED_LANDS = {"Izzet Boilerworks", "Temple of Epiphany", "Thriving Isle", "Path of Ancestry"}
+TAPPED_LANDS = {
+    "Izzet Boilerworks",
+    "Temple of Epiphany",
+    "Thriving Isle",
+    "Path of Ancestry",
+    "Frostboil Snarl",
+}
 MANA_ROCK_MANA = {
     "Sol Ring": "C",
     "Arcane Signet": "U",
@@ -641,6 +649,7 @@ CARD_COSTS: dict[str, ManaCost] = {
     "Niv-Mizzet, the Firemind": {"generic": 2, "U": 3, "R": 1},
     "Lightning-Rig Crew": {"generic": 2, "R": 1},
     "Crab Umbra": {"U": 1},
+    "Wily Goblin": {"generic": 1, "R": 1},
 }
 CREATURES = {
     "Malcolm, Keen-Eyed Navigator",
@@ -683,12 +692,30 @@ def _costs_equal(left: ManaCost | None, right: ManaCost | None) -> bool:
     return normalize_mana(left) == normalize_mana(right)
 
 
-def play_land(state: GameState, name: str) -> Permanent:
+def play_land(
+    state: GameState, name: str, *, chosen_color: str | None = None, reveal: str | None = None
+) -> Permanent:
     if state.land_played:
         raise RulesError("only one land play per turn")
-    land = Permanent(name, {"Land"}, tapped=name in TAPPED_LANDS)
+    tapped = name in TAPPED_LANDS
+    if name == "Frostboil Snarl" and reveal in state.hand and reveal in {"Island", "Mountain"}:
+        tapped = False
+        state.record_event("land_revealed", reveal)
+    if name == "Thriving Isle":
+        if chosen_color not in COLORED_MANA or chosen_color == "U":
+            raise RulesError("Thriving Isle requires a nonblue secondary color choice")
+    land = Permanent(
+        name, {"Land"}, {name}, tapped=tapped, chosen_color=chosen_color, entered_turn=state.turn
+    )
     state.battlefield.append(land)
     state.land_played = True
+    if name == "Temple of Epiphany":
+        state.record_event("scry", "Temple of Epiphany:bottom")
+    if name == "Izzet Boilerworks":
+        target = next((p for p in state.battlefield if "Land" in p.types and p is not land), land)
+        state.battlefield.remove(target)
+        state.hand.append(target.name)
+        state.record_event("land_returned", target.name)
     return land
 
 
@@ -707,17 +734,70 @@ def _permanent_for_card(name: str) -> Permanent:
     return Permanent(name, {"Noncreature"})
 
 
+def _legal_mana_outputs(permanent: Permanent) -> tuple[str, ...]:
+    if permanent.name in {
+        "Island",
+        "Command Tower",
+        "Exotic Orchard",
+        "Fellwar Stone",
+        "Arcane Signet",
+    }:
+        return (
+            ("U", "R")
+            if permanent.name
+            in {"Command Tower", "Exotic Orchard", "Fellwar Stone", "Arcane Signet"}
+            else ("U",)
+        )
+    if permanent.name == "Mountain":
+        return ("R",)
+    if permanent.name == "Shivan Reef":
+        return ("C", "U", "R")
+    if permanent.name in {"Cascade Bluffs", "Izzet Boilerworks"}:
+        return ("U", "R")
+    if permanent.name in {"Temple of Epiphany", "Frostboil Snarl", "Path of Ancestry"}:
+        return ("U", "R")
+    if permanent.name == "Thriving Isle":
+        return tuple(dict.fromkeys(("U", permanent.chosen_color or "R")))
+    if permanent.name in {
+        "Scavenger Grounds",
+        "Demolition Field",
+        "Ash Barrens",
+        "Mind Stone",
+        "Prismatic Lens",
+    }:
+        return ("C",)
+    if permanent.name == "Sol Ring":
+        return ("C",)
+    return tuple(permanent.mana_abilities.values())
+
+
 def tap_for_mana(state: GameState, permanent: Permanent, color: str | None = None) -> None:
     ensure_not_terminal(state)
     if permanent.tapped:
         raise RulesError("permanent is already tapped")
-    if color is not None and color not in MANA_TYPES:
-        raise RulesError("illegal mana choice")
-    produced = color or permanent.mana_abilities.get("tap") or LAND_MANA.get(permanent.name)
-    if produced is None:
-        raise RulesError(f"no mana behavior for {permanent.name}")
+    outputs = _legal_mana_outputs(permanent)
+    produced = color or (outputs[0] if outputs else None)
+    if produced not in outputs:
+        raise RulesError(f"illegal mana choice for {permanent.name}")
+    if permanent.name == "Cascade Bluffs":
+        if state.mana_pool.get("U", 0) + state.mana_pool.get("R", 0) < 1:
+            raise RulesError("Cascade Bluffs requires blue or red input mana")
+        state.pay_mana({"U": 1} if state.mana_pool.get("U", 0) else {"R": 1})
+    if permanent.name == "Izzet Signet":
+        state.pay_mana({"generic": 1})
+        permanent.tapped = True
+        state.mana_pool["U"] += 1
+        state.mana_pool["R"] += 1
+        state.record_event("mana_produced", "Izzet Signet:UR")
+        return
+    if permanent.name == "Prismatic Lens" and color in COLORED_MANA:
+        state.pay_mana({"generic": 1})
     permanent.tapped = True
-    state.mana_pool[produced] += 1
+    amount = 2 if permanent.name == "Sol Ring" and produced == "C" else 1
+    state.mana_pool[produced] += amount
+    if permanent.name == "Shivan Reef" and produced in {"U", "R"}:
+        state.record_event("life_lost", "Shivan Reef:1")
+    state.record_event("mana_produced", f"{permanent.name}:{produced}:{amount}")
 
 
 def create_treasure(state: GameState, count: int = 1) -> None:
@@ -836,6 +916,9 @@ ABILITY_COSTS: dict[tuple[str, str], ManaCost] = {
     ("Sentinel Totem", "exile_all_graveyards"): {},
     ("Evolving Wilds", "basic_fetch"): {},
     ("Terramorphic Expanse", "basic_fetch"): {},
+    ("Ash Barrens", "basic_landcycling"): {"generic": 1},
+    ("Scavenger Grounds", "exile_graveyards"): {"generic": 2},
+    ("Demolition Field", "destroy_nonbasic"): {"generic": 2},
 }
 
 
@@ -900,7 +983,10 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
             if solve_mana_payment(state.mana_pool, action.mana_cost or {}) is None:
                 errors.append("insufficient mana")
             source = next((p for p in state.battlefield if p.name == action.source_name), None)
-            if source is None:
+            if action.source_name == "Ash Barrens" and ability_id == "basic_landcycling":
+                if "Ash Barrens" not in state.hand:
+                    errors.append("Ash Barrens basic landcycling source must be in hand")
+            elif source is None:
                 errors.append(f"{action.source_name} is not on battlefield")
             elif source.tapped and action.source_name != "Glint-Horn Buccaneer":
                 errors.append("activated ability source is already tapped")
@@ -946,6 +1032,19 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
             and not source.mana_abilities
         ):
             errors.append(f"no mana behavior for {source.name}")
+        elif action.mana_choice and action.mana_choice not in _legal_mana_outputs(source):
+            errors.append(f"illegal mana choice for {source.name}")
+        elif (
+            source.name == "Cascade Bluffs"
+            and state.mana_pool.get("U", 0) + state.mana_pool.get("R", 0) < 1
+        ):
+            errors.append("Cascade Bluffs requires blue or red input mana")
+        elif (
+            source.name in {"Izzet Signet", "Prismatic Lens"}
+            and action.mana_choice in COLORED_MANA
+            and solve_mana_payment(state.mana_pool, {"generic": 1}) is None
+        ):
+            errors.append(f"{source.name} requires input mana")
     elif action.action_type is ActionType.DECLARE_ATTACKERS:
         if state.phase is not Phase.COMBAT:
             errors.append("attackers are declared only during combat")
@@ -990,8 +1089,9 @@ def generate_legal_actions(state: GameState) -> list[Action]:
         return []
     actions: list[Action] = [Action(ActionType.PASS_PRIORITY)]
     for card in sorted(set(state.hand)):
-        if card in LAND_MANA:
-            candidate = Action(ActionType.PLAY_LAND, card, timing="sorcery")
+        if card in LAND_MANA or card in {"Evolving Wilds", "Terramorphic Expanse"}:
+            choice = "R" if card == "Thriving Isle" else None
+            candidate = Action(ActionType.PLAY_LAND, card, timing="sorcery", mana_choice=choice)
             if validate_action(state, candidate).accepted:
                 actions.append(candidate)
         if card in CARD_COSTS or card in CREATURES or card in MANA_ROCK_MANA:
@@ -1023,13 +1123,10 @@ def generate_legal_actions(state: GameState) -> list[Action]:
             if validate_action(state, candidate).accepted:
                 actions.append(candidate)
     for permanent in state.battlefield:
-        candidate = Action(
-            ActionType.ACTIVATE_MANA_ABILITY,
-            permanent.name,
-            mana_choice=MANA_ROCK_MANA.get(permanent.name) or LAND_MANA.get(permanent.name),
-        )
-        if validate_action(state, candidate).accepted:
-            actions.append(candidate)
+        for output in _legal_mana_outputs(permanent):
+            candidate = Action(ActionType.ACTIVATE_MANA_ABILITY, permanent.name, mana_choice=output)
+            if validate_action(state, candidate).accepted:
+                actions.append(candidate)
         for ability_id, cost in sorted(
             (aid, cost) for (name, aid), cost in ABILITY_COSTS.items() if name == permanent.name
         ):
@@ -1100,7 +1197,12 @@ def execute_action(state: GameState, action: Action) -> None:
     if action.action_type is ActionType.PLAY_LAND:
         assert action.source_name is not None
         state.hand.remove(action.source_name)
-        play_land(state, action.source_name)
+        play_land(
+            state,
+            action.source_name,
+            chosen_color=action.mana_choice,
+            reveal=action.targets[0].name if action.targets else None,
+        )
         state.record_event("action", f"play_land:{action.source_name}")
         return
     if action.action_type is ActionType.ACTIVATE_MANA_ABILITY:
@@ -1126,9 +1228,19 @@ def execute_action(state: GameState, action: Action) -> None:
         return
     if action.action_type is ActionType.ACTIVATE_ABILITY:
         normalized = result.normalized_action or action
-        source = next(p for p in state.battlefield if p.name == action.source_name)
+        ability_source: Permanent | None = next(
+            (p for p in state.battlefield if p.name == action.source_name), None
+        )
+        if (
+            ability_source is None
+            and action.source_name == "Ash Barrens"
+            and normalized.ability_id == "basic_landcycling"
+        ):
+            ability_source = Permanent("Ash Barrens", {"Land"})
+        if ability_source is None:
+            raise RulesError(f"{action.source_name} is not on battlefield")
         state.record_event("action", f"activate:{action.source_name}:{normalized.ability_id}")
-        execute_activated_ability(state, source, normalized)
+        execute_activated_ability(state, ability_source, normalized)
         state.would_receive_priority()
 
 
@@ -1196,6 +1308,22 @@ def execute_activated_ability(state: GameState, source: Permanent, action: Actio
         sentinel_totem_exile_all_graveyards(state, source)
     elif source.name in {"Evolving Wilds", "Terramorphic Expanse"} and ability_id == "basic_fetch":
         _activate_fetch_land(state, source)
+    elif source.name == "Ash Barrens" and ability_id == "basic_landcycling":
+        state.pay_mana({"generic": 1})
+        if "Ash Barrens" not in state.hand:
+            raise RulesError("Ash Barrens basic landcycling source must be in hand")
+        state.hand.remove("Ash Barrens")
+        state.graveyard.append("Ash Barrens")
+        _search_one(state, "Island" if "Island" in state.library else "Mountain")
+    elif source.name == "Scavenger Grounds" and ability_id == "exile_graveyards":
+        state.pay_mana({"generic": 2})
+        source.tapped = True
+        state.graveyard.clear()
+        state.record_event("graveyards_exiled", "Scavenger Grounds")
+    elif source.name == "Demolition Field" and ability_id == "destroy_nonbasic":
+        state.pay_mana({"generic": 2})
+        source.tapped = True
+        state.record_event("nonbasic_destroyed", "Demolition Field")
     else:
         raise RulesError(f"unregistered activated ability handler: {source.name}:{ability_id}")
 

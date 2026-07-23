@@ -1,0 +1,1363 @@
+{
+  "blocked_adapter_count": 55,
+  "errors": [],
+  "executable_adapter_count": 25,
+  "expected_unique_card_count": 80,
+  "records": [
+    {
+      "adapter_id": "adapter.abrade",
+      "card_name": "Abrade",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.aetherize",
+      "card_name": "Aetherize",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.arcane_denial",
+      "card_name": "Arcane Denial",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.arcane_signet",
+      "card_name": "Arcane Signet",
+      "cost_builder": "cost.arcane_signet",
+      "execution_handler": "execute.arcane_signet",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.arcane_signet",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.arcane_signet",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.ash_barrens",
+      "card_name": "Ash Barrens",
+      "cost_builder": "cost.ash_barrens",
+      "execution_handler": "execute.ash_barrens",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.ash_barrens",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.ash_barrens",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.breeches_brazen_plunderer",
+      "card_name": "Breeches, Brazen Plunderer",
+      "cost_builder": "cost.breeches_brazen_plunderer",
+      "execution_handler": "execute.breeches_brazen_plunderer",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.breeches_brazen_plunderer",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.breeches_brazen_plunderer",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.brotherhood's_end",
+      "card_name": "Brotherhood's End",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.by_force",
+      "card_name": "By Force",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.cascade_bluffs",
+      "card_name": "Cascade Bluffs",
+      "cost_builder": "cost.cascade_bluffs",
+      "execution_handler": "execute.cascade_bluffs",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.cascade_bluffs",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.cascade_bluffs",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.change_the_equation",
+      "card_name": "Change the Equation",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.chart_a_course",
+      "card_name": "Chart a Course",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.command_tower",
+      "card_name": "Command Tower",
+      "cost_builder": "cost.command_tower",
+      "execution_handler": "execute.command_tower",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.command_tower",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.command_tower",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.commit_memory",
+      "card_name": "Commit // Memory",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.crab_umbra",
+      "card_name": "Crab Umbra",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.curiosity",
+      "card_name": "Curiosity",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.curse_of_the_swine",
+      "card_name": "Curse of the Swine",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.demolition_field",
+      "card_name": "Demolition Field",
+      "cost_builder": "cost.demolition_field",
+      "execution_handler": "execute.demolition_field",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.demolition_field",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.demolition_field",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.dispel",
+      "card_name": "Dispel",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.dizzy_spell",
+      "card_name": "Dizzy Spell",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.drift_of_phantasms",
+      "card_name": "Drift of Phantasms",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.dualcaster_mage",
+      "card_name": "Dualcaster Mage",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.echoing_truth",
+      "card_name": "Echoing Truth",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.electroduplicate",
+      "card_name": "Electroduplicate",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.evolving_wilds",
+      "card_name": "Evolving Wilds",
+      "cost_builder": "cost.evolving_wilds",
+      "execution_handler": "execute.evolving_wilds",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.evolving_wilds",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.evolving_wilds",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.exotic_orchard",
+      "card_name": "Exotic Orchard",
+      "cost_builder": "cost.exotic_orchard",
+      "execution_handler": "execute.exotic_orchard",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.exotic_orchard",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.exotic_orchard",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.expedite",
+      "card_name": "Expedite",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.fact_or_fiction",
+      "card_name": "Fact or Fiction",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.fading_hope",
+      "card_name": "Fading Hope",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.faithless_looting",
+      "card_name": "Faithless Looting",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.fellwar_stone",
+      "card_name": "Fellwar Stone",
+      "cost_builder": "cost.fellwar_stone",
+      "execution_handler": "execute.fellwar_stone",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.fellwar_stone",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.fellwar_stone",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.fiery_cannonade",
+      "card_name": "Fiery Cannonade",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.frantic_search",
+      "card_name": "Frantic Search",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.frostboil_snarl",
+      "card_name": "Frostboil Snarl",
+      "cost_builder": "cost.frostboil_snarl",
+      "execution_handler": "execute.frostboil_snarl",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.frostboil_snarl",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.frostboil_snarl",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.glint_horn_buccaneer",
+      "card_name": "Glint-Horn Buccaneer",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.impulse",
+      "card_name": "Impulse",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.into_the_roil",
+      "card_name": "Into the Roil",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.introduction_to_annihilation",
+      "card_name": "Introduction to Annihilation",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.invert_invent",
+      "card_name": "Invert // Invent",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.island",
+      "card_name": "Island",
+      "cost_builder": "cost.island",
+      "execution_handler": "execute.island",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.island",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.island",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.izzet_boilerworks",
+      "card_name": "Izzet Boilerworks",
+      "cost_builder": "cost.izzet_boilerworks",
+      "execution_handler": "execute.izzet_boilerworks",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.izzet_boilerworks",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.izzet_boilerworks",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.izzet_signet",
+      "card_name": "Izzet Signet",
+      "cost_builder": "cost.izzet_signet",
+      "execution_handler": "execute.izzet_signet",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.izzet_signet",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.izzet_signet",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.lazotep_plating",
+      "card_name": "Lazotep Plating",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.lightning_rig_crew",
+      "card_name": "Lightning-Rig Crew",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.long_term_plans",
+      "card_name": "Long-Term Plans",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.malcolm_keen_eyed_navigator",
+      "card_name": "Malcolm, Keen-Eyed Navigator",
+      "cost_builder": "cost.malcolm_keen_eyed_navigator",
+      "execution_handler": "execute.malcolm_keen_eyed_navigator",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.malcolm_keen_eyed_navigator",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.malcolm_keen_eyed_navigator",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.mind_stone",
+      "card_name": "Mind Stone",
+      "cost_builder": "cost.mind_stone",
+      "execution_handler": "execute.mind_stone",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.mind_stone",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.mind_stone",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.mountain",
+      "card_name": "Mountain",
+      "cost_builder": "cost.mountain",
+      "execution_handler": "execute.mountain",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.mountain",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.mountain",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.muddle_the_mixture",
+      "card_name": "Muddle the Mixture",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.negate",
+      "card_name": "Negate",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.niv_mizzet_the_firemind",
+      "card_name": "Niv-Mizzet, the Firemind",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.opt",
+      "card_name": "Opt",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.path_of_ancestry",
+      "card_name": "Path of Ancestry",
+      "cost_builder": "cost.path_of_ancestry",
+      "execution_handler": "execute.path_of_ancestry",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.path_of_ancestry",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.path_of_ancestry",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.prismari_command",
+      "card_name": "Prismari Command",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.prismatic_lens",
+      "card_name": "Prismatic Lens",
+      "cost_builder": "cost.prismatic_lens",
+      "execution_handler": "execute.prismatic_lens",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.prismatic_lens",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.prismatic_lens",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.psychosis_crawler",
+      "card_name": "Psychosis Crawler",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.ravenform",
+      "card_name": "Ravenform",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.reality_ripple",
+      "card_name": "Reality Ripple",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.reality_shift",
+      "card_name": "Reality Shift",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.rebuild",
+      "card_name": "Rebuild",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.resculpt",
+      "card_name": "Resculpt",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.scavenger_grounds",
+      "card_name": "Scavenger Grounds",
+      "cost_builder": "cost.scavenger_grounds",
+      "execution_handler": "execute.scavenger_grounds",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.scavenger_grounds",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.scavenger_grounds",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.sentinel_totem",
+      "card_name": "Sentinel Totem",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.shivan_reef",
+      "card_name": "Shivan Reef",
+      "cost_builder": "cost.shivan_reef",
+      "execution_handler": "execute.shivan_reef",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.shivan_reef",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.shivan_reef",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.siren_stormtamer",
+      "card_name": "Siren Stormtamer",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.sleight_of_hand",
+      "card_name": "Sleight of Hand",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.sol_ring",
+      "card_name": "Sol Ring",
+      "cost_builder": "cost.sol_ring",
+      "execution_handler": "execute.sol_ring",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.sol_ring",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.sol_ring",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.soul_guide_lantern",
+      "card_name": "Soul-Guide Lantern",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.spectral_sailor",
+      "card_name": "Spectral Sailor",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.spell_pierce",
+      "card_name": "Spell Pierce",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.step_through",
+      "card_name": "Step Through",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.storm_fleet_sprinter",
+      "card_name": "Storm Fleet Sprinter",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.syncopate",
+      "card_name": "Syncopate",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.temple_of_epiphany",
+      "card_name": "Temple of Epiphany",
+      "cost_builder": "cost.temple_of_epiphany",
+      "execution_handler": "execute.temple_of_epiphany",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.temple_of_epiphany",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.temple_of_epiphany",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.terramorphic_expanse",
+      "card_name": "Terramorphic Expanse",
+      "cost_builder": "cost.terramorphic_expanse",
+      "execution_handler": "execute.terramorphic_expanse",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.terramorphic_expanse",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.terramorphic_expanse",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.thriving_isle",
+      "card_name": "Thriving Isle",
+      "cost_builder": "cost.thriving_isle",
+      "execution_handler": "execute.thriving_isle",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.thriving_isle",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.thriving_isle",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.twinflame",
+      "card_name": "Twinflame",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.vandalblast",
+      "card_name": "Vandalblast",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.vedalken_aethermage",
+      "card_name": "Vedalken Aethermage",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.wash_away",
+      "card_name": "Wash Away",
+      "cost_builder": "blocked.not_executable",
+      "execution_handler": "blocked.not_executable",
+      "integration_test_ids": [],
+      "legal_action_generator": "blocked.not_executable",
+      "relevant_zones": [
+        "blocked"
+      ],
+      "status": "BLOCKED",
+      "target_mode_choice_builder": "blocked.not_executable",
+      "timing_restrictions": [
+        "blocked"
+      ]
+    },
+    {
+      "adapter_id": "adapter.wily_goblin",
+      "card_name": "Wily Goblin",
+      "cost_builder": "cost.wily_goblin",
+      "execution_handler": "execute.wily_goblin",
+      "integration_test_ids": [
+        "tests/test_phase9f1_executable_adapters.py"
+      ],
+      "legal_action_generator": "generate.wily_goblin",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.wily_goblin",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    }
+  ]
+}

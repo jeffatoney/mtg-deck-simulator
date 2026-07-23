@@ -13,6 +13,8 @@ from mtg_sim.offline_sources import build_simulation_deck
 from mtg_sim.pilot import dry_run as run_pilot_dry_run
 from mtg_sim.pilot import run as run_pilot
 from mtg_sim.source_validation import validate_sources as run_source_validation
+from mtg_sim.executable_adapters import validate_executable_coverage as run_executable_coverage
+from mtg_sim.executable_adapters import write_report as write_executable_report
 from mtg_sim.source_validation import write_inventory
 
 app = typer.Typer(help="Malcolm and Breeches simulator tooling.")
@@ -80,6 +82,29 @@ def validate_coverage(path: Path = typer.Option(Path("card_coverage.csv"), "--pa
         f"{len(deck.library)} of {len(deck.library)} library cards covered; "
         f"{len(deck.commanders)} of {len(deck.commanders)} commanders covered; "
         "0 blocked; 0 missing; 0 silent fallbacks."
+    )
+
+
+@app.command("validate-executable-coverage")
+def validate_executable_coverage(
+    output: Path = typer.Option(
+        Path("artifacts/coverage/executable-adapter-report.json"), "--output"
+    ),
+) -> None:
+    """Validate executable action-adapter coverage fail-closed and write report."""
+    report = write_executable_report(output)
+    errors = run_executable_coverage()
+    if errors:
+        typer.echo("Executable coverage validation failed:", err=True)
+        for error in errors:
+            typer.echo(f"- {error}", err=True)
+        raise typer.Exit(1)
+    typer.echo(
+        "Executable coverage validation passed: "
+        f"{report['expected_unique_card_count']} expected unique cards; "
+        f"{report['executable_adapter_count']} executable; "
+        f"{report['blocked_adapter_count']} blocked. "
+        f"Report written to {output}"
     )
 
 
