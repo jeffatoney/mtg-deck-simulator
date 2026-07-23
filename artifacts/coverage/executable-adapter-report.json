@@ -1,55 +1,64 @@
 {
-  "blocked_adapter_count": 36,
+  "blocked_adapter_count": 10,
   "errors": [],
-  "executable_adapter_count": 44,
+  "executable_adapter_count": 70,
   "expected_unique_card_count": 80,
   "records": [
     {
       "adapter_id": "adapter.abrade",
       "card_name": "Abrade",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.abrade",
+      "execution_handler": "execute.abrade",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.abrade",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.abrade",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
       "adapter_id": "adapter.aetherize",
       "card_name": "Aetherize",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.aetherize",
+      "execution_handler": "execute.aetherize",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.aetherize",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.aetherize",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
       "adapter_id": "adapter.arcane_denial",
       "card_name": "Arcane Denial",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.arcane_denial",
+      "execution_handler": "execute.arcane_denial",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.arcane_denial",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.arcane_denial",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -58,7 +67,7 @@
       "cost_builder": "cost.arcane_signet",
       "execution_handler": "execute.arcane_signet",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.arcane_signet",
       "relevant_zones": [
@@ -77,7 +86,7 @@
       "cost_builder": "cost.ash_barrens",
       "execution_handler": "execute.ash_barrens",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.ash_barrens",
       "relevant_zones": [
@@ -96,7 +105,7 @@
       "cost_builder": "cost.breeches_brazen_plunderer",
       "execution_handler": "execute.breeches_brazen_plunderer",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.breeches_brazen_plunderer",
       "relevant_zones": [
@@ -112,33 +121,39 @@
     {
       "adapter_id": "adapter.brotherhood's_end",
       "card_name": "Brotherhood's End",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.brotherhood's_end",
+      "execution_handler": "execute.brotherhood's_end",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.brotherhood's_end",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.brotherhood's_end",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
       "adapter_id": "adapter.by_force",
       "card_name": "By Force",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.by_force",
+      "execution_handler": "execute.by_force",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.by_force",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.by_force",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -147,7 +162,7 @@
       "cost_builder": "cost.cascade_bluffs",
       "execution_handler": "execute.cascade_bluffs",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.cascade_bluffs",
       "relevant_zones": [
@@ -163,17 +178,20 @@
     {
       "adapter_id": "adapter.change_the_equation",
       "card_name": "Change the Equation",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.change_the_equation",
+      "execution_handler": "execute.change_the_equation",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.change_the_equation",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.change_the_equation",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -182,7 +200,7 @@
       "cost_builder": "cost.chart_a_course",
       "execution_handler": "execute.chart_a_course",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.chart_a_course",
       "relevant_zones": [
@@ -201,7 +219,7 @@
       "cost_builder": "cost.command_tower",
       "execution_handler": "execute.command_tower",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.command_tower",
       "relevant_zones": [
@@ -220,7 +238,7 @@
       "cost_builder": "cost.commit_memory",
       "execution_handler": "execute.commit_memory",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.commit_memory",
       "relevant_zones": [
@@ -268,17 +286,20 @@
     {
       "adapter_id": "adapter.curse_of_the_swine",
       "card_name": "Curse of the Swine",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.curse_of_the_swine",
+      "execution_handler": "execute.curse_of_the_swine",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.curse_of_the_swine",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.curse_of_the_swine",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -287,7 +308,7 @@
       "cost_builder": "cost.demolition_field",
       "execution_handler": "execute.demolition_field",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.demolition_field",
       "relevant_zones": [
@@ -303,17 +324,20 @@
     {
       "adapter_id": "adapter.dispel",
       "card_name": "Dispel",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.dispel",
+      "execution_handler": "execute.dispel",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.dispel",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.dispel",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -322,7 +346,7 @@
       "cost_builder": "cost.dizzy_spell",
       "execution_handler": "execute.dizzy_spell",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.dizzy_spell",
       "relevant_zones": [
@@ -341,7 +365,7 @@
       "cost_builder": "cost.drift_of_phantasms",
       "execution_handler": "execute.drift_of_phantasms",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.drift_of_phantasms",
       "relevant_zones": [
@@ -373,17 +397,20 @@
     {
       "adapter_id": "adapter.echoing_truth",
       "card_name": "Echoing Truth",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.echoing_truth",
+      "execution_handler": "execute.echoing_truth",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.echoing_truth",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.echoing_truth",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -408,7 +435,7 @@
       "cost_builder": "cost.evolving_wilds",
       "execution_handler": "execute.evolving_wilds",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.evolving_wilds",
       "relevant_zones": [
@@ -427,7 +454,7 @@
       "cost_builder": "cost.exotic_orchard",
       "execution_handler": "execute.exotic_orchard",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.exotic_orchard",
       "relevant_zones": [
@@ -446,7 +473,7 @@
       "cost_builder": "cost.expedite",
       "execution_handler": "execute.expedite",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.expedite",
       "relevant_zones": [
@@ -465,7 +492,7 @@
       "cost_builder": "cost.fact_or_fiction",
       "execution_handler": "execute.fact_or_fiction",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.fact_or_fiction",
       "relevant_zones": [
@@ -481,17 +508,20 @@
     {
       "adapter_id": "adapter.fading_hope",
       "card_name": "Fading Hope",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.fading_hope",
+      "execution_handler": "execute.fading_hope",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.fading_hope",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.fading_hope",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -500,7 +530,7 @@
       "cost_builder": "cost.faithless_looting",
       "execution_handler": "execute.faithless_looting",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.faithless_looting",
       "relevant_zones": [
@@ -519,7 +549,7 @@
       "cost_builder": "cost.fellwar_stone",
       "execution_handler": "execute.fellwar_stone",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.fellwar_stone",
       "relevant_zones": [
@@ -535,17 +565,20 @@
     {
       "adapter_id": "adapter.fiery_cannonade",
       "card_name": "Fiery Cannonade",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.fiery_cannonade",
+      "execution_handler": "execute.fiery_cannonade",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.fiery_cannonade",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.fiery_cannonade",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -554,7 +587,7 @@
       "cost_builder": "cost.frantic_search",
       "execution_handler": "execute.frantic_search",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.frantic_search",
       "relevant_zones": [
@@ -573,7 +606,7 @@
       "cost_builder": "cost.frostboil_snarl",
       "execution_handler": "execute.frostboil_snarl",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.frostboil_snarl",
       "relevant_zones": [
@@ -608,7 +641,7 @@
       "cost_builder": "cost.impulse",
       "execution_handler": "execute.impulse",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.impulse",
       "relevant_zones": [
@@ -624,33 +657,39 @@
     {
       "adapter_id": "adapter.into_the_roil",
       "card_name": "Into the Roil",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.into_the_roil",
+      "execution_handler": "execute.into_the_roil",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.into_the_roil",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.into_the_roil",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
       "adapter_id": "adapter.introduction_to_annihilation",
       "card_name": "Introduction to Annihilation",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.introduction_to_annihilation",
+      "execution_handler": "execute.introduction_to_annihilation",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.introduction_to_annihilation",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.introduction_to_annihilation",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -659,7 +698,7 @@
       "cost_builder": "cost.invert_invent",
       "execution_handler": "execute.invert_invent",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.invert_invent",
       "relevant_zones": [
@@ -678,7 +717,7 @@
       "cost_builder": "cost.island",
       "execution_handler": "execute.island",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.island",
       "relevant_zones": [
@@ -697,7 +736,7 @@
       "cost_builder": "cost.izzet_boilerworks",
       "execution_handler": "execute.izzet_boilerworks",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.izzet_boilerworks",
       "relevant_zones": [
@@ -716,7 +755,7 @@
       "cost_builder": "cost.izzet_signet",
       "execution_handler": "execute.izzet_signet",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.izzet_signet",
       "relevant_zones": [
@@ -732,17 +771,20 @@
     {
       "adapter_id": "adapter.lazotep_plating",
       "card_name": "Lazotep Plating",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.lazotep_plating",
+      "execution_handler": "execute.lazotep_plating",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.lazotep_plating",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.lazotep_plating",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -767,7 +809,7 @@
       "cost_builder": "cost.long_term_plans",
       "execution_handler": "execute.long_term_plans",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.long_term_plans",
       "relevant_zones": [
@@ -786,7 +828,7 @@
       "cost_builder": "cost.malcolm_keen_eyed_navigator",
       "execution_handler": "execute.malcolm_keen_eyed_navigator",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.malcolm_keen_eyed_navigator",
       "relevant_zones": [
@@ -805,7 +847,7 @@
       "cost_builder": "cost.mind_stone",
       "execution_handler": "execute.mind_stone",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.mind_stone",
       "relevant_zones": [
@@ -824,7 +866,7 @@
       "cost_builder": "cost.mountain",
       "execution_handler": "execute.mountain",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.mountain",
       "relevant_zones": [
@@ -843,7 +885,7 @@
       "cost_builder": "cost.muddle_the_mixture",
       "execution_handler": "execute.muddle_the_mixture",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.muddle_the_mixture",
       "relevant_zones": [
@@ -859,17 +901,20 @@
     {
       "adapter_id": "adapter.negate",
       "card_name": "Negate",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.negate",
+      "execution_handler": "execute.negate",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.negate",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.negate",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -894,7 +939,7 @@
       "cost_builder": "cost.opt",
       "execution_handler": "execute.opt",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.opt",
       "relevant_zones": [
@@ -913,7 +958,7 @@
       "cost_builder": "cost.path_of_ancestry",
       "execution_handler": "execute.path_of_ancestry",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.path_of_ancestry",
       "relevant_zones": [
@@ -932,7 +977,7 @@
       "cost_builder": "cost.prismari_command",
       "execution_handler": "execute.prismari_command",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.prismari_command",
       "relevant_zones": [
@@ -951,7 +996,7 @@
       "cost_builder": "cost.prismatic_lens",
       "execution_handler": "execute.prismatic_lens",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.prismatic_lens",
       "relevant_zones": [
@@ -983,49 +1028,58 @@
     {
       "adapter_id": "adapter.ravenform",
       "card_name": "Ravenform",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.ravenform",
+      "execution_handler": "execute.ravenform",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.ravenform",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.ravenform",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
       "adapter_id": "adapter.reality_ripple",
       "card_name": "Reality Ripple",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.reality_ripple",
+      "execution_handler": "execute.reality_ripple",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.reality_ripple",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.reality_ripple",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
       "adapter_id": "adapter.reality_shift",
       "card_name": "Reality Shift",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.reality_shift",
+      "execution_handler": "execute.reality_shift",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.reality_shift",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.reality_shift",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -1034,7 +1088,7 @@
       "cost_builder": "cost.rebuild",
       "execution_handler": "execute.rebuild",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.rebuild",
       "relevant_zones": [
@@ -1050,17 +1104,20 @@
     {
       "adapter_id": "adapter.resculpt",
       "card_name": "Resculpt",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.resculpt",
+      "execution_handler": "execute.resculpt",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.resculpt",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.resculpt",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -1069,7 +1126,7 @@
       "cost_builder": "cost.scavenger_grounds",
       "execution_handler": "execute.scavenger_grounds",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.scavenger_grounds",
       "relevant_zones": [
@@ -1085,17 +1142,20 @@
     {
       "adapter_id": "adapter.sentinel_totem",
       "card_name": "Sentinel Totem",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.sentinel_totem",
+      "execution_handler": "execute.sentinel_totem",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.sentinel_totem",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.sentinel_totem",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -1104,7 +1164,7 @@
       "cost_builder": "cost.shivan_reef",
       "execution_handler": "execute.shivan_reef",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.shivan_reef",
       "relevant_zones": [
@@ -1120,17 +1180,20 @@
     {
       "adapter_id": "adapter.siren_stormtamer",
       "card_name": "Siren Stormtamer",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.siren_stormtamer",
+      "execution_handler": "execute.siren_stormtamer",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.siren_stormtamer",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.siren_stormtamer",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -1139,7 +1202,7 @@
       "cost_builder": "cost.sleight_of_hand",
       "execution_handler": "execute.sleight_of_hand",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.sleight_of_hand",
       "relevant_zones": [
@@ -1158,7 +1221,7 @@
       "cost_builder": "cost.sol_ring",
       "execution_handler": "execute.sol_ring",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.sol_ring",
       "relevant_zones": [
@@ -1174,17 +1237,20 @@
     {
       "adapter_id": "adapter.soul_guide_lantern",
       "card_name": "Soul-Guide Lantern",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.soul_guide_lantern",
+      "execution_handler": "execute.soul_guide_lantern",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.soul_guide_lantern",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.soul_guide_lantern",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -1193,7 +1259,7 @@
       "cost_builder": "cost.spectral_sailor",
       "execution_handler": "execute.spectral_sailor",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.spectral_sailor",
       "relevant_zones": [
@@ -1209,17 +1275,20 @@
     {
       "adapter_id": "adapter.spell_pierce",
       "card_name": "Spell Pierce",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.spell_pierce",
+      "execution_handler": "execute.spell_pierce",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.spell_pierce",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.spell_pierce",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -1228,7 +1297,7 @@
       "cost_builder": "cost.step_through",
       "execution_handler": "execute.step_through",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.step_through",
       "relevant_zones": [
@@ -1260,17 +1329,20 @@
     {
       "adapter_id": "adapter.syncopate",
       "card_name": "Syncopate",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.syncopate",
+      "execution_handler": "execute.syncopate",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.syncopate",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.syncopate",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -1279,7 +1351,7 @@
       "cost_builder": "cost.temple_of_epiphany",
       "execution_handler": "execute.temple_of_epiphany",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.temple_of_epiphany",
       "relevant_zones": [
@@ -1298,7 +1370,7 @@
       "cost_builder": "cost.terramorphic_expanse",
       "execution_handler": "execute.terramorphic_expanse",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.terramorphic_expanse",
       "relevant_zones": [
@@ -1317,7 +1389,7 @@
       "cost_builder": "cost.thriving_isle",
       "execution_handler": "execute.thriving_isle",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.thriving_isle",
       "relevant_zones": [
@@ -1349,17 +1421,20 @@
     {
       "adapter_id": "adapter.vandalblast",
       "card_name": "Vandalblast",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.vandalblast",
+      "execution_handler": "execute.vandalblast",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.vandalblast",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.vandalblast",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -1368,7 +1443,7 @@
       "cost_builder": "cost.vedalken_aethermage",
       "execution_handler": "execute.vedalken_aethermage",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.vedalken_aethermage",
       "relevant_zones": [
@@ -1384,17 +1459,20 @@
     {
       "adapter_id": "adapter.wash_away",
       "card_name": "Wash Away",
-      "cost_builder": "blocked.not_executable",
-      "execution_handler": "blocked.not_executable",
-      "integration_test_ids": [],
-      "legal_action_generator": "blocked.not_executable",
-      "relevant_zones": [
-        "blocked"
+      "cost_builder": "cost.wash_away",
+      "execution_handler": "execute.wash_away",
+      "integration_test_ids": [
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
-      "status": "BLOCKED",
-      "target_mode_choice_builder": "blocked.not_executable",
+      "legal_action_generator": "generate.wash_away",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.wash_away",
       "timing_restrictions": [
-        "blocked"
+        "rules_validated"
       ]
     },
     {
@@ -1403,7 +1481,7 @@
       "cost_builder": "cost.wily_goblin",
       "execution_handler": "execute.wily_goblin",
       "integration_test_ids": [
-        "tests/test_phase9f1_executable_adapters.py::tests/test_phase9f2_draw_tutor_split_adapters.py"
+        "tests/test_phase9f3_interaction_adapters.py"
       ],
       "legal_action_generator": "generate.wily_goblin",
       "relevant_zones": [

@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 import random
-from typing import Callable, Literal, TypeAlias
+from typing import Callable, Literal, TypeAlias, cast
 
 
 class RulesError(ValueError):
@@ -47,6 +47,8 @@ class Action:
     origin_zone: str | None = None
     choice: str | None = None
     modes: tuple[str, ...] = ()
+    stack_target: StackObject | None = None
+    x_value: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -430,6 +432,31 @@ CARD_TYPES = {
     "Drift of Phantasms": {"Creature"},
     "Commit // Memory": {"Instant", "Sorcery"},
     "Invert // Invent": {"Instant"},
+    "Abrade": {"Instant"},
+    "Aetherize": {"Instant"},
+    "Arcane Denial": {"Instant"},
+    "Brotherhood's End": {"Sorcery"},
+    "By Force": {"Sorcery"},
+    "Change the Equation": {"Instant"},
+    "Curse of the Swine": {"Sorcery"},
+    "Dispel": {"Instant"},
+    "Echoing Truth": {"Instant"},
+    "Fading Hope": {"Instant"},
+    "Fiery Cannonade": {"Instant"},
+    "Into the Roil": {"Instant"},
+    "Introduction to Annihilation": {"Sorcery"},
+    "Lazotep Plating": {"Instant"},
+    "Negate": {"Instant"},
+    "Ravenform": {"Sorcery"},
+    "Reality Ripple": {"Instant"},
+    "Reality Shift": {"Instant"},
+    "Resculpt": {"Instant"},
+    "Sentinel Totem": {"Artifact"},
+    "Soul-Guide Lantern": {"Artifact"},
+    "Spell Pierce": {"Instant"},
+    "Syncopate": {"Instant"},
+    "Vandalblast": {"Sorcery"},
+    "Wash Away": {"Instant"},
 }
 CARD_SUBTYPES = {
     "Dualcaster Mage": {"Human", "Wizard"},
@@ -457,6 +484,31 @@ MANA_VALUES = {
     "Glint-Horn Buccaneer": 3,
     "Siren Stormtamer": 1,
     "Lightning-Rig Crew": 3,
+    "Abrade": 2,
+    "Aetherize": 4,
+    "Arcane Denial": 2,
+    "Brotherhood's End": 3,
+    "By Force": 1,
+    "Change the Equation": 2,
+    "Curse of the Swine": 2,
+    "Dispel": 1,
+    "Echoing Truth": 2,
+    "Fading Hope": 1,
+    "Fiery Cannonade": 3,
+    "Into the Roil": 2,
+    "Introduction to Annihilation": 5,
+    "Lazotep Plating": 2,
+    "Negate": 2,
+    "Ravenform": 3,
+    "Reality Ripple": 2,
+    "Reality Shift": 2,
+    "Resculpt": 2,
+    "Sentinel Totem": 1,
+    "Soul-Guide Lantern": 1,
+    "Spell Pierce": 1,
+    "Syncopate": 1,
+    "Vandalblast": 1,
+    "Wash Away": 1,
 }
 SPLIT_FACE_MANA_VALUES = {"Invert": 1, "Invent": 6, "Commit": 4, "Memory": 6}
 SPLIT_CARD_FACES = {
@@ -655,10 +707,10 @@ def _spell_effect_for_action(action: Action) -> Callable[[GameState], None]:
         elif name == "Sleight of Hand":
             _select_from_revealed(s, 2, 1, action.choice)
         elif name == "Prismari Command":
-            s.record_event("modes", ",".join(action.modes))
-            s.record_event("targets", ",".join(t.name for t in action.targets))
-            s.draw(2)
-            _discard_named(s, discards[:2])
+            modes = tuple("draw_discard" if m == "loot" else m for m in action.modes)
+            prismari_command(s, cast(tuple[str, str], modes), treasure_player=0)
+            if "draw_discard" in modes:
+                _discard_named(s, discards[:2])
         elif name == "Long-Term Plans":
             long_term_plans(s, action.choice or (s.library[0] if s.library else ""))
         elif name == "Commit // Memory":
@@ -670,6 +722,71 @@ def _spell_effect_for_action(action: Action) -> Callable[[GameState], None]:
                 commit(s, action.targets[0])
             else:
                 raise RulesError("Commit requires a target")
+        elif name == "Abrade":
+            abrade(
+                s,
+                cast(Literal["damage_creature", "destroy_artifact"], action.modes[0]),
+                action.targets[0],
+            )
+        elif name == "Aetherize":
+            aetherize(s)
+        elif name == "Arcane Denial":
+            assert action.stack_target is not None
+            arcane_denial(s, action.stack_target, target_controller_draws=2)
+        elif name == "Brotherhood's End":
+            brotherhoods_end(s, cast(Literal["damage", "artifacts"], action.modes[0]))
+        elif name == "By Force":
+            by_force(s, list(action.targets), action.x_value or 0)
+        elif name == "Change the Equation":
+            assert action.stack_target is not None
+            change_the_equation(
+                s, action.stack_target, cast(Literal["small", "red_green"], action.modes[0])
+            )
+        elif name == "Curse of the Swine":
+            curse_of_the_swine(s, list(action.targets), action.x_value or 0)
+        elif name == "Dispel":
+            assert action.stack_target is not None
+            dispel(s, action.stack_target)
+        elif name == "Echoing Truth":
+            echoing_truth(s, action.targets[0])
+        elif name == "Fading Hope":
+            fading_hope(s, action.targets[0])
+        elif name == "Fiery Cannonade":
+            fiery_cannonade(s)
+        elif name == "Into the Roil":
+            into_the_roil(s, action.targets[0], kicked="kicker" in action.additional_costs)
+        elif name == "Introduction to Annihilation":
+            introduction_to_annihilation(s, action.targets[0])
+        elif name == "Lazotep Plating":
+            lazotep_plating(s)
+        elif name == "Negate":
+            assert action.stack_target is not None
+            negate(s, action.stack_target)
+        elif name == "Ravenform":
+            ravenform(s, action.targets[0])
+        elif name == "Reality Ripple":
+            reality_ripple(s, action.targets[0])
+        elif name == "Reality Shift":
+            reality_shift(s, action.targets[0])
+        elif name == "Rebuild":
+            rebuild(s)
+        elif name == "Resculpt":
+            resculpt(s, action.targets[0])
+        elif name == "Spell Pierce":
+            assert action.stack_target is not None
+            spell_pierce(s, action.stack_target, pays=False)
+        elif name == "Syncopate":
+            assert action.stack_target is not None
+            syncopate(s, action.stack_target, action.x_value or 0, pays=False)
+        elif name == "Vandalblast":
+            vandalblast(
+                s,
+                action.targets[0] if action.targets else None,
+                overload="overload" in action.additional_costs,
+            )
+        elif name == "Wash Away":
+            assert action.stack_target is not None
+            wash_away(s, action.stack_target, cleave="cleave" in action.additional_costs)
         elif name == "Invert // Invent":
             if action.choice == "Invert":
                 invert(s, list(action.targets))
@@ -834,8 +951,34 @@ CARD_COSTS: dict[str, ManaCost] = {
     "Sleight of Hand": {"U": 1},
     "Prismari Command": {"generic": 1, "U": 1, "R": 1},
     "Long-Term Plans": {"generic": 2, "U": 1},
+    "Rebuild": {"generic": 2, "U": 1},
     "Commit // Memory": {"generic": 3, "U": 1},
     "Invert // Invent": {"U": 1},
+    "Abrade": {"generic": 1, "R": 1},
+    "Aetherize": {"generic": 3, "U": 1},
+    "Arcane Denial": {"generic": 1, "U": 1},
+    "Brotherhood's End": {"generic": 1, "R": 2},
+    "By Force": {"R": 1},
+    "Change the Equation": {"generic": 1, "U": 1},
+    "Curse of the Swine": {"U": 2},
+    "Dispel": {"U": 1},
+    "Echoing Truth": {"generic": 1, "U": 1},
+    "Fading Hope": {"U": 1},
+    "Fiery Cannonade": {"generic": 2, "R": 1},
+    "Into the Roil": {"generic": 1, "U": 1},
+    "Introduction to Annihilation": {"generic": 5},
+    "Lazotep Plating": {"generic": 1, "U": 1},
+    "Negate": {"generic": 1, "U": 1},
+    "Ravenform": {"generic": 2, "U": 1},
+    "Reality Ripple": {"generic": 1, "U": 1},
+    "Reality Shift": {"generic": 1, "U": 1},
+    "Resculpt": {"generic": 1, "U": 1},
+    "Sentinel Totem": {"generic": 1},
+    "Soul-Guide Lantern": {"generic": 1},
+    "Spell Pierce": {"U": 1},
+    "Syncopate": {"U": 1},
+    "Vandalblast": {"R": 1},
+    "Wash Away": {"U": 1},
 }
 CREATURES = {
     "Malcolm, Keen-Eyed Navigator",
@@ -1100,6 +1243,7 @@ ABILITY_COSTS: dict[tuple[str, str], ManaCost] = {
     ("Soul-Guide Lantern", "exile_opponents_graveyards"): {},
     ("Soul-Guide Lantern", "draw"): {"generic": 1},
     ("Sentinel Totem", "exile_all_graveyards"): {},
+    ("Siren Stormtamer", "sacrifice_counter"): {"U": 1},
     ("Evolving Wilds", "basic_fetch"): {},
     ("Terramorphic Expanse", "basic_fetch"): {},
     ("Ash Barrens", "basic_landcycling"): {"generic": 1},
@@ -1123,6 +1267,164 @@ def _default_ability_id(name: str | None) -> str | None:
         "Mind Stone": "draw",
         "Sentinel Totem": "exile_all_graveyards",
     }.get(name)
+
+
+def _stack_target_action(
+    card: str,
+    target: StackObject,
+    cost: ManaCost,
+    *,
+    modes: tuple[str, ...] = (),
+    x_value: int | None = None,
+    choice: str | None = None,
+) -> Action:
+    return Action(
+        ActionType.CAST_SPELL,
+        card,
+        mana_cost=cost,
+        timing="instant",
+        origin_zone="hand",
+        modes=modes,
+        stack_target=target,
+        x_value=x_value,
+        choice=choice,
+    )
+
+
+def _x_cost(base: ManaCost, x_value: int) -> ManaCost:
+    cost = dict(base)
+    cost["generic"] = cost.get("generic", 0) + x_value
+    return cost
+
+
+def _spell_action_is_legal_by_text(state: GameState, action: Action) -> bool:
+    card = action.source_name
+    targets = list(action.targets)
+    st = action.stack_target
+    mode = action.modes[0] if action.modes else None
+    try:
+        if card in {"Arcane Denial", "Syncopate"}:
+            return st is not None and st in state.stack and _is_spell(st)
+        if card == "Negate":
+            return (
+                st is not None
+                and st in state.stack
+                and _is_spell(st)
+                and "Creature" not in _spell_types(st)
+            )
+        if card == "Dispel":
+            return (
+                st is not None
+                and st in state.stack
+                and _is_spell(st)
+                and "Instant" in _spell_types(st)
+            )
+        if card == "Spell Pierce":
+            return (
+                st is not None
+                and st in state.stack
+                and _is_spell(st)
+                and "Creature" not in _spell_types(st)
+            )
+        if card == "Wash Away":
+            return (
+                st is not None
+                and st in state.stack
+                and _is_spell(st)
+                and ("cleave" in action.additional_costs or not getattr(st, "cast_from_hand", True))
+            )
+        if card == "Change the Equation":
+            return (
+                st is not None
+                and st in state.stack
+                and _is_spell(st)
+                and (
+                    (mode == "small" and (st.mana_value or 99) <= 2)
+                    or (
+                        mode == "red_green"
+                        and (st.mana_value or 99) <= 6
+                        and bool(_spell_colors(st) & {"R", "G"})
+                    )
+                )
+            )
+        if card == "Abrade":
+            return (
+                len(targets) == 1
+                and targets[0] in state.battlefield
+                and (
+                    (mode == "damage_creature" and "Creature" in targets[0].types)
+                    or (mode == "destroy_artifact" and "Artifact" in targets[0].types)
+                )
+            )
+        if card == "Aetherize":
+            return any("Creature" in p.types and p.attacking for p in state.battlefield)
+        if card == "Brotherhood's End":
+            return mode in {"damage", "artifacts"}
+        if card == "By Force":
+            return (
+                action.x_value == len(targets)
+                and action.x_value is not None
+                and action.x_value > 0
+                and all(t in state.battlefield and "Artifact" in t.types for t in targets)
+                and len({id(t) for t in targets}) == len(targets)
+            )
+        if card == "Curse of the Swine":
+            return (
+                action.x_value == len(targets)
+                and action.x_value is not None
+                and action.x_value > 0
+                and all(t in state.battlefield and "Creature" in t.types for t in targets)
+                and len({id(t) for t in targets}) == len(targets)
+            )
+        if card in {"Echoing Truth", "Into the Roil", "Introduction to Annihilation"}:
+            return (
+                len(targets) == 1
+                and targets[0] in state.battlefield
+                and "Land" not in targets[0].types
+            )
+        if card in {"Fading Hope", "Reality Shift"}:
+            return (
+                len(targets) == 1
+                and targets[0] in state.battlefield
+                and "Creature" in targets[0].types
+            )
+        if card == "Reality Ripple":
+            return (
+                len(targets) == 1
+                and targets[0] in state.battlefield
+                and bool(targets[0].types & {"Artifact", "Creature", "Land"})
+            )
+        if card in {"Ravenform", "Resculpt"}:
+            return (
+                len(targets) == 1
+                and targets[0] in state.battlefield
+                and bool(targets[0].types & {"Artifact", "Creature"})
+            )
+        if card == "Vandalblast":
+            if "overload" in action.additional_costs:
+                return any(
+                    "Artifact" in p.types and not _controlled_by_us(p) for p in state.battlefield
+                )
+            return (
+                len(targets) == 1
+                and targets[0] in state.battlefield
+                and "Artifact" in targets[0].types
+                and not _controlled_by_us(targets[0])
+            )
+        if card in {"Fiery Cannonade", "Lazotep Plating", "Rebuild"}:
+            return True
+        if card == "Prismari Command":
+            return (
+                len(action.modes) == 2
+                and len(set(action.modes)) == 2
+                and all(
+                    m in {"damage", "draw_discard", "loot", "treasure", "destroy_artifact"}
+                    for m in action.modes
+                )
+            )
+    except Exception:
+        return False
+    return True
 
 
 def validate_action(state: GameState, action: Action) -> ValidationResult:
@@ -1168,12 +1470,57 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
                 expected_cost = {"generic": 4, "U": 2}
             if action.source_name == "Invert // Invent" and action.choice == "Invent":
                 expected_cost = {"generic": 4, "U": 1, "R": 1}
+            if action.source_name == "Syncopate" and action.x_value is not None:
+                expected_cost = _x_cost(CARD_COSTS["Syncopate"], action.x_value)
+            if (
+                action.source_name in {"By Force", "Curse of the Swine"}
+                and action.x_value is not None
+            ):
+                expected_cost = _x_cost(CARD_COSTS[action.source_name], action.x_value)
+            if action.source_name == "Wash Away" and "cleave" in action.additional_costs:
+                expected_cost = {"generic": 2, "U": 1}
+            if action.source_name == "Into the Roil" and "kicker" in action.additional_costs:
+                expected_cost = {"generic": 3, "U": 1}
+            if action.source_name == "Vandalblast" and "overload" in action.additional_costs:
+                expected_cost = {"generic": 4, "R": 1}
             if not _costs_equal(action.mana_cost, expected_cost):
                 errors.append(f"incorrect spell cost for {action.source_name}")
         if action.source_name in {"Twinflame", "Electroduplicate"} and not _is_creature_target(
             state, list(action.targets)
         ):
             errors.append(f"{action.source_name} requires one legal creature target")
+            refs.extend(TARGET_RULES_REFS)
+        interaction_cards = {
+            "Abrade",
+            "Aetherize",
+            "Arcane Denial",
+            "Brotherhood's End",
+            "By Force",
+            "Change the Equation",
+            "Curse of the Swine",
+            "Dispel",
+            "Echoing Truth",
+            "Fading Hope",
+            "Fiery Cannonade",
+            "Into the Roil",
+            "Introduction to Annihilation",
+            "Lazotep Plating",
+            "Negate",
+            "Prismari Command",
+            "Ravenform",
+            "Reality Ripple",
+            "Reality Shift",
+            "Rebuild",
+            "Resculpt",
+            "Spell Pierce",
+            "Syncopate",
+            "Vandalblast",
+            "Wash Away",
+        }
+        if action.source_name in interaction_cards and not _spell_action_is_legal_by_text(
+            state, action
+        ):
+            errors.append(f"{action.source_name} has no legal mode or target")
             refs.extend(TARGET_RULES_REFS)
         if solve_mana_payment(state.mana_pool, action.mana_cost or {}) is None:
             errors.append("insufficient mana")
@@ -1234,6 +1581,17 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
                 errors.append(
                     "Lightning-Rig Crew activated ability is restricted by summoning sickness"
                 )
+            if action.source_name == "Siren Stormtamer" and ability_id == "sacrifice_counter":
+                if action.stack_target is None or action.stack_target not in state.stack:
+                    errors.append("Siren Stormtamer requires a legal stack target")
+                elif not (
+                    getattr(action.stack_target, "targets_player", False)
+                    or any(
+                        _controlled_by_us(t) and "Creature" in t.types
+                        for t in action.stack_target.targets
+                    )
+                ):
+                    errors.append("Siren Stormtamer target must target you or your creature")
             if action.source_name in {
                 "Evolving Wilds",
                 "Terramorphic Expanse",
@@ -1449,6 +1807,232 @@ def generate_legal_actions(state: GameState) -> list[Action]:
                     )
                 if validate_action(state, candidate).accepted:
                     actions.append(candidate)
+
+        # Phase 9F-3 interaction adapters. They generate only when legal targets exist.
+        if card in {
+            "Arcane Denial",
+            "Dispel",
+            "Negate",
+            "Spell Pierce",
+            "Syncopate",
+            "Wash Away",
+            "Change the Equation",
+        }:
+            for obj in list(state.stack):
+                variants: list[Action] = []
+                if card == "Arcane Denial":
+                    variants.append(
+                        _stack_target_action(card, obj, CARD_COSTS[card], choice="target_draw_2")
+                    )
+                elif card == "Dispel":
+                    variants.append(_stack_target_action(card, obj, CARD_COSTS[card]))
+                elif card == "Negate":
+                    variants.append(_stack_target_action(card, obj, CARD_COSTS[card]))
+                elif card == "Spell Pierce":
+                    variants.append(
+                        _stack_target_action(
+                            card, obj, CARD_COSTS[card], choice="opponent_declines_pay"
+                        )
+                    )
+                elif card == "Syncopate":
+                    for x in range(1, 7):
+                        variants.append(
+                            _stack_target_action(
+                                card,
+                                obj,
+                                _x_cost(CARD_COSTS[card], x),
+                                x_value=x,
+                                choice="opponent_declines_pay",
+                            )
+                        )
+                elif card == "Wash Away":
+                    variants.append(
+                        _stack_target_action(card, obj, CARD_COSTS[card], choice="base")
+                    )
+                    variants.append(
+                        _stack_target_action(
+                            card,
+                            obj,
+                            {"generic": 2, "U": 1},
+                            choice="cleave",
+                            modes=("cleave",),
+                            x_value=None,
+                        )
+                    )
+                    variants[-1] = Action(
+                        variants[-1].action_type,
+                        variants[-1].source_name,
+                        variants[-1].targets,
+                        variants[-1].mana_cost,
+                        ("cleave",),
+                        variants[-1].timing,
+                        variants[-1].effect,
+                        variants[-1].optional_draw_decline,
+                        variants[-1].mana_choice,
+                        variants[-1].ability_id,
+                        variants[-1].origin_zone,
+                        variants[-1].choice,
+                        variants[-1].modes,
+                        variants[-1].stack_target,
+                        variants[-1].x_value,
+                    )
+                elif card == "Change the Equation":
+                    variants.extend(
+                        [
+                            _stack_target_action(card, obj, CARD_COSTS[card], modes=("small",)),
+                            _stack_target_action(card, obj, CARD_COSTS[card], modes=("red_green",)),
+                        ]
+                    )
+                for candidate in variants:
+                    if validate_action(state, candidate).accepted:
+                        actions.append(candidate)
+            continue
+        if card in {
+            "Abrade",
+            "Aetherize",
+            "Brotherhood's End",
+            "By Force",
+            "Curse of the Swine",
+            "Echoing Truth",
+            "Fading Hope",
+            "Fiery Cannonade",
+            "Into the Roil",
+            "Introduction to Annihilation",
+            "Lazotep Plating",
+            "Ravenform",
+            "Reality Ripple",
+            "Reality Shift",
+            "Rebuild",
+            "Resculpt",
+            "Vandalblast",
+        }:
+            variants = []
+            if card == "Aetherize":
+                variants.append(
+                    Action(
+                        ActionType.CAST_SPELL,
+                        card,
+                        mana_cost=CARD_COSTS[card],
+                        timing="instant",
+                        origin_zone="hand",
+                    )
+                )
+            elif card == "Brotherhood's End":
+                variants += [
+                    Action(
+                        ActionType.CAST_SPELL,
+                        card,
+                        mana_cost=CARD_COSTS[card],
+                        timing="sorcery",
+                        origin_zone="hand",
+                        modes=("damage",),
+                    ),
+                    Action(
+                        ActionType.CAST_SPELL,
+                        card,
+                        mana_cost=CARD_COSTS[card],
+                        timing="sorcery",
+                        origin_zone="hand",
+                        modes=("artifacts",),
+                    ),
+                ]
+            elif card in {"Fiery Cannonade", "Lazotep Plating", "Rebuild"}:
+                variants.append(
+                    Action(
+                        ActionType.CAST_SPELL,
+                        card,
+                        mana_cost=CARD_COSTS[card],
+                        timing="instant",
+                        origin_zone="hand",
+                    )
+                )
+            elif card == "Vandalblast":
+                for t in state.battlefield:
+                    variants.append(
+                        Action(
+                            ActionType.CAST_SPELL,
+                            card,
+                            (t,),
+                            CARD_COSTS[card],
+                            timing="sorcery",
+                            origin_zone="hand",
+                        )
+                    )
+                variants.append(
+                    Action(
+                        ActionType.CAST_SPELL,
+                        card,
+                        mana_cost={"generic": 4, "R": 1},
+                        additional_costs=("overload",),
+                        timing="sorcery",
+                        origin_zone="hand",
+                    )
+                )
+            elif card in {"By Force", "Curse of the Swine"}:
+                pool = [
+                    p
+                    for p in state.battlefield
+                    if ("Artifact" in p.types if card == "By Force" else "Creature" in p.types)
+                ]
+                for x, t in enumerate(pool[:6], start=1):
+                    variants.append(
+                        Action(
+                            ActionType.CAST_SPELL,
+                            card,
+                            tuple(pool[:x]),
+                            _x_cost(CARD_COSTS[card], x),
+                            timing="sorcery",
+                            origin_zone="hand",
+                            x_value=x,
+                        )
+                    )
+            else:
+                for t in state.battlefield:
+                    modes = (
+                        (("damage_creature",), ("destroy_artifact",)) if card == "Abrade" else ((),)
+                    )
+                    for m in modes:
+                        cost = CARD_COSTS[card]
+                        if card == "Into the Roil":
+                            variants.append(
+                                Action(
+                                    ActionType.CAST_SPELL,
+                                    card,
+                                    (t,),
+                                    cost,
+                                    timing="instant",
+                                    origin_zone="hand",
+                                )
+                            )
+                            variants.append(
+                                Action(
+                                    ActionType.CAST_SPELL,
+                                    card,
+                                    (t,),
+                                    {"generic": 3, "U": 1},
+                                    additional_costs=("kicker",),
+                                    timing="instant",
+                                    origin_zone="hand",
+                                )
+                            )
+                        else:
+                            variants.append(
+                                Action(
+                                    ActionType.CAST_SPELL,
+                                    card,
+                                    (t,),
+                                    cost,
+                                    timing="instant"
+                                    if "Instant" in CARD_TYPES.get(card, set())
+                                    else "sorcery",
+                                    origin_zone="hand",
+                                    modes=m,
+                                )
+                            )
+            for candidate in variants:
+                if validate_action(state, candidate).accepted:
+                    actions.append(candidate)
+            continue
     if "Faithless Looting" in state.graveyard:
         candidate = Action(
             ActionType.CAST_SPELL,
@@ -1490,6 +2074,18 @@ def generate_legal_actions(state: GameState) -> list[Action]:
         for ability_id, cost in sorted(
             (aid, cost) for (name, aid), cost in ABILITY_COSTS.items() if name == permanent.name
         ):
+            if permanent.name == "Siren Stormtamer" and ability_id == "sacrifice_counter":
+                for obj in state.stack:
+                    ability = Action(
+                        ActionType.ACTIVATE_ABILITY,
+                        permanent.name,
+                        mana_cost=cost,
+                        ability_id=ability_id,
+                        stack_target=obj,
+                    )
+                    if validate_action(state, ability).accepted:
+                        actions.append(ability)
+                continue
             ability = Action(
                 ActionType.ACTIVATE_ABILITY, permanent.name, mana_cost=cost, ability_id=ability_id
             )
@@ -1553,7 +2149,23 @@ def execute_action(state: GameState, action: Action) -> None:
                 list(action.targets),
                 legal_targets=_is_creature_target
                 if action.targets
-                and action.source_name not in {"Commit // Memory", "Invert // Invent"}
+                and action.source_name
+                not in {
+                    "Commit // Memory",
+                    "Invert // Invent",
+                    "Abrade",
+                    "By Force",
+                    "Curse of the Swine",
+                    "Echoing Truth",
+                    "Fading Hope",
+                    "Into the Roil",
+                    "Introduction to Annihilation",
+                    "Ravenform",
+                    "Reality Ripple",
+                    "Reality Shift",
+                    "Resculpt",
+                    "Vandalblast",
+                }
                 else None,
                 mana_value=mana_value(action.source_name, zone="stack", face=action.choice)
                 if action.source_name in SPLIT_CARD_FACES
@@ -1715,6 +2327,11 @@ def execute_activated_ability(state: GameState, source: Permanent, action: Actio
         wizardcycle(state, action.choice or "", source.name)
     elif ability_id == "cycling" and source.name == "Rebuild":
         cycle(state, "Rebuild")
+    elif source.name == "Siren Stormtamer" and ability_id == "sacrifice_counter":
+        state.pay_mana({"U": 1})
+        if action.stack_target is None:
+            raise RulesError("Siren Stormtamer ability requires a stack target")
+        siren_stormtamer_counter(state, source, action.stack_target)
     else:
         raise RulesError(f"unregistered activated ability handler: {source.name}:{ability_id}")
 
