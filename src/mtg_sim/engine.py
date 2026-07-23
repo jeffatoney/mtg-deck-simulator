@@ -45,6 +45,8 @@ class Action:
     mana_choice: str | None = None
     ability_id: str | None = None
     origin_zone: str | None = None
+    choice: str | None = None
+    modes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -103,6 +105,7 @@ class StackObject:
     colors: set[str] = field(default_factory=set)
     cast_from_hand: bool = True
     targets_player: bool = False
+    chosen_face: str | None = None
 
 
 @dataclass(slots=True)
@@ -202,6 +205,8 @@ class GameState:
             obj.effect(self)
         finally:
             self.resolving = False
+        if obj.kind == "spell" and obj.name not in self.graveyard and obj.name not in self.exile:
+            self.graveyard.append(obj.name)
         self.would_receive_priority()
 
     def resolve_all(self) -> None:
@@ -433,7 +438,26 @@ CARD_SUBTYPES = {
     "Siren Stormtamer": {"Siren", "Pirate", "Wizard"},
     "Spectral Sailor": {"Spirit", "Pirate"},
 }
-MANA_VALUES = {"Twinflame": 2, "Electroduplicate": 3, "Curiosity": 1, "Niv-Mizzet, the Firemind": 6}
+MANA_VALUES = {
+    "Twinflame": 2,
+    "Electroduplicate": 3,
+    "Curiosity": 1,
+    "Niv-Mizzet, the Firemind": 6,
+    "Chart a Course": 2,
+    "Expedite": 1,
+    "Fact or Fiction": 4,
+    "Faithless Looting": 1,
+    "Frantic Search": 3,
+    "Impulse": 2,
+    "Opt": 1,
+    "Sleight of Hand": 1,
+    "Prismari Command": 3,
+    "Spectral Sailor": 1,
+    "Dualcaster Mage": 3,
+    "Glint-Horn Buccaneer": 3,
+    "Siren Stormtamer": 1,
+    "Lightning-Rig Crew": 3,
+}
 SPLIT_FACE_MANA_VALUES = {"Invert": 1, "Invent": 6, "Commit": 4, "Memory": 6}
 SPLIT_CARD_FACES = {
     "Invert // Invent": ("Invert", "Invent"),
@@ -519,6 +543,156 @@ def long_term_plans(state: GameState, target_name: str) -> None:
         state.library.append("<empty slot after Long-Term Plans shuffle>")
     state.library.insert(2, target_name)
     state.record_event("tutor_found_third_from_top", target_name)
+
+
+DRAW_SELECTION_SPELLS = {
+    "Chart a Course",
+    "Expedite",
+    "Fact or Fiction",
+    "Faithless Looting",
+    "Frantic Search",
+    "Impulse",
+    "Opt",
+    "Sleight of Hand",
+    "Prismari Command",
+}
+
+
+def _discard_named(state: GameState, names: tuple[str, ...]) -> None:
+    for name in names:
+        if name not in state.hand:
+            raise RulesError(f"cannot discard unavailable card: {name}")
+    for name in names:
+        state.hand.remove(name)
+        state.graveyard.append(name)
+        state.record_event("discard", name)
+
+
+def _select_from_revealed(
+    state: GameState, count: int, keep: int, choice: str | None
+) -> tuple[str, ...]:
+    revealed = tuple(state.library[:count])
+    state.record_event("reveal", ",".join(revealed))
+    if not revealed:
+        return ()
+    selected = choice or revealed[0]
+    if selected not in revealed:
+        raise RulesError("selection must be from legally revealed cards")
+    state.library.remove(selected)
+    state.hand.append(selected)
+    for card in list(revealed):
+        if card != selected and card in state.library:
+            state.library.remove(card)
+            state.library.append(card)
+    state.record_event("selection", f"picked:{selected}:from:{','.join(revealed)}")
+    return (selected,)
+
+
+def _fact_or_fiction_effect(state: GameState, values: dict[str, int] | None = None) -> None:
+    values = values or {}
+    revealed = tuple(state.library[:5])
+    del state.library[: len(revealed)]
+    state.record_event("fact_or_fiction_revealed", ",".join(revealed))
+    best: tuple[int, tuple[str, ...], tuple[str, ...]] | None = None
+    n = len(revealed)
+    for mask in range(1 << n):
+        pile_a = tuple(revealed[i] for i in range(n) if mask & (1 << i))
+        pile_b = tuple(card for card in revealed if card not in pile_a)
+        score = max(sum(values.get(c, 0) for c in pile_a), sum(values.get(c, 0) for c in pile_b))
+        state.record_event("fact_or_fiction_partition", f"{pile_a}|{pile_b}|max={score}")
+        if best is None or score < best[0]:
+            best = (score, pile_a, pile_b)
+    assert best is not None
+    _, pile_a, pile_b = best
+    chosen = (
+        pile_a
+        if sum(values.get(c, 0) for c in pile_a) >= sum(values.get(c, 0) for c in pile_b)
+        else pile_b
+    )
+    state.record_event("fact_or_fiction_minimizing_partition", f"{pile_a}|{pile_b}")
+    state.record_event("fact_or_fiction_player_chosen_pile", ",".join(chosen))
+    for card in chosen:
+        state.hand.append(card)
+    for card in revealed:
+        if card not in chosen:
+            state.graveyard.append(card)
+
+
+def _spell_effect_for_action(action: Action) -> Callable[[GameState], None]:
+    name = action.source_name
+    discards = tuple(
+        x.removeprefix("discard:") for x in action.additional_costs if x.startswith("discard:")
+    )
+
+    def effect(s: GameState) -> None:
+        if name == "Chart a Course":
+            s.draw(2)
+            _discard_named(s, discards[:1])
+        elif name == "Expedite":
+            for target in action.targets:
+                target.haste = True
+            s.draw(1)
+        elif name == "Fact or Fiction":
+            _fact_or_fiction_effect(s)
+        elif name == "Faithless Looting":
+            s.draw(2)
+            _discard_named(s, discards[:2])
+            if action.origin_zone == "graveyard":
+                s.exile.append("Faithless Looting")
+                s.record_event("flashback_exile", "Faithless Looting")
+        elif name == "Frantic Search":
+            s.draw(2)
+            _discard_named(s, discards[:2])
+            lands = [p for p in s.battlefield if "Land" in p.types and p.tapped][:3]
+            for land in lands:
+                land.tapped = False
+            s.record_event("untap_lands", ",".join(p.name for p in lands))
+        elif name == "Impulse":
+            _select_from_revealed(s, 4, 1, action.choice)
+        elif name == "Opt":
+            s.record_event("scry", action.choice or "top")
+            s.draw(1)
+        elif name == "Sleight of Hand":
+            _select_from_revealed(s, 2, 1, action.choice)
+        elif name == "Prismari Command":
+            s.record_event("modes", ",".join(action.modes))
+            s.record_event("targets", ",".join(t.name for t in action.targets))
+            s.draw(2)
+            _discard_named(s, discards[:2])
+        elif name == "Long-Term Plans":
+            long_term_plans(s, action.choice or (s.library[0] if s.library else ""))
+        elif name == "Commit // Memory":
+            if action.choice == "Memory":
+                if "Commit // Memory" not in s.graveyard:
+                    s.graveyard.append("Commit // Memory")
+                memory(s)
+            elif action.targets:
+                commit(s, action.targets[0])
+            else:
+                raise RulesError("Commit requires a target")
+        elif name == "Invert // Invent":
+            if action.choice == "Invert":
+                invert(s, list(action.targets))
+            else:
+                inst = next(
+                    (
+                        x.removeprefix("instant:")
+                        for x in action.additional_costs
+                        if x.startswith("instant:")
+                    ),
+                    None,
+                )
+                sorc = next(
+                    (
+                        x.removeprefix("sorcery:")
+                        for x in action.additional_costs
+                        if x.startswith("sorcery:")
+                    ),
+                    None,
+                )
+                invent(s, instant=inst, sorcery=sorc)
+
+    return effect
 
 
 def commander_cost(name: str, base_generic: int, state: GameState) -> int:
@@ -650,6 +824,18 @@ CARD_COSTS: dict[str, ManaCost] = {
     "Lightning-Rig Crew": {"generic": 2, "R": 1},
     "Crab Umbra": {"U": 1},
     "Wily Goblin": {"generic": 1, "R": 1},
+    "Chart a Course": {"generic": 1, "U": 1},
+    "Expedite": {"R": 1},
+    "Fact or Fiction": {"generic": 3, "U": 1},
+    "Faithless Looting": {"R": 1},
+    "Frantic Search": {"generic": 2, "U": 1},
+    "Impulse": {"generic": 1, "U": 1},
+    "Opt": {"U": 1},
+    "Sleight of Hand": {"U": 1},
+    "Prismari Command": {"generic": 1, "U": 1, "R": 1},
+    "Long-Term Plans": {"generic": 2, "U": 1},
+    "Commit // Memory": {"generic": 3, "U": 1},
+    "Invert // Invent": {"U": 1},
 }
 CREATURES = {
     "Malcolm, Keen-Eyed Navigator",
@@ -919,6 +1105,12 @@ ABILITY_COSTS: dict[tuple[str, str], ManaCost] = {
     ("Ash Barrens", "basic_landcycling"): {"generic": 1},
     ("Scavenger Grounds", "exile_graveyards"): {"generic": 2},
     ("Demolition Field", "destroy_nonbasic"): {"generic": 2},
+    ("Dizzy Spell", "transmute"): {"generic": 1, "U": 2},
+    ("Drift of Phantasms", "transmute"): {"generic": 1, "U": 2},
+    ("Muddle the Mixture", "transmute"): {"generic": 1, "U": 2},
+    ("Step Through", "wizardcycling"): {"generic": 2},
+    ("Vedalken Aethermage", "wizardcycling"): {"generic": 3},
+    ("Rebuild", "cycling"): {"generic": 2},
 }
 
 
@@ -945,26 +1137,39 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
             origin = "hand"
         elif action.source_name in state.command_zone and origin is None:
             origin = "command_zone"
+        elif action.source_name in state.graveyard and origin is None:
+            origin = "graveyard"
         if origin == "hand":
             if action.source_name not in state.hand:
                 errors.append(f"{action.source_name} is not in hand")
         elif origin == "command_zone":
             if action.source_name not in state.command_zone:
                 errors.append(f"{action.source_name} is not in command zone")
+        elif origin == "graveyard":
+            if action.source_name != "Faithless Looting" and not (
+                action.source_name == "Commit // Memory" and action.choice == "Memory"
+            ):
+                errors.append(f"{action.source_name} cannot be cast from graveyard")
+            if action.source_name not in state.graveyard:
+                errors.append(f"{action.source_name} is not in graveyard")
         else:
-            errors.append(f"{action.source_name} is not in hand or command zone")
+            errors.append(f"{action.source_name} is not in hand, graveyard, or command zone")
         if action.source_name in COMMANDER_BASE_COSTS:
             expected = commander_action_cost(action.source_name, state, origin)
             if not _costs_equal(action.mana_cost, expected):
                 errors.append(
                     f"incorrect commander cost for {action.source_name}: expected {expected}"
                 )
-        elif (
-            action.source_name is not None
-            and action.mana_cost is not None
-            and not _costs_equal(action.mana_cost, CARD_COSTS.get(action.source_name, {}))
-        ):
-            errors.append(f"incorrect spell cost for {action.source_name}")
+        elif action.source_name is not None and action.mana_cost is not None:
+            expected_cost = CARD_COSTS.get(action.source_name, {})
+            if action.source_name == "Faithless Looting" and origin == "graveyard":
+                expected_cost = {"generic": 2, "R": 1}
+            if action.source_name == "Commit // Memory" and action.choice == "Memory":
+                expected_cost = {"generic": 4, "U": 2}
+            if action.source_name == "Invert // Invent" and action.choice == "Invent":
+                expected_cost = {"generic": 4, "U": 1, "R": 1}
+            if not _costs_equal(action.mana_cost, expected_cost):
+                errors.append(f"incorrect spell cost for {action.source_name}")
         if action.source_name in {"Twinflame", "Electroduplicate"} and not _is_creature_target(
             state, list(action.targets)
         ):
@@ -983,9 +1188,34 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
             if solve_mana_payment(state.mana_pool, action.mana_cost or {}) is None:
                 errors.append("insufficient mana")
             source = next((p for p in state.battlefield if p.name == action.source_name), None)
-            if action.source_name == "Ash Barrens" and ability_id == "basic_landcycling":
-                if "Ash Barrens" not in state.hand:
-                    errors.append("Ash Barrens basic landcycling source must be in hand")
+            hand_ability_sources = {
+                "Ash Barrens",
+                "Dizzy Spell",
+                "Drift of Phantasms",
+                "Muddle the Mixture",
+                "Step Through",
+                "Vedalken Aethermage",
+                "Rebuild",
+            }
+            if action.source_name in hand_ability_sources:
+                if action.source_name not in state.hand:
+                    errors.append(f"{action.source_name} ability source must be in hand")
+                if ability_id == "transmute":
+                    errors.extend(validate_timing(state, "sorcery"))
+                    try:
+                        exact_mv = (
+                            action.choice is not None
+                            and mana_value(action.choice, zone="library")
+                            == TRANSMUTE_VALUES[action.source_name or ""]
+                        )
+                    except RulesError:
+                        exact_mv = False
+                    if not exact_mv:
+                        errors.append("transmute target must have exact mana value")
+                if ability_id == "wizardcycling" and (
+                    action.choice is None or "Wizard" not in CARD_SUBTYPES.get(action.choice, set())
+                ):
+                    errors.append("Wizardcycling finds only Wizards")
             elif source is None:
                 errors.append(f"{action.source_name} is not on battlefield")
             elif source.tapped and action.source_name != "Glint-Horn Buccaneer":
@@ -1004,9 +1234,11 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
                 errors.append(
                     "Lightning-Rig Crew activated ability is restricted by summoning sickness"
                 )
-            if action.source_name in {"Evolving Wilds", "Terramorphic Expanse"} and not any(
-                c in {"Island", "Mountain"} for c in state.library
-            ):
+            if action.source_name in {
+                "Evolving Wilds",
+                "Terramorphic Expanse",
+                "Ash Barrens",
+            } and not any(c in {"Island", "Mountain"} for c in state.library):
                 errors.append("fetch ability requires an Island or Mountain in library")
     elif action.action_type is ActionType.PLAY_LAND:
         if action.source_name not in state.hand:
@@ -1094,23 +1326,151 @@ def generate_legal_actions(state: GameState) -> list[Action]:
             candidate = Action(ActionType.PLAY_LAND, card, timing="sorcery", mana_choice=choice)
             if validate_action(state, candidate).accepted:
                 actions.append(candidate)
+        if card in TRANSMUTE_VALUES:
+            for target in sorted(set(state.library)):
+                candidate = Action(
+                    ActionType.ACTIVATE_ABILITY,
+                    card,
+                    mana_cost={"generic": 1, "U": 2},
+                    ability_id="transmute",
+                    timing="sorcery",
+                    choice=target,
+                )
+                if validate_action(state, candidate).accepted:
+                    actions.append(candidate)
+        if card in WIZARDCYCLING_COSTS:
+            for target in sorted(set(state.library)):
+                candidate = Action(
+                    ActionType.ACTIVATE_ABILITY,
+                    card,
+                    mana_cost=WIZARDCYCLING_COSTS[card],
+                    ability_id="wizardcycling",
+                    choice=target,
+                )
+                if validate_action(state, candidate).accepted:
+                    actions.append(candidate)
+        if card == "Rebuild":
+            candidate = Action(
+                ActionType.ACTIVATE_ABILITY,
+                card,
+                mana_cost=CYCLING_COSTS[card],
+                ability_id="cycling",
+            )
+            if validate_action(state, candidate).accepted:
+                actions.append(candidate)
         if card in CARD_COSTS or card in CREATURES or card in MANA_ROCK_MANA:
             target_options: tuple[tuple[Permanent, ...], ...] = ((),)
-            if card in {"Twinflame", "Electroduplicate", "Curiosity", "Crab Umbra"}:
+            if card in {"Twinflame", "Electroduplicate", "Curiosity", "Crab Umbra", "Expedite"}:
                 target_options = tuple(
                     (p,) for p in state.battlefield if "Creature" in p.types
                 ) or ((),)
+            if card == "Invert // Invent":
+                for p in state.battlefield:
+                    if "Creature" in p.types:
+                        candidate = Action(
+                            ActionType.CAST_SPELL,
+                            card,
+                            (p,),
+                            {"U": 1},
+                            timing="instant",
+                            origin_zone="hand",
+                            choice="Invert",
+                        )
+                        if validate_action(state, candidate).accepted:
+                            actions.append(candidate)
+                for inst in sorted(
+                    c for c in set(state.library) if "Instant" in CARD_TYPES.get(c, set())
+                ):
+                    candidate = Action(
+                        ActionType.CAST_SPELL,
+                        card,
+                        mana_cost={"generic": 4, "U": 1, "R": 1},
+                        timing="instant",
+                        origin_zone="hand",
+                        choice="Invent",
+                        additional_costs=(f"instant:{inst}",),
+                    )
+                    if validate_action(state, candidate).accepted:
+                        actions.append(candidate)
+                continue
+            if card == "Long-Term Plans":
+                for target in sorted(set(state.library)):
+                    candidate = Action(
+                        ActionType.CAST_SPELL,
+                        card,
+                        mana_cost=CARD_COSTS[card],
+                        timing="instant",
+                        origin_zone="hand",
+                        choice=target,
+                    )
+                    if validate_action(state, candidate).accepted:
+                        actions.append(candidate)
+                continue
             for target_tuple in target_options:
                 candidate = Action(
                     ActionType.CAST_SPELL,
                     card,
                     target_tuple,
                     CARD_COSTS.get(card, {}),
-                    timing="sorcery",
+                    timing="sorcery"
+                    if card
+                    not in {
+                        "Opt",
+                        "Expedite",
+                        "Impulse",
+                        "Fact or Fiction",
+                        "Frantic Search",
+                        "Prismari Command",
+                        "Commit // Memory",
+                    }
+                    else "instant",
                     origin_zone="hand",
                 )
+                if card in {
+                    "Chart a Course",
+                    "Faithless Looting",
+                    "Frantic Search",
+                    "Prismari Command",
+                }:
+                    candidate = Action(
+                        candidate.action_type,
+                        candidate.source_name,
+                        candidate.targets,
+                        candidate.mana_cost,
+                        tuple(f"discard:{x}" for x in state.hand if x != card)[:2],
+                        candidate.timing,
+                        candidate.effect,
+                        False,
+                        None,
+                        None,
+                        candidate.origin_zone,
+                        candidate.choice,
+                        ("loot", "treasure") if card == "Prismari Command" else (),
+                    )
                 if validate_action(state, candidate).accepted:
                     actions.append(candidate)
+    if "Faithless Looting" in state.graveyard:
+        candidate = Action(
+            ActionType.CAST_SPELL,
+            "Faithless Looting",
+            mana_cost={"generic": 2, "R": 1},
+            additional_costs=tuple(f"discard:{x}" for x in state.hand)[:2],
+            timing="sorcery",
+            origin_zone="graveyard",
+        )
+        if validate_action(state, candidate).accepted:
+            actions.append(candidate)
+    if "Commit // Memory" in state.graveyard:
+        candidate = Action(
+            ActionType.CAST_SPELL,
+            "Commit // Memory",
+            mana_cost={"generic": 4, "U": 2},
+            timing="sorcery",
+            origin_zone="graveyard",
+            choice="Memory",
+        )
+        if validate_action(state, candidate).accepted:
+            actions.append(candidate)
     for commander in sorted(set(state.command_zone)):
         if commander in COMMANDER_BASE_COSTS:
             candidate = Action(
@@ -1169,13 +1529,15 @@ def execute_action(state: GameState, action: Action) -> None:
             state.hand.remove(action.source_name)
         elif origin_zone == "command_zone":
             state.command_zone.remove(action.source_name)
+        elif origin_zone == "graveyard":
+            state.graveyard.remove(action.source_name)
         state.pay_mana(normalized.mana_cost or {})
         if origin_zone == "command_zone":
             state.commander_casts[action.source_name] = (
                 state.commander_casts.get(action.source_name, 0) + 1
             )
         state.record_event("action", f"cast:{action.source_name}:from:{origin_zone}")
-        effect = action.effect or (lambda _s: None)
+        effect = action.effect or _spell_effect_for_action(normalized)
         if action.source_name in CREATURES or action.source_name in MANA_ROCK_MANA:
             state.battlefield.append(_permanent_for_card(action.source_name))
             state.record_event("resolve", action.source_name)
@@ -1189,7 +1551,16 @@ def execute_action(state: GameState, action: Action) -> None:
                 "spell",
                 effect,
                 list(action.targets),
-                legal_targets=_is_creature_target if action.targets else None,
+                legal_targets=_is_creature_target
+                if action.targets
+                and action.source_name not in {"Commit // Memory", "Invert // Invent"}
+                else None,
+                mana_value=mana_value(action.source_name, zone="stack", face=action.choice)
+                if action.source_name in SPLIT_CARD_FACES
+                else mana_value(action.source_name)
+                if action.source_name in MANA_VALUES or action.source_name in TRANSMUTE_VALUES
+                else None,
+                chosen_face=action.choice,
             )
         )
         state.would_receive_priority()
@@ -1237,6 +1608,15 @@ def execute_action(state: GameState, action: Action) -> None:
             and normalized.ability_id == "basic_landcycling"
         ):
             ability_source = Permanent("Ash Barrens", {"Land"})
+        if ability_source is None and action.source_name in {
+            "Dizzy Spell",
+            "Drift of Phantasms",
+            "Muddle the Mixture",
+            "Step Through",
+            "Vedalken Aethermage",
+            "Rebuild",
+        }:
+            ability_source = Permanent(action.source_name, {"Card"})
         if ability_source is None:
             raise RulesError(f"{action.source_name} is not on battlefield")
         state.record_event("action", f"activate:{action.source_name}:{normalized.ability_id}")
@@ -1324,6 +1704,17 @@ def execute_activated_ability(state: GameState, source: Permanent, action: Actio
         state.pay_mana({"generic": 2})
         source.tapped = True
         state.record_event("nonbasic_destroyed", "Demolition Field")
+        if action.choice in state.library and action.choice in {"Island", "Mountain"}:
+            state.library.remove(action.choice)
+            state.battlefield.append(Permanent(action.choice, {"Land"}, {action.choice}))
+            state.record_event("tutor_found", action.choice)
+            state.record_event("shuffle_library")
+    elif ability_id == "transmute" and source.name in TRANSMUTE_VALUES:
+        transmute(state, source.name, action.choice or "")
+    elif ability_id == "wizardcycling" and source.name in WIZARDCYCLING_COSTS:
+        wizardcycle(state, action.choice or "", source.name)
+    elif ability_id == "cycling" and source.name == "Rebuild":
+        cycle(state, "Rebuild")
     else:
         raise RulesError(f"unregistered activated ability handler: {source.name}:{ability_id}")
 
