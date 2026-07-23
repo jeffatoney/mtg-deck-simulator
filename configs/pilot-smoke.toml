@@ -1,0 +1,40 @@
+[pilot]
+smoke = true
+smoke_seed_count = 8
+standard_games = 6
+exploratory_games = 4
+output_root = "artifacts/pilot-smoke"
+canonical_standard_description = "NON-PILOT smoke games exercising the Phase 9B pipeline"
+exploratory_description = "NON-PILOT exploratory smoke games paired with Standard Games 1 through 4"
+
+[split]
+base_seed_count = 8
+discovery_count = 3
+validation_count = 3
+seed_source = "first frozen seeds from configs/policy_seeds.json for smoke only"
+
+[policy]
+matrix_path = "configs/policies.json"
+finalist_count = 2
+finalist_advancement_rule = "Smoke-only: advance top two by discovery table-win access through Turn 8 using the production ranking tuple. Validation remains isolated."
+
+[audit]
+random_standard_games = 2
+random_exploratory_games = 2
+all_turn_3_or_4_wins = true
+all_unfamiliar_or_nonstandard_lines = true
+minimum_mulligans_to_four = 1
+minimum_one_piece_short_games = 1
+minimum_protection_delay_games = 1
+supplemental_audit_only_excluded_from_percentages = true
+
+[shards]
+standard_shards = 2
+standard_games_per_shard = 3
+exploratory_shards = 2
+exploratory_games_per_shard = 2
+assignment = "contiguous canonical game indexes; exploratory games paired to standard games 1-4"
+
+[exploratory]
+maximum_nodes_per_game = 5000
+expected_maximum_total_nodes = 20000
