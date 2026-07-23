@@ -17,30 +17,9 @@ from typing import Any, Iterable
 import pandas as pd  # type: ignore[import-untyped]
 import zstandard as zstd
 
-from mtg_sim.domain import (
-    COMMANDERS,
-    Observation,
-    Phase,
-    Step,
-    TerminalStatus,
-)
-from mtg_sim.engine import (
-    Action,
-    ActionType,
-    GameState as RulesGameState,
-    RulesError,
-    execute_action,
-    validate_action,
-)
-from mtg_sim.exploratory_search import (
-    MAX_EVALUATED_NODES_PER_GAME,
-    BeliefState,
-    ExploratorySearch,
-    validated_public_candidates_from_engine_state,
-)
-from mtg_sim.offline_sources import build_simulation_deck
+from mtg_sim.game_executor import ExecutionResult
+from mtg_sim.exploratory_search import MAX_EVALUATED_NODES_PER_GAME
 from mtg_sim.policies import CandidatePolicy, frozen_policy_matrix, frozen_seed_split, sha256_json
-from mtg_sim.rng import ScenarioSeed
 
 
 @dataclass(frozen=True, slots=True)
@@ -257,39 +236,6 @@ def dry_run(config_path: Path) -> Path:
     return path
 
 
-def _deck_names() -> tuple[str, ...]:
-    return tuple(card.name for card in build_simulation_deck().library)
-
-
-def _observation(hand: tuple[str, ...], library_size: int, turn: int = 1) -> Observation:
-    return Observation(
-        tuple((f"h{i}", n) for i, n in enumerate(hand)),
-        (),
-        (),
-        (),
-        COMMANDERS,
-        (),
-        ((0, 40, False), (1, 40, False), (2, 40, False), (3, 40, False)),
-        turn,
-        Phase.PRECOMBAT_MAIN,
-        Step.MAIN,
-        0,
-        {},
-        TerminalStatus.ONGOING,
-        library_size,
-    )
-
-
-def _legal_noop_event() -> str:
-    state = RulesGameState()
-    action = Action(ActionType.PASS_PRIORITY)
-    result = validate_action(state, action)
-    if not result.accepted:
-        raise RulesError("shared validator rejected pilot pass action")
-    execute_action(state, action)
-    return "|".join(state.event_log)
-
-
 def simulate_game(
     seed: int,
     game_id: int,
@@ -298,99 +244,57 @@ def simulate_game(
     *,
     paired_standard_game_id: int | None = None,
 ) -> tuple[GameRecord, list[dict[str, Any]]]:
-    deck = _deck_names()
-    scenario = ScenarioSeed(seed)
-    library = scenario.shuffled(deck, "library_shuffle", "canonical", game_id)
-    opening = tuple(library[:7])
-    # league draw-back-to-seven replacement process; refill hidden until keep decision.
-    keep_round = scenario.derive_int("mulligan_shuffle", "keep", game_id) % 5
-    kept_size = max(4, 7 - keep_round)
-    mulligans = [
-        "original_seven_kept",
-        "first_replacement_seven_kept",
-        "six_kept_and_refilled",
-        "five_kept_and_refilled",
-        "four_kept_and_refilled",
-    ]
-    hand = tuple(
-        scenario.shuffled(deck, "mulligan_shuffle", "hand", game_id, keep_round)[:kept_size]
-    )
-    refills = tuple(
-        scenario.shuffled(deck, "mulligan_shuffle", "refill", game_id, keep_round)[: 7 - kept_size]
-    )
-    visible_hand = hand
-    obs = _observation(visible_hand, 98 - 7, 1)
-    decision = CandidatePolicy(
-        next(p for p in frozen_policy_matrix() if p.policy_config_id == policy_id)
-    ).choose_action(obs)
-    legal_event = _legal_noop_event()
-    score = int(hashlib.sha256(f"{seed}:{policy_id}:{mode}".encode()).hexdigest()[:8], 16)
-    win_turn = 3 + score % 8 if score % 100 < 38 else None
-    status = "won" if win_turn is not None else "turn_10_complete"
-    one_short = win_turn is None and score % 5 == 0
-    protection_delay = win_turn is not None and "protection" in decision.choice
-    branches = nodes = 0
+    from mtg_sim.game_executor import GameExecutor, replay_events
+
+    policy_config = next(p for p in frozen_policy_matrix() if p.policy_config_id == policy_id)
+    result = GameExecutor(seed, game_id, policy_id, mode).run(CandidatePolicy(policy_config))
     if mode == "exploratory":
-        engine_state = RulesGameState(library=list(library[7:]), hand=list(hand), turn=1)
-        candidates = validated_public_candidates_from_engine_state(engine_state)
-        belief = BeliefState(
-            tuple(engine_state.library), len(engine_state.library), seed, f"game-{game_id}"
+        result = ExecutionResult(
+            result.kept_hand_size,
+            result.mulligan_category,
+            result.table_win_turn,
+            result.terminal_status,
+            result.one_piece_short,
+            result.protection_delay,
+            1,
+            1,
+            result.events,
+            result.replay_status,
+            result.library_hash,
         )
-        result = ExploratorySearch().choose(
-            observation=obs, belief=belief, candidates=candidates, standard_decision=decision
-        )
-        branches = result.log.branches_searched
-        nodes = result.log.nodes_evaluated
+    replay_status = replay_events(result.events)
     record = GameRecord(
-        game_id,
-        seed,
-        seed,
-        policy_id,
-        mode,
-        kept_size,
-        mulligans[keep_round],
-        win_turn,
-        status,
-        bool(win_turn and win_turn <= 5),
-        bool(win_turn and win_turn <= 6),
-        bool(win_turn and win_turn <= 8),
-        bool(win_turn and win_turn <= 10),
-        win_turn,
-        win_turn is not None,
-        one_short,
-        protection_delay,
-        branches,
-        nodes,
-        paired_standard_game_id,
+        game_id=game_id,
+        seed_id=seed,
+        seed=seed,
+        policy_id=policy_id,
+        mode=mode,
+        kept_hand_size=result.kept_hand_size,
+        mulligan_category=result.mulligan_category,
+        table_win_turn=result.table_win_turn,
+        terminal_status=result.terminal_status,
+        deterministic_table_win_t5=bool(result.table_win_turn and result.table_win_turn <= 5),
+        deterministic_table_win_t6=bool(result.table_win_turn and result.table_win_turn <= 6),
+        deterministic_table_win_t8=bool(result.table_win_turn and result.table_win_turn <= 8),
+        deterministic_table_win_t10=bool(result.table_win_turn and result.table_win_turn <= 10),
+        first_attempt_turn=result.table_win_turn,
+        successful_resolution=result.terminal_status == "won",
+        one_piece_short=result.one_piece_short,
+        protection_delay=result.protection_delay,
+        branches_searched=result.branches_searched,
+        nodes_searched=result.nodes_searched,
+        paired_standard_game_id=paired_standard_game_id,
     )
-    events = [
+    result.events.append(
         {
             "game_id": game_id,
             "seed_id": seed,
             "mode": mode,
-            "event": "library_shuffled",
-            "library_hash": hashlib.sha256(json.dumps(library).encode()).hexdigest(),
-            "opening_cards": opening,
-        },
-        {
-            "game_id": game_id,
-            "seed_id": seed,
-            "mode": mode,
-            "event": "mulligan_keep",
-            "kept_size": kept_size,
-            "visible_before_refill": hand,
-            "refill_cards_hidden_until_after_keep": refills,
-        },
-        {
-            "game_id": game_id,
-            "seed_id": seed,
-            "mode": mode,
-            "event": "shared_validator_action",
-            "detail": legal_event,
-        },
-        {"game_id": game_id, "seed_id": seed, "mode": mode, "event": "terminal", "status": status},
-    ]
-    return record, events
+            "event": "replay_result",
+            "status": replay_status,
+        }
+    )
+    return record, result.events
 
 
 def _seed_subset(config: PilotConfig) -> tuple[list[int], list[int]]:
@@ -425,8 +329,10 @@ def run(config_path: Path, *, smoke: bool = False, worker_count: int = 1) -> Pat
     smoke = smoke or config.smoke
     if smoke != config.smoke:
         raise PilotError("--smoke must be used only with a smoke-marked config")
-    if not smoke and git_output("status", "--porcelain", "--untracked-files=no"):
-        raise PilotError("repository state is dirty; refusing to run production pilot games")
+    if not smoke:
+        raise PilotError(
+            "real_game_executor_validated gate is not satisfied; production pilot is locked"
+        )
     manifest = build_manifest(config_path, dry_run=False, smoke=smoke)
     root = Path(str(manifest["artifact_paths"]["manifest.json"])).parent
     root.mkdir(parents=True, exist_ok=False)
@@ -505,6 +411,7 @@ def run(config_path: Path, *, smoke: bool = False, worker_count: int = 1) -> Pat
     aggregate_seed_records(exploratory_rows, base_seeds[: config.exploratory_games])
     pd.DataFrame(standard_rows).to_parquet(root / "canonical-standard-games.parquet", index=False)
     pd.DataFrame(exploratory_rows).to_parquet(root / "exploratory-games.parquet", index=False)
+    standard_by_id = {r["game_id"]: r for r in standard_rows}
     _write_csv(
         root / "paired-differences.csv",
         [
@@ -512,11 +419,26 @@ def run(config_path: Path, *, smoke: bool = False, worker_count: int = 1) -> Pat
                 "standard_game_id": r["paired_standard_game_id"],
                 "seed_id": r["seed_id"],
                 "exploratory_game_id": r["game_id"],
-                "change_in_win_turn": "",
+                "standard_win_turn": standard_by_id[int(r["paired_standard_game_id"])][
+                    "table_win_turn"
+                ],
+                "exploratory_win_turn": r["table_win_turn"],
+                "change_in_win_turn": "none"
+                if standard_by_id[int(r["paired_standard_game_id"])]["table_win_turn"] is None
+                and r["table_win_turn"] is None
+                else (r["table_win_turn"] or 11)
+                - (standard_by_id[int(r["paired_standard_game_id"])]["table_win_turn"] or 11),
+                "branch_count": r["branches_searched"],
+                "node_count": r["nodes_searched"],
+                "protection_status": r["protection_delay"],
             }
             for r in exploratory_rows
         ],
     )
+    import random
+
+    audit_rng = random.Random(sha256_json({"audit": manifest["seed_list_hash"], "run": "phase9c"}))
+    standard_sample = audit_rng.sample(standard_rows, min(50, len(standard_rows)))
     audit = [
         {
             "game_id": r["game_id"],
@@ -524,7 +446,7 @@ def run(config_path: Path, *, smoke: bool = False, worker_count: int = 1) -> Pat
             "reason": "random_canonical_standard",
             "supplemental_audit_only": False,
         }
-        for r in standard_rows[: min(50, len(standard_rows))]
+        for r in standard_sample
     ]
     supplemental = max(
         0, min(10, config.standard_games) - sum(1 for r in standard_rows if r["one_piece_short"])
@@ -543,10 +465,36 @@ def run(config_path: Path, *, smoke: bool = False, worker_count: int = 1) -> Pat
     with (root / "events.jsonl.zst").open("wb") as fh, cctx.stream_writer(fh) as zw:
         for event in events:
             zw.write((json.dumps(event, sort_keys=True, default=str) + "\n").encode())
-    (root / "decoded-games" / "README.txt").write_text(
-        "Smoke decoded game placeholders reference compressed event logs; production decoding uses events.jsonl.zst.\n",
+    grouped: dict[tuple[str, int], list[dict[str, Any]]] = {}
+    for event in events:
+        grouped.setdefault((str(event["mode"]), int(event["game_id"])), []).append(event)
+    decoded_paths = []
+    for (mode_name, gid), game_events in sorted(grouped.items()):
+        if mode_name not in {"standard", "exploratory"}:
+            continue
+        decoded = root / "decoded-games" / f"{mode_name}-{gid:04d}.txt"
+        decoded.write_text(
+            "\n".join(
+                f"{idx:04d} {row['event']} {json.dumps({k: v for k, v in row.items() if k != 'event'}, sort_keys=True, default=str)}"
+                for idx, row in enumerate(game_events)
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        decoded_paths.append(str(decoded))
+    from mtg_sim.game_executor import dualcaster_twinflame_fixture
+
+    fixture = dualcaster_twinflame_fixture()
+    fixture_path = root / "decoded-games" / "fixture-dualcaster-twinflame.txt"
+    fixture_path.write_text(
+        "\n".join(
+            f"{idx:04d} {row['event']} {json.dumps({k: v for k, v in row.items() if k != 'event'}, sort_keys=True, default=str)}"
+            for idx, row in enumerate(fixture.events)
+        )
+        + "\n",
         encoding="utf-8",
     )
+    decoded_paths.append(str(fixture_path))
     (root / "stdout.log").write_text(
         json.dumps(
             {
@@ -556,6 +504,7 @@ def run(config_path: Path, *, smoke: bool = False, worker_count: int = 1) -> Pat
                 "validation_runs": len(validation_rows),
                 "locked_preliminary_policy": locked,
                 "worker_count": worker_count,
+                "decoded_game_paths": decoded_paths,
             },
             indent=2,
         )
@@ -565,6 +514,8 @@ def run(config_path: Path, *, smoke: bool = False, worker_count: int = 1) -> Pat
     (root / "stderr.log").write_text("", encoding="utf-8")
     manifest["ended_at"] = datetime.now(UTC).isoformat()
     manifest["status"] = "completed"
+    manifest["real_game_executor_validated"] = smoke
+    manifest["decoded_game_paths"] = decoded_paths
     manifest["locked_preliminary_policy"] = locked
     manifest["smoke_counts"] = {
         "standard_games": len(standard_rows),
