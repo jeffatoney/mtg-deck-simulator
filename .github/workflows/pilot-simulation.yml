@@ -66,7 +66,7 @@ jobs:
           sha256sum -c artifacts_expected_hashes.txt
       - name: Pilot dry run manifest
         run: uv run mtg-sim pilot --config configs/pilot.toml --dry-run
-      - name: Pilot games
+      - name: Pilot games (implemented production runner)
         run: uv run mtg-sim pilot --config configs/pilot.toml
       - name: Upload pilot results
         if: always()
@@ -76,3 +76,5 @@ jobs:
           path: |
             artifacts/pilot/**
             artifacts/rules/**
+            artifacts_expected_commit.txt
+            artifacts_expected_hashes.txt

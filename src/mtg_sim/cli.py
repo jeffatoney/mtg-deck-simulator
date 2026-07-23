@@ -11,6 +11,7 @@ from mtg_sim.phase5a_cards import ASSIGNED_CARDS
 from mtg_sim.rules_competency import run_competency
 from mtg_sim.offline_sources import build_simulation_deck
 from mtg_sim.pilot import dry_run as run_pilot_dry_run
+from mtg_sim.pilot import run as run_pilot
 from mtg_sim.source_validation import validate_sources as run_source_validation
 from mtg_sim.source_validation import write_inventory
 
@@ -91,16 +92,20 @@ def verify_rules(output: Path = typer.Option(..., "--output")) -> None:
 
 @app.command("pilot")
 def pilot(
-    config: Path = typer.Option(..., "--config"), dry_run: bool = typer.Option(False, "--dry-run")
+    config: Path = typer.Option(..., "--config"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+    smoke: bool = typer.Option(False, "--smoke"),
 ) -> None:
-    """Plan the Phase 9 pilot run or execute a dry run without games."""
-    if not dry_run:
-        typer.echo(
-            "Randomized pilot execution is not implemented in Phase 9 dry-run harness.", err=True
-        )
-        raise typer.Exit(1)
-    manifest_path = run_pilot_dry_run(config)
-    typer.echo(f"Pilot dry-run manifest written to {manifest_path}")
+    """Plan or execute the Phase 9B pilot pipeline."""
+    if dry_run:
+        if smoke:
+            typer.echo("--dry-run and --smoke are mutually exclusive", err=True)
+            raise typer.Exit(1)
+        manifest_path = run_pilot_dry_run(config)
+        typer.echo(f"Pilot dry-run manifest written to {manifest_path}")
+        return
+    manifest_path = run_pilot(config, smoke=smoke)
+    typer.echo(f"Pilot execution artifacts written under {manifest_path.parent}")
 
 
 @app.command()
