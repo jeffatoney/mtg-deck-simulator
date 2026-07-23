@@ -25,6 +25,8 @@ ManaCost: TypeAlias = dict[str, int]
 class ActionType(str, Enum):
     CAST_SPELL = "cast_spell"
     ACTIVATE_ABILITY = "activate_ability"
+    PLAY_LAND = "play_land"
+    ACTIVATE_MANA_ABILITY = "activate_mana_ability"
     PASS_PRIORITY = "pass_priority"
 
 
@@ -38,6 +40,7 @@ class Action:
     timing: Literal["instant", "sorcery"] = "instant"
     effect: Callable[["GameState"], None] | None = None
     optional_draw_decline: bool = False
+    mana_choice: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -748,6 +751,21 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
                 errors.append("Glint-Horn activation requires a discarded card")
         else:
             errors.append(f"unsupported activated ability: {action.source_name}")
+    elif action.action_type is ActionType.PLAY_LAND:
+        if action.source_name not in state.hand:
+            errors.append(f"{action.source_name} is not in hand")
+        if action.source_name not in LAND_MANA and action.source_name not in TAPPED_LANDS:
+            errors.append(f"unsupported land play: {action.source_name}")
+        if state.land_played:
+            errors.append("only one land play per turn")
+    elif action.action_type is ActionType.ACTIVATE_MANA_ABILITY:
+        source = next((p for p in state.battlefield if p.name == action.source_name), None)
+        if source is None:
+            errors.append(f"{action.source_name} is not on battlefield")
+        elif source.tapped:
+            errors.append("permanent is already tapped")
+        elif source.name not in LAND_MANA and not source.mana_abilities:
+            errors.append(f"no mana behavior for {source.name}")
     elif action.action_type is not ActionType.PASS_PRIORITY:
         errors.append(f"unsupported action type: {action.action_type}")
     return ValidationResult(
@@ -799,6 +817,17 @@ def execute_action(state: GameState, action: Action) -> None:
             )
         )
         state.would_receive_priority()
+        return
+    if action.action_type is ActionType.PLAY_LAND:
+        assert action.source_name is not None
+        state.hand.remove(action.source_name)
+        play_land(state, action.source_name)
+        state.record_event("action", f"play_land:{action.source_name}")
+        return
+    if action.action_type is ActionType.ACTIVATE_MANA_ABILITY:
+        source = next(p for p in state.battlefield if p.name == action.source_name)
+        tap_for_mana(state, source, action.mana_choice)
+        state.record_event("action", f"activate_mana:{action.source_name}")
         return
     if action.action_type is ActionType.ACTIVATE_ABILITY:
         source = next(p for p in state.battlefield if p.name == action.source_name)

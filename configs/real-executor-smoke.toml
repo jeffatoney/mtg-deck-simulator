@@ -1,0 +1,40 @@
+[pilot]
+smoke = true
+smoke_seed_count = 6
+standard_games = 4
+exploratory_games = 2
+output_root = "artifacts/real-executor-smoke"
+canonical_standard_description = "Phase 9C real-executor smoke games; not production pilot data"
+exploratory_description = "Phase 9C paired exploratory smoke games"
+
+[split]
+base_seed_count = 6
+discovery_count = 2
+validation_count = 2
+seed_source = "first frozen seeds from configs/policy_seeds.json for Phase 9C smoke only"
+
+[policy]
+matrix_path = "configs/policies.json"
+finalist_count = 2
+finalist_advancement_rule = "Smoke-only advancement by executed-game results; not pilot data."
+
+[audit]
+random_standard_games = 2
+random_exploratory_games = 2
+all_turn_3_or_4_wins = true
+all_unfamiliar_or_nonstandard_lines = true
+minimum_mulligans_to_four = 1
+minimum_one_piece_short_games = 0
+minimum_protection_delay_games = 0
+supplemental_audit_only_excluded_from_percentages = true
+
+[shards]
+standard_shards = 1
+standard_games_per_shard = 4
+exploratory_shards = 1
+exploratory_games_per_shard = 2
+assignment = "contiguous smoke indexes"
+
+[exploratory]
+maximum_nodes_per_game = 5000
+expected_maximum_total_nodes = 10000

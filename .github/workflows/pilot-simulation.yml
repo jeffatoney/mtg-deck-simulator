@@ -64,6 +64,9 @@ jobs:
           git status --porcelain --untracked-files=no > artifacts_current_status.txt
           test ! -s artifacts_current_status.txt
           sha256sum -c artifacts_expected_hashes.txt
+      - name: real_game_executor_validated
+        run: |
+          test -f artifacts/rules/phase9c/real_game_executor_validated
       - name: Pilot dry run manifest
         run: uv run mtg-sim pilot --config configs/pilot.toml --dry-run
       - name: Pilot games (implemented production runner)
