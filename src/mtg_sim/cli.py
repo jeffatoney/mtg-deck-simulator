@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import csv
+import subprocess
+import sys
 from pathlib import Path
 
 import typer
@@ -106,6 +108,50 @@ def validate_executable_coverage(
         f"{report['blocked_adapter_count']} blocked. "
         f"Report written to {output}"
     )
+
+
+@app.command("validate-prepolicy-readiness")
+def validate_prepolicy_readiness() -> None:
+    """Run the Phase 9F-5 pre-policy correctness readiness gate."""
+    commands = [
+        [sys.executable, "-m", "mtg_sim.cli", "validate-sources"],
+        [sys.executable, "-m", "mtg_sim.cli", "validate-coverage"],
+        [sys.executable, "-m", "mtg_sim.cli", "validate-executable-coverage"],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_phase9e_pr22_remediation.py",
+            "tests/test_phase9f1_executable_adapters.py",
+            "tests/test_phase9f2_draw_tutor_split_adapters.py",
+            "tests/test_phase9f3_interaction_adapters.py",
+            "tests/test_phase9f4_creatures_combos_coverage.py",
+        ],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_engine_competency.py",
+            "tests/test_phase4a_stack_sba.py",
+            "tests/test_phase5a_cards.py",
+            "tests/test_phase5c_interaction.py",
+            "tests/test_phase5d_commanders_combos.py",
+        ],
+    ]
+    failures: list[str] = []
+    for command in commands:
+        typer.echo("running: " + " ".join(command))
+        completed = subprocess.run(command, check=False)
+        if completed.returncode != 0:
+            failures.append(" ".join(command))
+    if failures:
+        typer.echo("Pre-policy readiness validation failed:", err=True)
+        for failure in failures:
+            typer.echo(f"- {failure}", err=True)
+        raise typer.Exit(1)
+    typer.echo("Pre-policy readiness validation passed.")
 
 
 @app.command("verify-rules")

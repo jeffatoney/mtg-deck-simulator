@@ -92,6 +92,7 @@ class Permanent:
     manifested_card: str | None = None
     chosen_color: str | None = None
     entered_turn: int = 0
+    defending_opponent: int = 0
 
 
 @dataclass(slots=True)
@@ -158,6 +159,22 @@ class GameState:
         if self.attempted_empty_draw:
             self.lost = True
             self.record_event("state_based_action", "empty_library_loss")
+        for permanent in list(self.battlefield):
+            if "Creature" in permanent.types:
+                toughness = permanent.toughness
+                if toughness is None and permanent.name in CREATURE_STATS:
+                    toughness = CREATURE_STATS[permanent.name][1]
+                if toughness is not None and (toughness <= 0 or permanent.damage >= toughness):
+                    self.battlefield.remove(permanent)
+                    if permanent.is_token:
+                        self.record_event(
+                            "state_based_action", f"token_creature_removed:{permanent.name}"
+                        )
+                    else:
+                        self.graveyard.append(permanent.name)
+                        self.record_event(
+                            "state_based_action", f"creature_destroyed:{permanent.name}"
+                        )
         for idx, life in enumerate(self.opponent_life):
             if life <= 0:
                 self.record_event("state_based_action", f"opponent_{idx}_lost")
@@ -219,7 +236,25 @@ class GameState:
             obj.effect(self)
         finally:
             self.resolving = False
-        if obj.kind == "spell" and obj.name not in self.graveyard and obj.name not in self.exile:
+        if (
+            obj.kind == "spell"
+            and ("Creature" in obj.types or "Artifact" in obj.types)
+            and obj.name not in self.graveyard
+            and obj.name not in self.exile
+        ):
+            self.battlefield.append(_permanent_for_card(obj.name))
+            if obj.name == "Wily Goblin":
+                create_treasure(self, 1)
+            if obj.name == "Dualcaster Mage":
+                self.pending_triggers.append(
+                    StackObject(
+                        "Dualcaster Mage copy trigger",
+                        "trigger",
+                        lambda ss: ss.record_event("dualcaster_trigger_resolved"),
+                        cast=False,
+                    )
+                )
+        elif obj.kind == "spell" and obj.name not in self.graveyard and obj.name not in self.exile:
             self.graveyard.append(obj.name)
         self.would_receive_priority()
 
@@ -307,20 +342,28 @@ def create_malcolm_treasures_for_pirate_damage(
 
 
 def deal_pirate_combat_damage(
-    state: GameState, sources: list[Permanent], opponents: list[int], amount: int = 1
+    state: GameState, sources: list[Permanent], opponents: list[int], amount: int | None = None
 ) -> int:
+    ensure_not_terminal(state)
     damaged: dict[int, int] = {}
     prevented: set[int] = set()
     for source, opponent in zip(sources, opponents, strict=True):
+        if state.terminal:
+            break
         if opponent not in state.active_opponents():
             continue
         if source.damage_prevented:
             prevented.add(opponent)
             continue
-        state.opponent_life[opponent] -= amount
-        damaged[opponent] = damaged.get(opponent, 0) + 1
+        damage = source.power if amount is None else amount
+        if damage is None and source.name in CREATURE_STATS:
+            damage = CREATURE_STATS[source.name][0]
+        if damage is None:
+            damage = 1
+        state.opponent_life[opponent] -= damage
+        damaged[opponent] = damaged.get(opponent, 0) + damage
     treasures = create_malcolm_treasures_for_pirate_damage(state, damaged, prevented)
-    if not state.resolving:
+    if not state.resolving and not state.terminal:
         state.would_receive_priority()
     return treasures
 
@@ -475,6 +518,54 @@ CARD_TYPES = {
     "Syncopate": {"Instant"},
     "Vandalblast": {"Sorcery"},
     "Wash Away": {"Instant"},
+}
+
+CARD_COLORS = {
+    "Malcolm, Keen-Eyed Navigator": {"U"},
+    "Breeches, Brazen Plunderer": {"R"},
+    "Dualcaster Mage": {"R"},
+    "Niv-Mizzet, the Firemind": {"U", "R"},
+    "Glint-Horn Buccaneer": {"R"},
+    "Lightning-Rig Crew": {"R"},
+    "Storm Fleet Sprinter": {"U", "R"},
+    "Wily Goblin": {"R"},
+    "Crab Umbra": {"U"},
+    "Curiosity": {"U"},
+    "Twinflame": {"R"},
+    "Electroduplicate": {"R"},
+    "Abrade": {"R"},
+    "Aetherize": {"U"},
+    "Arcane Denial": {"U"},
+    "Brotherhood's End": {"R"},
+    "By Force": {"R"},
+    "Change the Equation": {"U"},
+    "Curse of the Swine": {"U"},
+    "Dispel": {"U"},
+    "Echoing Truth": {"U"},
+    "Expedite": {"R"},
+    "Fading Hope": {"U"},
+    "Fact or Fiction": {"U"},
+    "Faithless Looting": {"R"},
+    "Fiery Cannonade": {"R"},
+    "Frantic Search": {"U"},
+    "Into the Roil": {"U"},
+    "Lazotep Plating": {"U"},
+    "Long-Term Plans": {"U"},
+    "Muddle the Mixture": {"U"},
+    "Negate": {"U"},
+    "Opt": {"U"},
+    "Prismari Command": {"U", "R"},
+    "Ravenform": {"U"},
+    "Reality Ripple": {"U"},
+    "Reality Shift": {"U"},
+    "Rebuild": {"U"},
+    "Resculpt": {"U"},
+    "Sleight of Hand": {"U"},
+    "Spell Pierce": {"U"},
+    "Step Through": {"U"},
+    "Syncopate": {"U"},
+    "Vedalken Aethermage": {"U"},
+    "Wash Away": {"U"},
 }
 CARD_SUBTYPES = {
     "Dualcaster Mage": {"Human", "Wizard"},
@@ -1151,18 +1242,21 @@ def _legal_mana_outputs(permanent: Permanent) -> tuple[str, ...]:
         return ("R",)
     if permanent.name == "Shivan Reef":
         return ("C", "U", "R")
-    if permanent.name in {"Cascade Bluffs", "Izzet Boilerworks"}:
+    if permanent.name == "Cascade Bluffs":
+        return ("C", "U", "R", "UU", "UR", "RR")
+    if permanent.name == "Izzet Boilerworks":
         return ("U", "R")
     if permanent.name in {"Temple of Epiphany", "Frostboil Snarl", "Path of Ancestry"}:
         return ("U", "R")
     if permanent.name == "Thriving Isle":
         return tuple(dict.fromkeys(("U", permanent.chosen_color or "R")))
+    if permanent.name == "Prismatic Lens":
+        return ("C", "U", "R", "W", "B", "G")
     if permanent.name in {
         "Scavenger Grounds",
         "Demolition Field",
         "Ash Barrens",
         "Mind Stone",
-        "Prismatic Lens",
     }:
         return ("C",)
     if permanent.name == "Sol Ring":
@@ -1178,7 +1272,7 @@ def tap_for_mana(state: GameState, permanent: Permanent, color: str | None = Non
     produced = color or (outputs[0] if outputs else None)
     if produced not in outputs:
         raise RulesError(f"illegal mana choice for {permanent.name}")
-    if permanent.name == "Cascade Bluffs":
+    if permanent.name == "Cascade Bluffs" and produced in {"UU", "UR", "RR"}:
         if state.mana_pool.get("U", 0) + state.mana_pool.get("R", 0) < 1:
             raise RulesError("Cascade Bluffs requires blue or red input mana")
         state.pay_mana({"U": 1} if state.mana_pool.get("U", 0) else {"R": 1})
@@ -1193,7 +1287,11 @@ def tap_for_mana(state: GameState, permanent: Permanent, color: str | None = Non
         state.pay_mana({"generic": 1})
     permanent.tapped = True
     amount = 2 if permanent.name == "Sol Ring" and produced == "C" else 1
-    state.mana_pool[produced] += amount
+    if permanent.name == "Cascade Bluffs" and produced in {"UU", "UR", "RR"}:
+        for symbol in produced:
+            state.mana_pool[symbol] += 1
+    else:
+        state.mana_pool[produced] += amount
     if permanent.name == "Shivan Reef" and produced in {"U", "R"}:
         state.record_event("life_lost", "Shivan Reef:1")
     state.record_event("mana_produced", f"{permanent.name}:{produced}:{amount}")
@@ -1221,10 +1319,14 @@ def sacrifice_treasure_for_mana(state: GameState, color: str) -> None:
     state.record_event("treasure_sacrificed", color)
 
 
-def declare_attackers(state: GameState, attackers: list[Permanent]) -> None:
+def declare_attackers(
+    state: GameState, attackers: list[Permanent], defending_opponent: int | None = None
+) -> None:
     ensure_not_terminal(state)
     if state.phase is not Phase.COMBAT:
         raise RulesError("attackers are declared only during combat")
+    if defending_opponent is not None and defending_opponent not in state.active_opponents():
+        raise RulesError("attackers require a legal defending opponent")
     for attacker in attackers:
         if attacker not in state.battlefield or "Creature" not in attacker.types:
             raise RulesError("only battlefield creatures can attack")
@@ -1232,10 +1334,18 @@ def declare_attackers(state: GameState, attackers: list[Permanent]) -> None:
             raise RulesError("tapped creatures cannot attack")
         if attacker.summoning_sick and not attacker.haste:
             raise RulesError("creature cannot attack due to summoning sickness")
-    for attacker in attackers:
+    for idx, attacker in enumerate(attackers):
         attacker.attacking = True
+        assigned_defender = (
+            int(defending_opponent)
+            if defending_opponent is not None
+            else idx % len(state.active_opponents())
+        )
+        attacker.defending_opponent = assigned_defender
         attacker.tapped = True
-    state.record_event("declare_attackers", ",".join(p.name for p in attackers))
+    state.record_event(
+        "declare_attackers", f"opponent_{defending_opponent}:" + ",".join(p.name for p in attackers)
+    )
     state.would_receive_priority()
 
 
@@ -1567,6 +1677,7 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
             "Electroduplicate",
             "Curiosity",
             "Crab Umbra",
+            "Expedite",
         } and not _is_creature_target(state, list(action.targets)):
             errors.append(f"{action.source_name} requires one legal creature target")
             refs.extend(TARGET_RULES_REFS)
@@ -1602,6 +1713,16 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
         ):
             errors.append(f"{action.source_name} has no legal mode or target")
             refs.extend(TARGET_RULES_REFS)
+        if action.source_name == "Commit // Memory" and action.choice != "Memory":
+            if action.choice != "Commit" or (action.stack_target is None and not action.targets):
+                errors.append("Commit requires choosing Commit and a legal target")
+        if (
+            action.source_name == "Commit // Memory"
+            and action.choice == "Commit"
+            and action.stack_target is not None
+            and action.stack_target not in state.stack
+        ):
+            errors.append("Commit stack target must be on the stack")
         if solve_mana_payment(state.mana_pool, action.mana_cost or {}) is None:
             errors.append("insufficient mana")
     elif action.action_type is ActionType.ACTIVATE_ABILITY:
@@ -1678,6 +1799,20 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
                 "Ash Barrens",
             } and not any(c in {"Island", "Mountain"} for c in state.library):
                 errors.append("fetch ability requires an Island or Mountain in library")
+            if action.source_name == "Scavenger Grounds" and not any(
+                "Desert" in p.subtypes or p.name == "Scavenger Grounds" for p in state.battlefield
+            ):
+                errors.append("Scavenger Grounds requires sacrificing a Desert")
+            if action.source_name == "Demolition Field":
+                if not action.targets or not any(
+                    t in state.battlefield
+                    and "Land" in t.types
+                    and t.name not in {"Island", "Mountain"}
+                    for t in action.targets
+                ):
+                    errors.append("Demolition Field requires a legal nonbasic land target")
+                if action.choice not in {"Island", "Mountain", None}:
+                    errors.append("Demolition Field can search only a legal basic land")
     elif action.action_type is ActionType.PLAY_LAND:
         if action.source_name not in state.hand:
             errors.append(f"{action.source_name} is not in hand")
@@ -1864,6 +1999,10 @@ def generate_legal_actions(state: GameState) -> list[Action]:
                     }
                     else "instant",
                     origin_zone="hand",
+                    choice="Commit" if card == "Commit // Memory" else None,
+                    stack_target=state.stack[-1]
+                    if card == "Commit // Memory" and state.stack
+                    else None,
                 )
                 if card in {
                     "Chart a Course",
@@ -2228,13 +2367,6 @@ def execute_action(state: GameState, action: Action) -> None:
             )
         state.record_event("action", f"cast:{action.source_name}:from:{origin_zone}")
         effect = action.effect or _spell_effect_for_action(normalized)
-        if action.source_name in CREATURES or action.source_name in MANA_ROCK_MANA:
-            state.battlefield.append(_permanent_for_card(action.source_name))
-            state.record_event("resolve", action.source_name)
-            if action.source_name == "Wily Goblin":
-                create_treasure(state, 1)
-            state.would_receive_priority()
-            return
         state.stack.append(
             StackObject(
                 action.source_name,
@@ -2270,6 +2402,14 @@ def execute_action(state: GameState, action: Action) -> None:
                 else mana_value(action.source_name)
                 if action.source_name in MANA_VALUES or action.source_name in TRANSMUTE_VALUES
                 else None,
+                types=set(
+                    CARD_TYPES.get(
+                        action.source_name,
+                        {"Artifact"} if action.source_name in MANA_ROCK_MANA else set(),
+                    )
+                ),
+                colors=set(CARD_COLORS.get(action.source_name, set())),
+                cast_from_hand=origin_zone == "hand",
                 chosen_face=action.choice,
             )
         )
@@ -2295,22 +2435,56 @@ def execute_action(state: GameState, action: Action) -> None:
         state.record_event("action", f"activate_mana:{action.source_name}")
         return
     if action.action_type is ActionType.DECLARE_ATTACKERS:
-        declare_attackers(state, list(action.targets))
+        declare_attackers(
+            state, list(action.targets), None if action.choice is None else int(action.choice)
+        )
         return
     if action.action_type is ActionType.COMBAT_DAMAGE:
+        ensure_not_terminal(state)
         attackers = [p for p in state.battlefield if p.attacking]
-        pirates = [p for p in attackers if "Pirate" in p.subtypes]
-        if pirates:
-            opponents = list(range(min(len(pirates), len(state.opponent_life))))
-            deal_pirate_combat_damage(state, list(pirates)[: len(opponents)], opponents)
-            if any(p.name == "Breeches, Brazen Plunderer" for p in state.battlefield):
-                for opponent in opponents:
-                    unknown = f"unknown_opponent_{opponent}_top_card"
-                    state.breeches_unknown_exiled.append(unknown)
-                    state.record_event("breeches_unknown_exiled", unknown)
+        damaged_by_pirate: dict[int, int] = {}
+        prevented: set[int] = set()
+        for attacker in attackers:
+            if state.terminal:
+                break
+            opponent = int(getattr(attacker, "defending_opponent", 0))
+            if opponent not in state.active_opponents():
+                continue
+            damage = attacker.power
+            if damage is None and attacker.name in CREATURE_STATS:
+                damage = CREATURE_STATS[attacker.name][0]
+            if damage is None:
+                raise RulesError(f"combat damage source has no modeled power: {attacker.name}")
+            if attacker.damage_prevented:
+                if "Pirate" in attacker.subtypes:
+                    prevented.add(opponent)
+                continue
+            state.opponent_life[opponent] -= damage
+            state.record_event(
+                "combat_damage_dealt", f"{attacker.name}:opponent_{opponent}:{damage}"
+            )
+            if "Pirate" in attacker.subtypes:
+                damaged_by_pirate[opponent] = damaged_by_pirate.get(opponent, 0) + damage
+        if (
+            damaged_by_pirate
+            and not state.terminal
+            and any(p.name == "Malcolm, Keen-Eyed Navigator" for p in state.battlefield)
+        ):
+            create_malcolm_treasures_for_pirate_damage(state, damaged_by_pirate, prevented)
+        if (
+            damaged_by_pirate
+            and not state.terminal
+            and any(p.name == "Breeches, Brazen Plunderer" for p in state.battlefield)
+        ):
+            for opponent in damaged_by_pirate:
+                unknown = f"unknown_opponent_{opponent}_top_card"
+                state.breeches_unknown_exiled.append(unknown)
+                state.record_event("breeches_unknown_exiled", unknown)
         for attacker in attackers:
             attacker.attacking = False
-        state.record_event("combat_damage", "unblocked")
+        if not state.terminal:
+            state.record_event("combat_damage", "unblocked")
+            state.would_receive_priority()
         return
     if action.action_type is ActionType.ACTIVATE_ABILITY:
         normalized = result.normalized_action or action
@@ -2412,13 +2586,37 @@ def execute_activated_ability(state: GameState, source: Permanent, action: Actio
         _search_one(state, "Island" if "Island" in state.library else "Mountain")
     elif source.name == "Scavenger Grounds" and ability_id == "exile_graveyards":
         state.pay_mana({"generic": 2})
+        desert = next(
+            (
+                p
+                for p in state.battlefield
+                if "Desert" in p.subtypes or p.name == "Scavenger Grounds"
+            ),
+            None,
+        )
+        if desert is None:
+            raise RulesError("Scavenger Grounds requires sacrificing a Desert")
         source.tapped = True
+        state.battlefield.remove(desert)
+        state.graveyard.append(desert.name)
         state.graveyard.clear()
         state.record_event("graveyards_exiled", "Scavenger Grounds")
     elif source.name == "Demolition Field" and ability_id == "destroy_nonbasic":
         state.pay_mana({"generic": 2})
+        target = action.targets[0] if action.targets else None
+        if (
+            target is None
+            or target not in state.battlefield
+            or "Land" not in target.types
+            or target.name in {"Island", "Mountain"}
+        ):
+            raise RulesError("Demolition Field requires a legal nonbasic land target")
         source.tapped = True
-        state.record_event("nonbasic_destroyed", "Demolition Field")
+        state.battlefield.remove(source)
+        state.graveyard.append(source.name)
+        state.battlefield.remove(target)
+        state.graveyard.append(target.name)
+        state.record_event("nonbasic_destroyed", target.name)
         if action.choice in state.library and action.choice in {"Island", "Mountain"}:
             state.library.remove(action.choice)
             state.battlefield.append(Permanent(action.choice, {"Land"}, {action.choice}))
@@ -2861,8 +3059,10 @@ def soul_guide_lantern_exile_opponents(state: GameState, source: Permanent) -> N
 
 
 def soul_guide_lantern_draw(state: GameState, source: Permanent) -> None:
+    state.pay_mana({"generic": 1})
     if source not in state.battlefield or source.tapped or source.name != "Soul-Guide Lantern":
         raise RulesError("Soul-Guide Lantern draw ability requires untapped source on battlefield")
+    source.tapped = True
     state.battlefield.remove(source)
     state.graveyard.append(source.name)
     state.draw(1)

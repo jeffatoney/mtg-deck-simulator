@@ -3,22 +3,26 @@
   "errors": [],
   "executable_adapter_count": 80,
   "expected_unique_card_count": 80,
+  "missing_adapter_count": 0,
   "records": [
     {
       "adapter_id": "adapter.abrade",
       "card_name": "Abrade",
-      "cost_builder": "cost.abrade",
-      "execution_handler": "execute.abrade",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-ABRADE"
       ],
-      "legal_action_generator": "generate.abrade",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.abrade",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -26,18 +30,21 @@
     {
       "adapter_id": "adapter.aetherize",
       "card_name": "Aetherize",
-      "cost_builder": "cost.aetherize",
-      "execution_handler": "execute.aetherize",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-AETHERIZE"
       ],
-      "legal_action_generator": "generate.aetherize",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.aetherize",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -45,18 +52,21 @@
     {
       "adapter_id": "adapter.arcane_denial",
       "card_name": "Arcane Denial",
-      "cost_builder": "cost.arcane_denial",
-      "execution_handler": "execute.arcane_denial",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-ARCANE_DENIAL"
       ],
-      "legal_action_generator": "generate.arcane_denial",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.arcane_denial",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -64,18 +74,21 @@
     {
       "adapter_id": "adapter.arcane_signet",
       "card_name": "Arcane Signet",
-      "cost_builder": "cost.arcane_signet",
-      "execution_handler": "execute.arcane_signet",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-ARCANE_SIGNET"
       ],
-      "legal_action_generator": "generate.arcane_signet",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.arcane_signet",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -83,18 +96,21 @@
     {
       "adapter_id": "adapter.ash_barrens",
       "card_name": "Ash Barrens",
-      "cost_builder": "cost.ash_barrens",
-      "execution_handler": "execute.ash_barrens",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-ASH_BARRENS"
       ],
-      "legal_action_generator": "generate.ash_barrens",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.ash_barrens",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -102,18 +118,21 @@
     {
       "adapter_id": "adapter.breeches_brazen_plunderer",
       "card_name": "Breeches, Brazen Plunderer",
-      "cost_builder": "cost.breeches_brazen_plunderer",
-      "execution_handler": "execute.breeches_brazen_plunderer",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-BREECHES_BRAZEN_PLUNDERER"
       ],
-      "legal_action_generator": "generate.breeches_brazen_plunderer",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.breeches_brazen_plunderer",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -121,18 +140,21 @@
     {
       "adapter_id": "adapter.brotherhood's_end",
       "card_name": "Brotherhood's End",
-      "cost_builder": "cost.brotherhood's_end",
-      "execution_handler": "execute.brotherhood's_end",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-BROTHERHOOD'S_END"
       ],
-      "legal_action_generator": "generate.brotherhood's_end",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.brotherhood's_end",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -140,18 +162,21 @@
     {
       "adapter_id": "adapter.by_force",
       "card_name": "By Force",
-      "cost_builder": "cost.by_force",
-      "execution_handler": "execute.by_force",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-BY_FORCE"
       ],
-      "legal_action_generator": "generate.by_force",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.by_force",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -159,18 +184,21 @@
     {
       "adapter_id": "adapter.cascade_bluffs",
       "card_name": "Cascade Bluffs",
-      "cost_builder": "cost.cascade_bluffs",
-      "execution_handler": "execute.cascade_bluffs",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-CASCADE_BLUFFS"
       ],
-      "legal_action_generator": "generate.cascade_bluffs",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.cascade_bluffs",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -178,18 +206,21 @@
     {
       "adapter_id": "adapter.change_the_equation",
       "card_name": "Change the Equation",
-      "cost_builder": "cost.change_the_equation",
-      "execution_handler": "execute.change_the_equation",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-CHANGE_THE_EQUATION"
       ],
-      "legal_action_generator": "generate.change_the_equation",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.change_the_equation",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -197,18 +228,21 @@
     {
       "adapter_id": "adapter.chart_a_course",
       "card_name": "Chart a Course",
-      "cost_builder": "cost.chart_a_course",
-      "execution_handler": "execute.chart_a_course",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-CHART_A_COURSE"
       ],
-      "legal_action_generator": "generate.chart_a_course",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.chart_a_course",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -216,18 +250,21 @@
     {
       "adapter_id": "adapter.command_tower",
       "card_name": "Command Tower",
-      "cost_builder": "cost.command_tower",
-      "execution_handler": "execute.command_tower",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-COMMAND_TOWER"
       ],
-      "legal_action_generator": "generate.command_tower",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.command_tower",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -235,18 +272,21 @@
     {
       "adapter_id": "adapter.commit_memory",
       "card_name": "Commit // Memory",
-      "cost_builder": "cost.commit_memory",
-      "execution_handler": "execute.commit_memory",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-COMMIT_MEMORY"
       ],
-      "legal_action_generator": "generate.commit_memory",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.commit_memory",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -254,18 +294,21 @@
     {
       "adapter_id": "adapter.crab_umbra",
       "card_name": "Crab Umbra",
-      "cost_builder": "cost.crab_umbra",
-      "execution_handler": "execute.crab_umbra",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-CRAB_UMBRA"
       ],
-      "legal_action_generator": "generate.crab_umbra",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.crab_umbra",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -273,18 +316,21 @@
     {
       "adapter_id": "adapter.curiosity",
       "card_name": "Curiosity",
-      "cost_builder": "cost.curiosity",
-      "execution_handler": "execute.curiosity",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-CURIOSITY"
       ],
-      "legal_action_generator": "generate.curiosity",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.curiosity",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -292,18 +338,21 @@
     {
       "adapter_id": "adapter.curse_of_the_swine",
       "card_name": "Curse of the Swine",
-      "cost_builder": "cost.curse_of_the_swine",
-      "execution_handler": "execute.curse_of_the_swine",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-CURSE_OF_THE_SWINE"
       ],
-      "legal_action_generator": "generate.curse_of_the_swine",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.curse_of_the_swine",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -311,18 +360,21 @@
     {
       "adapter_id": "adapter.demolition_field",
       "card_name": "Demolition Field",
-      "cost_builder": "cost.demolition_field",
-      "execution_handler": "execute.demolition_field",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-DEMOLITION_FIELD"
       ],
-      "legal_action_generator": "generate.demolition_field",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.demolition_field",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -330,18 +382,21 @@
     {
       "adapter_id": "adapter.dispel",
       "card_name": "Dispel",
-      "cost_builder": "cost.dispel",
-      "execution_handler": "execute.dispel",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-DISPEL"
       ],
-      "legal_action_generator": "generate.dispel",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.dispel",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -349,18 +404,21 @@
     {
       "adapter_id": "adapter.dizzy_spell",
       "card_name": "Dizzy Spell",
-      "cost_builder": "cost.dizzy_spell",
-      "execution_handler": "execute.dizzy_spell",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-DIZZY_SPELL"
       ],
-      "legal_action_generator": "generate.dizzy_spell",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.dizzy_spell",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -368,18 +426,21 @@
     {
       "adapter_id": "adapter.drift_of_phantasms",
       "card_name": "Drift of Phantasms",
-      "cost_builder": "cost.drift_of_phantasms",
-      "execution_handler": "execute.drift_of_phantasms",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-DRIFT_OF_PHANTASMS"
       ],
-      "legal_action_generator": "generate.drift_of_phantasms",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.drift_of_phantasms",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -387,18 +448,21 @@
     {
       "adapter_id": "adapter.dualcaster_mage",
       "card_name": "Dualcaster Mage",
-      "cost_builder": "cost.dualcaster_mage",
-      "execution_handler": "execute.dualcaster_mage",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-DUALCASTER_MAGE"
       ],
-      "legal_action_generator": "generate.dualcaster_mage",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.dualcaster_mage",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -406,18 +470,21 @@
     {
       "adapter_id": "adapter.echoing_truth",
       "card_name": "Echoing Truth",
-      "cost_builder": "cost.echoing_truth",
-      "execution_handler": "execute.echoing_truth",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-ECHOING_TRUTH"
       ],
-      "legal_action_generator": "generate.echoing_truth",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.echoing_truth",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -425,18 +492,21 @@
     {
       "adapter_id": "adapter.electroduplicate",
       "card_name": "Electroduplicate",
-      "cost_builder": "cost.electroduplicate",
-      "execution_handler": "execute.electroduplicate",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-ELECTRODUPLICATE"
       ],
-      "legal_action_generator": "generate.electroduplicate",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.electroduplicate",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -444,18 +514,21 @@
     {
       "adapter_id": "adapter.evolving_wilds",
       "card_name": "Evolving Wilds",
-      "cost_builder": "cost.evolving_wilds",
-      "execution_handler": "execute.evolving_wilds",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-EVOLVING_WILDS"
       ],
-      "legal_action_generator": "generate.evolving_wilds",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.evolving_wilds",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -463,18 +536,21 @@
     {
       "adapter_id": "adapter.exotic_orchard",
       "card_name": "Exotic Orchard",
-      "cost_builder": "cost.exotic_orchard",
-      "execution_handler": "execute.exotic_orchard",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-EXOTIC_ORCHARD"
       ],
-      "legal_action_generator": "generate.exotic_orchard",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.exotic_orchard",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -482,18 +558,21 @@
     {
       "adapter_id": "adapter.expedite",
       "card_name": "Expedite",
-      "cost_builder": "cost.expedite",
-      "execution_handler": "execute.expedite",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-EXPEDITE"
       ],
-      "legal_action_generator": "generate.expedite",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.expedite",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -501,18 +580,21 @@
     {
       "adapter_id": "adapter.fact_or_fiction",
       "card_name": "Fact or Fiction",
-      "cost_builder": "cost.fact_or_fiction",
-      "execution_handler": "execute.fact_or_fiction",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-FACT_OR_FICTION"
       ],
-      "legal_action_generator": "generate.fact_or_fiction",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.fact_or_fiction",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -520,18 +602,21 @@
     {
       "adapter_id": "adapter.fading_hope",
       "card_name": "Fading Hope",
-      "cost_builder": "cost.fading_hope",
-      "execution_handler": "execute.fading_hope",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-FADING_HOPE"
       ],
-      "legal_action_generator": "generate.fading_hope",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.fading_hope",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -539,18 +624,21 @@
     {
       "adapter_id": "adapter.faithless_looting",
       "card_name": "Faithless Looting",
-      "cost_builder": "cost.faithless_looting",
-      "execution_handler": "execute.faithless_looting",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-FAITHLESS_LOOTING"
       ],
-      "legal_action_generator": "generate.faithless_looting",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.faithless_looting",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -558,18 +646,21 @@
     {
       "adapter_id": "adapter.fellwar_stone",
       "card_name": "Fellwar Stone",
-      "cost_builder": "cost.fellwar_stone",
-      "execution_handler": "execute.fellwar_stone",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-FELLWAR_STONE"
       ],
-      "legal_action_generator": "generate.fellwar_stone",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.fellwar_stone",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -577,18 +668,21 @@
     {
       "adapter_id": "adapter.fiery_cannonade",
       "card_name": "Fiery Cannonade",
-      "cost_builder": "cost.fiery_cannonade",
-      "execution_handler": "execute.fiery_cannonade",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-FIERY_CANNONADE"
       ],
-      "legal_action_generator": "generate.fiery_cannonade",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.fiery_cannonade",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -596,18 +690,21 @@
     {
       "adapter_id": "adapter.frantic_search",
       "card_name": "Frantic Search",
-      "cost_builder": "cost.frantic_search",
-      "execution_handler": "execute.frantic_search",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-FRANTIC_SEARCH"
       ],
-      "legal_action_generator": "generate.frantic_search",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.frantic_search",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -615,18 +712,21 @@
     {
       "adapter_id": "adapter.frostboil_snarl",
       "card_name": "Frostboil Snarl",
-      "cost_builder": "cost.frostboil_snarl",
-      "execution_handler": "execute.frostboil_snarl",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-FROSTBOIL_SNARL"
       ],
-      "legal_action_generator": "generate.frostboil_snarl",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.frostboil_snarl",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -634,18 +734,21 @@
     {
       "adapter_id": "adapter.glint_horn_buccaneer",
       "card_name": "Glint-Horn Buccaneer",
-      "cost_builder": "cost.glint_horn_buccaneer",
-      "execution_handler": "execute.glint_horn_buccaneer",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-GLINT_HORN_BUCCANEER"
       ],
-      "legal_action_generator": "generate.glint_horn_buccaneer",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.glint_horn_buccaneer",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -653,18 +756,21 @@
     {
       "adapter_id": "adapter.impulse",
       "card_name": "Impulse",
-      "cost_builder": "cost.impulse",
-      "execution_handler": "execute.impulse",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-IMPULSE"
       ],
-      "legal_action_generator": "generate.impulse",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.impulse",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -672,18 +778,21 @@
     {
       "adapter_id": "adapter.into_the_roil",
       "card_name": "Into the Roil",
-      "cost_builder": "cost.into_the_roil",
-      "execution_handler": "execute.into_the_roil",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-INTO_THE_ROIL"
       ],
-      "legal_action_generator": "generate.into_the_roil",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.into_the_roil",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -691,18 +800,21 @@
     {
       "adapter_id": "adapter.introduction_to_annihilation",
       "card_name": "Introduction to Annihilation",
-      "cost_builder": "cost.introduction_to_annihilation",
-      "execution_handler": "execute.introduction_to_annihilation",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-INTRODUCTION_TO_ANNIHILATION"
       ],
-      "legal_action_generator": "generate.introduction_to_annihilation",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.introduction_to_annihilation",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -710,18 +822,21 @@
     {
       "adapter_id": "adapter.invert_invent",
       "card_name": "Invert // Invent",
-      "cost_builder": "cost.invert_invent",
-      "execution_handler": "execute.invert_invent",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-INVERT_INVENT"
       ],
-      "legal_action_generator": "generate.invert_invent",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.invert_invent",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -729,18 +844,21 @@
     {
       "adapter_id": "adapter.island",
       "card_name": "Island",
-      "cost_builder": "cost.island",
-      "execution_handler": "execute.island",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-ISLAND"
       ],
-      "legal_action_generator": "generate.island",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.island",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -748,18 +866,21 @@
     {
       "adapter_id": "adapter.izzet_boilerworks",
       "card_name": "Izzet Boilerworks",
-      "cost_builder": "cost.izzet_boilerworks",
-      "execution_handler": "execute.izzet_boilerworks",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-IZZET_BOILERWORKS"
       ],
-      "legal_action_generator": "generate.izzet_boilerworks",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.izzet_boilerworks",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -767,18 +888,21 @@
     {
       "adapter_id": "adapter.izzet_signet",
       "card_name": "Izzet Signet",
-      "cost_builder": "cost.izzet_signet",
-      "execution_handler": "execute.izzet_signet",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-IZZET_SIGNET"
       ],
-      "legal_action_generator": "generate.izzet_signet",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.izzet_signet",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -786,18 +910,21 @@
     {
       "adapter_id": "adapter.lazotep_plating",
       "card_name": "Lazotep Plating",
-      "cost_builder": "cost.lazotep_plating",
-      "execution_handler": "execute.lazotep_plating",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-LAZOTEP_PLATING"
       ],
-      "legal_action_generator": "generate.lazotep_plating",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.lazotep_plating",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -805,18 +932,21 @@
     {
       "adapter_id": "adapter.lightning_rig_crew",
       "card_name": "Lightning-Rig Crew",
-      "cost_builder": "cost.lightning_rig_crew",
-      "execution_handler": "execute.lightning_rig_crew",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-LIGHTNING_RIG_CREW"
       ],
-      "legal_action_generator": "generate.lightning_rig_crew",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.lightning_rig_crew",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -824,18 +954,21 @@
     {
       "adapter_id": "adapter.long_term_plans",
       "card_name": "Long-Term Plans",
-      "cost_builder": "cost.long_term_plans",
-      "execution_handler": "execute.long_term_plans",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-LONG_TERM_PLANS"
       ],
-      "legal_action_generator": "generate.long_term_plans",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.long_term_plans",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -843,18 +976,21 @@
     {
       "adapter_id": "adapter.malcolm_keen_eyed_navigator",
       "card_name": "Malcolm, Keen-Eyed Navigator",
-      "cost_builder": "cost.malcolm_keen_eyed_navigator",
-      "execution_handler": "execute.malcolm_keen_eyed_navigator",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-MALCOLM_KEEN_EYED_NAVIGATOR"
       ],
-      "legal_action_generator": "generate.malcolm_keen_eyed_navigator",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.malcolm_keen_eyed_navigator",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -862,18 +998,21 @@
     {
       "adapter_id": "adapter.mind_stone",
       "card_name": "Mind Stone",
-      "cost_builder": "cost.mind_stone",
-      "execution_handler": "execute.mind_stone",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-MIND_STONE"
       ],
-      "legal_action_generator": "generate.mind_stone",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.mind_stone",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -881,18 +1020,21 @@
     {
       "adapter_id": "adapter.mountain",
       "card_name": "Mountain",
-      "cost_builder": "cost.mountain",
-      "execution_handler": "execute.mountain",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-MOUNTAIN"
       ],
-      "legal_action_generator": "generate.mountain",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.mountain",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -900,18 +1042,21 @@
     {
       "adapter_id": "adapter.muddle_the_mixture",
       "card_name": "Muddle the Mixture",
-      "cost_builder": "cost.muddle_the_mixture",
-      "execution_handler": "execute.muddle_the_mixture",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-MUDDLE_THE_MIXTURE"
       ],
-      "legal_action_generator": "generate.muddle_the_mixture",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.muddle_the_mixture",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -919,18 +1064,21 @@
     {
       "adapter_id": "adapter.negate",
       "card_name": "Negate",
-      "cost_builder": "cost.negate",
-      "execution_handler": "execute.negate",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-NEGATE"
       ],
-      "legal_action_generator": "generate.negate",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.negate",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -938,18 +1086,21 @@
     {
       "adapter_id": "adapter.niv_mizzet_the_firemind",
       "card_name": "Niv-Mizzet, the Firemind",
-      "cost_builder": "cost.niv_mizzet_the_firemind",
-      "execution_handler": "execute.niv_mizzet_the_firemind",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-NIV_MIZZET_THE_FIREMIND"
       ],
-      "legal_action_generator": "generate.niv_mizzet_the_firemind",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.niv_mizzet_the_firemind",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -957,18 +1108,21 @@
     {
       "adapter_id": "adapter.opt",
       "card_name": "Opt",
-      "cost_builder": "cost.opt",
-      "execution_handler": "execute.opt",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-OPT"
       ],
-      "legal_action_generator": "generate.opt",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.opt",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -976,18 +1130,21 @@
     {
       "adapter_id": "adapter.path_of_ancestry",
       "card_name": "Path of Ancestry",
-      "cost_builder": "cost.path_of_ancestry",
-      "execution_handler": "execute.path_of_ancestry",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-PATH_OF_ANCESTRY"
       ],
-      "legal_action_generator": "generate.path_of_ancestry",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.path_of_ancestry",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -995,18 +1152,21 @@
     {
       "adapter_id": "adapter.prismari_command",
       "card_name": "Prismari Command",
-      "cost_builder": "cost.prismari_command",
-      "execution_handler": "execute.prismari_command",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-PRISMARI_COMMAND"
       ],
-      "legal_action_generator": "generate.prismari_command",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.prismari_command",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1014,18 +1174,21 @@
     {
       "adapter_id": "adapter.prismatic_lens",
       "card_name": "Prismatic Lens",
-      "cost_builder": "cost.prismatic_lens",
-      "execution_handler": "execute.prismatic_lens",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-PRISMATIC_LENS"
       ],
-      "legal_action_generator": "generate.prismatic_lens",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.prismatic_lens",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1033,18 +1196,21 @@
     {
       "adapter_id": "adapter.psychosis_crawler",
       "card_name": "Psychosis Crawler",
-      "cost_builder": "cost.psychosis_crawler",
-      "execution_handler": "execute.psychosis_crawler",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-PSYCHOSIS_CRAWLER"
       ],
-      "legal_action_generator": "generate.psychosis_crawler",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.psychosis_crawler",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1052,18 +1218,21 @@
     {
       "adapter_id": "adapter.ravenform",
       "card_name": "Ravenform",
-      "cost_builder": "cost.ravenform",
-      "execution_handler": "execute.ravenform",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-RAVENFORM"
       ],
-      "legal_action_generator": "generate.ravenform",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.ravenform",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1071,18 +1240,21 @@
     {
       "adapter_id": "adapter.reality_ripple",
       "card_name": "Reality Ripple",
-      "cost_builder": "cost.reality_ripple",
-      "execution_handler": "execute.reality_ripple",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-REALITY_RIPPLE"
       ],
-      "legal_action_generator": "generate.reality_ripple",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.reality_ripple",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1090,18 +1262,21 @@
     {
       "adapter_id": "adapter.reality_shift",
       "card_name": "Reality Shift",
-      "cost_builder": "cost.reality_shift",
-      "execution_handler": "execute.reality_shift",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-REALITY_SHIFT"
       ],
-      "legal_action_generator": "generate.reality_shift",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.reality_shift",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1109,18 +1284,21 @@
     {
       "adapter_id": "adapter.rebuild",
       "card_name": "Rebuild",
-      "cost_builder": "cost.rebuild",
-      "execution_handler": "execute.rebuild",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-REBUILD"
       ],
-      "legal_action_generator": "generate.rebuild",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.rebuild",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1128,18 +1306,21 @@
     {
       "adapter_id": "adapter.resculpt",
       "card_name": "Resculpt",
-      "cost_builder": "cost.resculpt",
-      "execution_handler": "execute.resculpt",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-RESCULPT"
       ],
-      "legal_action_generator": "generate.resculpt",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.resculpt",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1147,18 +1328,21 @@
     {
       "adapter_id": "adapter.scavenger_grounds",
       "card_name": "Scavenger Grounds",
-      "cost_builder": "cost.scavenger_grounds",
-      "execution_handler": "execute.scavenger_grounds",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-SCAVENGER_GROUNDS"
       ],
-      "legal_action_generator": "generate.scavenger_grounds",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.scavenger_grounds",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1166,18 +1350,21 @@
     {
       "adapter_id": "adapter.sentinel_totem",
       "card_name": "Sentinel Totem",
-      "cost_builder": "cost.sentinel_totem",
-      "execution_handler": "execute.sentinel_totem",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-SENTINEL_TOTEM"
       ],
-      "legal_action_generator": "generate.sentinel_totem",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.sentinel_totem",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1185,18 +1372,21 @@
     {
       "adapter_id": "adapter.shivan_reef",
       "card_name": "Shivan Reef",
-      "cost_builder": "cost.shivan_reef",
-      "execution_handler": "execute.shivan_reef",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-SHIVAN_REEF"
       ],
-      "legal_action_generator": "generate.shivan_reef",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.shivan_reef",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1204,18 +1394,21 @@
     {
       "adapter_id": "adapter.siren_stormtamer",
       "card_name": "Siren Stormtamer",
-      "cost_builder": "cost.siren_stormtamer",
-      "execution_handler": "execute.siren_stormtamer",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-SIREN_STORMTAMER"
       ],
-      "legal_action_generator": "generate.siren_stormtamer",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.siren_stormtamer",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1223,18 +1416,21 @@
     {
       "adapter_id": "adapter.sleight_of_hand",
       "card_name": "Sleight of Hand",
-      "cost_builder": "cost.sleight_of_hand",
-      "execution_handler": "execute.sleight_of_hand",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-SLEIGHT_OF_HAND"
       ],
-      "legal_action_generator": "generate.sleight_of_hand",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.sleight_of_hand",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1242,18 +1438,21 @@
     {
       "adapter_id": "adapter.sol_ring",
       "card_name": "Sol Ring",
-      "cost_builder": "cost.sol_ring",
-      "execution_handler": "execute.sol_ring",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-SOL_RING"
       ],
-      "legal_action_generator": "generate.sol_ring",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.sol_ring",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1261,18 +1460,21 @@
     {
       "adapter_id": "adapter.soul_guide_lantern",
       "card_name": "Soul-Guide Lantern",
-      "cost_builder": "cost.soul_guide_lantern",
-      "execution_handler": "execute.soul_guide_lantern",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-SOUL_GUIDE_LANTERN"
       ],
-      "legal_action_generator": "generate.soul_guide_lantern",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.soul_guide_lantern",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1280,18 +1482,21 @@
     {
       "adapter_id": "adapter.spectral_sailor",
       "card_name": "Spectral Sailor",
-      "cost_builder": "cost.spectral_sailor",
-      "execution_handler": "execute.spectral_sailor",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-SPECTRAL_SAILOR"
       ],
-      "legal_action_generator": "generate.spectral_sailor",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.spectral_sailor",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1299,18 +1504,21 @@
     {
       "adapter_id": "adapter.spell_pierce",
       "card_name": "Spell Pierce",
-      "cost_builder": "cost.spell_pierce",
-      "execution_handler": "execute.spell_pierce",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-SPELL_PIERCE"
       ],
-      "legal_action_generator": "generate.spell_pierce",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.spell_pierce",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1318,18 +1526,21 @@
     {
       "adapter_id": "adapter.step_through",
       "card_name": "Step Through",
-      "cost_builder": "cost.step_through",
-      "execution_handler": "execute.step_through",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-STEP_THROUGH"
       ],
-      "legal_action_generator": "generate.step_through",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.step_through",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1337,18 +1548,21 @@
     {
       "adapter_id": "adapter.storm_fleet_sprinter",
       "card_name": "Storm Fleet Sprinter",
-      "cost_builder": "cost.storm_fleet_sprinter",
-      "execution_handler": "execute.storm_fleet_sprinter",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-STORM_FLEET_SPRINTER"
       ],
-      "legal_action_generator": "generate.storm_fleet_sprinter",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.storm_fleet_sprinter",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1356,18 +1570,21 @@
     {
       "adapter_id": "adapter.syncopate",
       "card_name": "Syncopate",
-      "cost_builder": "cost.syncopate",
-      "execution_handler": "execute.syncopate",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-SYNCOPATE"
       ],
-      "legal_action_generator": "generate.syncopate",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.syncopate",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1375,18 +1592,21 @@
     {
       "adapter_id": "adapter.temple_of_epiphany",
       "card_name": "Temple of Epiphany",
-      "cost_builder": "cost.temple_of_epiphany",
-      "execution_handler": "execute.temple_of_epiphany",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-TEMPLE_OF_EPIPHANY"
       ],
-      "legal_action_generator": "generate.temple_of_epiphany",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.temple_of_epiphany",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1394,18 +1614,21 @@
     {
       "adapter_id": "adapter.terramorphic_expanse",
       "card_name": "Terramorphic Expanse",
-      "cost_builder": "cost.terramorphic_expanse",
-      "execution_handler": "execute.terramorphic_expanse",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-TERRAMORPHIC_EXPANSE"
       ],
-      "legal_action_generator": "generate.terramorphic_expanse",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.terramorphic_expanse",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1413,18 +1636,21 @@
     {
       "adapter_id": "adapter.thriving_isle",
       "card_name": "Thriving Isle",
-      "cost_builder": "cost.thriving_isle",
-      "execution_handler": "execute.thriving_isle",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-THRIVING_ISLE"
       ],
-      "legal_action_generator": "generate.thriving_isle",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.thriving_isle",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1432,18 +1658,21 @@
     {
       "adapter_id": "adapter.twinflame",
       "card_name": "Twinflame",
-      "cost_builder": "cost.twinflame",
-      "execution_handler": "execute.twinflame",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-TWINFLAME"
       ],
-      "legal_action_generator": "generate.twinflame",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.twinflame",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1451,18 +1680,21 @@
     {
       "adapter_id": "adapter.vandalblast",
       "card_name": "Vandalblast",
-      "cost_builder": "cost.vandalblast",
-      "execution_handler": "execute.vandalblast",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-VANDALBLAST"
       ],
-      "legal_action_generator": "generate.vandalblast",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.vandalblast",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1470,18 +1702,21 @@
     {
       "adapter_id": "adapter.vedalken_aethermage",
       "card_name": "Vedalken Aethermage",
-      "cost_builder": "cost.vedalken_aethermage",
-      "execution_handler": "execute.vedalken_aethermage",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-VEDALKEN_AETHERMAGE"
       ],
-      "legal_action_generator": "generate.vedalken_aethermage",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.vedalken_aethermage",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1489,18 +1724,21 @@
     {
       "adapter_id": "adapter.wash_away",
       "card_name": "Wash Away",
-      "cost_builder": "cost.wash_away",
-      "execution_handler": "execute.wash_away",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-WASH_AWAY"
       ],
-      "legal_action_generator": "generate.wash_away",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.wash_away",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1508,18 +1746,21 @@
     {
       "adapter_id": "adapter.wily_goblin",
       "card_name": "Wily Goblin",
-      "cost_builder": "cost.wily_goblin",
-      "execution_handler": "execute.wily_goblin",
+      "cost_builder": "mtg_sim.executable_adapters.deck_costs",
+      "execution_handler": "mtg_sim.executable_adapters.deck_execute",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "SEM-WILY_GOBLIN"
       ],
-      "legal_action_generator": "generate.wily_goblin",
+      "legal_action_generator": "mtg_sim.executable_adapters.deck_legal_actions",
       "relevant_zones": [
         "hand",
-        "battlefield"
+        "battlefield",
+        "graveyard",
+        "command_zone"
       ],
+      "replay_serializer": "mtg_sim.executable_adapters.replay_action_record",
       "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.wily_goblin",
+      "target_mode_choice_builder": "mtg_sim.executable_adapters.deck_targets_modes_choices",
       "timing_restrictions": [
         "rules_validated"
       ]
