@@ -28,6 +28,7 @@ class ActionType(str, Enum):
     PLAY_LAND = "play_land"
     ACTIVATE_MANA_ABILITY = "activate_mana_ability"
     PASS_PRIORITY = "pass_priority"
+    DECLARE_ATTACKERS = "declare_attackers"
 
 
 @dataclass(frozen=True, slots=True)
@@ -595,8 +596,73 @@ def rebuild(state: GameState) -> None:
                 state.record_event("artifact_returned", permanent.name)
 
 
-LAND_MANA = {"Island": "U", "Mountain": "R", "Command Tower": "U", "Shivan Reef": "U"}
-TAPPED_LANDS = {"Izzet Boilerworks"}
+LAND_MANA = {
+    "Island": "U",
+    "Mountain": "R",
+    "Command Tower": "U",
+    "Shivan Reef": "U",
+    "Exotic Orchard": "U",
+    "Cascade Bluffs": "U",
+    "Temple of Epiphany": "U",
+    "Frostboil Snarl": "U",
+    "Thriving Isle": "U",
+    "Scavenger Grounds": "C",
+    "Demolition Field": "C",
+    "Path of Ancestry": "U",
+    "Ash Barrens": "C",
+    "Evolving Wilds": "C",
+    "Terramorphic Expanse": "C",
+    "Izzet Boilerworks": "U",
+}
+TAPPED_LANDS = {"Izzet Boilerworks", "Temple of Epiphany", "Thriving Isle", "Path of Ancestry"}
+MANA_ROCK_MANA = {
+    "Sol Ring": "C",
+    "Arcane Signet": "U",
+    "Fellwar Stone": "U",
+    "Mind Stone": "C",
+    "Prismatic Lens": "C",
+    "Izzet Signet": "U",
+}
+CARD_COSTS: dict[str, ManaCost] = {
+    "Sol Ring": {"generic": 1},
+    "Arcane Signet": {"generic": 2},
+    "Fellwar Stone": {"generic": 2},
+    "Mind Stone": {"generic": 2},
+    "Prismatic Lens": {"generic": 2},
+    "Izzet Signet": {"generic": 2},
+    "Malcolm, Keen-Eyed Navigator": {"generic": 2, "U": 1},
+    "Breeches, Brazen Plunderer": {"generic": 3, "R": 1},
+    "Glint-Horn Buccaneer": {"generic": 1, "R": 2},
+    "Dualcaster Mage": {"generic": 1, "R": 2},
+    "Twinflame": {"generic": 1, "R": 1},
+    "Electroduplicate": {"generic": 2, "R": 1},
+    "Curiosity": {"U": 1},
+    "Niv-Mizzet, the Firemind": {"generic": 2, "U": 3, "R": 1},
+    "Lightning-Rig Crew": {"generic": 2, "R": 1},
+    "Crab Umbra": {"U": 1},
+}
+CREATURES = {
+    "Malcolm, Keen-Eyed Navigator",
+    "Breeches, Brazen Plunderer",
+    "Glint-Horn Buccaneer",
+    "Dualcaster Mage",
+    "Niv-Mizzet, the Firemind",
+    "Lightning-Rig Crew",
+    "Siren Stormtamer",
+    "Spectral Sailor",
+    "Storm Fleet Sprinter",
+    "Wily Goblin",
+    "Drift of Phantasms",
+    "Vedalken Aethermage",
+}
+PIRATES = {
+    "Malcolm, Keen-Eyed Navigator",
+    "Breeches, Brazen Plunderer",
+    "Glint-Horn Buccaneer",
+    "Siren Stormtamer",
+    "Spectral Sailor",
+    "Storm Fleet Sprinter",
+}
 
 
 def play_land(state: GameState, name: str) -> Permanent:
@@ -606,6 +672,21 @@ def play_land(state: GameState, name: str) -> Permanent:
     state.battlefield.append(land)
     state.land_played = True
     return land
+
+
+def _permanent_for_card(name: str) -> Permanent:
+    if name in MANA_ROCK_MANA:
+        return Permanent(name, {"Artifact"}, mana_abilities={"tap": MANA_ROCK_MANA[name]})
+    if name in CREATURES:
+        return Permanent(
+            name,
+            {"Creature"},
+            {"Pirate"} if name in PIRATES else set(),
+            power=1,
+            toughness=1,
+            haste=name == "Storm Fleet Sprinter",
+        )
+    return Permanent(name, {"Noncreature"})
 
 
 def tap_for_mana(state: GameState, permanent: Permanent, color: str | None = None) -> None:
@@ -735,8 +816,8 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
         errors.extend(validate_timing(state, action.timing))
         refs.extend(TIMING_RULES_REFS)
     if action.action_type is ActionType.CAST_SPELL:
-        if action.source_name not in state.hand:
-            errors.append(f"{action.source_name} is not in hand")
+        if action.source_name not in state.hand and action.source_name not in state.command_zone:
+            errors.append(f"{action.source_name} is not in hand or command zone")
         if action.source_name in {"Twinflame", "Electroduplicate"} and not _is_creature_target(
             state, list(action.targets)
         ):
@@ -749,12 +830,17 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
                 errors.append("Glint-Horn Buccaneer can activate only while attacking")
             if not state.hand:
                 errors.append("Glint-Horn activation requires a discarded card")
-        else:
+        elif action.source_name not in {
+            "Lightning-Rig Crew",
+            "Mind Stone",
+            "Soul-Guide Lantern",
+            "Sentinel Totem",
+        }:
             errors.append(f"unsupported activated ability: {action.source_name}")
     elif action.action_type is ActionType.PLAY_LAND:
         if action.source_name not in state.hand:
             errors.append(f"{action.source_name} is not in hand")
-        if action.source_name not in LAND_MANA and action.source_name not in TAPPED_LANDS:
+        if action.source_name not in LAND_MANA:
             errors.append(f"unsupported land play: {action.source_name}")
         if state.land_played:
             errors.append("only one land play per turn")
@@ -764,8 +850,22 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
             errors.append(f"{action.source_name} is not on battlefield")
         elif source.tapped:
             errors.append("permanent is already tapped")
-        elif source.name not in LAND_MANA and not source.mana_abilities:
+        elif source.name == "Treasure":
+            pass
+        elif (
+            source.name not in LAND_MANA
+            and source.name not in MANA_ROCK_MANA
+            and not source.mana_abilities
+        ):
             errors.append(f"no mana behavior for {source.name}")
+    elif action.action_type is ActionType.DECLARE_ATTACKERS:
+        if state.phase is not Phase.COMBAT:
+            errors.append("attackers are declared only during combat")
+        for target in action.targets:
+            if target not in state.battlefield or "Creature" not in target.types:
+                errors.append("only battlefield creatures can attack")
+            elif target.tapped or (target.summoning_sick and not target.haste):
+                errors.append("creature cannot legally attack")
     elif action.action_type is not ActionType.PASS_PRIORITY:
         errors.append(f"unsupported action type: {action.action_type}")
     return ValidationResult(
@@ -776,15 +876,46 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
 def generate_legal_actions(state: GameState) -> list[Action]:
     if state.terminal:
         return []
-    actions = [Action(ActionType.PASS_PRIORITY)]
-    for card in state.hand:
-        if card in {"Twinflame", "Electroduplicate"}:
-            for permanent in state.battlefield:
-                candidate = Action(ActionType.CAST_SPELL, card, (permanent,), timing="sorcery")
+    actions: list[Action] = [Action(ActionType.PASS_PRIORITY)]
+    for card in sorted(set(state.hand)):
+        if card in LAND_MANA:
+            candidate = Action(ActionType.PLAY_LAND, card, timing="sorcery")
+            if validate_action(state, candidate).accepted:
+                actions.append(candidate)
+        if card in CARD_COSTS or card in CREATURES or card in MANA_ROCK_MANA:
+            target_options: tuple[tuple[Permanent, ...], ...] = ((),)
+            if card in {"Twinflame", "Electroduplicate", "Curiosity", "Crab Umbra"}:
+                target_options = tuple(
+                    (p,) for p in state.battlefield if "Creature" in p.types
+                ) or ((),)
+            for target_tuple in target_options:
+                candidate = Action(
+                    ActionType.CAST_SPELL,
+                    card,
+                    target_tuple,
+                    CARD_COSTS.get(card, {}),
+                    timing="sorcery",
+                )
                 if validate_action(state, candidate).accepted:
                     actions.append(candidate)
-    if any(p.name == "Glint-Horn Buccaneer" for p in state.battlefield):
-        candidate = Action(ActionType.ACTIVATE_ABILITY, "Glint-Horn Buccaneer")
+    for permanent in state.battlefield:
+        candidate = Action(
+            ActionType.ACTIVATE_MANA_ABILITY,
+            permanent.name,
+            mana_choice=MANA_ROCK_MANA.get(permanent.name) or LAND_MANA.get(permanent.name),
+        )
+        if validate_action(state, candidate).accepted:
+            actions.append(candidate)
+        ability = Action(ActionType.ACTIVATE_ABILITY, permanent.name)
+        if validate_action(state, ability).accepted:
+            actions.append(ability)
+    attackers = tuple(
+        p
+        for p in state.battlefield
+        if "Creature" in p.types and not p.tapped and (not p.summoning_sick or p.haste)
+    )
+    if attackers:
+        candidate = Action(ActionType.DECLARE_ATTACKERS, "attack", attackers)
         if validate_action(state, candidate).accepted:
             actions.append(candidate)
     return actions
@@ -803,17 +934,30 @@ def execute_action(state: GameState, action: Action) -> None:
         return
     if action.action_type is ActionType.CAST_SPELL:
         assert action.source_name is not None
-        state.hand.remove(action.source_name)
+        if action.source_name in state.hand:
+            state.hand.remove(action.source_name)
+        elif action.source_name in state.command_zone:
+            state.command_zone.remove(action.source_name)
+            state.commander_casts[action.source_name] = (
+                state.commander_casts.get(action.source_name, 0) + 1
+            )
         state.pay_mana(action.mana_cost or {})
         state.record_event("action", f"cast:{action.source_name}")
         effect = action.effect or (lambda _s: None)
+        if action.source_name in CREATURES or action.source_name in MANA_ROCK_MANA:
+            state.battlefield.append(_permanent_for_card(action.source_name))
+            state.record_event("resolve", action.source_name)
+            if action.source_name == "Wily Goblin":
+                create_treasure(state, 1)
+            state.would_receive_priority()
+            return
         state.stack.append(
             StackObject(
                 action.source_name,
                 "spell",
                 effect,
                 list(action.targets),
-                legal_targets=_is_creature_target,
+                legal_targets=_is_creature_target if action.targets else None,
             )
         )
         state.would_receive_priority()
@@ -826,8 +970,20 @@ def execute_action(state: GameState, action: Action) -> None:
         return
     if action.action_type is ActionType.ACTIVATE_MANA_ABILITY:
         source = next(p for p in state.battlefield if p.name == action.source_name)
-        tap_for_mana(state, source, action.mana_choice)
+        if source.name == "Treasure":
+            sacrifice_treasure_for_mana(state, action.mana_choice or "U")
+        else:
+            tap_for_mana(state, source, action.mana_choice)
         state.record_event("action", f"activate_mana:{action.source_name}")
+        return
+    if action.action_type is ActionType.DECLARE_ATTACKERS:
+        declare_attackers(state, list(action.targets))
+        pirates = [p for p in action.targets if "Pirate" in p.subtypes]
+        if pirates:
+            deal_pirate_combat_damage(
+                state, list(pirates), list(range(min(len(pirates), len(state.opponent_life))))
+            )
+        state.record_event("combat_damage", "unblocked")
         return
     if action.action_type is ActionType.ACTIVATE_ABILITY:
         source = next(p for p in state.battlefield if p.name == action.source_name)
