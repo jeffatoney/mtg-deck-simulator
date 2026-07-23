@@ -88,7 +88,7 @@ def validate_coverage(path: Path = typer.Option(Path("card_coverage.csv"), "--pa
 @app.command("validate-executable-coverage")
 def validate_executable_coverage(
     output: Path = typer.Option(
-        Path("artifacts/coverage/executable-adapter-report.json"), "--output"
+        Path("artifacts/coverage/full-executable-coverage.json"), "--output"
     ),
 ) -> None:
     """Validate executable action-adapter coverage fail-closed and write report."""
