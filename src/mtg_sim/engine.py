@@ -139,6 +139,7 @@ class GameState:
     resolving: bool = False
     priority_player: int = 0
     self_hexproof_until_eot: bool = False
+    breeches_unknown_exiled: list[str] = field(default_factory=list)
 
     def record_event(self, event_type: str, detail: str = "") -> None:
         self.event_log.append(f"{event_type}:{detail}" if detail else event_type)
@@ -177,6 +178,17 @@ class GameState:
             self.hand.append(self.library.pop(0))
             self.cards_drawn += 1
             self.record_event("draw")
+            for permanent in list(self.battlefield):
+                if permanent.name == "Psychosis Crawler":
+                    for opponent in self.active_opponents():
+                        self.opponent_life[opponent] -= 1
+                    self.record_event("life_lost", "Psychosis Crawler:1")
+                if permanent.name == "Niv-Mizzet, the Firemind":
+                    target = self.active_opponents()[:1]
+                    if target:
+                        deal_noncombat_damage(
+                            self, target, 1, source_name="Niv-Mizzet, the Firemind"
+                        )
 
     def would_receive_priority(self) -> None:
         if self.terminal:
@@ -423,6 +435,12 @@ CARD_TYPES = {
     "Electroduplicate": {"Sorcery"},
     "Dualcaster Mage": {"Creature"},
     "Niv-Mizzet, the Firemind": {"Creature"},
+    "Psychosis Crawler": {"Artifact", "Creature"},
+    "Glint-Horn Buccaneer": {"Creature"},
+    "Lightning-Rig Crew": {"Creature"},
+    "Storm Fleet Sprinter": {"Creature"},
+    "Wily Goblin": {"Creature"},
+    "Crab Umbra": {"Enchantment"},
     "Vedalken Aethermage": {"Creature"},
     "Step Through": {"Sorcery"},
     "Long-Term Plans": {"Instant"},
@@ -464,8 +482,17 @@ CARD_SUBTYPES = {
     "Vedalken Aethermage": {"Vedalken", "Wizard"},
     "Siren Stormtamer": {"Siren", "Pirate", "Wizard"},
     "Spectral Sailor": {"Spirit", "Pirate"},
+    "Malcolm, Keen-Eyed Navigator": {"Siren", "Pirate"},
+    "Breeches, Brazen Plunderer": {"Goblin", "Pirate"},
+    "Glint-Horn Buccaneer": {"Minotaur", "Pirate"},
+    "Lightning-Rig Crew": {"Goblin", "Pirate"},
+    "Storm Fleet Sprinter": {"Human", "Pirate"},
+    "Wily Goblin": {"Goblin", "Pirate"},
+    "Drift of Phantasms": {"Spirit"},
 }
 MANA_VALUES = {
+    "Malcolm, Keen-Eyed Navigator": 3,
+    "Breeches, Brazen Plunderer": 4,
     "Twinflame": 2,
     "Electroduplicate": 3,
     "Curiosity": 1,
@@ -509,6 +536,10 @@ MANA_VALUES = {
     "Syncopate": 1,
     "Vandalblast": 1,
     "Wash Away": 1,
+    "Crab Umbra": 1,
+    "Psychosis Crawler": 5,
+    "Storm Fleet Sprinter": 3,
+    "Wily Goblin": 2,
 }
 SPLIT_FACE_MANA_VALUES = {"Invert": 1, "Invent": 6, "Commit": 4, "Memory": 6}
 SPLIT_CARD_FACES = {
@@ -718,6 +749,8 @@ def _spell_effect_for_action(action: Action) -> Callable[[GameState], None]:
                 if "Commit // Memory" not in s.graveyard:
                     s.graveyard.append("Commit // Memory")
                 memory(s)
+            elif action.stack_target is not None:
+                commit(s, action.stack_target)
             elif action.targets:
                 commit(s, action.targets[0])
             else:
@@ -787,6 +820,19 @@ def _spell_effect_for_action(action: Action) -> Callable[[GameState], None]:
         elif name == "Wash Away":
             assert action.stack_target is not None
             wash_away(s, action.stack_target, cleave="cleave" in action.additional_costs)
+        elif name == "Twinflame":
+            token_copy(s, action.targets[0])
+        elif name == "Electroduplicate":
+            token_copy(s, action.targets[0])
+            if action.origin_zone == "graveyard":
+                s.exile.append("Electroduplicate")
+                s.record_event("flashback_exile", "Electroduplicate")
+        elif name == "Curiosity":
+            action.targets[0].enchanted_by_curiosity = True
+            s.record_event("aura_attached", "Curiosity")
+        elif name == "Crab Umbra":
+            action.targets[0].damage_prevented = True
+            s.record_event("aura_attached", "Crab Umbra")
         elif name == "Invert // Invent":
             if action.choice == "Invert":
                 invert(s, list(action.targets))
@@ -941,6 +987,7 @@ CARD_COSTS: dict[str, ManaCost] = {
     "Lightning-Rig Crew": {"generic": 2, "R": 1},
     "Crab Umbra": {"U": 1},
     "Wily Goblin": {"generic": 1, "R": 1},
+    "Psychosis Crawler": {"generic": 5},
     "Chart a Course": {"generic": 1, "U": 1},
     "Expedite": {"R": 1},
     "Fact or Fiction": {"generic": 3, "U": 1},
@@ -993,6 +1040,7 @@ CREATURES = {
     "Wily Goblin",
     "Drift of Phantasms",
     "Vedalken Aethermage",
+    "Psychosis Crawler",
 }
 PIRATES = {
     "Malcolm, Keen-Eyed Navigator",
@@ -1001,6 +1049,25 @@ PIRATES = {
     "Siren Stormtamer",
     "Spectral Sailor",
     "Storm Fleet Sprinter",
+    "Lightning-Rig Crew",
+    "Wily Goblin",
+}
+
+
+CREATURE_STATS = {
+    "Malcolm, Keen-Eyed Navigator": (2, 2),
+    "Breeches, Brazen Plunderer": (3, 3),
+    "Glint-Horn Buccaneer": (2, 4),
+    "Dualcaster Mage": (2, 2),
+    "Niv-Mizzet, the Firemind": (4, 4),
+    "Lightning-Rig Crew": (0, 5),
+    "Siren Stormtamer": (1, 1),
+    "Spectral Sailor": (1, 1),
+    "Storm Fleet Sprinter": (2, 2),
+    "Wily Goblin": (1, 1),
+    "Drift of Phantasms": (0, 5),
+    "Vedalken Aethermage": (1, 2),
+    "Psychosis Crawler": (0, 0),
 }
 
 
@@ -1052,13 +1119,16 @@ def _permanent_for_card(name: str) -> Permanent:
     if name in MANA_ROCK_MANA:
         return Permanent(name, {"Artifact"}, mana_abilities={"tap": MANA_ROCK_MANA[name]})
     if name in CREATURES:
+        power, toughness = CREATURE_STATS[name]
+        types = {"Artifact", "Creature"} if name == "Psychosis Crawler" else {"Creature"}
         return Permanent(
             name,
-            {"Creature"},
-            {"Pirate"} if name in PIRATES else set(),
-            power=1,
-            toughness=1,
+            types,
+            set(CARD_SUBTYPES.get(name, {"Pirate"} if name in PIRATES else set())),
+            power=power,
+            toughness=toughness,
             haste=name == "Storm Fleet Sprinter",
+            mana_value=mana_value(name),
         )
     return Permanent(name, {"Noncreature"})
 
@@ -1244,6 +1314,9 @@ ABILITY_COSTS: dict[tuple[str, str], ManaCost] = {
     ("Soul-Guide Lantern", "draw"): {"generic": 1},
     ("Sentinel Totem", "exile_all_graveyards"): {},
     ("Siren Stormtamer", "sacrifice_counter"): {"U": 1},
+    ("Spectral Sailor", "draw"): {"generic": 3, "U": 1},
+    ("Niv-Mizzet, the Firemind", "tap_draw"): {},
+    ("Crab Umbra", "untap_enchanted"): {"generic": 2, "U": 1},
     ("Evolving Wilds", "basic_fetch"): {},
     ("Terramorphic Expanse", "basic_fetch"): {},
     ("Ash Barrens", "basic_landcycling"): {"generic": 1},
@@ -1448,8 +1521,10 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
             if action.source_name not in state.command_zone:
                 errors.append(f"{action.source_name} is not in command zone")
         elif origin == "graveyard":
-            if action.source_name != "Faithless Looting" and not (
-                action.source_name == "Commit // Memory" and action.choice == "Memory"
+            if (
+                action.source_name != "Faithless Looting"
+                and not (action.source_name == "Commit // Memory" and action.choice == "Memory")
+                and not action.source_name == "Electroduplicate"
             ):
                 errors.append(f"{action.source_name} cannot be cast from graveyard")
             if action.source_name not in state.graveyard:
@@ -1468,6 +1543,8 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
                 expected_cost = {"generic": 2, "R": 1}
             if action.source_name == "Commit // Memory" and action.choice == "Memory":
                 expected_cost = {"generic": 4, "U": 2}
+            if action.source_name == "Electroduplicate" and origin == "graveyard":
+                expected_cost = {"generic": 3, "R": 2}
             if action.source_name == "Invert // Invent" and action.choice == "Invent":
                 expected_cost = {"generic": 4, "U": 1, "R": 1}
             if action.source_name == "Syncopate" and action.x_value is not None:
@@ -1485,9 +1562,12 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
                 expected_cost = {"generic": 4, "R": 1}
             if not _costs_equal(action.mana_cost, expected_cost):
                 errors.append(f"incorrect spell cost for {action.source_name}")
-        if action.source_name in {"Twinflame", "Electroduplicate"} and not _is_creature_target(
-            state, list(action.targets)
-        ):
+        if action.source_name in {
+            "Twinflame",
+            "Electroduplicate",
+            "Curiosity",
+            "Crab Umbra",
+        } and not _is_creature_target(state, list(action.targets)):
             errors.append(f"{action.source_name} requires one legal creature target")
             refs.extend(TARGET_RULES_REFS)
         interaction_cards = {
@@ -1573,13 +1653,13 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
                 if not state.hand:
                     errors.append("Glint-Horn activation requires a discarded card")
             if (
-                action.source_name == "Lightning-Rig Crew"
+                action.source_name in {"Lightning-Rig Crew", "Niv-Mizzet, the Firemind"}
                 and source is not None
                 and source.summoning_sick
                 and not source.haste
             ):
                 errors.append(
-                    "Lightning-Rig Crew activated ability is restricted by summoning sickness"
+                    f"{action.source_name} activated ability is restricted by summoning sickness"
                 )
             if action.source_name == "Siren Stormtamer" and ability_id == "sacrifice_counter":
                 if action.stack_target is None or action.stack_target not in state.stack:
@@ -1780,6 +1860,7 @@ def generate_legal_actions(state: GameState) -> list[Action]:
                         "Frantic Search",
                         "Prismari Command",
                         "Commit // Memory",
+                        "Dualcaster Mage",
                     }
                     else "instant",
                     origin_zone="hand",
@@ -2044,6 +2125,19 @@ def generate_legal_actions(state: GameState) -> list[Action]:
         )
         if validate_action(state, candidate).accepted:
             actions.append(candidate)
+    if "Electroduplicate" in state.graveyard:
+        for pmt in state.battlefield:
+            if "Creature" in pmt.types:
+                candidate = Action(
+                    ActionType.CAST_SPELL,
+                    "Electroduplicate",
+                    (pmt,),
+                    mana_cost={"generic": 3, "R": 2},
+                    timing="sorcery",
+                    origin_zone="graveyard",
+                )
+                if validate_action(state, candidate).accepted:
+                    actions.append(candidate)
     if "Commit // Memory" in state.graveyard:
         candidate = Action(
             ActionType.CAST_SPELL,
@@ -2167,7 +2261,11 @@ def execute_action(state: GameState, action: Action) -> None:
                     "Vandalblast",
                 }
                 else None,
-                mana_value=mana_value(action.source_name, zone="stack", face=action.choice)
+                mana_value=mana_value(
+                    action.source_name,
+                    zone="stack",
+                    face=action.choice or SPLIT_CARD_FACES[action.source_name][0],
+                )
                 if action.source_name in SPLIT_CARD_FACES
                 else mana_value(action.source_name)
                 if action.source_name in MANA_VALUES or action.source_name in TRANSMUTE_VALUES
@@ -2205,6 +2303,11 @@ def execute_action(state: GameState, action: Action) -> None:
         if pirates:
             opponents = list(range(min(len(pirates), len(state.opponent_life))))
             deal_pirate_combat_damage(state, list(pirates)[: len(opponents)], opponents)
+            if any(p.name == "Breeches, Brazen Plunderer" for p in state.battlefield):
+                for opponent in opponents:
+                    unknown = f"unknown_opponent_{opponent}_top_card"
+                    state.breeches_unknown_exiled.append(unknown)
+                    state.record_event("breeches_unknown_exiled", unknown)
         for attacker in attackers:
             attacker.attacking = False
         state.record_event("combat_damage", "unblocked")
@@ -2332,6 +2435,27 @@ def execute_activated_ability(state: GameState, source: Permanent, action: Actio
         if action.stack_target is None:
             raise RulesError("Siren Stormtamer ability requires a stack target")
         siren_stormtamer_counter(state, source, action.stack_target)
+    elif source.name == "Spectral Sailor" and ability_id == "draw":
+        state.pay_mana({"generic": 3, "U": 1})
+        state.stack.append(
+            StackObject(
+                "Spectral Sailor draw ability", "ability", lambda ss: ss.draw(1), cast=False
+            )
+        )
+    elif source.name == "Niv-Mizzet, the Firemind" and ability_id == "tap_draw":
+        if source.tapped or (source.summoning_sick and not source.haste):
+            raise RulesError("Niv-Mizzet tap ability is restricted by summoning sickness")
+        source.tapped = True
+        state.stack.append(
+            StackObject("Niv-Mizzet draw ability", "ability", lambda ss: ss.draw(1), cast=False)
+        )
+    elif source.name == "Crab Umbra" and ability_id == "untap_enchanted":
+        state.pay_mana({"generic": 2, "U": 1})
+        enchanted = next((p for p in state.battlefield if p.damage_prevented and p.tapped), None)
+        if enchanted is None:
+            raise RulesError("Crab Umbra requires a tapped enchanted creature")
+        enchanted.tapped = False
+        state.record_event("untap", enchanted.name)
     else:
         raise RulesError(f"unregistered activated ability handler: {source.name}:{ability_id}")
 
@@ -2533,6 +2657,25 @@ def reality_ripple(state: GameState, target: Permanent) -> None:
         raise RulesError("Reality Ripple targets an artifact, creature, or land")
     setattr(target, "phased_out", True)
     state.record_event("phase_out", target.name)
+
+
+def token_copy(state: GameState, target: Permanent) -> Permanent:
+    if target not in state.battlefield or "Creature" not in target.types:
+        raise RulesError("token-copy effect requires a creature target")
+    token = Permanent(
+        target.name,
+        set(target.types),
+        set(target.subtypes),
+        is_token=True,
+        power=target.power,
+        toughness=target.toughness,
+        haste=True,
+        summoning_sick=False,
+        mana_value=target.mana_value,
+    )
+    state.battlefield.append(token)
+    state.record_event("token_created", f"copy:{target.name}")
+    return token
 
 
 def _create_token(

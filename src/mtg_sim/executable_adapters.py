@@ -57,6 +57,16 @@ EXECUTABLE_CARDS = {
     "Arcane Signet",
     "Ash Barrens",
     "Breeches, Brazen Plunderer",
+    "Twinflame",
+    "Storm Fleet Sprinter",
+    "Psychosis Crawler",
+    "Niv-Mizzet, the Firemind",
+    "Lightning-Rig Crew",
+    "Glint-Horn Buccaneer",
+    "Electroduplicate",
+    "Curiosity",
+    "Dualcaster Mage",
+    "Crab Umbra",
     "Cascade Bluffs",
     "Command Tower",
     "Demolition Field",
@@ -116,7 +126,9 @@ def _record(name: str) -> AdapterRecord:
         execution_handler=f"execute.{aid}" if executable else "blocked.not_executable",
         relevant_zones=("hand", "battlefield") if executable else ("blocked",),
         timing_restrictions=("rules_validated",) if executable else ("blocked",),
-        integration_test_ids=("tests/test_phase9f3_interaction_adapters.py",) if executable else (),
+        integration_test_ids=("tests/test_phase9f4_creatures_combos_coverage.py",)
+        if executable
+        else (),
         status="EXECUTABLE" if executable else "BLOCKED",
     )
 

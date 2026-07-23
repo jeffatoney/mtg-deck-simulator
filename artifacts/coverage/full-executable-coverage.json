@@ -1,0 +1,1528 @@
+{
+  "blocked_adapter_count": 0,
+  "errors": [],
+  "executable_adapter_count": 80,
+  "expected_unique_card_count": 80,
+  "records": [
+    {
+      "adapter_id": "adapter.abrade",
+      "card_name": "Abrade",
+      "cost_builder": "cost.abrade",
+      "execution_handler": "execute.abrade",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.abrade",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.abrade",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.aetherize",
+      "card_name": "Aetherize",
+      "cost_builder": "cost.aetherize",
+      "execution_handler": "execute.aetherize",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.aetherize",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.aetherize",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.arcane_denial",
+      "card_name": "Arcane Denial",
+      "cost_builder": "cost.arcane_denial",
+      "execution_handler": "execute.arcane_denial",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.arcane_denial",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.arcane_denial",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.arcane_signet",
+      "card_name": "Arcane Signet",
+      "cost_builder": "cost.arcane_signet",
+      "execution_handler": "execute.arcane_signet",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.arcane_signet",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.arcane_signet",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.ash_barrens",
+      "card_name": "Ash Barrens",
+      "cost_builder": "cost.ash_barrens",
+      "execution_handler": "execute.ash_barrens",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.ash_barrens",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.ash_barrens",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.breeches_brazen_plunderer",
+      "card_name": "Breeches, Brazen Plunderer",
+      "cost_builder": "cost.breeches_brazen_plunderer",
+      "execution_handler": "execute.breeches_brazen_plunderer",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.breeches_brazen_plunderer",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.breeches_brazen_plunderer",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.brotherhood's_end",
+      "card_name": "Brotherhood's End",
+      "cost_builder": "cost.brotherhood's_end",
+      "execution_handler": "execute.brotherhood's_end",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.brotherhood's_end",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.brotherhood's_end",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.by_force",
+      "card_name": "By Force",
+      "cost_builder": "cost.by_force",
+      "execution_handler": "execute.by_force",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.by_force",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.by_force",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.cascade_bluffs",
+      "card_name": "Cascade Bluffs",
+      "cost_builder": "cost.cascade_bluffs",
+      "execution_handler": "execute.cascade_bluffs",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.cascade_bluffs",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.cascade_bluffs",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.change_the_equation",
+      "card_name": "Change the Equation",
+      "cost_builder": "cost.change_the_equation",
+      "execution_handler": "execute.change_the_equation",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.change_the_equation",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.change_the_equation",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.chart_a_course",
+      "card_name": "Chart a Course",
+      "cost_builder": "cost.chart_a_course",
+      "execution_handler": "execute.chart_a_course",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.chart_a_course",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.chart_a_course",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.command_tower",
+      "card_name": "Command Tower",
+      "cost_builder": "cost.command_tower",
+      "execution_handler": "execute.command_tower",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.command_tower",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.command_tower",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.commit_memory",
+      "card_name": "Commit // Memory",
+      "cost_builder": "cost.commit_memory",
+      "execution_handler": "execute.commit_memory",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.commit_memory",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.commit_memory",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.crab_umbra",
+      "card_name": "Crab Umbra",
+      "cost_builder": "cost.crab_umbra",
+      "execution_handler": "execute.crab_umbra",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.crab_umbra",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.crab_umbra",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.curiosity",
+      "card_name": "Curiosity",
+      "cost_builder": "cost.curiosity",
+      "execution_handler": "execute.curiosity",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.curiosity",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.curiosity",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.curse_of_the_swine",
+      "card_name": "Curse of the Swine",
+      "cost_builder": "cost.curse_of_the_swine",
+      "execution_handler": "execute.curse_of_the_swine",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.curse_of_the_swine",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.curse_of_the_swine",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.demolition_field",
+      "card_name": "Demolition Field",
+      "cost_builder": "cost.demolition_field",
+      "execution_handler": "execute.demolition_field",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.demolition_field",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.demolition_field",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.dispel",
+      "card_name": "Dispel",
+      "cost_builder": "cost.dispel",
+      "execution_handler": "execute.dispel",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.dispel",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.dispel",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.dizzy_spell",
+      "card_name": "Dizzy Spell",
+      "cost_builder": "cost.dizzy_spell",
+      "execution_handler": "execute.dizzy_spell",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.dizzy_spell",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.dizzy_spell",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.drift_of_phantasms",
+      "card_name": "Drift of Phantasms",
+      "cost_builder": "cost.drift_of_phantasms",
+      "execution_handler": "execute.drift_of_phantasms",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.drift_of_phantasms",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.drift_of_phantasms",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.dualcaster_mage",
+      "card_name": "Dualcaster Mage",
+      "cost_builder": "cost.dualcaster_mage",
+      "execution_handler": "execute.dualcaster_mage",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.dualcaster_mage",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.dualcaster_mage",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.echoing_truth",
+      "card_name": "Echoing Truth",
+      "cost_builder": "cost.echoing_truth",
+      "execution_handler": "execute.echoing_truth",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.echoing_truth",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.echoing_truth",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.electroduplicate",
+      "card_name": "Electroduplicate",
+      "cost_builder": "cost.electroduplicate",
+      "execution_handler": "execute.electroduplicate",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.electroduplicate",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.electroduplicate",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.evolving_wilds",
+      "card_name": "Evolving Wilds",
+      "cost_builder": "cost.evolving_wilds",
+      "execution_handler": "execute.evolving_wilds",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.evolving_wilds",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.evolving_wilds",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.exotic_orchard",
+      "card_name": "Exotic Orchard",
+      "cost_builder": "cost.exotic_orchard",
+      "execution_handler": "execute.exotic_orchard",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.exotic_orchard",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.exotic_orchard",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.expedite",
+      "card_name": "Expedite",
+      "cost_builder": "cost.expedite",
+      "execution_handler": "execute.expedite",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.expedite",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.expedite",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.fact_or_fiction",
+      "card_name": "Fact or Fiction",
+      "cost_builder": "cost.fact_or_fiction",
+      "execution_handler": "execute.fact_or_fiction",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.fact_or_fiction",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.fact_or_fiction",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.fading_hope",
+      "card_name": "Fading Hope",
+      "cost_builder": "cost.fading_hope",
+      "execution_handler": "execute.fading_hope",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.fading_hope",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.fading_hope",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.faithless_looting",
+      "card_name": "Faithless Looting",
+      "cost_builder": "cost.faithless_looting",
+      "execution_handler": "execute.faithless_looting",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.faithless_looting",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.faithless_looting",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.fellwar_stone",
+      "card_name": "Fellwar Stone",
+      "cost_builder": "cost.fellwar_stone",
+      "execution_handler": "execute.fellwar_stone",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.fellwar_stone",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.fellwar_stone",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.fiery_cannonade",
+      "card_name": "Fiery Cannonade",
+      "cost_builder": "cost.fiery_cannonade",
+      "execution_handler": "execute.fiery_cannonade",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.fiery_cannonade",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.fiery_cannonade",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.frantic_search",
+      "card_name": "Frantic Search",
+      "cost_builder": "cost.frantic_search",
+      "execution_handler": "execute.frantic_search",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.frantic_search",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.frantic_search",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.frostboil_snarl",
+      "card_name": "Frostboil Snarl",
+      "cost_builder": "cost.frostboil_snarl",
+      "execution_handler": "execute.frostboil_snarl",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.frostboil_snarl",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.frostboil_snarl",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.glint_horn_buccaneer",
+      "card_name": "Glint-Horn Buccaneer",
+      "cost_builder": "cost.glint_horn_buccaneer",
+      "execution_handler": "execute.glint_horn_buccaneer",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.glint_horn_buccaneer",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.glint_horn_buccaneer",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.impulse",
+      "card_name": "Impulse",
+      "cost_builder": "cost.impulse",
+      "execution_handler": "execute.impulse",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.impulse",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.impulse",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.into_the_roil",
+      "card_name": "Into the Roil",
+      "cost_builder": "cost.into_the_roil",
+      "execution_handler": "execute.into_the_roil",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.into_the_roil",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.into_the_roil",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.introduction_to_annihilation",
+      "card_name": "Introduction to Annihilation",
+      "cost_builder": "cost.introduction_to_annihilation",
+      "execution_handler": "execute.introduction_to_annihilation",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.introduction_to_annihilation",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.introduction_to_annihilation",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.invert_invent",
+      "card_name": "Invert // Invent",
+      "cost_builder": "cost.invert_invent",
+      "execution_handler": "execute.invert_invent",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.invert_invent",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.invert_invent",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.island",
+      "card_name": "Island",
+      "cost_builder": "cost.island",
+      "execution_handler": "execute.island",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.island",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.island",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.izzet_boilerworks",
+      "card_name": "Izzet Boilerworks",
+      "cost_builder": "cost.izzet_boilerworks",
+      "execution_handler": "execute.izzet_boilerworks",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.izzet_boilerworks",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.izzet_boilerworks",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.izzet_signet",
+      "card_name": "Izzet Signet",
+      "cost_builder": "cost.izzet_signet",
+      "execution_handler": "execute.izzet_signet",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.izzet_signet",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.izzet_signet",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.lazotep_plating",
+      "card_name": "Lazotep Plating",
+      "cost_builder": "cost.lazotep_plating",
+      "execution_handler": "execute.lazotep_plating",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.lazotep_plating",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.lazotep_plating",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.lightning_rig_crew",
+      "card_name": "Lightning-Rig Crew",
+      "cost_builder": "cost.lightning_rig_crew",
+      "execution_handler": "execute.lightning_rig_crew",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.lightning_rig_crew",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.lightning_rig_crew",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.long_term_plans",
+      "card_name": "Long-Term Plans",
+      "cost_builder": "cost.long_term_plans",
+      "execution_handler": "execute.long_term_plans",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.long_term_plans",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.long_term_plans",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.malcolm_keen_eyed_navigator",
+      "card_name": "Malcolm, Keen-Eyed Navigator",
+      "cost_builder": "cost.malcolm_keen_eyed_navigator",
+      "execution_handler": "execute.malcolm_keen_eyed_navigator",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.malcolm_keen_eyed_navigator",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.malcolm_keen_eyed_navigator",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.mind_stone",
+      "card_name": "Mind Stone",
+      "cost_builder": "cost.mind_stone",
+      "execution_handler": "execute.mind_stone",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.mind_stone",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.mind_stone",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.mountain",
+      "card_name": "Mountain",
+      "cost_builder": "cost.mountain",
+      "execution_handler": "execute.mountain",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.mountain",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.mountain",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.muddle_the_mixture",
+      "card_name": "Muddle the Mixture",
+      "cost_builder": "cost.muddle_the_mixture",
+      "execution_handler": "execute.muddle_the_mixture",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.muddle_the_mixture",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.muddle_the_mixture",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.negate",
+      "card_name": "Negate",
+      "cost_builder": "cost.negate",
+      "execution_handler": "execute.negate",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.negate",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.negate",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.niv_mizzet_the_firemind",
+      "card_name": "Niv-Mizzet, the Firemind",
+      "cost_builder": "cost.niv_mizzet_the_firemind",
+      "execution_handler": "execute.niv_mizzet_the_firemind",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.niv_mizzet_the_firemind",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.niv_mizzet_the_firemind",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.opt",
+      "card_name": "Opt",
+      "cost_builder": "cost.opt",
+      "execution_handler": "execute.opt",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.opt",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.opt",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.path_of_ancestry",
+      "card_name": "Path of Ancestry",
+      "cost_builder": "cost.path_of_ancestry",
+      "execution_handler": "execute.path_of_ancestry",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.path_of_ancestry",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.path_of_ancestry",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.prismari_command",
+      "card_name": "Prismari Command",
+      "cost_builder": "cost.prismari_command",
+      "execution_handler": "execute.prismari_command",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.prismari_command",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.prismari_command",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.prismatic_lens",
+      "card_name": "Prismatic Lens",
+      "cost_builder": "cost.prismatic_lens",
+      "execution_handler": "execute.prismatic_lens",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.prismatic_lens",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.prismatic_lens",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.psychosis_crawler",
+      "card_name": "Psychosis Crawler",
+      "cost_builder": "cost.psychosis_crawler",
+      "execution_handler": "execute.psychosis_crawler",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.psychosis_crawler",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.psychosis_crawler",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.ravenform",
+      "card_name": "Ravenform",
+      "cost_builder": "cost.ravenform",
+      "execution_handler": "execute.ravenform",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.ravenform",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.ravenform",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.reality_ripple",
+      "card_name": "Reality Ripple",
+      "cost_builder": "cost.reality_ripple",
+      "execution_handler": "execute.reality_ripple",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.reality_ripple",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.reality_ripple",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.reality_shift",
+      "card_name": "Reality Shift",
+      "cost_builder": "cost.reality_shift",
+      "execution_handler": "execute.reality_shift",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.reality_shift",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.reality_shift",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.rebuild",
+      "card_name": "Rebuild",
+      "cost_builder": "cost.rebuild",
+      "execution_handler": "execute.rebuild",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.rebuild",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.rebuild",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.resculpt",
+      "card_name": "Resculpt",
+      "cost_builder": "cost.resculpt",
+      "execution_handler": "execute.resculpt",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.resculpt",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.resculpt",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.scavenger_grounds",
+      "card_name": "Scavenger Grounds",
+      "cost_builder": "cost.scavenger_grounds",
+      "execution_handler": "execute.scavenger_grounds",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.scavenger_grounds",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.scavenger_grounds",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.sentinel_totem",
+      "card_name": "Sentinel Totem",
+      "cost_builder": "cost.sentinel_totem",
+      "execution_handler": "execute.sentinel_totem",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.sentinel_totem",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.sentinel_totem",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.shivan_reef",
+      "card_name": "Shivan Reef",
+      "cost_builder": "cost.shivan_reef",
+      "execution_handler": "execute.shivan_reef",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.shivan_reef",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.shivan_reef",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.siren_stormtamer",
+      "card_name": "Siren Stormtamer",
+      "cost_builder": "cost.siren_stormtamer",
+      "execution_handler": "execute.siren_stormtamer",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.siren_stormtamer",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.siren_stormtamer",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.sleight_of_hand",
+      "card_name": "Sleight of Hand",
+      "cost_builder": "cost.sleight_of_hand",
+      "execution_handler": "execute.sleight_of_hand",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.sleight_of_hand",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.sleight_of_hand",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.sol_ring",
+      "card_name": "Sol Ring",
+      "cost_builder": "cost.sol_ring",
+      "execution_handler": "execute.sol_ring",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.sol_ring",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.sol_ring",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.soul_guide_lantern",
+      "card_name": "Soul-Guide Lantern",
+      "cost_builder": "cost.soul_guide_lantern",
+      "execution_handler": "execute.soul_guide_lantern",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.soul_guide_lantern",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.soul_guide_lantern",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.spectral_sailor",
+      "card_name": "Spectral Sailor",
+      "cost_builder": "cost.spectral_sailor",
+      "execution_handler": "execute.spectral_sailor",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.spectral_sailor",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.spectral_sailor",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.spell_pierce",
+      "card_name": "Spell Pierce",
+      "cost_builder": "cost.spell_pierce",
+      "execution_handler": "execute.spell_pierce",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.spell_pierce",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.spell_pierce",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.step_through",
+      "card_name": "Step Through",
+      "cost_builder": "cost.step_through",
+      "execution_handler": "execute.step_through",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.step_through",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.step_through",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.storm_fleet_sprinter",
+      "card_name": "Storm Fleet Sprinter",
+      "cost_builder": "cost.storm_fleet_sprinter",
+      "execution_handler": "execute.storm_fleet_sprinter",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.storm_fleet_sprinter",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.storm_fleet_sprinter",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.syncopate",
+      "card_name": "Syncopate",
+      "cost_builder": "cost.syncopate",
+      "execution_handler": "execute.syncopate",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.syncopate",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.syncopate",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.temple_of_epiphany",
+      "card_name": "Temple of Epiphany",
+      "cost_builder": "cost.temple_of_epiphany",
+      "execution_handler": "execute.temple_of_epiphany",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.temple_of_epiphany",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.temple_of_epiphany",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.terramorphic_expanse",
+      "card_name": "Terramorphic Expanse",
+      "cost_builder": "cost.terramorphic_expanse",
+      "execution_handler": "execute.terramorphic_expanse",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.terramorphic_expanse",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.terramorphic_expanse",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.thriving_isle",
+      "card_name": "Thriving Isle",
+      "cost_builder": "cost.thriving_isle",
+      "execution_handler": "execute.thriving_isle",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.thriving_isle",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.thriving_isle",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.twinflame",
+      "card_name": "Twinflame",
+      "cost_builder": "cost.twinflame",
+      "execution_handler": "execute.twinflame",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.twinflame",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.twinflame",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.vandalblast",
+      "card_name": "Vandalblast",
+      "cost_builder": "cost.vandalblast",
+      "execution_handler": "execute.vandalblast",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.vandalblast",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.vandalblast",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.vedalken_aethermage",
+      "card_name": "Vedalken Aethermage",
+      "cost_builder": "cost.vedalken_aethermage",
+      "execution_handler": "execute.vedalken_aethermage",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.vedalken_aethermage",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.vedalken_aethermage",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.wash_away",
+      "card_name": "Wash Away",
+      "cost_builder": "cost.wash_away",
+      "execution_handler": "execute.wash_away",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.wash_away",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.wash_away",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.wily_goblin",
+      "card_name": "Wily Goblin",
+      "cost_builder": "cost.wily_goblin",
+      "execution_handler": "execute.wily_goblin",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py"
+      ],
+      "legal_action_generator": "generate.wily_goblin",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.wily_goblin",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    }
+  ]
+}
