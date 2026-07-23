@@ -135,7 +135,11 @@ def _source_files() -> list[Path]:
 def build_manifest(config_path: Path, dry_run: bool, *, smoke: bool = False) -> dict[str, Any]:
     config = load_config(config_path)
     seeds = frozen_seed_split()
-    policies = frozen_policy_matrix()
+    policies = (
+        frozen_policy_matrix()[:3]
+        if smoke and config_path.name == "real-executor-smoke.toml"
+        else frozen_policy_matrix()
+    )
     validate_plan(config, seeds)
     status = git_output("status", "--porcelain", "--untracked-files=no")
     run_id = (
@@ -256,8 +260,8 @@ def simulate_game(
             result.terminal_status,
             result.one_piece_short,
             result.protection_delay,
-            1,
-            1,
+            result.branches_searched,
+            result.nodes_searched,
             result.events,
             result.replay_status,
             result.library_hash,
@@ -365,7 +369,11 @@ def run(config_path: Path, *, smoke: bool = False, worker_count: int = 1) -> Pat
         encoding="utf-8",
     )
     discovery_seeds, validation_seeds = _seed_subset(config)
-    policies = frozen_policy_matrix()
+    policies = (
+        frozen_policy_matrix()[:3]
+        if smoke and config_path.name == "real-executor-smoke.toml"
+        else frozen_policy_matrix()
+    )
     discovery_rows: list[dict[str, Any]] = []
     for policy in policies:
         for seed in discovery_seeds:

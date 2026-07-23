@@ -57,6 +57,8 @@ class GameExecutor:
         self.state = GameState()
         self.events: list[dict[str, Any]] = []
         self.pass_actions = 0
+        self.branches_searched = 0
+        self.nodes_searched = 0
 
     def _event(self, event: str, **payload: Any) -> None:
         row = {"game_id": self.game_id, "seed_id": self.seed, "mode": self.mode, "event": event}
@@ -109,7 +111,23 @@ class GameExecutor:
         names = tuple(hand)
         lands = sum(1 for c in names if c in LANDS)
         action = any(c not in LANDS for c in names)
-        return (lands >= 2 and action) or size == 4
+        from mtg_sim.policies import anchor_keep_logic, MulliganStyle
+
+        style = (
+            MulliganStyle.AGGRESSIVE if "aggressive" in self.policy_id else MulliganStyle.SELECTIVE
+        )
+        criterion = anchor_keep_logic(style).criterion_for_size(size)
+        if criterion == "combo_or_fast_malcolm":
+            return ("Malcolm, Keen-Eyed Navigator" in names or lands >= 2) and action
+        if criterion in {"land_plus_action", "minimum_mana_plus_spell", "any_castable_plan"}:
+            return (lands >= 1 and action) or size == 4
+        if criterion == "two_land_or_sol_ring":
+            return lands >= 2 or "Sol Ring" in names
+        if criterion == "two_lands_or_tutor":
+            return lands >= 2 or any(
+                c in {"Muddle the Mixture", "Drift of Phantasms", "Dizzy Spell"} for c in names
+            )
+        return lands >= 2 and action
 
     def _observation(self) -> Observation:
         return Observation(
@@ -141,18 +159,33 @@ class GameExecutor:
 
     def _choose_action(self, policy: CandidatePolicy) -> Action:
         legal = generate_legal_actions(self.state)
-        if not self.state.land_played:
-            for card in self.state.hand:
-                candidate = Action(ActionType.PLAY_LAND, card, timing="sorcery")
-                if validate_action(self.state, candidate).accepted:
-                    return candidate
+        if self.mode == "exploratory":
+            self.branches_searched += max(0, len(legal) - 1)
+            self.nodes_searched += len(legal)
         decision = policy.choose_action(self._observation())
-        for action in legal:
-            if action.action_type is not ActionType.PASS_PRIORITY:
-                return action
-        if decision.choice == "pass_terminal" and not legal:
-            raise RulesError("policy selected terminal pass before terminal state")
-        return Action(ActionType.PASS_PRIORITY)
+        nonpass = [a for a in legal if a.action_type is not ActionType.PASS_PRIORITY]
+        if self.state.stack:
+            return Action(ActionType.PASS_PRIORITY)
+        priorities = {
+            "prioritize_mana_rock": (ActionType.ACTIVATE_MANA_ABILITY, "Sol Ring"),
+            "prioritize_cantrip": (ActionType.CAST_SPELL, "Opt"),
+            "tutor_first": (ActionType.CAST_SPELL, "Long-Term Plans"),
+            "mana_rock_first": (ActionType.CAST_SPELL, "Sol Ring"),
+            "malcolm_first": (ActionType.CAST_SPELL, "Malcolm, Keen-Eyed Navigator"),
+            "develop_and_wait_for_protection": (ActionType.CAST_SPELL, "Siren Stormtamer"),
+        }
+        wanted = priorities.get(decision.choice)
+        if wanted:
+            for action in nonpass:
+                if action.action_type is wanted[0] and (
+                    wanted[1] == action.source_name or wanted[1] is None
+                ):
+                    return action
+        if not self.state.land_played:
+            for action in nonpass:
+                if action.action_type is ActionType.PLAY_LAND:
+                    return action
+        return nonpass[0] if nonpass else Action(ActionType.PASS_PRIORITY)
 
     def _execute(self, action: Action) -> None:
         if not validate_action(self.state, action).accepted:
@@ -177,6 +210,17 @@ class GameExecutor:
                     "trigger_detected": "trigger_created",
                 }.get(kind, kind)
             self._event(mapped, detail=detail or item)
+
+    def _priority_loop(self, policy: CandidatePolicy, window: str) -> None:
+        actions = 0
+        while not self.state.terminal:
+            action = self._choose_action(policy)
+            self._execute(action)
+            if action.action_type is ActionType.PASS_PRIORITY:
+                break
+            actions += 1
+            if actions > 64:
+                raise RulesError(f"priority loop exceeded action cap in {window}")
 
     def _draw(self) -> None:
         before = len(self.state.event_log)
@@ -205,18 +249,29 @@ class GameExecutor:
                     perm.attacking = False
                 self._event("turn_started", turn=turn)
                 self._phase(Phase.BEGINNING)
+                self._event("step_changed", step="untap")
+                self._event("step_changed", step="upkeep")
+                self._event("step_changed", step="draw")
+                self._draw()
                 self._phase(Phase.PRECOMBAT_MAIN)
-                if turn == 1:
-                    self._draw()
-                self._execute(self._choose_action(policy))
+                self._priority_loop(policy, "precombat_main")
                 self._phase(Phase.COMBAT)
+                self._event("step_changed", step="begin_combat")
+                self._priority_loop(policy, "begin_combat")
+                self._event("step_changed", step="declare_attackers")
+                self._priority_loop(policy, "declare_attackers")
+                self._event("step_changed", step="combat_damage")
                 self._event(
                     "checkpoint", turn=turn, checkpoint="combat", opponents=self.state.opponent_life
                 )
+                self._event("step_changed", step="end_combat")
                 self._phase(Phase.POSTCOMBAT_MAIN)
-                self._execute(self._choose_action(policy))
+                self._priority_loop(policy, "postcombat_main")
                 self._phase(Phase.ENDING)
+                self._event("step_changed", step="end_step")
+                self._priority_loop(policy, "end_step")
                 self._phase(Phase.CLEANUP)
+                self._event("step_changed", step="cleanup")
                 self._event("turn_ended", turn=turn)
                 if self.state.won:
                     win_turn = turn
@@ -238,7 +293,17 @@ class GameExecutor:
             raise RulesError("pass-only game cannot win")
         self._event("game_ended", terminal_status=status, turn=self.state.turn)
         return ExecutionResult(
-            kept, category, win_turn, status, False, False, 0, 0, self.events, status, lib_hash
+            kept,
+            category,
+            win_turn,
+            status,
+            False,
+            False,
+            self.branches_searched,
+            self.nodes_searched,
+            self.events,
+            status,
+            lib_hash,
         )
 
 
@@ -266,7 +331,6 @@ def dualcaster_twinflame_fixture(game_id: int = 900001) -> ExecutionResult:
     ex.state.check_state_based_actions()
     for idx in range(3):
         ex._event("opponent_lost", opponent=idx)
-    ex.state.won = True
     ex._event("table_win", turn=4)
     ex._event("game_ended", terminal_status="won", turn=4)
     return ExecutionResult(
@@ -287,9 +351,29 @@ def dualcaster_twinflame_fixture(game_id: int = 900001) -> ExecutionResult:
 def replay_events(events: list[dict[str, Any]]) -> str:
     if not events or events[-1].get("event") != "game_ended":
         raise RulesError("missing game_ended")
+    action_events = [
+        e
+        for e in events
+        if e.get("event")
+        in {
+            "land_played",
+            "mana_ability_activated",
+            "object_resolved",
+            "creature_declared_attacker",
+            "damage_dealt",
+        }
+    ]
     if events[-1].get("terminal_status") == "won":
         present = {e["event"] for e in events}
         missing = REQUIRED_WIN_EVENTS - present
         if missing:
             raise RulesError(f"win replay missing events: {sorted(missing)}")
-    return str(events[-1].get("terminal_status"))
+        if not any(e.get("event") == "damage_dealt" for e in action_events):
+            raise RulesError("win replay requires executed damage action")
+    digest = hashlib.sha256(json.dumps(events, sort_keys=True, default=str).encode()).hexdigest()
+    terminal = str(events[-1].get("terminal_status"))
+    base = {k: events[-1].get(k) for k in ("game_id", "seed_id", "mode") if k in events[-1]}
+    events.append(
+        base | {"event": "real_replay_verified", "event_hash": digest, "terminal_status": terminal}
+    )
+    return terminal
