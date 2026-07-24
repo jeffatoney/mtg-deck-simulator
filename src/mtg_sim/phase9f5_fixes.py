@@ -24,6 +24,7 @@ _ORIGINAL_GENERATE_LEGAL_ACTIONS = _engine.generate_legal_actions
 _ORIGINAL_EXECUTE_ACTION = _engine.execute_action
 _ORIGINAL_TAP_FOR_MANA = _engine.tap_for_mana
 _ORIGINAL_MOVE_TO_GRAVEYARD_OR_COMMAND_ZONE = _engine.move_to_graveyard_or_command_zone
+_ORIGINAL_CLEANUP_STEP = _engine.cleanup_step
 _INSTALLED = False
 
 
@@ -68,6 +69,29 @@ def move_to_graveyard_or_command_zone(
         permanent,
         use_command_zone=use_command_zone and not permanent.is_token,
     )
+
+
+def _clear_marked_damage(state: _engine.GameState) -> None:
+    cleared: list[str] = []
+    for permanent in state.battlefield:
+        if permanent.damage:
+            permanent.damage = 0
+            cleared.append(permanent.name)
+    if cleared:
+        state.record_event("cleanup_damage_removed", ",".join(cleared))
+
+
+def cleanup_step(state: _engine.GameState) -> None:
+    """Perform cleanup, including the normal removal of marked damage."""
+
+    state.phase = _engine.Phase.CLEANUP
+    state.cleanup_steps += 1
+    _clear_marked_damage(state)
+    had_trigger = any(p.enchanted_by_curiosity for p in state.battlefield)
+    if had_trigger:
+        _engine.curiosity_trigger(state, decline=False)
+        state.cleanup_steps += 1
+        _clear_marked_damage(state)
 
 
 def _validation_result(
@@ -131,7 +155,9 @@ def validate_action(state: _engine.GameState, action: _engine.Action) -> _engine
         normalized_input.action_type is _engine.ActionType.CAST_SPELL
         and normalized_input.source_name == "Soul-Guide Lantern"
     ):
-        if normalized_input.choice is not None and normalized_input.choice not in state.graveyard:
+        if state.graveyard and normalized_input.choice is None:
+            errors.append("Soul-Guide Lantern ETB requires exactly one graveyard-card target")
+        elif normalized_input.choice is not None and normalized_input.choice not in state.graveyard:
             errors.append("Soul-Guide Lantern ETB target must be a card in a graveyard")
         return _validation_result(normalized_action, result, errors)
 
@@ -219,7 +245,15 @@ def _artifact_cast_variants(
             None,
         )
         if base is None:
-            continue
+            if card_name not in state.hand:
+                continue
+            base = _engine.Action(
+                _engine.ActionType.CAST_SPELL,
+                card_name,
+                mana_cost={"generic": 1},
+                timing="sorcery",
+                origin_zone="hand",
+            )
         choices: tuple[str | None, ...]
         if card_name == "Sentinel Totem":
             choices = ("top", "bottom")
@@ -311,9 +345,12 @@ def _execute_etb_artifact(state: _engine.GameState, action: _engine.Action) -> N
     elif normalized.choice is not None and normalized.choice in state.graveyard:
         state.graveyard.remove(normalized.choice)
         state.exile.append(normalized.choice)
+        state.record_event("trigger_put_on_stack", "Soul-Guide Lantern ETB")
         state.record_event("exile_graveyard_card", normalized.choice)
+    elif state.graveyard:
+        raise _engine.RulesError("Soul-Guide Lantern ETB requires exactly one legal target")
     else:
-        state.record_event("trigger_no_legal_target", "Soul-Guide Lantern")
+        state.record_event("trigger_removed_no_legal_choice", "Soul-Guide Lantern")
 
     state.would_receive_priority()
 
@@ -366,6 +403,7 @@ def install() -> None:
     setattr(_engine.GameState, "record_event", _record_event)
     setattr(_engine, "_permanent_for_card", _permanent_for_card)
     setattr(_engine, "move_to_graveyard_or_command_zone", move_to_graveyard_or_command_zone)
+    setattr(_engine, "cleanup_step", cleanup_step)
     setattr(_engine, "validate_action", validate_action)
     setattr(_engine, "tap_for_mana", tap_for_mana)
     setattr(_engine, "generate_legal_actions", generate_legal_actions)
