@@ -66,9 +66,7 @@ def _cascade_result(
     )
 
 
-def validate_action(
-    state: _engine.GameState, action: _engine.Action
-) -> _engine.ValidationResult:
+def validate_action(state: _engine.GameState, action: _engine.Action) -> _engine.ValidationResult:
     result = _ORIGINAL_VALIDATE_ACTION(state, action)
     if not (
         action.action_type is _engine.ActionType.ACTIVATE_MANA_ABILITY
@@ -86,9 +84,7 @@ def validate_action(
             errors.append("Cascade Bluffs colorless mode has no input mana")
     elif output in _FILTER_OUTPUTS:
         if input_color not in {"U", "R"}:
-            available_inputs = [
-                color for color in ("U", "R") if state.mana_pool.get(color, 0) > 0
-            ]
+            available_inputs = [color for color in ("U", "R") if state.mana_pool.get(color, 0) > 0]
             if input_color is None and len(available_inputs) == 1:
                 normalized_action = replace(action, choice=available_inputs[0])
                 input_color = available_inputs[0]

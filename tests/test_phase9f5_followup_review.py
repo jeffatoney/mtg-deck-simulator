@@ -42,8 +42,7 @@ def test_psychosis_crawler_uses_dynamic_hand_size_and_zero_toughness_sba():
     assert state.opponent_life == [39, 39, 39]
     assert "life_lost:Psychosis Crawler:1" in state.event_log
     assert not any(
-        event.startswith("noncombat_damage:Psychosis Crawler")
-        for event in state.event_log
+        event.startswith("noncombat_damage:Psychosis Crawler") for event in state.event_log
     )
 
     state.hand.pop()
@@ -68,9 +67,7 @@ def test_cascade_bluffs_generates_explicit_input_output_branches():
 
     assert any(action.mana_choice == "C" and action.choice is None for action in actions)
     assert {
-        (action.choice, action.mana_choice)
-        for action in actions
-        if action.mana_choice != "C"
+        (action.choice, action.mana_choice) for action in actions if action.mana_choice != "C"
     } == {
         ("U", "UU"),
         ("U", "UR"),
@@ -96,10 +93,7 @@ def test_cascade_bluffs_spends_selected_input_and_records_it():
     execute_action(state, action)
     assert state.mana_pool["U"] == 1
     assert state.mana_pool["R"] == 2
-    assert any(
-        "Cascade Bluffs:input=R:output=RR" in event
-        for event in state.event_log
-    )
+    assert any("Cascade Bluffs:input=R:output=RR" in event for event in state.event_log)
 
     state = GameState(
         battlefield=[Permanent("Cascade Bluffs", {"Land"})],
@@ -124,9 +118,7 @@ def test_cascade_bluffs_colorless_mode_needs_no_input_and_filter_needs_choice():
         mana_pool=pool(),
     )
     actions = [
-        action
-        for action in generate_legal_actions(state)
-        if action.source_name == "Cascade Bluffs"
+        action for action in generate_legal_actions(state) if action.source_name == "Cascade Bluffs"
     ]
     assert [(action.choice, action.mana_choice) for action in actions] == [(None, "C")]
     assert not validate_action(

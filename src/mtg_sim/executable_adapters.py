@@ -224,9 +224,7 @@ def validate_executable_coverage(registry: dict[str, AdapterRecord] | None = Non
                 )
                 continue
             if normalized_id not in collected_nodes:
-                errors.append(
-                    f"{name} references nonexistent collected pytest node: {test_id}"
-                )
+                errors.append(f"{name} references nonexistent collected pytest node: {test_id}")
 
         if rec.execution_handler != f"execute.{rec.adapter_id.removeprefix('adapter.')}":
             errors.append(f"{name} ability is routed to another card's handler")
