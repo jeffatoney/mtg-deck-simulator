@@ -49,4 +49,6 @@ uv run mtg-sim pilot --config configs/pilot.toml --dry-run
 uv run mtg-sim pilot --config configs/real-executor-smoke.toml --smoke
 ```
 
-The production pilot remains locked and is not part of this remediation.
+GitHub Actions CI run 72 verified frozen installation, formatting, linting, strict type checking, the complete test suite, and manifest integrity on commit `2b2d665cd809a4aa4151e092911cd000bfbccba6`.
+
+The production pilot remains locked and was not run during this remediation.
