@@ -1,6 +1,6 @@
 """Focused Phase 9F-5 follow-up fixes installed over the deck-scoped engine.
 
-The project already uses an installation layer for Phase 5D card behavior.  This
+The project already uses an installation layer for Phase 5D card behavior. This
 module follows that pattern for the small set of review fixes that must remain
 visible to every caller importing :mod:`mtg_sim.engine`.
 """
@@ -14,6 +14,7 @@ from . import engine as _engine
 _CRAWLER = "Psychosis Crawler"
 _CASCADE = "Cascade Bluffs"
 _FILTER_OUTPUTS = {"UU", "UR", "RR"}
+_ETB_ARTIFACTS = {"Sentinel Totem", "Soul-Guide Lantern"}
 
 _ORIGINAL_RECORD_EVENT = _engine.GameState.record_event
 _ORIGINAL_PERMANENT_FOR_CARD = _engine._permanent_for_card
@@ -21,6 +22,7 @@ _ORIGINAL_VALIDATE_ACTION = _engine.validate_action
 _ORIGINAL_GENERATE_LEGAL_ACTIONS = _engine.generate_legal_actions
 _ORIGINAL_EXECUTE_ACTION = _engine.execute_action
 _ORIGINAL_TAP_FOR_MANA = _engine.tap_for_mana
+_ORIGINAL_MOVE_TO_GRAVEYARD_OR_COMMAND_ZONE = _engine.move_to_graveyard_or_command_zone
 _INSTALLED = False
 
 
@@ -35,9 +37,9 @@ def _refresh_psychosis_crawler(state: _engine.GameState) -> None:
 
 
 def _record_event(state: _engine.GameState, event_type: str, detail: str = "") -> None:
-    # Hand changes in the engine are always paired with typed events. Refreshing
-    # here keeps the characteristic-defining ability current after draws,
-    # discards, searches, Memory, and normal action resolution.
+    # Hand changes in the engine are paired with typed events. Refreshing here
+    # keeps the characteristic-defining ability current after draws, discards,
+    # searches, Memory, and normal action resolution.
     _refresh_psychosis_crawler(state)
     _ORIGINAL_RECORD_EVENT(state, event_type, detail)
 
@@ -52,7 +54,22 @@ def _permanent_for_card(name: str) -> _engine.Permanent:
     return permanent
 
 
-def _cascade_result(
+def move_to_graveyard_or_command_zone(
+    state: _engine.GameState,
+    permanent: _engine.Permanent,
+    *,
+    use_command_zone: bool = True,
+) -> None:
+    """Never create a command-zone card from a dying commander token copy."""
+
+    _ORIGINAL_MOVE_TO_GRAVEYARD_OR_COMMAND_ZONE(
+        state,
+        permanent,
+        use_command_zone=use_command_zone and not permanent.is_token,
+    )
+
+
+def _validation_result(
     normalized_action: _engine.Action,
     result: _engine.ValidationResult,
     errors: list[str],
@@ -68,16 +85,35 @@ def _cascade_result(
 
 def validate_action(state: _engine.GameState, action: _engine.Action) -> _engine.ValidationResult:
     result = _ORIGINAL_VALIDATE_ACTION(state, action)
+    errors = list(result.errors)
+    normalized_action = result.normalized_action or action
+
+    if (
+        action.action_type is _engine.ActionType.CAST_SPELL
+        and action.source_name == "Sentinel Totem"
+    ):
+        if action.choice is None:
+            normalized_action = replace(normalized_action, choice="top")
+        elif action.choice not in {"top", "bottom"}:
+            errors.append("Sentinel Totem scry choice must be top or bottom")
+        return _validation_result(normalized_action, result, errors)
+
+    if (
+        action.action_type is _engine.ActionType.CAST_SPELL
+        and action.source_name == "Soul-Guide Lantern"
+    ):
+        if action.choice is not None and action.choice not in state.graveyard:
+            errors.append("Soul-Guide Lantern ETB target must be a card in a graveyard")
+        return _validation_result(normalized_action, result, errors)
+
     if not (
         action.action_type is _engine.ActionType.ACTIVATE_MANA_ABILITY
         and action.source_name == _CASCADE
     ):
         return result
 
-    errors = list(result.errors)
     output = action.mana_choice
     input_color = action.choice
-    normalized_action = action
 
     if output == "C":
         if input_color is not None:
@@ -95,7 +131,7 @@ def validate_action(state: _engine.GameState, action: _engine.Action) -> _engine
     else:
         errors.append("Cascade Bluffs must choose C, UU, UR, or RR")
 
-    return _cascade_result(normalized_action, result, errors)
+    return _validation_result(normalized_action, result, errors)
 
 
 def tap_for_mana(
@@ -138,15 +174,52 @@ def tap_for_mana(
     )
 
 
+def _artifact_cast_variants(
+    state: _engine.GameState,
+    original_actions: list[_engine.Action],
+) -> list[_engine.Action]:
+    variants: list[_engine.Action] = []
+    for card_name in sorted(_ETB_ARTIFACTS):
+        base = next(
+            (
+                action
+                for action in original_actions
+                if action.action_type is _engine.ActionType.CAST_SPELL
+                and action.source_name == card_name
+            ),
+            None,
+        )
+        if base is None:
+            continue
+        choices: tuple[str | None, ...]
+        if card_name == "Sentinel Totem":
+            choices = ("top", "bottom")
+        elif state.graveyard:
+            choices = tuple(sorted(set(state.graveyard)))
+        else:
+            choices = (None,)
+        for choice in choices:
+            candidate = replace(base, choice=choice)
+            if validate_action(state, candidate).accepted:
+                variants.append(candidate)
+    return variants
+
+
 def generate_legal_actions(state: _engine.GameState) -> list[_engine.Action]:
+    original_actions = _ORIGINAL_GENERATE_LEGAL_ACTIONS(state)
     actions = [
         action
-        for action in _ORIGINAL_GENERATE_LEGAL_ACTIONS(state)
+        for action in original_actions
         if not (
             action.action_type is _engine.ActionType.ACTIVATE_MANA_ABILITY
             and action.source_name == _CASCADE
         )
+        and not (
+            action.action_type is _engine.ActionType.CAST_SPELL
+            and action.source_name in _ETB_ARTIFACTS
+        )
     ]
+    actions.extend(_artifact_cast_variants(state, original_actions))
 
     source = next(
         (permanent for permanent in state.battlefield if permanent.name == _CASCADE),
@@ -181,7 +254,45 @@ def generate_legal_actions(state: _engine.GameState) -> list[_engine.Action]:
     return actions
 
 
+def _execute_etb_artifact(state: _engine.GameState, action: _engine.Action) -> None:
+    result = validate_action(state, action)
+    if not result.accepted:
+        raise _engine.RulesError("; ".join(result.errors))
+    normalized = result.normalized_action or action
+    assert normalized.source_name is not None
+    if normalized.origin_zone not in {None, "hand"} or normalized.source_name not in state.hand:
+        raise _engine.RulesError(f"{normalized.source_name} must be cast from hand")
+
+    state.hand.remove(normalized.source_name)
+    state.pay_mana(normalized.mana_cost or {})
+    state.record_event("action", f"cast:{normalized.source_name}:from:hand")
+    state.battlefield.append(_permanent_for_card(normalized.source_name))
+    state.record_event("resolve", normalized.source_name)
+    state.record_event("trigger_detected", f"{normalized.source_name}:enters_the_battlefield")
+
+    if normalized.source_name == "Sentinel Totem":
+        if state.library and normalized.choice == "bottom":
+            state.library.append(state.library.pop(0))
+        state.record_event("scry", f"Sentinel Totem:{normalized.choice or 'top'}")
+    elif normalized.choice is not None and normalized.choice in state.graveyard:
+        state.graveyard.remove(normalized.choice)
+        state.exile.append(normalized.choice)
+        state.record_event("exile_graveyard_card", normalized.choice)
+    else:
+        state.record_event("trigger_no_legal_target", "Soul-Guide Lantern")
+
+    state.would_receive_priority()
+
+
 def execute_action(state: _engine.GameState, action: _engine.Action) -> None:
+    if (
+        action.action_type is _engine.ActionType.CAST_SPELL
+        and action.source_name in _ETB_ARTIFACTS
+    ):
+        _execute_etb_artifact(state, action)
+        _refresh_psychosis_crawler(state)
+        return
+
     if (
         action.action_type is _engine.ActionType.ACTIVATE_MANA_ABILITY
         and action.source_name == _CASCADE
@@ -219,6 +330,7 @@ def install() -> None:
 
     setattr(_engine.GameState, "record_event", _record_event)
     setattr(_engine, "_permanent_for_card", _permanent_for_card)
+    setattr(_engine, "move_to_graveyard_or_command_zone", move_to_graveyard_or_command_zone)
     setattr(_engine, "validate_action", validate_action)
     setattr(_engine, "tap_for_mana", tap_for_mana)
     setattr(_engine, "generate_legal_actions", generate_legal_actions)
