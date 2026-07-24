@@ -66,7 +66,6 @@ def test_commit_rejects_opponent_owned_permanent_without_moving_card_or_paying_m
     generated = [
         candidate
         for candidate in generate_legal_actions(state)
-        if candidate.source_name == "Commit // Memory"
-        and candidate.targets == (target,)
+        if candidate.source_name == "Commit // Memory" and candidate.targets == (target,)
     ]
     assert generated == []
