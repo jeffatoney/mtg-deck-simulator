@@ -20,19 +20,15 @@
     "src/mtg_cards/vertical_slice.py"
   ],
   "allowed_zone_mutation_files": [
-    "src/mtg_kernel/state.py",
     "src/mtg_kernel/zones.py"
   ],
   "allowed_stack_mutation_files": [
-    "src/mtg_kernel/state.py",
     "src/mtg_kernel/stack.py"
   ],
   "allowed_phase_assignment_files": [
-    "src/mtg_kernel/state.py",
     "src/mtg_kernel/turns.py"
   ],
   "allowed_terminal_assignment_files": [
-    "src/mtg_kernel/state.py",
     "src/mtg_kernel/state_based_actions.py"
   ],
   "allowed_trigger_stack_event_files": [
@@ -53,30 +49,6 @@
     "exile",
     "command_zone"
   ],
-  "zone_mutator_methods": [
-    "append",
-    "insert",
-    "extend",
-    "remove",
-    "pop",
-    "clear",
-    "sort",
-    "reverse",
-    "__setitem__",
-    "__delitem__",
-    "__iadd__"
-  ],
-  "stack_mutator_methods": [
-    "append",
-    "insert",
-    "extend",
-    "remove",
-    "pop",
-    "clear",
-    "__setitem__",
-    "__delitem__",
-    "__iadd__"
-  ],
   "phase_attributes": [
     "phase",
     "step"
@@ -90,13 +62,18 @@
   "forbidden_import_prefixes": [
     "mtg_sim"
   ],
+  "forbidden_dynamic_import_modules": [
+    "importlib",
+    "builtins"
+  ],
   "forbidden_patch_target_tokens": [
-    "engine",
-    "executor",
-    "rules",
-    "actions",
-    "zones",
-    "kernel"
+    "mtg_kernel",
+    "gameexecutor",
+    "turnengine",
+    "zoneservice",
+    "stackservice",
+    "triggerengine",
+    "replay"
   ],
   "prohibited_kernel_card_names": [
     "Island",
