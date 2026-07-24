@@ -137,8 +137,10 @@ class ArchitectureScanner(ast.NodeVisitor):
         method = chain[-1] if chain else ""
         receiver = node.func.value if isinstance(node.func, ast.Attribute) else None
 
-        if method in self.zone_mutators and receiver is not None and _contains_attribute(
-            receiver, self.zone_names
+        if (
+            method in self.zone_mutators
+            and receiver is not None
+            and _contains_attribute(receiver, self.zone_names)
         ):
             if not self._zone_mutation_allowed():
                 self.add(
@@ -148,8 +150,10 @@ class ArchitectureScanner(ast.NodeVisitor):
                     ".".join(chain),
                 )
 
-        if method in self.stack_mutators and receiver is not None and _contains_attribute(
-            receiver, {"stack"}
+        if (
+            method in self.stack_mutators
+            and receiver is not None
+            and _contains_attribute(receiver, {"stack"})
         ):
             if not self._stack_mutation_allowed():
                 self.add(
@@ -159,8 +163,10 @@ class ArchitectureScanner(ast.NodeVisitor):
                     ".".join(chain),
                 )
 
-        if method == "insert" and receiver is not None and _contains_attribute(
-            receiver, {"library"}
+        if (
+            method == "insert"
+            and receiver is not None
+            and _contains_attribute(receiver, {"library"})
         ):
             if len(node.args) >= 2 and isinstance(node.args[1], ast.Attribute):
                 if node.args[1].attr == "name":
@@ -274,9 +280,7 @@ def _python_files(root: Path, paths: Iterable[str]) -> list[Path]:
             files.add(candidate)
         elif candidate.is_dir():
             files.update(
-                path
-                for path in candidate.rglob("*.py")
-                if "__pycache__" not in path.parts
+                path for path in candidate.rglob("*.py") if "__pycache__" not in path.parts
             )
     return sorted(files)
 
@@ -367,9 +371,7 @@ def run_gate(root: Path, config_path: Path) -> dict[str, Any]:
         for path in _python_files(root, config.get("test_paths", [])):
             violations.extend(_scan_skips(path, root))
 
-    unique = {
-        (item.path, item.line, item.code, item.detail): item for item in violations
-    }
+    unique = {(item.path, item.line, item.code, item.detail): item for item in violations}
     ordered = sorted(unique.values(), key=lambda item: (item.path, item.line, item.code))
     return {
         "status": "PASS" if not ordered else "FAIL",
@@ -404,8 +406,7 @@ def main() -> int:
 
     if result["status"] == "PASS":
         print(
-            "Architecture invariants: PASS "
-            f"({result['source_files_scanned']} source files scanned)"
+            f"Architecture invariants: PASS ({result['source_files_scanned']} source files scanned)"
         )
         return 0
 
