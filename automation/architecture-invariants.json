@@ -61,7 +61,10 @@
     "pop",
     "clear",
     "sort",
-    "reverse"
+    "reverse",
+    "__setitem__",
+    "__delitem__",
+    "__iadd__"
   ],
   "stack_mutator_methods": [
     "append",
@@ -69,7 +72,10 @@
     "extend",
     "remove",
     "pop",
-    "clear"
+    "clear",
+    "__setitem__",
+    "__delitem__",
+    "__iadd__"
   ],
   "phase_attributes": [
     "phase",
@@ -82,10 +88,7 @@
     "terminal_status"
   ],
   "forbidden_import_prefixes": [
-    "mtg_sim.engine",
-    "mtg_sim.game_executor",
-    "mtg_sim.phase",
-    "mtg_sim.pilot"
+    "mtg_sim"
   ],
   "forbidden_patch_target_tokens": [
     "engine",
