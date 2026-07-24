@@ -1,0 +1,116 @@
+{
+  "enforced_paths": [
+    "src/mtg_kernel/",
+    "src/mtg_cards/"
+  ],
+  "required_paths": [
+    "src/mtg_kernel/__init__.py",
+    "src/mtg_kernel/model.py",
+    "src/mtg_kernel/state.py",
+    "src/mtg_kernel/zones.py",
+    "src/mtg_kernel/stack.py",
+    "src/mtg_kernel/actions.py",
+    "src/mtg_kernel/triggers.py",
+    "src/mtg_kernel/turns.py",
+    "src/mtg_kernel/state_based_actions.py",
+    "src/mtg_kernel/external.py",
+    "src/mtg_kernel/executor.py",
+    "src/mtg_kernel/replay.py",
+    "src/mtg_cards/__init__.py",
+    "src/mtg_cards/vertical_slice.py"
+  ],
+  "allowed_zone_mutation_files": [
+    "src/mtg_kernel/state.py",
+    "src/mtg_kernel/zones.py"
+  ],
+  "allowed_stack_mutation_files": [
+    "src/mtg_kernel/state.py",
+    "src/mtg_kernel/stack.py"
+  ],
+  "allowed_phase_assignment_files": [
+    "src/mtg_kernel/state.py",
+    "src/mtg_kernel/turns.py"
+  ],
+  "allowed_terminal_assignment_files": [
+    "src/mtg_kernel/state.py",
+    "src/mtg_kernel/state_based_actions.py"
+  ],
+  "allowed_trigger_stack_event_files": [
+    "src/mtg_kernel/stack.py"
+  ],
+  "kernel_paths": [
+    "src/mtg_kernel/"
+  ],
+  "test_paths": [
+    "tests/phase_a_acceptance/",
+    "tests/test_architecture_invariant_gate.py"
+  ],
+  "zone_attributes": [
+    "battlefield",
+    "hand",
+    "library",
+    "graveyard",
+    "exile",
+    "command_zone"
+  ],
+  "zone_mutator_methods": [
+    "append",
+    "insert",
+    "extend",
+    "remove",
+    "pop",
+    "clear",
+    "sort",
+    "reverse"
+  ],
+  "stack_mutator_methods": [
+    "append",
+    "insert",
+    "extend",
+    "remove",
+    "pop",
+    "clear"
+  ],
+  "phase_attributes": [
+    "phase",
+    "step"
+  ],
+  "terminal_attributes": [
+    "won",
+    "lost",
+    "game_over",
+    "terminal_status"
+  ],
+  "forbidden_import_prefixes": [
+    "mtg_sim.engine",
+    "mtg_sim.game_executor",
+    "mtg_sim.phase",
+    "mtg_sim.pilot"
+  ],
+  "forbidden_patch_target_tokens": [
+    "engine",
+    "executor",
+    "rules",
+    "actions",
+    "zones",
+    "kernel"
+  ],
+  "prohibited_kernel_card_names": [
+    "Island",
+    "Mountain",
+    "Sol Ring",
+    "Opt",
+    "Abrade",
+    "Soul-Guide Lantern",
+    "Commit // Memory",
+    "Commit",
+    "Memory",
+    "Malcolm, Keen-Eyed Navigator",
+    "Glint-Horn Buccaneer",
+    "Dualcaster Mage",
+    "Twinflame",
+    "Curiosity"
+  ],
+  "forbid_skipped_or_xfailed_tests": true,
+  "exempt_files": []
+}
