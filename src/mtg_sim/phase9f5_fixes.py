@@ -13,6 +13,7 @@ from . import engine as _engine
 
 _CRAWLER = "Psychosis Crawler"
 _CASCADE = "Cascade Bluffs"
+_COMMIT_MEMORY = "Commit // Memory"
 _FILTER_OUTPUTS = {"UU", "UR", "RR"}
 _ETB_ARTIFACTS = {"Sentinel Totem", "Soul-Guide Lantern"}
 
@@ -83,37 +84,65 @@ def _validation_result(
     )
 
 
-def validate_action(state: _engine.GameState, action: _engine.Action) -> _engine.ValidationResult:
-    result = _ORIGINAL_VALIDATE_ACTION(state, action)
-    errors = list(result.errors)
-    normalized_action = result.normalized_action or action
+def _normalize_commit_action(action: _engine.Action) -> _engine.Action:
+    """Make the chosen split-card half explicit before normal validation."""
 
     if (
         action.action_type is _engine.ActionType.CAST_SPELL
-        and action.source_name == "Sentinel Totem"
+        and action.source_name == _COMMIT_MEMORY
+        and action.choice is None
+        and (action.stack_target is not None or action.targets)
     ):
-        if action.choice is None:
+        return replace(action, choice="Commit")
+    return action
+
+
+def validate_action(state: _engine.GameState, action: _engine.Action) -> _engine.ValidationResult:
+    normalized_input = _normalize_commit_action(action)
+    result = _ORIGINAL_VALIDATE_ACTION(state, normalized_input)
+    errors = list(result.errors)
+    normalized_action = result.normalized_action or normalized_input
+
+    if (
+        normalized_input.action_type is _engine.ActionType.CAST_SPELL
+        and normalized_input.source_name == _COMMIT_MEMORY
+    ):
+        if normalized_input.choice not in {"Commit", "Memory"}:
+            errors.append("Commit // Memory requires an explicit legal chosen half")
+        if normalized_input.choice == "Commit":
+            for target in normalized_input.targets:
+                if target.controller != 0:
+                    errors.append(
+                        "Commit cannot put an opponent-owned permanent into the simulated player's library"
+                    )
+        return _validation_result(normalized_action, result, errors)
+
+    if (
+        normalized_input.action_type is _engine.ActionType.CAST_SPELL
+        and normalized_input.source_name == "Sentinel Totem"
+    ):
+        if normalized_input.choice is None:
             normalized_action = replace(normalized_action, choice="top")
-        elif action.choice not in {"top", "bottom"}:
+        elif normalized_input.choice not in {"top", "bottom"}:
             errors.append("Sentinel Totem scry choice must be top or bottom")
         return _validation_result(normalized_action, result, errors)
 
     if (
-        action.action_type is _engine.ActionType.CAST_SPELL
-        and action.source_name == "Soul-Guide Lantern"
+        normalized_input.action_type is _engine.ActionType.CAST_SPELL
+        and normalized_input.source_name == "Soul-Guide Lantern"
     ):
-        if action.choice is not None and action.choice not in state.graveyard:
+        if normalized_input.choice is not None and normalized_input.choice not in state.graveyard:
             errors.append("Soul-Guide Lantern ETB target must be a card in a graveyard")
         return _validation_result(normalized_action, result, errors)
 
     if not (
-        action.action_type is _engine.ActionType.ACTIVATE_MANA_ABILITY
-        and action.source_name == _CASCADE
+        normalized_input.action_type is _engine.ActionType.ACTIVATE_MANA_ABILITY
+        and normalized_input.source_name == _CASCADE
     ):
         return result
 
-    output = action.mana_choice
-    input_color = action.choice
+    output = normalized_input.mana_choice
+    input_color = normalized_input.choice
 
     if output == "C":
         if input_color is not None:
@@ -122,7 +151,7 @@ def validate_action(state: _engine.GameState, action: _engine.Action) -> _engine
         if input_color not in {"U", "R"}:
             available_inputs = [color for color in ("U", "R") if state.mana_pool.get(color, 0) > 0]
             if input_color is None and len(available_inputs) == 1:
-                normalized_action = replace(action, choice=available_inputs[0])
+                normalized_action = replace(normalized_input, choice=available_inputs[0])
                 input_color = available_inputs[0]
             else:
                 errors.append("Cascade Bluffs filter action must choose U or R input mana")
@@ -218,6 +247,11 @@ def generate_legal_actions(state: _engine.GameState) -> list[_engine.Action]:
             action.action_type is _engine.ActionType.CAST_SPELL
             and action.source_name in _ETB_ARTIFACTS
         )
+        and not (
+            action.action_type is _engine.ActionType.CAST_SPELL
+            and action.source_name == _COMMIT_MEMORY
+            and any(target.controller != 0 for target in action.targets)
+        )
     ]
     actions.extend(_artifact_cast_variants(state, original_actions))
 
@@ -285,19 +319,23 @@ def _execute_etb_artifact(state: _engine.GameState, action: _engine.Action) -> N
 
 
 def execute_action(state: _engine.GameState, action: _engine.Action) -> None:
-    if action.action_type is _engine.ActionType.CAST_SPELL and action.source_name in _ETB_ARTIFACTS:
-        _execute_etb_artifact(state, action)
+    normalized_action = _normalize_commit_action(action)
+    if (
+        normalized_action.action_type is _engine.ActionType.CAST_SPELL
+        and normalized_action.source_name in _ETB_ARTIFACTS
+    ):
+        _execute_etb_artifact(state, normalized_action)
         _refresh_psychosis_crawler(state)
         return
 
     if (
-        action.action_type is _engine.ActionType.ACTIVATE_MANA_ABILITY
-        and action.source_name == _CASCADE
+        normalized_action.action_type is _engine.ActionType.ACTIVATE_MANA_ABILITY
+        and normalized_action.source_name == _CASCADE
     ):
-        result = validate_action(state, action)
+        result = validate_action(state, normalized_action)
         if not result.accepted:
             raise _engine.RulesError("; ".join(result.errors))
-        normalized = result.normalized_action or action
+        normalized = result.normalized_action or normalized_action
         source = next(
             (permanent for permanent in state.battlefield if permanent.name == _CASCADE),
             None,
@@ -314,7 +352,7 @@ def execute_action(state: _engine.GameState, action: _engine.Action) -> None:
         )
         return
 
-    _ORIGINAL_EXECUTE_ACTION(state, action)
+    _ORIGINAL_EXECUTE_ACTION(state, normalized_action)
     _refresh_psychosis_crawler(state)
 
 
