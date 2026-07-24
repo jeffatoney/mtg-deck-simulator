@@ -31,8 +31,7 @@ def _relative(path: Path, root: Path) -> str:
 
 def _matches_path(relative: str, candidates: Iterable[str]) -> bool:
     return any(
-        relative == candidate.rstrip("/")
-        or relative.startswith(candidate.rstrip("/") + "/")
+        relative == candidate.rstrip("/") or relative.startswith(candidate.rstrip("/") + "/")
         for candidate in candidates
     )
 

@@ -84,9 +84,7 @@ def test_architecture_gate_rejects_zone_access_and_alias_origin(tmp_path: Path) 
     _fixture(tmp_path)
     result = _write(
         tmp_path,
-        "def bad(state, card):\n"
-        "    cards = state.hand\n"
-        "    cards.append(card)\n",
+        "def bad(state, card):\n    cards = state.hand\n    cards.append(card)\n",
     )
     assert result.returncode == 1
     assert "ZONE_ACCESS" in result.stdout
@@ -166,8 +164,7 @@ def test_architecture_gate_rejects_legacy_import_aliases(tmp_path: Path) -> None
     _fixture(tmp_path)
     result = _write(
         tmp_path,
-        "from mtg_sim import engine as legacy_engine\n"
-        "from mtg_sim import pilot\n",
+        "from mtg_sim import engine as legacy_engine\nfrom mtg_sim import pilot\n",
     )
     assert result.returncode == 1
     assert result.stdout.count("LEGACY_IMPORT") >= 2
@@ -213,9 +210,7 @@ def test_architecture_gate_rejects_dynamic_or_star_test_suppression(tmp_path: Pa
     path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
     path.parent.mkdir(parents=True)
     path.write_text(
-        "from pytest import *\n"
-        "import pytest\n"
-        "marker = getattr(pytest.mark, 'xfail')\n",
+        "from pytest import *\nimport pytest\nmarker = getattr(pytest.mark, 'xfail')\n",
         encoding="utf-8",
     )
     result = _run(tmp_path)
