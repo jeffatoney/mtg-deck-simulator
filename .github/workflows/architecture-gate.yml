@@ -49,7 +49,7 @@ jobs:
           test "$EXPECTED" = "$ACTUAL"
 
           git fetch --no-tags origin main
-          git diff --exit-code origin/main...HEAD -- "$SPEC" "$HASH_FILE"
+          git diff --exit-code origin/main HEAD -- "$SPEC" "$HASH_FILE"
 
       - name: Check architecture invariants
         run: >-
