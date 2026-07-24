@@ -217,10 +217,10 @@ def install() -> None:
     if _INSTALLED:
         return
 
-    _engine.GameState.record_event = _record_event
-    _engine._permanent_for_card = _permanent_for_card
-    _engine.validate_action = validate_action
-    _engine.tap_for_mana = tap_for_mana
-    _engine.generate_legal_actions = generate_legal_actions
-    _engine.execute_action = execute_action
+    setattr(_engine.GameState, "record_event", _record_event)
+    setattr(_engine, "_permanent_for_card", _permanent_for_card)
+    setattr(_engine, "validate_action", validate_action)
+    setattr(_engine, "tap_for_mana", tap_for_mana)
+    setattr(_engine, "generate_legal_actions", generate_legal_actions)
+    setattr(_engine, "execute_action", execute_action)
     _INSTALLED = True
