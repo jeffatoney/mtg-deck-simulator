@@ -43,8 +43,7 @@ def test_sentinel_totem_resolves_as_artifact_and_executes_scry_choice():
     actions = [
         action
         for action in generate_legal_actions(state)
-        if action.action_type is ActionType.CAST_SPELL
-        and action.source_name == "Sentinel Totem"
+        if action.action_type is ActionType.CAST_SPELL and action.source_name == "Sentinel Totem"
     ]
     bottom = next(action for action in actions if action.choice == "bottom")
 

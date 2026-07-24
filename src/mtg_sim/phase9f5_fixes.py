@@ -285,10 +285,7 @@ def _execute_etb_artifact(state: _engine.GameState, action: _engine.Action) -> N
 
 
 def execute_action(state: _engine.GameState, action: _engine.Action) -> None:
-    if (
-        action.action_type is _engine.ActionType.CAST_SPELL
-        and action.source_name in _ETB_ARTIFACTS
-    ):
+    if action.action_type is _engine.ActionType.CAST_SPELL and action.source_name in _ETB_ARTIFACTS:
         _execute_etb_artifact(state, action)
         _refresh_psychosis_crawler(state)
         return
