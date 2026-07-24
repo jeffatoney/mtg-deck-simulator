@@ -65,9 +65,7 @@ def _config(root: Path) -> None:
 def _required_files(root: Path) -> None:
     files = {
         "src/mtg_kernel/zones.py": (
-            "def move(state, card):\n"
-            "    cards = state.hand\n"
-            "    cards.append(card)\n"
+            "def move(state, card):\n    cards = state.hand\n    cards.append(card)\n"
         ),
         "src/mtg_kernel/stack.py": "def push(state, obj):\n    state.stack.append(obj)\n",
         "src/mtg_kernel/turns.py": "def advance(state):\n    state.phase = 'main'\n",
@@ -127,9 +125,7 @@ def test_architecture_gate_rejects_zone_alias_subscript_assignment(tmp_path: Pat
     _required_files(tmp_path)
     path = tmp_path / "src/mtg_kernel/executor.py"
     path.write_text(
-        "def bad(state, card):\n"
-        "    cards = state.library\n"
-        "    cards[0] = card\n",
+        "def bad(state, card):\n    cards = state.library\n    cards[0] = card\n",
         encoding="utf-8",
     )
     result = _run(tmp_path)
@@ -153,8 +149,7 @@ def test_architecture_gate_rejects_importfrom_legacy_aliases(tmp_path: Path) -> 
     _required_files(tmp_path)
     path = tmp_path / "src/mtg_kernel/executor.py"
     path.write_text(
-        "from mtg_sim import engine as legacy_engine\n"
-        "from mtg_sim import pilot\n",
+        "from mtg_sim import engine as legacy_engine\nfrom mtg_sim import pilot\n",
         encoding="utf-8",
     )
     result = _run(tmp_path)

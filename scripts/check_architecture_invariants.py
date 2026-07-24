@@ -90,11 +90,7 @@ def _target_keys(node: ast.AST) -> tuple[str, ...]:
 
 
 def _local_target_names(node: ast.AST) -> set[str]:
-    return {
-        target.id
-        for target in _iter_targets(node)
-        if isinstance(target, ast.Name)
-    }
+    return {target.id for target in _iter_targets(node) if isinstance(target, ast.Name)}
 
 
 def _literal_string(node: ast.AST | None) -> str | None:
@@ -228,9 +224,7 @@ class ScopeCollector(ast.NodeVisitor):
             self.visit(node.value)
             self._record_assignment(node.target, node.value)
         else:
-            self.scopes[self.current_scope].local_names.update(
-                _local_target_names(node.target)
-            )
+            self.scopes[self.current_scope].local_names.update(_local_target_names(node.target))
         self.visit(node.target)
 
     def visit_NamedExpr(self, node: ast.NamedExpr) -> None:
@@ -263,11 +257,7 @@ def _expression_origins(
             return frozenset({"stack"})
         return frozenset()
     if isinstance(node, ast.Call):
-        if (
-            isinstance(node.func, ast.Name)
-            and node.func.id == "getattr"
-            and len(node.args) >= 2
-        ):
+        if isinstance(node.func, ast.Name) and node.func.id == "getattr" and len(node.args) >= 2:
             attribute = _literal_string(node.args[1])
             if attribute in zone_names:
                 return frozenset({f"zone:{attribute}"})
@@ -340,9 +330,7 @@ def _build_alias_index(
         while changed:
             changed = False
             for target, value in scope.assignments:
-                for key, origins in _assignment_bindings(
-                    target, value, aliases, zone_names
-                ):
+                for key, origins in _assignment_bindings(target, value, aliases, zone_names):
                     if not origins:
                         continue
                     merged = aliases.get(key, frozenset()).union(origins)
@@ -376,9 +364,7 @@ class ArchitectureScanner(ast.NodeVisitor):
         self.stack_mutators = set(config["stack_mutator_methods"])
         self.phase_names = set(config["phase_attributes"])
         self.terminal_names = set(config["terminal_attributes"])
-        self.aliases_by_scope, self.node_scope = _build_alias_index(
-            tree, self.zone_names
-        )
+        self.aliases_by_scope, self.node_scope = _build_alias_index(tree, self.zone_names)
 
     def add(self, node: ast.AST, code: str, reason: str, detail: str) -> None:
         self.violations.append(
