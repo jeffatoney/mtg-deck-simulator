@@ -670,25 +670,6 @@
       ]
     },
     {
-      "adapter_id": "adapter.into_the_roil",
-      "card_name": "Into the Roil",
-      "cost_builder": "cost.into_the_roil",
-      "execution_handler": "execute.into_the_roil",
-      "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Into the Roil]"
-      ],
-      "legal_action_generator": "generate.into_the_roil",
-      "relevant_zones": [
-        "hand",
-        "battlefield"
-      ],
-      "status": "EXECUTABLE",
-      "target_mode_choice_builder": "choices.into_the_roil",
-      "timing_restrictions": [
-        "rules_validated"
-      ]
-    },
-    {
       "adapter_id": "adapter.introduction_to_annihilation",
       "card_name": "Introduction to Annihilation",
       "cost_builder": "cost.introduction_to_annihilation",
@@ -722,6 +703,25 @@
       ],
       "status": "EXECUTABLE",
       "target_mode_choice_builder": "choices.invert_invent",
+      "timing_restrictions": [
+        "rules_validated"
+      ]
+    },
+    {
+      "adapter_id": "adapter.into_the_roil",
+      "card_name": "Into the Roil",
+      "cost_builder": "cost.into_the_roil",
+      "execution_handler": "execute.into_the_roil",
+      "integration_test_ids": [
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Into the Roil]"
+      ],
+      "legal_action_generator": "generate.into_the_roil",
+      "relevant_zones": [
+        "hand",
+        "battlefield"
+      ],
+      "status": "EXECUTABLE",
+      "target_mode_choice_builder": "choices.into_the_roil",
       "timing_restrictions": [
         "rules_validated"
       ]
@@ -1524,5 +1524,6 @@
         "rules_validated"
       ]
     }
-  ]
+  ],
+  "verified_semantic_test_evidence_count": 80
 }
