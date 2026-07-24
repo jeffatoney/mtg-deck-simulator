@@ -1,0 +1,26 @@
+{
+  "project": "Malcolm and Breeches rules-validated simulator",
+  "production_pilot_locked": true,
+  "current_phase": "A_SETUP",
+  "phases": [
+    {
+      "id": "A",
+      "title": "Clean rules kernel and vertical slice",
+      "branch": "recovery/phase-a-rules-kernel",
+      "prompt": "prompts/recovery/PHASE_A_KERNEL.md",
+      "gate": "uv run mtg-sim recovery kernel"
+    },
+    {
+      "id": "B",
+      "title": "Complete 98-card migration and policy reconnection",
+      "gate": "uv run mtg-sim recovery deck",
+      "depends_on": "A"
+    },
+    {
+      "id": "C",
+      "title": "Readiness audit and corrected 500/200 pilot",
+      "gate": "uv run mtg-sim recovery pilot",
+      "depends_on": "B"
+    }
+  ]
+}
