@@ -32,3 +32,11 @@ jobs:
         run: uv run pytest -q
       - name: Manifest integrity
         run: uv run python scripts/check_manifest.py
+      - name: Validate sources
+        run: uv run mtg-sim validate-sources
+      - name: Validate static coverage
+        run: uv run mtg-sim validate-coverage
+      - name: Validate executable coverage
+        run: uv run mtg-sim validate-executable-coverage
+      - name: Validate pre-policy readiness
+        run: uv run mtg-sim validate-prepolicy-readiness
