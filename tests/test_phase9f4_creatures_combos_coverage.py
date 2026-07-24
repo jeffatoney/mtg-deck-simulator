@@ -214,3 +214,29 @@ def test_niv_summoning_sickness_psychosis_life_loss_and_full_report(tmp_path):
     assert report["blocked_adapter_count"] == 0
     assert validate_executable_coverage() == []
     assert json.loads((tmp_path / "full-executable-coverage.json").read_text())["errors"] == []
+
+
+def test_psychosis_crawler_dynamic_hand_size_characteristics_and_life_loss() -> None:
+    from mtg_sim.engine import current_power, current_toughness
+
+    crawler = Permanent("Psychosis Crawler", {"Artifact", "Creature"}, power=None, toughness=None)
+    state = GameState(library=["Opt"], hand=["Island", "Mountain"], battlefield=[crawler])
+    state.check_state_based_actions()
+    assert crawler in state.battlefield
+    assert current_power(state, crawler) == 2
+    assert current_toughness(state, crawler) == 2
+
+    state.draw(1)
+    assert current_power(state, crawler) == 3
+    assert current_toughness(state, crawler) == 3
+    assert state.opponent_life == [39, 39, 39]
+    assert not any(e.startswith("noncombat_damage:Psychosis Crawler") for e in state.event_log)
+
+    discarded = state.hand.pop(0)
+    state.graveyard.append(discarded)
+    assert current_power(state, crawler) == 2
+    assert current_toughness(state, crawler) == 2
+    state.hand.clear()
+    state.check_state_based_actions()
+    assert crawler not in state.battlefield
+    assert "Psychosis Crawler" in state.graveyard

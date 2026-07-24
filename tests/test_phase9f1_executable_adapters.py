@@ -117,8 +117,10 @@ def test_bounce_filter_and_entry_tapped() -> None:
         s, Action(ActionType.ACTIVATE_MANA_ABILITY, "Cascade Bluffs", mana_choice="U")
     ).accepted
     s.mana_pool["R"] = 1
-    execute_action(s, Action(ActionType.ACTIVATE_MANA_ABILITY, "Cascade Bluffs", mana_choice="U"))
-    assert s.mana_pool["U"] == 1
+    execute_action(
+        s, Action(ActionType.ACTIVATE_MANA_ABILITY, "Cascade Bluffs", mana_choice="UR", choice="R")
+    )
+    assert s.mana_pool["U"] == 1 and s.mana_pool["R"] == 1
     s = GameState(hand=["Temple of Epiphany"])
     execute_action(s, Action(ActionType.PLAY_LAND, "Temple of Epiphany", timing="sorcery"))
     assert not validate_action(
@@ -192,3 +194,146 @@ def test_rocks_treasure_and_distinct_abilities() -> None:
         ),
     )
     assert "Ash Barrens" in s.graveyard and "Mountain" in s.hand
+
+
+def _cascade_actions(state: GameState):
+    return [
+        a
+        for a in generate_legal_actions(state)
+        if a.action_type is ActionType.ACTIVATE_MANA_ABILITY and a.source_name == "Cascade Bluffs"
+    ]
+
+
+def test_cascade_bluffs_filter_variants_record_input_and_output() -> None:
+    land = Permanent("Cascade Bluffs", {"Land"})
+    empty = GameState(battlefield=[land], mana_pool=pool())
+    assert [(a.choice, a.mana_choice) for a in _cascade_actions(empty)] == [(None, "C")]
+
+    u_only = GameState(battlefield=[Permanent("Cascade Bluffs", {"Land"})], mana_pool=pool(u=1))
+    assert {(a.choice, a.mana_choice) for a in _cascade_actions(u_only)} == {
+        (None, "C"),
+        ("U", "UU"),
+        ("U", "UR"),
+        ("U", "RR"),
+    }
+
+    r_only = GameState(battlefield=[Permanent("Cascade Bluffs", {"Land"})], mana_pool=pool(r=1))
+    assert {(a.choice, a.mana_choice) for a in _cascade_actions(r_only)} == {
+        (None, "C"),
+        ("R", "UU"),
+        ("R", "UR"),
+        ("R", "RR"),
+    }
+
+    both = GameState(battlefield=[Permanent("Cascade Bluffs", {"Land"})], mana_pool=pool(u=1, r=1))
+    assert {a.choice for a in _cascade_actions(both) if a.mana_choice == "RR"} == {"U", "R"}
+
+    spend_r = GameState(
+        battlefield=[Permanent("Cascade Bluffs", {"Land"})], mana_pool=pool(u=1, r=1)
+    )
+    execute_action(
+        spend_r,
+        Action(ActionType.ACTIVATE_MANA_ABILITY, "Cascade Bluffs", mana_choice="RR", choice="R"),
+    )
+    assert spend_r.mana_pool["U"] == 1 and spend_r.mana_pool["R"] == 2
+    assert not _cascade_actions(spend_r)
+
+    spend_u = GameState(
+        battlefield=[Permanent("Cascade Bluffs", {"Land"})], mana_pool=pool(u=1, r=1)
+    )
+    execute_action(
+        spend_u,
+        Action(ActionType.ACTIVATE_MANA_ABILITY, "Cascade Bluffs", mana_choice="RR", choice="U"),
+    )
+    assert spend_u.mana_pool["U"] == 0 and spend_u.mana_pool["R"] == 3
+
+
+def test_cascade_bluffs_replay_preserves_exact_filter_choice() -> None:
+    action = Action(
+        ActionType.ACTIVATE_MANA_ABILITY, "Cascade Bluffs", mana_choice="RR", choice="R"
+    )
+    state = GameState(battlefield=[Permanent("Cascade Bluffs", {"Land"})], mana_pool=pool(u=1, r=1))
+    execute_action(state, action)
+    assert "action:activate_mana:Cascade Bluffs:R->RR" in state.event_log
+    assert "mana_produced:Cascade Bluffs:R->RR" in state.event_log
+
+
+def test_executable_coverage_requires_complete_collected_pytest_nodes() -> None:
+    from mtg_sim.executable_adapters import AdapterRecord, validate_executable_coverage
+
+    good = AdapterRecord(
+        "Island",
+        "adapter.island",
+        "generate.island",
+        "cost.island",
+        "choices.island",
+        "execute.island",
+        ("hand", "battlefield"),
+        ("rules_validated",),
+        (
+            "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Island]",
+        ),
+        "EXECUTABLE",
+    )
+    assert not any(
+        "Island integration test" in e for e in validate_executable_coverage({"Island": good})
+    )
+    bad_function = AdapterRecord(
+        "Island",
+        "adapter.island",
+        "generate.island",
+        "cost.island",
+        "choices.island",
+        "execute.island",
+        ("hand", "battlefield"),
+        ("rules_validated",),
+        ("tests/test_phase9f4_creatures_combos_coverage.py::test_does_not_exist",),
+        "EXECUTABLE",
+    )
+    assert any("not collected" in e for e in validate_executable_coverage({"Island": bad_function}))
+    bad_param = AdapterRecord(
+        "Island",
+        "adapter.island",
+        "generate.island",
+        "cost.island",
+        "choices.island",
+        "execute.island",
+        ("hand", "battlefield"),
+        ("rules_validated",),
+        (
+            "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Nope]",
+        ),
+        "EXECUTABLE",
+    )
+    assert any("not collected" in e for e in validate_executable_coverage({"Island": bad_param}))
+    file_only = AdapterRecord(
+        "Island",
+        "adapter.island",
+        "generate.island",
+        "cost.island",
+        "choices.island",
+        "execute.island",
+        ("hand", "battlefield"),
+        ("rules_validated",),
+        ("tests/test_phase9f4_creatures_combos_coverage.py",),
+        "EXECUTABLE",
+    )
+    assert any(
+        "complete pytest node ID" in e for e in validate_executable_coverage({"Island": file_only})
+    )
+    sem = AdapterRecord(
+        "Island",
+        "adapter.island",
+        "generate.island",
+        "cost.island",
+        "choices.island",
+        "execute.island",
+        ("hand", "battlefield"),
+        ("rules_validated",),
+        ("SEM-fabricated",),
+        "EXECUTABLE",
+    )
+    assert any(
+        "complete pytest node ID" in e or "semantic" in e
+        for e in validate_executable_coverage({"Island": sem})
+    )

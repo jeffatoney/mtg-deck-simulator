@@ -1,0 +1,7 @@
+{
+  "exploratory_game_count": 200,
+  "manifest_path": "artifacts/pilot/dry-run-20260724T104010645762Z/manifest.json",
+  "planned_policy_evaluation_count": 4800,
+  "standard_game_count": 500
+}
+Pilot dry-run manifest written to artifacts/pilot/dry-run-20260724T104010645762Z/manifest.json

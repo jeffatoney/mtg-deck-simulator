@@ -108,6 +108,39 @@ def validate_executable_coverage(
     )
 
 
+@app.command("validate-prepolicy-readiness")
+def validate_prepolicy_readiness() -> None:
+    """Validate pre-policy correctness gates without running the production pilot."""
+    source_result = run_source_validation()
+    executable_errors = run_executable_coverage()
+    coverage_errors: list[str] = []
+    coverage_path = Path("card_coverage.csv")
+    if not coverage_path.exists():
+        coverage_errors.append(f"missing {coverage_path}")
+    else:
+        rows = list(csv.DictReader(coverage_path.read_text(encoding="utf-8").splitlines()))
+        by_name = {row["card_name"]: row for row in rows}
+        coverage_errors.extend(
+            f"missing coverage row: {name}" for name in sorted(ASSIGNED_CARDS.difference(by_name))
+        )
+        coverage_errors.extend(
+            f"incomplete coverage row: {name}"
+            for name in sorted(ASSIGNED_CARDS.intersection(by_name))
+            if by_name[name]["coverage_status"] not in {"FULL", "BASELINE_EXPLICIT"}
+            or not by_name[name]["handler_id"]
+            or not by_name[name]["test_file"]
+        )
+    errors = list(source_result.errors) + coverage_errors + executable_errors
+    if errors:
+        typer.echo("Pre-policy readiness validation failed:", err=True)
+        for error in errors:
+            typer.echo(f"- {error}", err=True)
+        raise typer.Exit(1)
+    typer.echo(
+        "Pre-policy readiness validation passed: sources, coverage, and executable evidence are valid."
+    )
+
+
 @app.command("verify-rules")
 def verify_rules(output: Path = typer.Option(..., "--output")) -> None:
     """Run the complete Phase 6 rules competency gate and write an immutable report."""

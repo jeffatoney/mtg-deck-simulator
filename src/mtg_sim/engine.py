@@ -158,6 +158,15 @@ class GameState:
         if self.attempted_empty_draw:
             self.lost = True
             self.record_event("state_based_action", "empty_library_loss")
+        for permanent in list(self.battlefield):
+            has_toughness = permanent.toughness is not None or permanent.name == "Psychosis Crawler"
+            if (
+                "Creature" in permanent.types
+                and has_toughness
+                and current_toughness(self, permanent) <= 0
+            ):
+                move_to_graveyard_or_command_zone(self, permanent)
+                self.record_event("state_based_action", f"zero_toughness:{permanent.name}")
         for idx, life in enumerate(self.opponent_life):
             if life <= 0:
                 self.record_event("state_based_action", f"opponent_{idx}_lost")
@@ -1067,7 +1076,7 @@ CREATURE_STATS = {
     "Wily Goblin": (1, 1),
     "Drift of Phantasms": (0, 5),
     "Vedalken Aethermage": (1, 2),
-    "Psychosis Crawler": (0, 0),
+    "Psychosis Crawler": (None, None),
 }
 
 
@@ -1151,7 +1160,9 @@ def _legal_mana_outputs(permanent: Permanent) -> tuple[str, ...]:
         return ("R",)
     if permanent.name == "Shivan Reef":
         return ("C", "U", "R")
-    if permanent.name in {"Cascade Bluffs", "Izzet Boilerworks"}:
+    if permanent.name == "Cascade Bluffs":
+        return ("C", "UU", "UR", "RR")
+    if permanent.name == "Izzet Boilerworks":
         return ("U", "R")
     if permanent.name in {"Temple of Epiphany", "Frostboil Snarl", "Path of Ancestry"}:
         return ("U", "R")
@@ -1170,7 +1181,25 @@ def _legal_mana_outputs(permanent: Permanent) -> tuple[str, ...]:
     return tuple(permanent.mana_abilities.values())
 
 
-def tap_for_mana(state: GameState, permanent: Permanent, color: str | None = None) -> None:
+def current_power(state: GameState, permanent: Permanent) -> int:
+    if permanent.name == "Psychosis Crawler":
+        return len(state.hand)
+    return permanent.power or 0
+
+
+def current_toughness(state: GameState, permanent: Permanent) -> int:
+    if permanent.name == "Psychosis Crawler":
+        return len(state.hand)
+    return permanent.toughness or 0
+
+
+def tap_for_mana(
+    state: GameState,
+    permanent: Permanent,
+    color: str | None = None,
+    *,
+    input_mana: str | None = None,
+) -> None:
     ensure_not_terminal(state)
     if permanent.tapped:
         raise RulesError("permanent is already tapped")
@@ -1178,10 +1207,18 @@ def tap_for_mana(state: GameState, permanent: Permanent, color: str | None = Non
     produced = color or (outputs[0] if outputs else None)
     if produced not in outputs:
         raise RulesError(f"illegal mana choice for {permanent.name}")
-    if permanent.name == "Cascade Bluffs":
-        if state.mana_pool.get("U", 0) + state.mana_pool.get("R", 0) < 1:
-            raise RulesError("Cascade Bluffs requires blue or red input mana")
-        state.pay_mana({"U": 1} if state.mana_pool.get("U", 0) else {"R": 1})
+    if permanent.name == "Cascade Bluffs" and produced in {"UU", "UR", "RR"}:
+        if input_mana not in {"U", "R"}:
+            raise RulesError("Cascade Bluffs filter requires selected U/R input mana")
+        if state.mana_pool.get(input_mana, 0) < 1:
+            raise RulesError("Cascade Bluffs selected input mana is unavailable")
+        state.mana_pool[input_mana] -= 1
+        permanent.tapped = True
+        for symbol in produced:
+            state.mana_pool[symbol] += 1
+        state.record_event("mana_paid", f"Cascade Bluffs input:{input_mana}")
+        state.record_event("mana_produced", f"Cascade Bluffs:{input_mana}->{produced}")
+        return
     if permanent.name == "Izzet Signet":
         state.pay_mana({"generic": 1})
         permanent.tapped = True
@@ -1194,6 +1231,8 @@ def tap_for_mana(state: GameState, permanent: Permanent, color: str | None = Non
     permanent.tapped = True
     amount = 2 if permanent.name == "Sol Ring" and produced == "C" else 1
     state.mana_pool[produced] += amount
+    if permanent.name == "Cascade Bluffs" and produced == "C":
+        pass
     if permanent.name == "Shivan Reef" and produced in {"U", "R"}:
         state.record_event("life_lost", "Shivan Reef:1")
     state.record_event("mana_produced", f"{permanent.name}:{produced}:{amount}")
@@ -1706,9 +1745,17 @@ def validate_action(state: GameState, action: Action) -> ValidationResult:
             errors.append(f"illegal mana choice for {source.name}")
         elif (
             source.name == "Cascade Bluffs"
-            and state.mana_pool.get("U", 0) + state.mana_pool.get("R", 0) < 1
+            and action.mana_choice in {"UU", "UR", "RR"}
+            and action.choice not in {"U", "R"}
         ):
-            errors.append("Cascade Bluffs requires blue or red input mana")
+            errors.append("Cascade Bluffs filter requires selected U/R input mana")
+        elif (
+            source.name == "Cascade Bluffs"
+            and action.mana_choice in {"UU", "UR", "RR"}
+            and action.choice in {"U", "R"}
+            and state.mana_pool.get(action.choice, 0) < 1
+        ):
+            errors.append("Cascade Bluffs selected input mana is unavailable")
         elif (
             source.name in {"Izzet Signet", "Prismatic Lens"}
             and action.mana_choice in COLORED_MANA
@@ -2161,6 +2208,22 @@ def generate_legal_actions(state: GameState) -> list[Action]:
             if validate_action(state, candidate).accepted:
                 actions.append(candidate)
     for permanent in state.battlefield:
+        if permanent.name == "Cascade Bluffs":
+            variants = [Action(ActionType.ACTIVATE_MANA_ABILITY, permanent.name, mana_choice="C")]
+            variants.extend(
+                Action(
+                    ActionType.ACTIVATE_MANA_ABILITY,
+                    permanent.name,
+                    mana_choice=output,
+                    choice=input_mana,
+                )
+                for input_mana in ("U", "R")
+                for output in ("UU", "UR", "RR")
+            )
+            for candidate in variants:
+                if validate_action(state, candidate).accepted:
+                    actions.append(candidate)
+            continue
         for output in _legal_mana_outputs(permanent):
             candidate = Action(ActionType.ACTIVATE_MANA_ABILITY, permanent.name, mana_choice=output)
             if validate_action(state, candidate).accepted:
@@ -2291,8 +2354,11 @@ def execute_action(state: GameState, action: Action) -> None:
         if source.name == "Treasure":
             sacrifice_treasure_for_mana(state, action.mana_choice or "U")
         else:
-            tap_for_mana(state, source, action.mana_choice)
-        state.record_event("action", f"activate_mana:{action.source_name}")
+            tap_for_mana(state, source, action.mana_choice, input_mana=action.choice)
+        state.record_event(
+            "action",
+            f"activate_mana:{action.source_name}:{action.choice or ''}->{action.mana_choice or ''}",
+        )
         return
     if action.action_type is ActionType.DECLARE_ATTACKERS:
         declare_attackers(state, list(action.targets))

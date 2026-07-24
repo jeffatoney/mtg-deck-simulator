@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
+import subprocess
 
 from mtg_sim.offline_sources import build_simulation_deck
 
@@ -114,6 +115,23 @@ def expected_card_names() -> tuple[str, ...]:
     return tuple(sorted({c.name for c in deck.library} | {c.name for c in deck.commanders}))
 
 
+def _pytest_node_for_card(name: str) -> str:
+    return f"tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[{name}]"
+
+
+def _collected_pytest_node_ids() -> set[str]:
+    result = subprocess.run(
+        ["python", "-m", "pytest", "--collect-only", "-q"],
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if result.returncode != 0:
+        return set()
+    return {line.strip() for line in result.stdout.splitlines() if "::" in line}
+
+
 def _record(name: str) -> AdapterRecord:
     executable = name in EXECUTABLE_CARDS
     aid = name.lower().replace(" // ", "_").replace(", ", "_").replace(" ", "_").replace("-", "_")
@@ -126,9 +144,7 @@ def _record(name: str) -> AdapterRecord:
         execution_handler=f"execute.{aid}" if executable else "blocked.not_executable",
         relevant_zones=("hand", "battlefield") if executable else ("blocked",),
         timing_restrictions=("rules_validated",) if executable else ("blocked",),
-        integration_test_ids=("tests/test_phase9f4_creatures_combos_coverage.py",)
-        if executable
-        else (),
+        integration_test_ids=(_pytest_node_for_card(name),) if executable else (),
         status="EXECUTABLE" if executable else "BLOCKED",
     )
 
@@ -141,6 +157,9 @@ def adapter_registry() -> dict[str, AdapterRecord]:
 def validate_executable_coverage(registry: dict[str, AdapterRecord] | None = None) -> list[str]:
     registry = registry or adapter_registry()
     errors: list[str] = []
+    collected = _collected_pytest_node_ids()
+    if not collected:
+        errors.append("pytest node collection failed or returned no node IDs")
     for name in expected_card_names():
         rec = registry.get(name)
         if rec is None:
@@ -165,6 +184,19 @@ def validate_executable_coverage(registry: dict[str, AdapterRecord] | None = Non
                     errors.append(f"{name} has no executable {label}")
             if not rec.integration_test_ids:
                 errors.append(f"{name} has no integration test")
+            for node_id in rec.integration_test_ids:
+                if "::" not in node_id:
+                    errors.append(
+                        f"{name} integration test is not a complete pytest node ID: {node_id}"
+                    )
+                elif node_id.startswith("SEM-"):
+                    errors.append(
+                        f"{name} integration test semantic ID is not executable: {node_id}"
+                    )
+                elif collected and node_id not in collected:
+                    errors.append(
+                        f"{name} integration test node not collected by pytest: {node_id}"
+                    )
             if rec.execution_handler != f"execute.{rec.adapter_id.removeprefix('adapter.')}":
                 errors.append(f"{name} ability is routed to another card's handler")
     return errors
@@ -177,6 +209,10 @@ def write_report(path: Path) -> dict[str, object]:
         "expected_unique_card_count": len(expected_card_names()),
         "executable_adapter_count": sum(1 for r in records if r["status"] == "EXECUTABLE"),
         "blocked_adapter_count": sum(1 for r in records if r["status"] == "BLOCKED"),
+        "verified_node_ids": sorted({node for r in records for node in r["integration_test_ids"]}),
+        "verified_semantic_test_evidence_count": sum(
+            len(r["integration_test_ids"]) for r in records
+        ),
         "records": records,
         "errors": validate_executable_coverage(reg),
     }

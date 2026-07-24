@@ -10,7 +10,7 @@
       "cost_builder": "cost.abrade",
       "execution_handler": "execute.abrade",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Abrade]"
       ],
       "legal_action_generator": "generate.abrade",
       "relevant_zones": [
@@ -29,7 +29,7 @@
       "cost_builder": "cost.aetherize",
       "execution_handler": "execute.aetherize",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Aetherize]"
       ],
       "legal_action_generator": "generate.aetherize",
       "relevant_zones": [
@@ -48,7 +48,7 @@
       "cost_builder": "cost.arcane_denial",
       "execution_handler": "execute.arcane_denial",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Arcane Denial]"
       ],
       "legal_action_generator": "generate.arcane_denial",
       "relevant_zones": [
@@ -67,7 +67,7 @@
       "cost_builder": "cost.arcane_signet",
       "execution_handler": "execute.arcane_signet",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Arcane Signet]"
       ],
       "legal_action_generator": "generate.arcane_signet",
       "relevant_zones": [
@@ -86,7 +86,7 @@
       "cost_builder": "cost.ash_barrens",
       "execution_handler": "execute.ash_barrens",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Ash Barrens]"
       ],
       "legal_action_generator": "generate.ash_barrens",
       "relevant_zones": [
@@ -105,7 +105,7 @@
       "cost_builder": "cost.breeches_brazen_plunderer",
       "execution_handler": "execute.breeches_brazen_plunderer",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Breeches, Brazen Plunderer]"
       ],
       "legal_action_generator": "generate.breeches_brazen_plunderer",
       "relevant_zones": [
@@ -124,7 +124,7 @@
       "cost_builder": "cost.brotherhood's_end",
       "execution_handler": "execute.brotherhood's_end",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Brotherhood's End]"
       ],
       "legal_action_generator": "generate.brotherhood's_end",
       "relevant_zones": [
@@ -143,7 +143,7 @@
       "cost_builder": "cost.by_force",
       "execution_handler": "execute.by_force",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[By Force]"
       ],
       "legal_action_generator": "generate.by_force",
       "relevant_zones": [
@@ -162,7 +162,7 @@
       "cost_builder": "cost.cascade_bluffs",
       "execution_handler": "execute.cascade_bluffs",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Cascade Bluffs]"
       ],
       "legal_action_generator": "generate.cascade_bluffs",
       "relevant_zones": [
@@ -181,7 +181,7 @@
       "cost_builder": "cost.change_the_equation",
       "execution_handler": "execute.change_the_equation",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Change the Equation]"
       ],
       "legal_action_generator": "generate.change_the_equation",
       "relevant_zones": [
@@ -200,7 +200,7 @@
       "cost_builder": "cost.chart_a_course",
       "execution_handler": "execute.chart_a_course",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Chart a Course]"
       ],
       "legal_action_generator": "generate.chart_a_course",
       "relevant_zones": [
@@ -219,7 +219,7 @@
       "cost_builder": "cost.command_tower",
       "execution_handler": "execute.command_tower",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Command Tower]"
       ],
       "legal_action_generator": "generate.command_tower",
       "relevant_zones": [
@@ -238,7 +238,7 @@
       "cost_builder": "cost.commit_memory",
       "execution_handler": "execute.commit_memory",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Commit // Memory]"
       ],
       "legal_action_generator": "generate.commit_memory",
       "relevant_zones": [
@@ -257,7 +257,7 @@
       "cost_builder": "cost.crab_umbra",
       "execution_handler": "execute.crab_umbra",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Crab Umbra]"
       ],
       "legal_action_generator": "generate.crab_umbra",
       "relevant_zones": [
@@ -276,7 +276,7 @@
       "cost_builder": "cost.curiosity",
       "execution_handler": "execute.curiosity",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Curiosity]"
       ],
       "legal_action_generator": "generate.curiosity",
       "relevant_zones": [
@@ -295,7 +295,7 @@
       "cost_builder": "cost.curse_of_the_swine",
       "execution_handler": "execute.curse_of_the_swine",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Curse of the Swine]"
       ],
       "legal_action_generator": "generate.curse_of_the_swine",
       "relevant_zones": [
@@ -314,7 +314,7 @@
       "cost_builder": "cost.demolition_field",
       "execution_handler": "execute.demolition_field",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Demolition Field]"
       ],
       "legal_action_generator": "generate.demolition_field",
       "relevant_zones": [
@@ -333,7 +333,7 @@
       "cost_builder": "cost.dispel",
       "execution_handler": "execute.dispel",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Dispel]"
       ],
       "legal_action_generator": "generate.dispel",
       "relevant_zones": [
@@ -352,7 +352,7 @@
       "cost_builder": "cost.dizzy_spell",
       "execution_handler": "execute.dizzy_spell",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Dizzy Spell]"
       ],
       "legal_action_generator": "generate.dizzy_spell",
       "relevant_zones": [
@@ -371,7 +371,7 @@
       "cost_builder": "cost.drift_of_phantasms",
       "execution_handler": "execute.drift_of_phantasms",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Drift of Phantasms]"
       ],
       "legal_action_generator": "generate.drift_of_phantasms",
       "relevant_zones": [
@@ -390,7 +390,7 @@
       "cost_builder": "cost.dualcaster_mage",
       "execution_handler": "execute.dualcaster_mage",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Dualcaster Mage]"
       ],
       "legal_action_generator": "generate.dualcaster_mage",
       "relevant_zones": [
@@ -409,7 +409,7 @@
       "cost_builder": "cost.echoing_truth",
       "execution_handler": "execute.echoing_truth",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Echoing Truth]"
       ],
       "legal_action_generator": "generate.echoing_truth",
       "relevant_zones": [
@@ -428,7 +428,7 @@
       "cost_builder": "cost.electroduplicate",
       "execution_handler": "execute.electroduplicate",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Electroduplicate]"
       ],
       "legal_action_generator": "generate.electroduplicate",
       "relevant_zones": [
@@ -447,7 +447,7 @@
       "cost_builder": "cost.evolving_wilds",
       "execution_handler": "execute.evolving_wilds",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Evolving Wilds]"
       ],
       "legal_action_generator": "generate.evolving_wilds",
       "relevant_zones": [
@@ -466,7 +466,7 @@
       "cost_builder": "cost.exotic_orchard",
       "execution_handler": "execute.exotic_orchard",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Exotic Orchard]"
       ],
       "legal_action_generator": "generate.exotic_orchard",
       "relevant_zones": [
@@ -485,7 +485,7 @@
       "cost_builder": "cost.expedite",
       "execution_handler": "execute.expedite",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Expedite]"
       ],
       "legal_action_generator": "generate.expedite",
       "relevant_zones": [
@@ -504,7 +504,7 @@
       "cost_builder": "cost.fact_or_fiction",
       "execution_handler": "execute.fact_or_fiction",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Fact or Fiction]"
       ],
       "legal_action_generator": "generate.fact_or_fiction",
       "relevant_zones": [
@@ -523,7 +523,7 @@
       "cost_builder": "cost.fading_hope",
       "execution_handler": "execute.fading_hope",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Fading Hope]"
       ],
       "legal_action_generator": "generate.fading_hope",
       "relevant_zones": [
@@ -542,7 +542,7 @@
       "cost_builder": "cost.faithless_looting",
       "execution_handler": "execute.faithless_looting",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Faithless Looting]"
       ],
       "legal_action_generator": "generate.faithless_looting",
       "relevant_zones": [
@@ -561,7 +561,7 @@
       "cost_builder": "cost.fellwar_stone",
       "execution_handler": "execute.fellwar_stone",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Fellwar Stone]"
       ],
       "legal_action_generator": "generate.fellwar_stone",
       "relevant_zones": [
@@ -580,7 +580,7 @@
       "cost_builder": "cost.fiery_cannonade",
       "execution_handler": "execute.fiery_cannonade",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Fiery Cannonade]"
       ],
       "legal_action_generator": "generate.fiery_cannonade",
       "relevant_zones": [
@@ -599,7 +599,7 @@
       "cost_builder": "cost.frantic_search",
       "execution_handler": "execute.frantic_search",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Frantic Search]"
       ],
       "legal_action_generator": "generate.frantic_search",
       "relevant_zones": [
@@ -618,7 +618,7 @@
       "cost_builder": "cost.frostboil_snarl",
       "execution_handler": "execute.frostboil_snarl",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Frostboil Snarl]"
       ],
       "legal_action_generator": "generate.frostboil_snarl",
       "relevant_zones": [
@@ -637,7 +637,7 @@
       "cost_builder": "cost.glint_horn_buccaneer",
       "execution_handler": "execute.glint_horn_buccaneer",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Glint-Horn Buccaneer]"
       ],
       "legal_action_generator": "generate.glint_horn_buccaneer",
       "relevant_zones": [
@@ -656,7 +656,7 @@
       "cost_builder": "cost.impulse",
       "execution_handler": "execute.impulse",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Impulse]"
       ],
       "legal_action_generator": "generate.impulse",
       "relevant_zones": [
@@ -675,7 +675,7 @@
       "cost_builder": "cost.into_the_roil",
       "execution_handler": "execute.into_the_roil",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Into the Roil]"
       ],
       "legal_action_generator": "generate.into_the_roil",
       "relevant_zones": [
@@ -694,7 +694,7 @@
       "cost_builder": "cost.introduction_to_annihilation",
       "execution_handler": "execute.introduction_to_annihilation",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Introduction to Annihilation]"
       ],
       "legal_action_generator": "generate.introduction_to_annihilation",
       "relevant_zones": [
@@ -713,7 +713,7 @@
       "cost_builder": "cost.invert_invent",
       "execution_handler": "execute.invert_invent",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Invert // Invent]"
       ],
       "legal_action_generator": "generate.invert_invent",
       "relevant_zones": [
@@ -732,7 +732,7 @@
       "cost_builder": "cost.island",
       "execution_handler": "execute.island",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Island]"
       ],
       "legal_action_generator": "generate.island",
       "relevant_zones": [
@@ -751,7 +751,7 @@
       "cost_builder": "cost.izzet_boilerworks",
       "execution_handler": "execute.izzet_boilerworks",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Izzet Boilerworks]"
       ],
       "legal_action_generator": "generate.izzet_boilerworks",
       "relevant_zones": [
@@ -770,7 +770,7 @@
       "cost_builder": "cost.izzet_signet",
       "execution_handler": "execute.izzet_signet",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Izzet Signet]"
       ],
       "legal_action_generator": "generate.izzet_signet",
       "relevant_zones": [
@@ -789,7 +789,7 @@
       "cost_builder": "cost.lazotep_plating",
       "execution_handler": "execute.lazotep_plating",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Lazotep Plating]"
       ],
       "legal_action_generator": "generate.lazotep_plating",
       "relevant_zones": [
@@ -808,7 +808,7 @@
       "cost_builder": "cost.lightning_rig_crew",
       "execution_handler": "execute.lightning_rig_crew",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Lightning-Rig Crew]"
       ],
       "legal_action_generator": "generate.lightning_rig_crew",
       "relevant_zones": [
@@ -827,7 +827,7 @@
       "cost_builder": "cost.long_term_plans",
       "execution_handler": "execute.long_term_plans",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Long-Term Plans]"
       ],
       "legal_action_generator": "generate.long_term_plans",
       "relevant_zones": [
@@ -846,7 +846,7 @@
       "cost_builder": "cost.malcolm_keen_eyed_navigator",
       "execution_handler": "execute.malcolm_keen_eyed_navigator",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Malcolm, Keen-Eyed Navigator]"
       ],
       "legal_action_generator": "generate.malcolm_keen_eyed_navigator",
       "relevant_zones": [
@@ -865,7 +865,7 @@
       "cost_builder": "cost.mind_stone",
       "execution_handler": "execute.mind_stone",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Mind Stone]"
       ],
       "legal_action_generator": "generate.mind_stone",
       "relevant_zones": [
@@ -884,7 +884,7 @@
       "cost_builder": "cost.mountain",
       "execution_handler": "execute.mountain",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Mountain]"
       ],
       "legal_action_generator": "generate.mountain",
       "relevant_zones": [
@@ -903,7 +903,7 @@
       "cost_builder": "cost.muddle_the_mixture",
       "execution_handler": "execute.muddle_the_mixture",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Muddle the Mixture]"
       ],
       "legal_action_generator": "generate.muddle_the_mixture",
       "relevant_zones": [
@@ -922,7 +922,7 @@
       "cost_builder": "cost.negate",
       "execution_handler": "execute.negate",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Negate]"
       ],
       "legal_action_generator": "generate.negate",
       "relevant_zones": [
@@ -941,7 +941,7 @@
       "cost_builder": "cost.niv_mizzet_the_firemind",
       "execution_handler": "execute.niv_mizzet_the_firemind",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Niv-Mizzet, the Firemind]"
       ],
       "legal_action_generator": "generate.niv_mizzet_the_firemind",
       "relevant_zones": [
@@ -960,7 +960,7 @@
       "cost_builder": "cost.opt",
       "execution_handler": "execute.opt",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Opt]"
       ],
       "legal_action_generator": "generate.opt",
       "relevant_zones": [
@@ -979,7 +979,7 @@
       "cost_builder": "cost.path_of_ancestry",
       "execution_handler": "execute.path_of_ancestry",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Path of Ancestry]"
       ],
       "legal_action_generator": "generate.path_of_ancestry",
       "relevant_zones": [
@@ -998,7 +998,7 @@
       "cost_builder": "cost.prismari_command",
       "execution_handler": "execute.prismari_command",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Prismari Command]"
       ],
       "legal_action_generator": "generate.prismari_command",
       "relevant_zones": [
@@ -1017,7 +1017,7 @@
       "cost_builder": "cost.prismatic_lens",
       "execution_handler": "execute.prismatic_lens",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Prismatic Lens]"
       ],
       "legal_action_generator": "generate.prismatic_lens",
       "relevant_zones": [
@@ -1036,7 +1036,7 @@
       "cost_builder": "cost.psychosis_crawler",
       "execution_handler": "execute.psychosis_crawler",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Psychosis Crawler]"
       ],
       "legal_action_generator": "generate.psychosis_crawler",
       "relevant_zones": [
@@ -1055,7 +1055,7 @@
       "cost_builder": "cost.ravenform",
       "execution_handler": "execute.ravenform",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Ravenform]"
       ],
       "legal_action_generator": "generate.ravenform",
       "relevant_zones": [
@@ -1074,7 +1074,7 @@
       "cost_builder": "cost.reality_ripple",
       "execution_handler": "execute.reality_ripple",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Reality Ripple]"
       ],
       "legal_action_generator": "generate.reality_ripple",
       "relevant_zones": [
@@ -1093,7 +1093,7 @@
       "cost_builder": "cost.reality_shift",
       "execution_handler": "execute.reality_shift",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Reality Shift]"
       ],
       "legal_action_generator": "generate.reality_shift",
       "relevant_zones": [
@@ -1112,7 +1112,7 @@
       "cost_builder": "cost.rebuild",
       "execution_handler": "execute.rebuild",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Rebuild]"
       ],
       "legal_action_generator": "generate.rebuild",
       "relevant_zones": [
@@ -1131,7 +1131,7 @@
       "cost_builder": "cost.resculpt",
       "execution_handler": "execute.resculpt",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Resculpt]"
       ],
       "legal_action_generator": "generate.resculpt",
       "relevant_zones": [
@@ -1150,7 +1150,7 @@
       "cost_builder": "cost.scavenger_grounds",
       "execution_handler": "execute.scavenger_grounds",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Scavenger Grounds]"
       ],
       "legal_action_generator": "generate.scavenger_grounds",
       "relevant_zones": [
@@ -1169,7 +1169,7 @@
       "cost_builder": "cost.sentinel_totem",
       "execution_handler": "execute.sentinel_totem",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Sentinel Totem]"
       ],
       "legal_action_generator": "generate.sentinel_totem",
       "relevant_zones": [
@@ -1188,7 +1188,7 @@
       "cost_builder": "cost.shivan_reef",
       "execution_handler": "execute.shivan_reef",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Shivan Reef]"
       ],
       "legal_action_generator": "generate.shivan_reef",
       "relevant_zones": [
@@ -1207,7 +1207,7 @@
       "cost_builder": "cost.siren_stormtamer",
       "execution_handler": "execute.siren_stormtamer",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Siren Stormtamer]"
       ],
       "legal_action_generator": "generate.siren_stormtamer",
       "relevant_zones": [
@@ -1226,7 +1226,7 @@
       "cost_builder": "cost.sleight_of_hand",
       "execution_handler": "execute.sleight_of_hand",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Sleight of Hand]"
       ],
       "legal_action_generator": "generate.sleight_of_hand",
       "relevant_zones": [
@@ -1245,7 +1245,7 @@
       "cost_builder": "cost.sol_ring",
       "execution_handler": "execute.sol_ring",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Sol Ring]"
       ],
       "legal_action_generator": "generate.sol_ring",
       "relevant_zones": [
@@ -1264,7 +1264,7 @@
       "cost_builder": "cost.soul_guide_lantern",
       "execution_handler": "execute.soul_guide_lantern",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Soul-Guide Lantern]"
       ],
       "legal_action_generator": "generate.soul_guide_lantern",
       "relevant_zones": [
@@ -1283,7 +1283,7 @@
       "cost_builder": "cost.spectral_sailor",
       "execution_handler": "execute.spectral_sailor",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Spectral Sailor]"
       ],
       "legal_action_generator": "generate.spectral_sailor",
       "relevant_zones": [
@@ -1302,7 +1302,7 @@
       "cost_builder": "cost.spell_pierce",
       "execution_handler": "execute.spell_pierce",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Spell Pierce]"
       ],
       "legal_action_generator": "generate.spell_pierce",
       "relevant_zones": [
@@ -1321,7 +1321,7 @@
       "cost_builder": "cost.step_through",
       "execution_handler": "execute.step_through",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Step Through]"
       ],
       "legal_action_generator": "generate.step_through",
       "relevant_zones": [
@@ -1340,7 +1340,7 @@
       "cost_builder": "cost.storm_fleet_sprinter",
       "execution_handler": "execute.storm_fleet_sprinter",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Storm Fleet Sprinter]"
       ],
       "legal_action_generator": "generate.storm_fleet_sprinter",
       "relevant_zones": [
@@ -1359,7 +1359,7 @@
       "cost_builder": "cost.syncopate",
       "execution_handler": "execute.syncopate",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Syncopate]"
       ],
       "legal_action_generator": "generate.syncopate",
       "relevant_zones": [
@@ -1378,7 +1378,7 @@
       "cost_builder": "cost.temple_of_epiphany",
       "execution_handler": "execute.temple_of_epiphany",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Temple of Epiphany]"
       ],
       "legal_action_generator": "generate.temple_of_epiphany",
       "relevant_zones": [
@@ -1397,7 +1397,7 @@
       "cost_builder": "cost.terramorphic_expanse",
       "execution_handler": "execute.terramorphic_expanse",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Terramorphic Expanse]"
       ],
       "legal_action_generator": "generate.terramorphic_expanse",
       "relevant_zones": [
@@ -1416,7 +1416,7 @@
       "cost_builder": "cost.thriving_isle",
       "execution_handler": "execute.thriving_isle",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Thriving Isle]"
       ],
       "legal_action_generator": "generate.thriving_isle",
       "relevant_zones": [
@@ -1435,7 +1435,7 @@
       "cost_builder": "cost.twinflame",
       "execution_handler": "execute.twinflame",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Twinflame]"
       ],
       "legal_action_generator": "generate.twinflame",
       "relevant_zones": [
@@ -1454,7 +1454,7 @@
       "cost_builder": "cost.vandalblast",
       "execution_handler": "execute.vandalblast",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Vandalblast]"
       ],
       "legal_action_generator": "generate.vandalblast",
       "relevant_zones": [
@@ -1473,7 +1473,7 @@
       "cost_builder": "cost.vedalken_aethermage",
       "execution_handler": "execute.vedalken_aethermage",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Vedalken Aethermage]"
       ],
       "legal_action_generator": "generate.vedalken_aethermage",
       "relevant_zones": [
@@ -1492,7 +1492,7 @@
       "cost_builder": "cost.wash_away",
       "execution_handler": "execute.wash_away",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Wash Away]"
       ],
       "legal_action_generator": "generate.wash_away",
       "relevant_zones": [
@@ -1511,7 +1511,7 @@
       "cost_builder": "cost.wily_goblin",
       "execution_handler": "execute.wily_goblin",
       "integration_test_ids": [
-        "tests/test_phase9f4_creatures_combos_coverage.py"
+        "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Wily Goblin]"
       ],
       "legal_action_generator": "generate.wily_goblin",
       "relevant_zones": [
@@ -1524,5 +1524,88 @@
         "rules_validated"
       ]
     }
-  ]
+  ],
+  "verified_node_ids": [
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Abrade]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Aetherize]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Arcane Denial]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Arcane Signet]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Ash Barrens]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Breeches, Brazen Plunderer]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Brotherhood's End]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[By Force]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Cascade Bluffs]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Change the Equation]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Chart a Course]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Command Tower]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Commit // Memory]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Crab Umbra]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Curiosity]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Curse of the Swine]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Demolition Field]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Dispel]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Dizzy Spell]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Drift of Phantasms]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Dualcaster Mage]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Echoing Truth]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Electroduplicate]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Evolving Wilds]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Exotic Orchard]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Expedite]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Fact or Fiction]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Fading Hope]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Faithless Looting]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Fellwar Stone]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Fiery Cannonade]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Frantic Search]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Frostboil Snarl]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Glint-Horn Buccaneer]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Impulse]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Into the Roil]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Introduction to Annihilation]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Invert // Invent]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Island]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Izzet Boilerworks]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Izzet Signet]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Lazotep Plating]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Lightning-Rig Crew]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Long-Term Plans]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Malcolm, Keen-Eyed Navigator]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Mind Stone]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Mountain]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Muddle the Mixture]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Negate]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Niv-Mizzet, the Firemind]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Opt]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Path of Ancestry]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Prismari Command]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Prismatic Lens]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Psychosis Crawler]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Ravenform]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Reality Ripple]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Reality Shift]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Rebuild]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Resculpt]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Scavenger Grounds]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Sentinel Totem]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Shivan Reef]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Siren Stormtamer]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Sleight of Hand]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Sol Ring]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Soul-Guide Lantern]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Spectral Sailor]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Spell Pierce]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Step Through]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Storm Fleet Sprinter]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Syncopate]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Temple of Epiphany]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Terramorphic Expanse]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Thriving Isle]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Twinflame]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Vandalblast]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Vedalken Aethermage]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Wash Away]",
+    "tests/test_phase9f4_creatures_combos_coverage.py::test_every_unique_card_generates_validated_executable_replayable_event[Wily Goblin]"
+  ],
+  "verified_semantic_test_evidence_count": 80
 }

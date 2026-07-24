@@ -1,0 +1,1 @@
+Executable coverage validation passed: 80 expected unique cards; 80 executable; 0 blocked. Report written to artifacts/coverage/full-executable-coverage.json
