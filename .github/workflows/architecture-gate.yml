@@ -1,0 +1,57 @@
+name: Architecture Invariant Gate
+
+"on":
+  workflow_dispatch:
+  push:
+    branches:
+      - recovery/phase-a-rules-kernel
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  invariants:
+    name: invariants
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.ref == 'refs/heads/recovery/phase-a-rules-kernel' ||
+      github.head_ref == 'recovery/phase-a-rules-kernel'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+
+      - name: Sync frozen dependencies
+        run: uv sync --frozen --all-extras
+
+      - name: Verify frozen acceptance specification
+        shell: bash
+        run: |
+          set -euo pipefail
+          SPEC="tests/acceptance/PHASE_A_ACCEPTANCE_SPEC.md"
+          HASH_FILE="automation/frozen-spec-sha256.txt"
+          test -f "$SPEC"
+          test -f "$HASH_FILE"
+          EXPECTED=$(tr -d '[:space:]' < "$HASH_FILE")
+          ACTUAL=$(sha256sum "$SPEC" | awk '{print $1}')
+          test "$EXPECTED" = "$ACTUAL"
+
+          git fetch --no-tags origin main
+          git diff --exit-code origin/main...HEAD -- "$SPEC" "$HASH_FILE"
+
+      - name: Check architecture invariants
+        run: >-
+          uv run python scripts/check_architecture_invariants.py
+          --report artifacts/recovery/kernel/architecture-invariants.json
