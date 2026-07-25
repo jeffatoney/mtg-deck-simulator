@@ -1,0 +1,24 @@
+name: Rules Kernel Recovery
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type VALIDATE_RULES_KERNEL
+        required: true
+permissions:
+  contents: read
+jobs:
+  validate:
+    if: github.event.inputs.confirmation == 'VALIDATE_RULES_KERNEL'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: false
+      - run: uv sync --frozen --all-extras
+      - run: uv run mtg-sim recovery kernel
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rules-kernel-recovery
+          path: artifacts/recovery/kernel/

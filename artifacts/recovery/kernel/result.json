@@ -1,0 +1,70 @@
+{
+  "architecture_invariants": {
+    "findings": [
+      "P1: canonical mana-cost determination and payment are incomplete",
+      "P1: Abrade modes and target resolution are incomplete",
+      "P1: Glint-Horn activation and Dualcaster/Twinflame copy loop are incomplete",
+      "P1: GameExecutor legacy smoke run still owns a separate turn loop"
+    ],
+    "passed": false
+  },
+  "casting_stack_priority": "FAIL",
+  "clean_tree": false,
+  "effect_operations": [
+    "add_mana",
+    "attach",
+    "change_power_toughness",
+    "copy",
+    "counter",
+    "create_token",
+    "create_treasure",
+    "damage",
+    "destroy",
+    "discard",
+    "draw",
+    "exile",
+    "grant_haste",
+    "life_loss",
+    "move_object",
+    "pay_mana",
+    "retarget",
+    "return_to_hand",
+    "scry",
+    "search",
+    "shuffle",
+    "tap",
+    "untap"
+  ],
+  "external_object": "FAIL",
+  "git_commit": "68230ead0ab46c09ffcc360c49fd36f8c22a3997",
+  "object_zone_gate": "FAIL",
+  "p1_findings": [
+    "P1: canonical mana-cost determination and payment are incomplete",
+    "P1: Abrade modes and target resolution are incomplete",
+    "P1: Glint-Horn activation and Dualcaster/Twinflame copy loop are incomplete",
+    "P1: GameExecutor legacy smoke run still owns a separate turn loop"
+  ],
+  "p2_findings": [],
+  "pending_phase_b_count": 70,
+  "phase": "A",
+  "pr_29": "Regression source only; import-time monkeypatch architecture not imported",
+  "production_lock_status": "LOCKED",
+  "replay": "FAIL",
+  "source_hashes": {
+    "docs/source/MagicCompRules_2026-06-19.txt": "e99cd70eb64ca854acb6420ebbf06e369e3f258e0cfba4f03f70bd881386f79b",
+    "docs/source/commanders.txt": "9815e727648a0e4ecfc6179511a2aef4a0724c3b33db6540b793ea4f93965800",
+    "docs/source/decklist.txt": "dfc06c3b276e39c9bacbd18b13bd7f51b839c0e5fc5ce9cc7b7c9c272a3a7d61",
+    "docs/source/oracle/snapshot_v1.json": "a385392ea05f543a1fa0a4c131be948003295c5f488bee09bd89ca5e98368216"
+  },
+  "status": "FAIL",
+  "tests": {
+    "failed": 0,
+    "note": "pytest counts are supplied by CI; kernel self-checks follow",
+    "passed": 0,
+    "skipped": 0,
+    "xfailed": 0
+  },
+  "trigger": "FAIL",
+  "turn_cleanup": "FAIL",
+  "vertical_slice_card_count": 10
+}

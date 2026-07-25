@@ -1,0 +1,326 @@
+{
+  "schema_version": 1,
+  "scope": "frozen representative definitions",
+  "cards": [
+    {
+      "card_name": "Abrade",
+      "status": "MIGRATED"
+    },
+    {
+      "card_name": "Aetherize",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Arcane Denial",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Arcane Signet",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Ash Barrens",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Breeches, Brazen Plunderer",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Brotherhood's End",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "By Force",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Cascade Bluffs",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Change the Equation",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Chart a Course",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Command Tower",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Commit // Memory",
+      "status": "MIGRATED"
+    },
+    {
+      "card_name": "Crab Umbra",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Curiosity",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Curse of the Swine",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Demolition Field",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Dispel",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Dizzy Spell",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Drift of Phantasms",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Dualcaster Mage",
+      "status": "MIGRATED"
+    },
+    {
+      "card_name": "Echoing Truth",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Electroduplicate",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Evolving Wilds",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Exotic Orchard",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Expedite",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Fact or Fiction",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Fading Hope",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Faithless Looting",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Fellwar Stone",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Fiery Cannonade",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Frantic Search",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Frostboil Snarl",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Glint-Horn Buccaneer",
+      "status": "MIGRATED"
+    },
+    {
+      "card_name": "Impulse",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Into the Roil",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Introduction to Annihilation",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Invert // Invent",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Island",
+      "status": "MIGRATED"
+    },
+    {
+      "card_name": "Izzet Boilerworks",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Izzet Signet",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Lazotep Plating",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Lightning-Rig Crew",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Long-Term Plans",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Malcolm, Keen-Eyed Navigator",
+      "status": "MIGRATED"
+    },
+    {
+      "card_name": "Mind Stone",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Mountain",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Muddle the Mixture",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Negate",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Niv-Mizzet, the Firemind",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Opt",
+      "status": "MIGRATED"
+    },
+    {
+      "card_name": "Path of Ancestry",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Prismari Command",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Prismatic Lens",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Psychosis Crawler",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Ravenform",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Reality Ripple",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Reality Shift",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Rebuild",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Resculpt",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Scavenger Grounds",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Sentinel Totem",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Shivan Reef",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Siren Stormtamer",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Sleight of Hand",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Sol Ring",
+      "status": "MIGRATED"
+    },
+    {
+      "card_name": "Soul-Guide Lantern",
+      "status": "MIGRATED"
+    },
+    {
+      "card_name": "Spectral Sailor",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Spell Pierce",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Step Through",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Storm Fleet Sprinter",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Syncopate",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Temple of Epiphany",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Terramorphic Expanse",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Thriving Isle",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Twinflame",
+      "status": "MIGRATED"
+    },
+    {
+      "card_name": "Vandalblast",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Vedalken Aethermage",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Wash Away",
+      "status": "PENDING_PHASE_B"
+    },
+    {
+      "card_name": "Wily Goblin",
+      "status": "PENDING_PHASE_B"
+    }
+  ]
+}

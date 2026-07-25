@@ -28,6 +28,8 @@ from mtg_sim.engine import (
 from mtg_sim.offline_sources import build_simulation_deck
 from mtg_sim.policies import CandidatePolicy, LANDS
 from mtg_sim.rng import ScenarioSeed
+from mtg_sim.rules_kernel import Action as KernelAction
+from mtg_sim.rules_kernel import KernelExecutor, KernelState
 
 REQUIRED_WIN_EVENTS = {"damage_dealt", "opponent_lost", "table_win", "game_ended"}
 
@@ -67,6 +69,16 @@ class GameExecutor:
         self.pass_actions = 0
         self.branches_searched = 0
         self.nodes_searched = 0
+        # Phase A's production path. Legacy smoke execution remains quarantined
+        # until the Phase B inventory is complete; it is never a kernel fallback.
+        self.kernel_state = KernelState()
+        self.kernel = KernelExecutor(self.kernel_state)
+
+    def execute_kernel_actions(self, actions: Iterable[KernelAction]) -> KernelState:
+        """Execute/replayable actions through the canonical Phase A services."""
+        for action in actions:
+            self.kernel.execute(action)
+        return self.kernel_state
 
     def _event(self, event: str, **payload: Any) -> None:
         row = {"game_id": self.game_id, "seed_id": self.seed, "mode": self.mode, "event": event}

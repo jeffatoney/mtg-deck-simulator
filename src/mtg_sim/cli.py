@@ -18,6 +18,8 @@ from mtg_sim.executable_adapters import write_report as write_executable_report
 from mtg_sim.source_validation import write_inventory
 
 app = typer.Typer(help="Malcolm and Breeches simulator tooling.")
+recovery_app = typer.Typer(help="Explicitly dispatched recovery gates.")
+app.add_typer(recovery_app, name="recovery")
 
 
 @app.callback()
@@ -137,6 +139,17 @@ def pilot(
 def version() -> None:
     """Print the package version."""
     typer.echo("0.1.0")
+
+
+@recovery_app.command("kernel")
+def recovery_kernel() -> None:
+    """Run Phase A self-checks; this never dispatches production simulation."""
+    from mtg_sim.recovery import RESULT, run_kernel_recovery
+
+    report = run_kernel_recovery()
+    typer.echo(f"Rules kernel recovery {report['status']}: {RESULT.relative_to(Path.cwd())}")
+    if report["status"] != "PASS":
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":
