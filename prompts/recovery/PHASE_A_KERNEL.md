@@ -2,18 +2,44 @@
 
 Repository: `jeffatoney/mtg-deck-simulator`
 
-## Existing branch and pull request
+## Branch and draft pull request
 
-Work only on the existing branch:
+Verify that the current branch is:
 
 `recovery/phase-a-rules-kernel`
 
-Work only in its existing draft pull request. Do not create another branch or
-pull request. Do not modify, merge, or close PR #29, and do not push to the PR
-#29 branch.
+If that branch or its draft pull request does not exist, create exactly that
+branch from `origin/main` and exactly one draft pull request titled **Phase A:
+Replace the simulation rules kernel**. Create no other branch or pull request.
+Do not modify, merge, or close PR #29, and do not push to the PR #29 branch.
 
 Keep agent internet access OFF. Do not start Phase B. Do not run the 500/200
 pilot or the 25,000-game study.
+
+## PHASE A BASE-STATE GUARD — first required action
+
+Before editing any file:
+
+1. Verify these files exist:
+   - `tests/acceptance/PHASE_A_ACCEPTANCE_SPEC.md`
+   - `automation/frozen-spec-sha256.txt`
+   - `automation/architecture-invariants.json`
+   - `scripts/check_architecture_invariants.py`
+   - `prompts/recovery/PHASE_A_KERNEL.md`
+   - `.github/workflows/architecture-gate.yml`
+2. Verify the SHA-256 of the specification matches
+   `automation/frozen-spec-sha256.txt`.
+3. Run `uv run python scripts/check_architecture_invariants.py` and confirm it
+   executes. Before the kernel exists, the only acceptable findings are
+   `MISSING_REQUIRED_PATH` findings.
+
+If any check fails, stop and return exactly:
+
+`NO-GO — Phase A branch was not created from the post-setup main branch.`
+
+Do not create a replacement gate, an alternate checker, or a kernel under
+`src/mtg_sim`, and do not continue using the legacy `GameExecutor` as the normal
+game path.
 
 ## Read first — immutable inputs
 

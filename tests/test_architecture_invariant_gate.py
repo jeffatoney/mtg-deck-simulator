@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "check_architecture_invariants.py"
 
@@ -30,6 +32,16 @@ def _config(root: Path) -> None:
         "phase_attributes": ["phase", "step"],
         "terminal_attributes": ["won", "lost", "game_over", "terminal_status"],
         "forbidden_import_prefixes": ["mtg_sim"],
+        "forbidden_dynamic_import_modules": ["importlib", "builtins"],
+        "forbidden_patch_target_tokens": [
+            "mtg_kernel",
+            "gameexecutor",
+            "turnengine",
+            "zoneservice",
+            "stackservice",
+            "triggerengine",
+            "replay",
+        ],
         "prohibited_kernel_card_names": ["Sol Ring"],
         "forbid_skipped_or_xfailed_tests": True,
         "exempt_files": [],
@@ -170,6 +182,30 @@ def test_architecture_gate_rejects_legacy_import_aliases(tmp_path: Path) -> None
     assert result.stdout.count("LEGACY_IMPORT") >= 2
 
 
+@pytest.mark.parametrize(
+    "source",
+    [
+        "import importlib\nimportlib.import_module('mtg_sim.engine')\n",
+        "__import__('mtg_sim.engine')\n",
+        "import importlib as il\nil.import_module('mtg_sim.engine')\n",
+        "from importlib import import_module\nimport_module('mtg_sim.engine')\n",
+        "import importlib\nmodule_name = 'json'\nimportlib.import_module(module_name)\n",
+    ],
+    ids=[
+        "importlib-literal",
+        "builtin-import",
+        "aliased-importlib",
+        "from-import-helper",
+        "nonliteral-module",
+    ],
+)
+def test_architecture_gate_rejects_dynamic_legacy_imports(tmp_path: Path, source: str) -> None:
+    _fixture(tmp_path)
+    result = _write(tmp_path, source)
+    assert result.returncode == 1
+    assert "LEGACY_DYNAMIC_IMPORT" in result.stdout
+
+
 def test_architecture_gate_rejects_card_name_in_kernel(tmp_path: Path) -> None:
     _fixture(tmp_path)
     result = _write(tmp_path, "NAME = 'Sol Ring'\n")
@@ -216,3 +252,36 @@ def test_architecture_gate_rejects_dynamic_or_star_test_suppression(tmp_path: Pa
     result = _run(tmp_path)
     assert result.returncode == 1
     assert "SKIPPED_TEST" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "def test_patch(monkeypatch, replacement):\n"
+        "    monkeypatch.setattr('mtg_kernel.executor.GameExecutor.run', replacement)\n",
+        "from unittest import mock\n\n"
+        "def test_patch():\n"
+        "    mock.patch('mtg_kernel.turns.TurnEngine.cleanup')\n",
+        "from unittest.mock import patch as p\n"
+        "from mtg_kernel.executor import GameExecutor as Executor\n\n"
+        "def test_patch(replacement):\n"
+        "    p.object(Executor, 'run', replacement)\n",
+        "from unittest.mock import patch\n\n"
+        "def test_patch(target, replacement):\n"
+        "    patch(target, replacement)\n",
+    ],
+    ids=[
+        "monkeypatch-string-target",
+        "mock-patch-target",
+        "aliased-patch-object",
+        "nonliteral-patch-target",
+    ],
+)
+def test_architecture_gate_rejects_kernel_patching(tmp_path: Path, source: str) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    path.parent.mkdir(parents=True)
+    path.write_text(source, encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "FORBIDDEN_TEST_PATCH" in result.stdout

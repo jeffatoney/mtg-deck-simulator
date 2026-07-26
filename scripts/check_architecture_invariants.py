@@ -55,6 +55,29 @@ def _literal_string(node: ast.AST | None) -> str | None:
     return None
 
 
+def _import_aliases(tree: ast.AST) -> dict[str, str]:
+    """Return lexical import aliases suitable for resolving security-sensitive calls."""
+    aliases: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                aliases[alias.asname or alias.name.split(".", maxsplit=1)[0]] = alias.name
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            for alias in node.names:
+                if alias.name != "*":
+                    aliases[alias.asname or alias.name] = f"{node.module}.{alias.name}"
+    return aliases
+
+
+def _resolved_dotted(node: ast.AST | None, aliases: dict[str, str]) -> str:
+    dotted = _dotted(node)
+    if not dotted:
+        return ""
+    head, separator, tail = dotted.partition(".")
+    resolved = aliases.get(head, head)
+    return f"{resolved}.{tail}" if separator else resolved
+
+
 class ArchitectureScanner(ast.NodeVisitor):
     """Apply deliberately strict, service-boundary checks.
 
@@ -71,6 +94,11 @@ class ArchitectureScanner(ast.NodeVisitor):
         self.zone_names = set(config["zone_attributes"])
         self.phase_names = set(config["phase_attributes"])
         self.terminal_names = set(config["terminal_attributes"])
+        self.import_aliases: dict[str, str] = {}
+
+    def scan(self, tree: ast.AST) -> None:
+        self.import_aliases = _import_aliases(tree)
+        self.visit(tree)
 
     def add(self, node: ast.AST, code: str, reason: str, detail: str) -> None:
         self.violations.append(
@@ -161,8 +189,28 @@ class ArchitectureScanner(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:
-        name = _dotted(node.func)
+        name = _resolved_dotted(node.func, self.import_aliases)
         leaf = name.rsplit(".", maxsplit=1)[-1]
+
+        dynamic_modules = set(self.config.get("forbidden_dynamic_import_modules", []))
+        dynamic_importers: set[str] = set()
+        if "importlib" in dynamic_modules:
+            dynamic_importers.add("importlib.import_module")
+        if "builtins" in dynamic_modules:
+            dynamic_importers.update({"builtins.__import__", "__import__"})
+        if name in dynamic_importers:
+            module = _literal_string(node.args[0]) if node.args else None
+            forbidden = module is None or any(
+                module == prefix or module.startswith(prefix + ".")
+                for prefix in self.config["forbidden_import_prefixes"]
+            )
+            if forbidden:
+                self.add(
+                    node,
+                    "LEGACY_DYNAMIC_IMPORT",
+                    "Dynamic imports must be literal and may not reach the legacy simulator.",
+                    ast.unparse(node),
+                )
 
         if leaf in {"setattr", "__setattr__", "delattr", "__delattr__"}:
             self.add(
@@ -245,7 +293,9 @@ def _python_files(root: Path, paths: Iterable[str]) -> list[Path]:
     return sorted(files)
 
 
-def _scan_test_suppression(path: Path, root: Path) -> list[Violation]:
+def _scan_test_invariants(
+    path: Path, root: Path, forbidden_patch_tokens: Iterable[str]
+) -> list[Violation]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     except SyntaxError as exc:
@@ -269,6 +319,8 @@ def _scan_test_suppression(path: Path, root: Path) -> list[Violation]:
         "skiptest",
     }
     violations: dict[tuple[int, str], Violation] = {}
+    aliases = _import_aliases(tree)
+    patch_tokens = tuple(token.lower() for token in forbidden_patch_tokens)
 
     for node in ast.walk(tree):
         detail: str | None = None
@@ -288,15 +340,58 @@ def _scan_test_suppression(path: Path, root: Path) -> list[Violation]:
             detail = ast.unparse(node)
 
         if detail is None:
+            if not isinstance(node, ast.Call):
+                continue
+        else:
+            line = getattr(node, "lineno", 1)
+            violations[(line, detail)] = Violation(
+                path=_relative(path, root),
+                line=line,
+                code="SKIPPED_TEST",
+                reason="Phase A gate and acceptance tests may not be skipped or xfailed.",
+                detail=detail,
+            )
+
+        if not isinstance(node, ast.Call):
             continue
-        line = getattr(node, "lineno", 1)
-        violations[(line, detail)] = Violation(
-            path=_relative(path, root),
-            line=line,
-            code="SKIPPED_TEST",
-            reason="Phase A gate and acceptance tests may not be skipped or xfailed.",
-            detail=detail,
+        call_name = _resolved_dotted(node.func, aliases)
+        target: ast.AST | None = None
+        is_patch = False
+        if call_name in {"monkeypatch.setattr", "monkeypatch.delattr"}:
+            is_patch = True
+            target = node.args[0] if node.args else None
+        elif call_name in {
+            "unittest.mock.patch",
+            "unittest.mock.patch.object",
+            "unittest.mock.patch.dict",
+            "unittest.mock.patch.multiple",
+        }:
+            is_patch = True
+            target = node.args[0] if node.args else None
+        if not is_patch:
+            continue
+
+        literal_target = _literal_string(target)
+        target_name = (
+            literal_target if literal_target is not None else _resolved_dotted(target, aliases)
         )
+        # A dotted object is statically inspectable for object-form patching. Every
+        # other non-literal expression fails closed in acceptance tests.
+        unsafe = (
+            any(token in target_name.lower() for token in patch_tokens) if target_name else True
+        )
+        if literal_target is None and "." not in target_name:
+            unsafe = True
+        if unsafe:
+            patch_detail = ast.unparse(node)
+            line = getattr(node, "lineno", 1)
+            violations[(line, patch_detail)] = Violation(
+                path=_relative(path, root),
+                line=line,
+                code="FORBIDDEN_TEST_PATCH",
+                reason="Acceptance tests may not patch kernel components or dynamic targets.",
+                detail=patch_detail,
+            )
     return list(violations.values())
 
 
@@ -336,12 +431,18 @@ def run_gate(root: Path, config_path: Path) -> dict[str, Any]:
             )
             continue
         scanner = ArchitectureScanner(path=path, root=root, config=config)
-        scanner.visit(tree)
+        scanner.scan(tree)
         violations.extend(scanner.violations)
 
     if config.get("forbid_skipped_or_xfailed_tests", True):
         for path in _python_files(root, config.get("test_paths", [])):
-            violations.extend(_scan_test_suppression(path, root))
+            violations.extend(
+                _scan_test_invariants(
+                    path,
+                    root,
+                    config.get("forbidden_patch_target_tokens", []),
+                )
+            )
 
     unique = {(item.path, item.line, item.code, item.detail): item for item in violations}
     ordered = sorted(unique.values(), key=lambda item: (item.path, item.line, item.code))
