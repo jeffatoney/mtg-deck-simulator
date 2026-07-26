@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "generator": "tests/test_control_plane.py",
+  "families": {
+    "state-receiver-variants": ["configured", "alias", "structural"],
+    "zone-and-stack-mutation": ["direct", "aliased", "container"],
+    "imports": ["static", "from", "star", "alias", "dynamic", "namespace", "top-level"],
+    "reflection-and-patching": ["reflection", "sys-modules", "mock", "monkeypatch"],
+    "acceptance-isolation": ["parent-conftest", "external-helper", "candidate-examiner"],
+    "pilot-lock": ["workflow", "workflow-call", "shell", "python", "yaml-folding", "prefix"],
+    "semantic-evidence": ["fake-trigger", "helper-only", "facade-liveness"]
+  },
+  "rule": "Every malicious fixture must fail; every family includes a benign control."
+}

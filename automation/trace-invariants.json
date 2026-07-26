@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "invariants": [
+    "battlefield-entry-has-one-causal-category", "resolved-spell-had-stack-object",
+    "trigger-placement-had-trigger-object", "targets-announced-and-revalidated",
+    "cleanup-clears-damage", "no-action-after-terminal", "private-zones-owner-correct",
+    "zone-entry-has-registered-owner", "no-fabricated-card-instance",
+    "zone-mutation-has-receipt", "stack-mutation-has-receipt",
+    "turn-change-has-receipt", "terminal-has-cause", "replay-is-exact"
+  ]
+}

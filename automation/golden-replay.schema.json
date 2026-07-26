@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mtg-sim.invalid/schemas/golden-replay-v1.json",
+  "title": "Phase A Golden Replay v1",
+  "type": "object",
+  "required": ["schema_version", "scenario_id", "review_status", "actions", "events", "rng_streams", "external_ledger", "final_state_hash"],
+  "properties": {
+    "schema_version": {"const": 1}, "scenario_id": {"type": "string"},
+    "review_status": {"const": "independent-review-required"},
+    "actions": {"type": "array"}, "events": {"type": "array"},
+    "rng_streams": {"type": "object"}, "external_ledger": {"type": "array"},
+    "final_state_hash": {"type": "string"}
+  },
+  "additionalProperties": false
+}

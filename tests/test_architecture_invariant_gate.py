@@ -717,3 +717,74 @@ def test_pytest_confcutdir_excludes_parent_conftest(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert "1 passed" in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("category", "path", "source"),
+    [
+        ("kernel", "src/mtg_kernel/executor.py", "from mtg_kernel.stack import *\n"),
+        ("cards", "src/mtg_cards/cards.py", "from mtg_cards.vertical_slice import *\n"),
+        ("pytest", "tests/phase_a_acceptance/test_x.py", "from pytest import *\n"),
+        ("arbitrary", "tests/phase_a_acceptance/test_x.py", "from any_module import *\n"),
+    ],
+)
+def test_architecture_gate_rejects_every_star_import(
+    tmp_path: Path, category: str, path: str, source: str
+) -> None:
+    del category
+    _fixture(tmp_path)
+    target = tmp_path / path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(source, encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "STAR_IMPORT" in result.stdout
+
+
+def test_architecture_gate_allows_explicit_import_control(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    statement = "from mtg_" + "kernel.stack import push\n"
+    result = _write(tmp_path, statement)
+    assert result.returncode == 0, result.stdout
+
+
+@pytest.mark.parametrize(
+    ("layout", "statement"),
+    [
+        ("traditional", "import support.helper"),
+        ("namespace", "import support.helper"),
+        ("nested-namespace", "from support.nested.helper import run"),
+        ("top-level", "import support"),
+        ("static-from", "from support import helper"),
+        ("dynamic-importlib", "import importlib\nimportlib.import_module('support.helper')"),
+        ("dynamic-builtin", "__import__('support.helper')"),
+    ],
+)
+def test_architecture_gate_closes_all_project_local_roots(
+    tmp_path: Path, layout: str, statement: str
+) -> None:
+    _fixture(tmp_path)
+    if layout == "top-level":
+        (tmp_path / "src/support.py").write_text("VALUE = 1\n", encoding="utf-8")
+    else:
+        helper = tmp_path / (
+            "src/support/nested/helper.py"
+            if layout == "nested-namespace"
+            else "src/support/helper.py"
+        )
+        helper.parent.mkdir(parents=True, exist_ok=True)
+        helper.write_text("def run(): pass\n", encoding="utf-8")
+        if layout == "traditional":
+            (tmp_path / "src/support/__init__.py").write_text("", encoding="utf-8")
+    result = _write(tmp_path, statement + "\n")
+    assert result.returncode == 1
+    assert "UNSCANNED_LOCAL_DEPENDENCY" in result.stdout
+
+
+@pytest.mark.parametrize("statement", ["import json", "import pydantic"])
+def test_architecture_gate_allows_nonproject_import_controls(
+    tmp_path: Path, statement: str
+) -> None:
+    _fixture(tmp_path)
+    result = _write(tmp_path, statement + "\n")
+    assert result.returncode == 0, result.stdout

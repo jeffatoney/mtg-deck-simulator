@@ -1,0 +1,47 @@
+name: Control Plane
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  immutable-referee:
+    name: immutable-referee
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out protected main referee
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: referee
+          persist-credentials: false
+      - name: Check out exact candidate as data
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+      - name: Record provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C referee rev-parse HEAD | tee protected-main.sha
+          test "$(git -C candidate rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          git -C candidate rev-parse HEAD | tee candidate.sha
+      - name: Verify immutable control plane
+        shell: bash
+        run: |
+          set -euo pipefail
+          python referee/scripts/validate_phase_a_control_plane.py \
+            --referee referee --candidate candidate \
+            --protected-main-sha "$(cat protected-main.sha)" \
+            --candidate-sha "$(cat candidate.sha)"
+      - name: Architecture static invariants
+        run: python referee/scripts/check_architecture_invariants.py --root candidate --config "$(pwd)/referee/automation/architecture-invariants.json"
+      - name: Architecture attack matrix
+        run: python referee/scripts/validate_phase_a_control_plane.py --referee referee --candidate candidate --attack-matrix
+      - name: Production Pilot Lock
+        run: python referee/scripts/check_production_pilot_lock.py --root candidate

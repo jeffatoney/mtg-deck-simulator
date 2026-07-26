@@ -32,3 +32,5 @@ jobs:
         run: uv run pytest -q
       - name: Manifest integrity
         run: uv run python scripts/check_manifest.py
+      - name: Production Pilot Lock
+        run: uv run python scripts/check_production_pilot_lock.py

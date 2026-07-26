@@ -123,7 +123,7 @@ def _local_import_roots(root: Path, parent: str) -> set[str]:
     return {
         path.stem if path.is_file() else path.name
         for path in directory.iterdir()
-        if (path.is_dir() and (path / "__init__.py").is_file())
+        if (path.is_dir() and any(child.is_file() for child in path.rglob("*.py")))
         or (path.is_file() and path.suffix == ".py" and path.name != "__init__.py")
     }
 
@@ -274,6 +274,12 @@ class ArchitectureScanner(ast.NodeVisitor):
             self._check_import(node, base)
         for alias in node.names:
             if alias.name == "*":
+                self.add(
+                    node,
+                    "STAR_IMPORT",
+                    "Star imports are prohibited in every enforced source path.",
+                    ast.unparse(node),
+                )
                 continue
             candidate = f"{base}.{alias.name}" if base else alias.name
             self._check_import(node, candidate)
@@ -614,6 +620,12 @@ def _scan_test_invariants(
         )
 
     for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and any(alias.name == "*" for alias in node.names):
+            record(
+                node,
+                "STAR_IMPORT",
+                "Star imports are prohibited in every controlled test path.",
+            )
         assignment_targets: list[ast.AST] = []
         if isinstance(node, ast.Assign):
             assignment_targets = list(node.targets)

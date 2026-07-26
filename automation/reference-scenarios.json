@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "status": "PLACEHOLDERS_REQUIRING_INDEPENDENT_REVIEW",
+  "minimum_random_seed_games": 200,
+  "forced_scenarios": [
+    "sol-ring", "soul-guide-lantern-targeted-etb", "malcolm-counterspell-commit",
+    "dualcaster-twinflame", "glint-horn-attack-cleanup", "illegal-target-before-resolution",
+    "additional-cleanup", "commander-replacement", "empty-library-loss"
+  ]
+}

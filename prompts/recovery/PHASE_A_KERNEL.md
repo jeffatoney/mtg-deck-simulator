@@ -278,3 +278,83 @@ of the new kernel.
 Return NO-GO unless every acceptance item passes through the new
 `mtg_kernel.executor.GameExecutor`, the architecture gate passes, existing CI
 passes, replay is real, and the production pilot remains locked.
+
+## Gate v2 protected evidence and causal liveness
+
+The authoritative examiner is the immutable protected-`main` referee, not any
+candidate copy. It stages only candidate `src/mtg_kernel/` and
+`src/mtg_cards/` with frozen reference evidence. Physical absence is the
+primary boundary; the frozen meta-path import finder, module-origin checks, and
+static scanner are defense in depth. Candidate tests, root modules, parent
+`conftest.py`, `src/mtg_sim/`, workflows, scripts, and helpers are never staged.
+Skipped or xfailed reference items are failures.
+
+Deliver `scripts/check_kernel_liveness.py`. The referee must invoke the public
+`mtg_kernel.executor.GameExecutor.run` in actual end-to-end games and obtain
+causal evidence for action generation and validation, cost determination and
+payment, stack push, priority pass, resolution, target revalidation,
+`ZoneService` movement, state-based-action stabilization, trigger creation and
+placement, `TurnEngine` cleanup, `ExternalZoneLedger` movement, and replay.
+Evidence requires all three independent classes: referee-observed call trees
+with code-object/file provenance; observed pre/post state transitions correlated
+to those calls; and candidate receipts checked against those observations.
+Setup probes, helper-only tests, disconnected facades, and coverage alone do not
+count. Each receipt includes run, game and action IDs; service and operation;
+source object ID when applicable; pre/post hashes; and causal event IDs.
+
+## Frozen scenarios, trace properties, and golden replay evidence
+
+Implement every frozen forced scenario in `automation/reference-scenarios.json`
+and at least 200 deterministic random-seed games for trace-property testing.
+Random games never replace forced scenarios. Enforce every invariant in
+`automation/trace-invariants.json`. Golden replays conform to the frozen schema
+and independently reviewed fixtures; candidate-authored expected outcomes are
+not evidence. Replay must reproduce action and event order, named RNG streams,
+external ledger, and final state hashes.
+
+## Simulation Analytics Contract
+
+Phase A is an instrumented decision laboratory. The engine emits objective,
+append-only, causally linked raw records for events, actions, meaningful policy
+decisions, card instances, service receipts, state hashes, replay actions, and
+run manifests. Every event contains schema version, run/game IDs, sequence,
+turn/phase/step/priority-window, actor, type, source card-instance/object IDs,
+target IDs, parent action/event IDs, pre/post hashes, and structured payload.
+It must not label raw facts as combo/protection/second-line access,
+strandedness, high-value draw, or strategic optimality; those are derived Phase
+B meanings.
+
+At every meaningful decision record decision ID, policy-visible observation
+hash, complete canonical legal-action set, selected action ID, policy
+ID/version, action-set hash, candidate scores, search branch/depth/node counts
+when applicable, and `future_information_used=false`. Any state with a legal
+non-pass action is meaningful. Forced pass-throughs record counts, hash,
+selected pass, and reason without repeating the full set.
+
+Maintain separate full audit state, policy-visible observation, and post-game
+analytics output. Policy/search may access only the observation. Every real
+card has a stable card-instance ID; tokens and copies have object IDs and never
+fabricated card instances. Phase A raw outputs are events, actions, decisions,
+card instances, receipts, replay records, optional checkpoints, and manifest.
+
+Phase B derives card lifecycles, draw impact, combo/protection access, first
+attempt, second-line access, strandedness, bottlenecks, tutor value,
+paired-policy differences, and model-ready features. Each derived row records
+evaluator name/version/commit, metric schema version, and source event-schema
+version.
+
+Phase A merge freezes event schema v1. Later changes require a new explicit
+version, compatibility classification, migration notes, preserved prior schema,
+and tests. Every game records simulation mode, scenario ID/version, opponent
+policy/version, blocking model, and interaction assumptions. Baseline,
+exploratory, and scripted-interaction records remain separately identifiable.
+All policy variants of one seed share a train/validation/test group. Live
+summaries are monitoring-only and cannot alter frozen policies. Every final
+statistic must reproduce from raw events.
+
+## Phase boundaries and required checks
+
+The production pilot workflow remains physically absent until a separately
+reviewed Phase C pull request restores the inactive template. Phase A requires
+all five distinct checks documented in `docs/audit/GATE_KNOWN_LIMITS.md`;
+ordinary green CI alone is not GO.
