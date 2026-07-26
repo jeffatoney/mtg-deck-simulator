@@ -10,6 +10,10 @@ permissions:
 jobs:
   immutable-referee:
     name: immutable-referee
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.head.ref == 'recovery/phase-a-rules-kernel'
     runs-on: ubuntu-latest
     steps:
       - name: Check out protected main referee

@@ -1,10 +1,6 @@
 name: Architecture Invariant Gate
 
 "on":
-  workflow_dispatch:
-  push:
-    branches:
-      - recovery/phase-a-rules-kernel
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
@@ -15,9 +11,9 @@ jobs:
   invariants:
     name: invariants
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.ref == 'refs/heads/recovery/phase-a-rules-kernel' ||
-      github.head_ref == 'recovery/phase-a-rules-kernel'
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.head.ref == 'recovery/phase-a-rules-kernel'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

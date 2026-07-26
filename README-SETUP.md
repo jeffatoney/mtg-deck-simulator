@@ -47,3 +47,20 @@ add the following required checks for recovery branches when available:
 
 Do not make the production Pilot Simulation workflow runnable during Phase A or
 Phase B.
+
+## Phase A bootstrap boundary
+
+The setup PR on `recovery/phase-a-setup` introduces the protected-main referee
+and closed-world reference runner. It cannot be examined by a protected-main
+referee that does not exist on `main` until this setup PR merges. Consequently,
+the recovery-only referee, static architecture gate, and isolated reference
+suite are intentionally dormant on the setup branch. Ordinary CI, the physical
+Production Pilot Lock, and the committed setup/control-plane tests validate the
+setup PR itself.
+
+After the setup merges, those protected-main checks become authoritative only
+for a pull request from `recovery/phase-a-rules-kernel` into `main`. Candidate
+copies of the referee scripts and workflows never replace the copies checked
+out from protected `main`. An `isolated-reference-suite` skip on the setup PR is
+expected; a failed future-kernel acceptance job is not equivalent to that
+expected bootstrap skip.

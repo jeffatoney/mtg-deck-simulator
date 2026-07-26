@@ -13,6 +13,10 @@ env:
 jobs:
   isolated-reference-suite:
     name: isolated-reference-suite
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.head.ref == 'recovery/phase-a-rules-kernel'
     runs-on: ubuntu-latest
     steps:
       - name: Check out exact candidate

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -9,6 +10,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+RECOVERY_BRANCH = "recovery/phase-a-rules-kernel"
 
 
 def run(script: str, *args: str) -> subprocess.CompletedProcess[str]:
@@ -26,6 +28,63 @@ def write_workflow(root: Path, text: str) -> None:
     path = root / ".github/workflows/check.yml"
     path.parent.mkdir(parents=True)
     path.write_text(text, encoding="utf-8")
+
+
+def workflow_job_condition(path: str, job: str) -> str:
+    text = (ROOT / path).read_text(encoding="utf-8")
+    match = re.search(
+        rf"^  {re.escape(job)}:\n(?:.*\n)*?    if: >-\n(?P<condition>(?:      .*\n)+)",
+        text,
+        flags=re.MULTILINE,
+    )
+    assert match, f"missing condition for {job} in {path}"
+    return " ".join(line.strip() for line in match.group("condition").splitlines())
+
+
+def lifecycle_allows(*, event: str, base: str, head: str) -> bool:
+    return event == "pull_request" and base == "main" and head == RECOVERY_BRANCH
+
+
+@pytest.mark.parametrize(
+    ("head", "expected"),
+    [
+        ("recovery/phase-a-setup", False),
+        (RECOVERY_BRANCH, True),
+        ("feature/unrelated", False),
+    ],
+)
+def test_isolated_reference_suite_branch_lifecycle(head: str, expected: bool) -> None:
+    condition = workflow_job_condition(
+        ".github/workflows/phase-a-isolated-acceptance.yml", "isolated-reference-suite"
+    )
+    assert "github.event_name == 'pull_request'" in condition
+    assert "github.event.pull_request.base.ref == 'main'" in condition
+    assert f"github.event.pull_request.head.ref == '{RECOVERY_BRANCH}'" in condition
+    assert lifecycle_allows(event="pull_request", base="main", head=head) is expected
+
+
+def test_recovery_control_plane_jobs_freeze_exact_branch_lifecycle() -> None:
+    workflows = [
+        (".github/workflows/architecture-gate.yml", "invariants", "pull_request"),
+        (
+            ".github/workflows/architecture-referee.yml",
+            "immutable-referee",
+            "pull_request_target",
+        ),
+    ]
+    for path, job, event in workflows:
+        condition = workflow_job_condition(path, job)
+        assert f"github.event_name == '{event}'" in condition
+        assert "github.event.pull_request.base.ref == 'main'" in condition
+        assert f"github.event.pull_request.head.ref == '{RECOVERY_BRANCH}'" in condition
+        assert "recovery/phase-a-setup" not in condition
+
+
+def test_isolated_reference_suite_uses_only_protected_main_runner() -> None:
+    text = (ROOT / ".github/workflows/phase-a-isolated-acceptance.yml").read_text(encoding="utf-8")
+    assert "ref: main\n          path: referee" in text
+    assert "python referee/scripts/run_phase_a_reference_tests.py" in text
+    assert "candidate/scripts/run_phase_a_reference_tests.py" not in text
 
 
 @pytest.mark.parametrize(
@@ -135,6 +194,31 @@ def test_immutable_referee_clean_control() -> None:
         "head",
     )
     assert result.returncode == 0
+
+
+def test_immutable_referee_freezes_acceptance_workflow_lifecycle(tmp_path: Path) -> None:
+    referee, candidate = control_trees(tmp_path)
+    relative = ".github/workflows/phase-a-isolated-acceptance.yml"
+    frozen_workflow = (ROOT / relative).read_text(encoding="utf-8")
+    (referee / relative).write_text(frozen_workflow, encoding="utf-8")
+    workflow_path = candidate / ".github/workflows/phase-a-isolated-acceptance.yml"
+    assert workflow_path.is_file()
+    workflow_path.write_text(
+        frozen_workflow.replace("recovery/phase-a-rules-kernel", "recovery/phase-a-setup"),
+        encoding="utf-8",
+    )
+    result = run(
+        "validate_phase_a_control_plane.py",
+        "--referee",
+        str(referee),
+        "--candidate",
+        str(candidate),
+        "--protected-main-sha",
+        "base",
+        "--candidate-sha",
+        "head",
+    )
+    assert result.returncode == 1
 
 
 def test_closed_world_staging_excludes_candidate_escape_paths() -> None:
