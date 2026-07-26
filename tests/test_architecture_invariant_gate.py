@@ -26,9 +26,12 @@ def _config(root: Path) -> None:
         "allowed_phase_assignment_files": ["src/mtg_kernel/turns.py"],
         "allowed_terminal_assignment_files": ["src/mtg_kernel/state_based_actions.py"],
         "allowed_trigger_stack_event_files": ["src/mtg_kernel/stack.py"],
+        "allowed_zone_initializers": {"src/mtg_kernel/state.py": ["__init__"]},
         "kernel_paths": ["src/mtg_kernel/"],
         "test_paths": ["tests/phase_a_acceptance/"],
         "zone_attributes": ["battlefield", "hand", "library", "graveyard", "exile"],
+        "protected_zone_container_attributes": ["zones", "_zones"],
+        "state_reference_names": ["state", "game_state"],
         "phase_attributes": ["phase", "step"],
         "terminal_attributes": ["won", "lost", "game_over", "terminal_status"],
         "forbidden_import_prefixes": ["mtg_sim"],
@@ -223,6 +226,100 @@ def test_architecture_gate_rejects_fake_trigger_event(tmp_path: Path) -> None:
     assert "FAKE_TRIGGER_EVENT" in result.stdout
 
 
+@pytest.mark.parametrize(
+    "source",
+    [
+        "def bad(state, card):\n    state.zones[Zone.HAND].append(card)\n",
+        "def bad(state, card):\n    state.zones[Zone.HAND] = [card]\n",
+        "def bad(state):\n    del state.zones[Zone.HAND]\n",
+        "def bad(state, card):\n    zones = state.zones\n    zones[Zone.HAND].append(card)\n",
+        "def bad(state, card):\n    state._zones[Zone.LIBRARY].insert(0, card)\n",
+    ],
+    ids=[
+        "method-mutation",
+        "item-assignment",
+        "item-deletion",
+        "mapping-alias",
+        "private-container",
+    ],
+)
+def test_architecture_gate_rejects_protected_zone_container_access(
+    tmp_path: Path, source: str
+) -> None:
+    _fixture(tmp_path)
+    result = _write(tmp_path, source)
+    assert result.returncode == 1
+    assert "ZONE_CONTAINER_ACCESS" in result.stdout
+
+
+def test_architecture_gate_allows_ordinary_local_zones_dictionary(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    result = _write(tmp_path, "def okay():\n    zones = {}\n    return zones\n")
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_architecture_gate_limits_state_zone_initialization(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    state = tmp_path / "src/mtg_kernel/state.py"
+    state.write_text(
+        "class GameState:\n"
+        "    def __init__(self):\n        self._zones = {}\n"
+        "    def cheat(self, card):\n        self._zones['hand'].append(card)\n",
+        encoding="utf-8",
+    )
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "ZONE_CONTAINER_ACCESS" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "def bad(log):\n    log.record_event('trigger_put_on_stack')\n",
+        "def bad(log):\n    log.record_event(event_type='trigger_put_on_stack')\n",
+        "def bad(log):\n    log.record_event(event='trigger_put_on_stack')\n",
+        "def bad(log):\n    log.record_event(name='trigger_put_on_stack')\n",
+        "def bad(log, event_type):\n    log.record_event(event_type=event_type)\n",
+    ],
+    ids=["positional", "event-type-keyword", "event-keyword", "name-keyword", "nonliteral"],
+)
+def test_architecture_gate_rejects_protected_trigger_event_forms(
+    tmp_path: Path, source: str
+) -> None:
+    _fixture(tmp_path)
+    result = _write(tmp_path, source)
+    assert result.returncode == 1
+    assert "FAKE_TRIGGER_EVENT" in result.stdout
+
+
+def test_architecture_gate_allows_stack_service_trigger_emission(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "src/mtg_kernel/stack.py"
+    path.write_text(
+        "def push(state, obj, log):\n"
+        "    trigger = TriggeredAbilityObject(obj)\n"
+        "    state.stack.append(trigger)\n"
+        "    log.record_event(event_type='trigger_put_on_stack')\n",
+        encoding="utf-8",
+    )
+    result = _run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_architecture_gate_rejects_stack_service_event_without_real_trigger(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "src/mtg_kernel/stack.py"
+    path.write_text(
+        "def fake(state, log):\n"
+        "    state.stack.append(object())\n"
+        "    log.record_event(event_type='trigger_put_on_stack')\n",
+        encoding="utf-8",
+    )
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "FAKE_TRIGGER_EVENT" in result.stdout
+
+
 def test_architecture_gate_rejects_aliased_test_suppression(tmp_path: Path) -> None:
     _fixture(tmp_path)
     path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
@@ -285,3 +382,97 @@ def test_architecture_gate_rejects_kernel_patching(tmp_path: Path, source: str) 
     result = _run(tmp_path)
     assert result.returncode == 1
     assert "FORBIDDEN_TEST_PATCH" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "def test_patch(monkeypatch, executor, replacement):\n"
+        "    patcher = monkeypatch\n    patcher.setattr(executor, 'run', replacement)\n",
+        "from unittest import mock\nfirst = mock.patch\n"
+        "def test_patch():\n    first('mtg_kernel.stack.StackService.push')\n",
+        "from unittest.mock import patch\nhelper = patch\n"
+        "def test_patch(replacement):\n    helper.object(GameExecutor, 'run', replacement)\n",
+        "def test_patch(mocker):\n    helper = mocker.patch\n"
+        "    helper('mtg_kernel.turns.TurnEngine.cleanup')\n",
+        "from unittest import mock\nfirst = mock.patch\nsecond = first\n"
+        "def test_patch():\n    second('mtg_kernel.replay.ReplayEngine.run')\n",
+        "from unittest.mock import patch\nhelper = patch\n"
+        "def test_patch(target):\n    helper(target)\n",
+        "from unittest import mock\n"
+        "def test_patch(condition):\n"
+        "    helper = mock.patch if condition else mock.patch.object\n"
+        "    helper('mtg_kernel.triggers.TriggerEngine.run')\n",
+    ],
+    ids=[
+        "monkeypatch-object-alias",
+        "mock-patch-helper-alias",
+        "patch-object-helper-alias",
+        "mocker-patch-alias",
+        "transitive-helper-alias",
+        "nonliteral-target",
+        "unresolved-patch-capable-callee",
+    ],
+)
+def test_architecture_gate_rejects_assignment_aliased_patch_helpers(
+    tmp_path: Path, source: str
+) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    path.parent.mkdir(parents=True)
+    path.write_text(source, encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "FORBIDDEN_TEST_PATCH" in result.stdout
+
+
+def test_architecture_gate_allows_clean_acceptance_test(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    path.parent.mkdir(parents=True)
+    path.write_text(
+        "def test_clean():\n"
+        "    message = 'mtg_kernel.executor.GameExecutor.run'\n"
+        "    assert message.startswith('mtg_kernel')\n",
+        encoding="utf-8",
+    )
+    result = _run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "exec('import mtg_sim.engine')\n",
+        "eval(\"__import__('mtg_sim.engine')\")\n",
+        "compile('import mtg_sim.engine', '<string>', 'exec')\n",
+        "from builtins import exec as runner\nrunner('pass')\n",
+        "runner = exec\nrunner('pass')\n",
+        "first = eval\nsecond = first\nsecond('1 + 1')\n",
+        "def bad(condition):\n    runner = exec if condition else compile\n    runner('pass')\n",
+    ],
+    ids=[
+        "direct-exec",
+        "direct-eval",
+        "direct-compile",
+        "builtins-alias",
+        "assignment-alias",
+        "transitive-alias",
+        "unresolved-alias",
+    ],
+)
+def test_architecture_gate_rejects_dynamic_code_execution(tmp_path: Path, source: str) -> None:
+    _fixture(tmp_path)
+    result = _write(tmp_path, source)
+    assert result.returncode == 1
+    assert "DYNAMIC_CODE_EXECUTION" in result.stdout
+
+
+def test_architecture_gate_rejects_dynamic_code_execution_in_test_paths(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    path.parent.mkdir(parents=True)
+    path.write_text("runner = exec\nrunner('pass')\n", encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "DYNAMIC_CODE_EXECUTION" in result.stdout

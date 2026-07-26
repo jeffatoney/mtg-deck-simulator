@@ -78,6 +78,43 @@ def _resolved_dotted(node: ast.AST | None, aliases: dict[str, str]) -> str:
     return f"{resolved}.{tail}" if separator else resolved
 
 
+def _lexical_aliases(tree: ast.AST) -> dict[str, str]:
+    """Resolve imports and simple, transitive assignment aliases fail-closed scanners use."""
+    aliases = _import_aliases(tree)
+    assignments: list[tuple[str, ast.AST]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            value = node.value
+            if value is not None:
+                assignments.extend(
+                    (target.id, value) for target in targets if isinstance(target, ast.Name)
+                )
+    for _ in range(len(assignments) + 1):
+        changed = False
+        for target, value in assignments:
+            resolved = _resolved_dotted(value, aliases)
+            referenced = {_resolved_dotted(item, aliases) for item in ast.walk(value)}
+            if any(
+                item
+                in {"exec", "eval", "compile", "builtins.exec", "builtins.eval", "builtins.compile"}
+                for item in referenced
+            ):
+                resolved = "__dynamic_code_unresolved__"
+            elif any(
+                item.startswith(("unittest.mock.patch", "mock.patch", "mocker.patch"))
+                or item == "monkeypatch"
+                for item in referenced
+            ):
+                resolved = "__patch_unresolved__"
+            if resolved and aliases.get(target) != resolved:
+                aliases[target] = resolved
+                changed = True
+        if not changed:
+            break
+    return aliases
+
+
 class ArchitectureScanner(ast.NodeVisitor):
     """Apply deliberately strict, service-boundary checks.
 
@@ -94,10 +131,17 @@ class ArchitectureScanner(ast.NodeVisitor):
         self.zone_names = set(config["zone_attributes"])
         self.phase_names = set(config["phase_attributes"])
         self.terminal_names = set(config["terminal_attributes"])
+        self.zone_container_names = set(
+            config.get("protected_zone_container_attributes", ["zones", "_zones"])
+        )
+        self.state_reference_names = set(
+            config.get("state_reference_names", ["state", "game_state"])
+        )
         self.import_aliases: dict[str, str] = {}
+        self.function_stack: list[ast.FunctionDef | ast.AsyncFunctionDef] = []
 
     def scan(self, tree: ast.AST) -> None:
-        self.import_aliases = _import_aliases(tree)
+        self.import_aliases = _lexical_aliases(tree)
         self.visit(tree)
 
     def add(self, node: ast.AST, code: str, reason: str, detail: str) -> None:
@@ -122,6 +166,68 @@ class ArchitectureScanner(ast.NodeVisitor):
 
     def _terminal_write_allowed(self) -> bool:
         return _matches_path(self.relative, self.config["allowed_terminal_assignment_files"])
+
+    def _zone_initialization_allowed(self) -> bool:
+        functions = self.config.get("allowed_zone_initializers", {}).get(self.relative, [])
+        return bool(self.function_stack and self.function_stack[-1].name in functions)
+
+    def _is_state_reference(self, node: ast.AST | None) -> bool:
+        dotted = _resolved_dotted(node, self.import_aliases)
+        if not dotted:
+            return False
+        parts = dotted.split(".")
+        return (
+            dotted in self.state_reference_names
+            or (len(parts) >= 2 and parts[-1] in self.state_reference_names)
+            or (
+                dotted == "self"
+                and self.relative in self.config.get("allowed_zone_initializers", {})
+            )
+        )
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self.function_stack.append(node)
+        self.generic_visit(node)
+        self.function_stack.pop()
+
+    visit_AsyncFunctionDef = visit_FunctionDef
+
+    def _has_prior_real_trigger_push(self, event_node: ast.Call) -> bool:
+        if not self.function_stack:
+            return False
+        function = self.function_stack[-1]
+        trigger_names = {
+            target.id
+            for item in ast.walk(function)
+            if isinstance(item, (ast.Assign, ast.AnnAssign))
+            for target in (item.targets if isinstance(item, ast.Assign) else [item.target])
+            if isinstance(target, ast.Name)
+            and item.value is not None
+            and _resolved_dotted(item.value, self.import_aliases).endswith("TriggeredAbilityObject")
+            and getattr(item, "lineno", 0) < event_node.lineno
+        }
+        for item in ast.walk(function):
+            if not isinstance(item, ast.Call) or getattr(item, "lineno", 0) >= event_node.lineno:
+                continue
+            if (
+                not isinstance(item.func, ast.Attribute)
+                or item.func.attr != "append"
+                or not item.args
+            ):
+                continue
+            receiver = item.func.value
+            if not (
+                isinstance(receiver, ast.Attribute)
+                and receiver.attr == "stack"
+                and self._is_state_reference(receiver.value)
+            ):
+                continue
+            pushed = item.args[0]
+            if _resolved_dotted(pushed, self.import_aliases).endswith("TriggeredAbilityObject"):
+                return True
+            if isinstance(pushed, ast.Name) and pushed.id in trigger_names:
+                return True
+        return False
 
     def visit_Import(self, node: ast.Import) -> None:
         for alias in node.names:
@@ -150,14 +256,27 @@ class ArchitectureScanner(ast.NodeVisitor):
                 )
 
     def visit_Attribute(self, node: ast.Attribute) -> None:
-        if node.attr in self.zone_names and not self._zone_allowed():
+        state_attribute = self._is_state_reference(node.value)
+        if (
+            state_attribute
+            and node.attr in self.zone_container_names
+            and not self._zone_allowed()
+            and not self._zone_initialization_allowed()
+        ):
+            self.add(
+                node,
+                "ZONE_CONTAINER_ACCESS",
+                "Only narrow GameState initialization and ZoneService may access zone containers.",
+                ast.unparse(node),
+            )
+        elif state_attribute and node.attr in self.zone_names and not self._zone_allowed():
             self.add(
                 node,
                 "ZONE_ACCESS",
                 "Only GameState initialization and ZoneService may access mutable zones.",
                 ast.unparse(node),
             )
-        elif node.attr == "stack" and not self._stack_allowed():
+        elif state_attribute and node.attr == "stack" and not self._stack_allowed():
             self.add(
                 node,
                 "STACK_ACCESS",
@@ -165,14 +284,22 @@ class ArchitectureScanner(ast.NodeVisitor):
                 ast.unparse(node),
             )
         elif isinstance(node.ctx, (ast.Store, ast.Del)):
-            if node.attr in self.phase_names and not self._phase_write_allowed():
+            if (
+                state_attribute
+                and node.attr in self.phase_names
+                and not self._phase_write_allowed()
+            ):
                 self.add(
                     node,
                     "PHASE_ASSIGNMENT",
                     "Only GameState initialization and TurnEngine may change phase or step.",
                     ast.unparse(node),
                 )
-            elif node.attr in self.terminal_names and not self._terminal_write_allowed():
+            elif (
+                state_attribute
+                and node.attr in self.terminal_names
+                and not self._terminal_write_allowed()
+            ):
                 self.add(
                     node,
                     "TERMINAL_ASSIGNMENT",
@@ -253,10 +380,20 @@ class ArchitectureScanner(ast.NodeVisitor):
                 ast.unparse(node),
             )
 
-        if leaf == "record_event" and node.args:
-            event = _literal_string(node.args[0])
-            if event == "trigger_put_on_stack" and not _matches_path(
+        if leaf == "record_event":
+            event_node = node.args[0] if node.args else None
+            for keyword in node.keywords:
+                if keyword.arg in {"event_type", "event", "name"}:
+                    event_node = keyword.value
+                    break
+            event = _literal_string(event_node)
+            allowed_file = _matches_path(
                 self.relative, self.config["allowed_trigger_stack_event_files"]
+            )
+            if (
+                event_node is not None
+                and (event is None or event == "trigger_put_on_stack")
+                and (not allowed_file or not self._has_prior_real_trigger_push(node))
             ):
                 self.add(
                     node,
@@ -264,6 +401,22 @@ class ArchitectureScanner(ast.NodeVisitor):
                     "Only StackService may emit this event after adding a real trigger object.",
                     ast.unparse(node),
                 )
+
+        if name in {
+            "exec",
+            "eval",
+            "compile",
+            "builtins.exec",
+            "builtins.eval",
+            "builtins.compile",
+            "__dynamic_code_unresolved__",
+        }:
+            self.add(
+                node,
+                "DYNAMIC_CODE_EXECUTION",
+                "Dynamic code execution is prohibited in clean-kernel and gate paths.",
+                ast.unparse(node),
+            )
 
         self.generic_visit(node)
 
@@ -319,7 +472,7 @@ def _scan_test_invariants(
         "skiptest",
     }
     violations: dict[tuple[int, str], Violation] = {}
-    aliases = _import_aliases(tree)
+    aliases = _lexical_aliases(tree)
     patch_tokens = tuple(token.lower() for token in forbidden_patch_tokens)
 
     for node in ast.walk(tree):
@@ -355,6 +508,24 @@ def _scan_test_invariants(
         if not isinstance(node, ast.Call):
             continue
         call_name = _resolved_dotted(node.func, aliases)
+        if call_name in {
+            "exec",
+            "eval",
+            "compile",
+            "builtins.exec",
+            "builtins.eval",
+            "builtins.compile",
+            "__dynamic_code_unresolved__",
+        }:
+            dynamic_detail = ast.unparse(node)
+            line = getattr(node, "lineno", 1)
+            violations[(line, dynamic_detail)] = Violation(
+                path=_relative(path, root),
+                line=line,
+                code="DYNAMIC_CODE_EXECUTION",
+                reason="Dynamic code execution is prohibited in clean-kernel and gate paths.",
+                detail=dynamic_detail,
+            )
         target: ast.AST | None = None
         is_patch = False
         if call_name in {"monkeypatch.setattr", "monkeypatch.delattr"}:
@@ -366,6 +537,17 @@ def _scan_test_invariants(
             "unittest.mock.patch.dict",
             "unittest.mock.patch.multiple",
         }:
+            is_patch = True
+            target = node.args[0] if node.args else None
+        elif call_name in {
+            "mocker.patch",
+            "mocker.patch.object",
+            "mocker.patch.dict",
+            "mocker.patch.multiple",
+        }:
+            is_patch = True
+            target = node.args[0] if node.args else None
+        elif call_name == "__patch_unresolved__" or call_name.startswith("__patch_unresolved__."):
             is_patch = True
             target = node.args[0] if node.args else None
         if not is_patch:

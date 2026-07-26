@@ -34,6 +34,11 @@
   "allowed_trigger_stack_event_files": [
     "src/mtg_kernel/stack.py"
   ],
+  "allowed_zone_initializers": {
+    "src/mtg_kernel/state.py": [
+      "__init__"
+    ]
+  },
   "kernel_paths": [
     "src/mtg_kernel/"
   ],
@@ -48,6 +53,14 @@
     "graveyard",
     "exile",
     "command_zone"
+  ],
+  "protected_zone_container_attributes": [
+    "zones",
+    "_zones"
+  ],
+  "state_reference_names": [
+    "state",
+    "game_state"
   ],
   "phase_attributes": [
     "phase",
