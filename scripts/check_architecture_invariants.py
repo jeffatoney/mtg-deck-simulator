@@ -115,6 +115,19 @@ def _lexical_aliases(tree: ast.AST) -> dict[str, str]:
     return aliases
 
 
+def _local_import_roots(root: Path, parent: str) -> set[str]:
+    """Return importable project roots immediately below *parent*."""
+    directory = root / parent
+    if not directory.is_dir():
+        return set()
+    return {
+        path.stem if path.is_file() else path.name
+        for path in directory.iterdir()
+        if (path.is_dir() and (path / "__init__.py").is_file())
+        or (path.is_file() and path.suffix == ".py" and path.name != "__init__.py")
+    }
+
+
 class ArchitectureScanner(ast.NodeVisitor):
     """Apply deliberately strict, service-boundary checks.
 
@@ -124,7 +137,14 @@ class ArchitectureScanner(ast.NodeVisitor):
     bypass the service boundary.
     """
 
-    def __init__(self, *, path: Path, root: Path, config: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        *,
+        path: Path,
+        root: Path,
+        config: dict[str, Any],
+        local_import_roots: set[str],
+    ) -> None:
         self.relative = _relative(path, root)
         self.config = config
         self.violations: list[Violation] = []
@@ -139,6 +159,12 @@ class ArchitectureScanner(ast.NodeVisitor):
         )
         self.import_aliases: dict[str, str] = {}
         self.function_stack: list[ast.FunctionDef | ast.AsyncFunctionDef] = []
+        self.local_import_roots = local_import_roots
+        self.enforced_roots = {
+            entry.removeprefix("src/").split("/", maxsplit=1)[0]
+            for entry in config.get("enforced_paths", [])
+            if entry.startswith("src/")
+        }
 
     def scan(self, tree: ast.AST) -> None:
         self.import_aliases = _lexical_aliases(tree)
@@ -167,6 +193,10 @@ class ArchitectureScanner(ast.NodeVisitor):
     def _terminal_write_allowed(self) -> bool:
         return _matches_path(self.relative, self.config["allowed_terminal_assignment_files"])
 
+    def _state_initialization_allowed(self) -> bool:
+        functions = self.config.get("allowed_state_initializers", {}).get(self.relative, [])
+        return bool(self.function_stack and self.function_stack[-1].name in functions)
+
     def _zone_initialization_allowed(self) -> bool:
         functions = self.config.get("allowed_zone_initializers", {}).get(self.relative, [])
         return bool(self.function_stack and self.function_stack[-1].name in functions)
@@ -176,14 +206,18 @@ class ArchitectureScanner(ast.NodeVisitor):
         if not dotted:
             return False
         parts = dotted.split(".")
-        return (
+        if (
             dotted in self.state_reference_names
             or (len(parts) >= 2 and parts[-1] in self.state_reference_names)
             or (
                 dotted == "self"
                 and self.relative in self.config.get("allowed_zone_initializers", {})
             )
-        )
+        ):
+            return True
+        # Protected state fields are deliberately structural. This prevents a
+        # spelling such as ``gs`` or ``ctx._state`` from bypassing ownership.
+        return isinstance(node, (ast.Name, ast.Attribute, ast.Subscript, ast.Call))
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self.function_stack.append(node)
@@ -254,6 +288,19 @@ class ArchitectureScanner(ast.NodeVisitor):
                     "The clean kernel may not import the legacy simulator.",
                     module,
                 )
+        root = module.lstrip(".").split(".", maxsplit=1)[0]
+        approved = set(self.config.get("approved_local_support_modules", []))
+        if (
+            root in self.local_import_roots
+            and root not in self.enforced_roots
+            and root not in approved
+        ):
+            self.add(
+                node,
+                "UNSCANNED_LOCAL_DEPENDENCY",
+                "Clean-kernel code may not delegate to an unscanned project-local package.",
+                module,
+            )
 
     def visit_Attribute(self, node: ast.Attribute) -> None:
         state_attribute = self._is_state_reference(node.value)
@@ -288,6 +335,7 @@ class ArchitectureScanner(ast.NodeVisitor):
                 state_attribute
                 and node.attr in self.phase_names
                 and not self._phase_write_allowed()
+                and not self._state_initialization_allowed()
             ):
                 self.add(
                     node,
@@ -299,6 +347,7 @@ class ArchitectureScanner(ast.NodeVisitor):
                 state_attribute
                 and node.attr in self.terminal_names
                 and not self._terminal_write_allowed()
+                and not self._state_initialization_allowed()
             ):
                 self.add(
                     node,
@@ -338,6 +387,8 @@ class ArchitectureScanner(ast.NodeVisitor):
                     "Dynamic imports must be literal and may not reach the legacy simulator.",
                     ast.unparse(node),
                 )
+            if module is not None:
+                self._check_import(node, module)
 
         if leaf in {"setattr", "__setattr__", "delattr", "__delattr__"}:
             self.add(
@@ -447,7 +498,10 @@ def _python_files(root: Path, paths: Iterable[str]) -> list[Path]:
 
 
 def _scan_test_invariants(
-    path: Path, root: Path, forbidden_patch_tokens: Iterable[str]
+    path: Path,
+    root: Path,
+    forbidden_patch_tokens: Iterable[str],
+    config: dict[str, Any],
 ) -> list[Violation]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -474,6 +528,30 @@ def _scan_test_invariants(
     violations: dict[tuple[int, str], Violation] = {}
     aliases = _lexical_aliases(tree)
     patch_tokens = tuple(token.lower() for token in forbidden_patch_tokens)
+    local_test_roots = _local_import_roots(root, "tests")
+    approved_helpers = set(config.get("approved_test_support_modules", []))
+
+    for node in ast.walk(tree):
+        modules: list[str] = []
+        if isinstance(node, ast.Import):
+            modules = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            base = (node.module or "").lstrip(".")
+            modules = [base] if base else []
+            modules.extend(f"{base}.{alias.name}" for alias in node.names if base)
+        for module in modules:
+            local = module.split(".", maxsplit=1)[0]
+            external_tests_module = module == "tests" or module.startswith("tests.")
+            if (
+                local in local_test_roots or external_tests_module
+            ) and module not in approved_helpers:
+                violations[(getattr(node, "lineno", 1), module)] = Violation(
+                    path=_relative(path, root),
+                    line=getattr(node, "lineno", 1),
+                    code="UNSCANNED_TEST_DEPENDENCY",
+                    reason="Acceptance tests may not import support outside their scanned boundary.",
+                    detail=module,
+                )
 
     def protected_dotted_string(node: ast.AST | None) -> str | None:
         value = _literal_string(node)
@@ -495,6 +573,19 @@ def _scan_test_invariants(
         return any(token in lowered.split(".") for token in patch_tokens) or any(
             token == "mtg_kernel" and lowered.startswith("mtg_kernel.") for token in patch_tokens
         )
+
+    def definitely_local_object(node: ast.AST | None) -> bool:
+        if not isinstance(node, ast.Name):
+            return False
+        for item in ast.walk(tree):
+            if not isinstance(item, ast.Assign) or not isinstance(item.value, ast.Call):
+                continue
+            if any(
+                isinstance(target, ast.Name) and target.id == node.id for target in item.targets
+            ):
+                callee = _resolved_dotted(item.value.func, aliases)
+                return bool(callee and not any(token in callee.lower() for token in patch_tokens))
+        return False
 
     def module_name_from_subscript(node: ast.AST | None) -> str | None:
         if not isinstance(node, ast.Subscript):
@@ -597,6 +688,27 @@ def _scan_test_invariants(
                 reason="Dynamic code execution is prohibited in clean-kernel and gate paths.",
                 detail=dynamic_detail,
             )
+        reflective = call_name in {
+            "setattr",
+            "delattr",
+            "builtins.setattr",
+            "builtins.delattr",
+            "type.__setattr__",
+            "type.__delattr__",
+        }
+        if reflective:
+            target_object = node.args[0] if node.args else None
+            attribute = node.args[1] if len(node.args) > 1 else None
+            if (
+                protected_imported_object(target_object)
+                or not definitely_local_object(target_object)
+                or _literal_string(attribute) is None
+            ):
+                record(
+                    node,
+                    "FORBIDDEN_TEST_REPLACEMENT",
+                    "Acceptance tests may not reflectively replace protected or unresolved objects.",
+                )
         target: ast.AST | None = next(
             (keyword.value for keyword in node.keywords if keyword.arg == "target"), None
         )
@@ -719,7 +831,12 @@ def run_gate(root: Path, config_path: Path) -> dict[str, Any]:
                 )
             )
             continue
-        scanner = ArchitectureScanner(path=path, root=root, config=config)
+        scanner = ArchitectureScanner(
+            path=path,
+            root=root,
+            config=config,
+            local_import_roots=_local_import_roots(root, "src"),
+        )
         scanner.scan(tree)
         violations.extend(scanner.violations)
 
@@ -730,6 +847,7 @@ def run_gate(root: Path, config_path: Path) -> dict[str, Any]:
                     path,
                     root,
                     config.get("forbidden_patch_target_tokens", []),
+                    config,
                 )
             )
 

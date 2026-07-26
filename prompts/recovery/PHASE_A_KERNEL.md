@@ -221,6 +221,22 @@ beginning with its exact ID. Tests must use the new
 `mtg_kernel.executor.GameExecutor` path. Isolated helper tests do not satisfy the
 spec.
 
+The architecture gate must enforce project-local dependency closure: no clean
+kernel or card implementation may be delegated to a project-local package that
+is outside the configured, scanned `enforced_paths`. No support implementation
+may live outside those enforced packages.
+
+Run the acceptance suite only with the configuration boundary
+`--confcutdir=tests/phase_a_acceptance`. Any Phase A `conftest.py` must live
+inside that directory and be scanned by the gate. Parent conftests and
+unscanned project-local test helpers must not influence or supply acceptance
+behavior. The `mtg-sim recovery kernel` command must use this same isolated
+invocation.
+
+Acceptance tests may not replace or delete protected kernel behavior, whether
+through direct assignment, patch helpers, reflective `setattr`/`delattr`
+variants, or direct/transitive aliases of those operations.
+
 Port useful scenarios from PR #29 as requirements or fixtures, but do not port
 its `setattr` patch architecture, direct zone mutation, direct stack mutation,
 or event-log-as-engine behavior.

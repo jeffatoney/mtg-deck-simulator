@@ -27,6 +27,10 @@ def _config(root: Path) -> None:
         "allowed_terminal_assignment_files": ["src/mtg_kernel/state_based_actions.py"],
         "allowed_trigger_stack_event_files": ["src/mtg_kernel/stack.py"],
         "allowed_zone_initializers": {"src/mtg_kernel/state.py": ["__init__"]},
+        "allowed_state_initializers": {"src/mtg_kernel/state.py": ["__init__"]},
+        "approved_local_support_modules": [],
+        "approved_test_support_modules": [],
+        "approved_third_party_modules": ["pydantic"],
         "kernel_paths": ["src/mtg_kernel/"],
         "test_paths": ["tests/phase_a_acceptance/"],
         "zone_attributes": ["battlefield", "hand", "library", "graveyard", "exile"],
@@ -561,3 +565,155 @@ def test_architecture_gate_rejects_dynamic_code_execution_in_test_paths(tmp_path
     result = _run(tmp_path)
     assert result.returncode == 1
     assert "DYNAMIC_CODE_EXECUTION" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "from mtg_kernel.executor import GameExecutor\nsetattr(GameExecutor, 'run', fake_run)\n",
+        "from mtg_kernel.executor import GameExecutor\ndelattr(GameExecutor, 'run')\n",
+        "from mtg_kernel.executor import GameExecutor\n"
+        "import builtins\nbuiltins.setattr(GameExecutor, 'run', fake_run)\n",
+        "from mtg_kernel.executor import GameExecutor\n"
+        "import builtins\nbuiltins.delattr(GameExecutor, 'run')\n",
+        "from mtg_kernel.executor import GameExecutor\n"
+        "type.__setattr__(GameExecutor, 'run', fake_run)\n",
+        "from mtg_kernel.executor import GameExecutor\ntype.__delattr__(GameExecutor, 'run')\n",
+        "from mtg_kernel.executor import GameExecutor\n"
+        "setter = setattr\nsetter(GameExecutor, 'run', fake_run)\n",
+        "from mtg_kernel.executor import GameExecutor\n"
+        "first = setattr\nsecond = first\nsecond(GameExecutor, 'run', fake_run)\n",
+        "def test_bad(target, fake_run):\n    setattr(target, 'run', fake_run)\n",
+        "from mtg_kernel.executor import GameExecutor\n"
+        "def test_bad(field, fake_run):\n    setattr(GameExecutor, field, fake_run)\n",
+    ],
+    ids=[
+        "setattr",
+        "delattr",
+        "builtins-setattr",
+        "builtins-delattr",
+        "type-setattr",
+        "type-delattr",
+        "assignment-alias",
+        "transitive-assignment-alias",
+        "unresolved-target",
+        "nonliteral-member",
+    ],
+)
+def test_architecture_gate_rejects_reflective_test_replacement(tmp_path: Path, source: str) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    path.parent.mkdir(parents=True)
+    path.write_text(source, encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "FORBIDDEN_TEST_REPLACEMENT" in result.stdout
+
+
+def test_architecture_gate_allows_reflection_on_local_fixture(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    path.parent.mkdir(parents=True)
+    path.write_text(
+        "class Fixture:\n    pass\nfixture = Fixture()\n"
+        "setattr(fixture, 'value', 1)\ndelattr(fixture, 'value')\n",
+        encoding="utf-8",
+    )
+    result = _run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("source", "passes"),
+    [
+        ("from phase_a_impl.cheat import execute\n", False),
+        ("import phase_a_impl.cheat\n", False),
+        ("import importlib\nimportlib.import_module('phase_a_impl.cheat')\n", False),
+        ("__import__('phase_a_impl.cheat')\n", False),
+        ("from mtg_kernel import zones\n", True),
+        ("from mtg_cards import vertical_slice\n", True),
+        ("import pathlib\n", True),
+        ("import pydantic\n", True),
+        ("import mtg_sim\n", False),
+    ],
+    ids=[
+        "from-local-facade",
+        "import-local-facade",
+        "importlib-local-facade",
+        "builtin-local-facade",
+        "internal-kernel",
+        "internal-cards",
+        "standard-library",
+        "third-party",
+        "legacy-simulator",
+    ],
+)
+def test_architecture_gate_enforces_project_local_import_closure(
+    tmp_path: Path, source: str, passes: bool
+) -> None:
+    _fixture(tmp_path)
+    helper = tmp_path / "src/phase_a_impl"
+    helper.mkdir(parents=True)
+    (helper / "__init__.py").write_text("", encoding="utf-8")
+    (helper / "cheat.py").write_text("def execute(): pass\n", encoding="utf-8")
+    result = _write(tmp_path, source)
+    assert (result.returncode == 0) is passes, result.stdout + result.stderr
+    if not passes and "mtg_sim" not in source:
+        assert "UNSCANNED_LOCAL_DEPENDENCY" in result.stdout
+        assert "src/mtg_kernel/executor.py" in result.stdout
+
+
+def test_architecture_gate_rejects_external_acceptance_helper(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    helper = tmp_path / "tests/helpers.py"
+    helper.parent.mkdir(parents=True, exist_ok=True)
+    helper.write_text("def fake(): pass\n", encoding="utf-8")
+    acceptance = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    acceptance.parent.mkdir(parents=True)
+    acceptance.write_text("from helpers import fake\n", encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "UNSCANNED_TEST_DEPENDENCY" in result.stdout
+
+
+def test_architecture_gate_scans_acceptance_local_conftest(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    conftest = tmp_path / "tests/phase_a_acceptance/conftest.py"
+    conftest.parent.mkdir(parents=True)
+    conftest.write_text("exec('pass')\n", encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "tests/phase_a_acceptance/conftest.py" in result.stdout
+    assert "DYNAMIC_CODE_EXECUTION" in result.stdout
+
+
+def test_phase_a_invocation_uses_confcutdir_boundary() -> None:
+    workflow = Path(".github/workflows/architecture-gate.yml").read_text(encoding="utf-8")
+    prompt = Path("prompts/recovery/PHASE_A_KERNEL.md").read_text(encoding="utf-8")
+    invocation = "--confcutdir=tests/phase_a_acceptance"
+    assert invocation in workflow
+    assert invocation in prompt
+
+
+def test_pytest_confcutdir_excludes_parent_conftest(tmp_path: Path) -> None:
+    tests = tmp_path / "tests"
+    acceptance = tests / "phase_a_acceptance"
+    acceptance.mkdir(parents=True)
+    (tests / "conftest.py").write_text("raise RuntimeError('parent loaded')\n", encoding="utf-8")
+    (acceptance / "test_clean.py").write_text("def test_clean(): assert True\n", encoding="utf-8")
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            f"--confcutdir={acceptance}",
+            str(acceptance),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+        cwd=tmp_path,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "1 passed" in result.stdout

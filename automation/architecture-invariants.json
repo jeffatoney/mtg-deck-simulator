@@ -39,6 +39,17 @@
       "__init__"
     ]
   },
+  "allowed_state_initializers": {
+    "src/mtg_kernel/state.py": [
+      "__init__"
+    ]
+  },
+  "approved_local_support_modules": [],
+  "approved_test_support_modules": [],
+  "approved_third_party_modules": [
+    "orjson",
+    "pydantic"
+  ],
   "kernel_paths": [
     "src/mtg_kernel/"
   ],
