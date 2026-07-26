@@ -430,10 +430,95 @@ def test_architecture_gate_allows_clean_acceptance_test(tmp_path: Path) -> None:
     _fixture(tmp_path)
     path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
     path.parent.mkdir(parents=True)
-    path.write_text(
+    source = (
         "def test_clean():\n"
         "    message = 'mtg_kernel.executor.GameExecutor.run'\n"
-        "    assert message.startswith('mtg_kernel')\n",
+        "    assert message.startswith('mtg_kernel')\n"
+    )
+    path.write_text(source, encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "from mtg_kernel.executor import GameExecutor\nGameExecutor.run = fake_run\n",
+        "from mtg_kernel.executor import GameExecutor\nGameExecutor.run: object = fake_run\n",
+        "from mtg_kernel.executor import GameExecutor\nGameExecutor.run += wrapper\n",
+        "from mtg_kernel.executor import GameExecutor\ndel GameExecutor.run\n",
+        "from mtg_kernel.triggers import TriggerEngine as Engine\n"
+        "alias = Engine\nsecond = alias\nsecond.emit = fake_emit\n",
+    ],
+    ids=[
+        "direct-assignment",
+        "annotated-assignment",
+        "augmented-assignment",
+        "deletion",
+        "transitive-object-alias",
+    ],
+)
+def test_architecture_gate_rejects_direct_kernel_member_replacement(
+    tmp_path: Path, source: str
+) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    path.parent.mkdir(parents=True)
+    path.write_text(source, encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "FORBIDDEN_TEST_REPLACEMENT" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "import sys\nsys.modules['mtg_kernel.executor'] = fake_module\n",
+        "import sys\nsys.modules.update({'mtg_kernel.executor': fake_module})\n",
+        "import sys\nsys.modules.setdefault('mtg_sim.engine', fake_module)\n",
+        "import sys\ndel sys.modules['mtg_sim.engine']\n",
+    ],
+    ids=["assignment", "update", "setdefault-legacy", "deletion-legacy"],
+)
+def test_architecture_gate_rejects_protected_module_injection(tmp_path: Path, source: str) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    path.parent.mkdir(parents=True)
+    path.write_text(source, encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "FORBIDDEN_MODULE_REPLACEMENT" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "def test_fake(helper):\n    helper('mtg_kernel.executor.GameExecutor.run')\n",
+        "def test_fake(helper):\n    helper(target='mtg_kernel.turns.TurnEngine.cleanup')\n",
+        "def test_fake(helper):\n"
+        "    first = helper\n    second = first\n"
+        "    second('mtg_kernel.replay.Replay.run')\n",
+    ],
+    ids=["unknown-positional", "unknown-keyword", "transitive-unknown-alias"],
+)
+def test_architecture_gate_rejects_unresolved_protected_target_calls(
+    tmp_path: Path, source: str
+) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    path.parent.mkdir(parents=True)
+    path.write_text(source, encoding="utf-8")
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert "UNRESOLVED_PROTECTED_TARGET" in result.stdout
+
+
+def test_architecture_gate_allows_local_object_assignment(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    path = tmp_path / "tests/phase_a_acceptance/test_gate.py"
+    path.parent.mkdir(parents=True)
+    path.write_text(
+        "class Fixture:\n    pass\n\nfixture = Fixture()\nfixture.run = fake_run\n",
         encoding="utf-8",
     )
     result = _run(tmp_path)

@@ -475,7 +475,78 @@ def _scan_test_invariants(
     aliases = _lexical_aliases(tree)
     patch_tokens = tuple(token.lower() for token in forbidden_patch_tokens)
 
+    def protected_dotted_string(node: ast.AST | None) -> str | None:
+        value = _literal_string(node)
+        if value is None or "." not in value:
+            return None
+        lowered = value.lower()
+        return value if any(token in lowered for token in patch_tokens) else None
+
+    def protected_imported_object(node: ast.AST | None) -> bool:
+        """Recognize a protected object only when lexical imports/aliases root it."""
+        if not isinstance(node, (ast.Name, ast.Attribute)):
+            return False
+        original = _dotted(node)
+        head = original.partition(".")[0]
+        resolved = _resolved_dotted(node, aliases)
+        if head not in aliases or resolved == original:
+            return False
+        lowered = resolved.lower()
+        return any(token in lowered.split(".") for token in patch_tokens) or any(
+            token == "mtg_kernel" and lowered.startswith("mtg_kernel.") for token in patch_tokens
+        )
+
+    def module_name_from_subscript(node: ast.AST | None) -> str | None:
+        if not isinstance(node, ast.Subscript):
+            return None
+        if _resolved_dotted(node.value, aliases) != "sys.modules":
+            return None
+        return _literal_string(node.slice)
+
+    def forbidden_module_name(value: str | None) -> bool:
+        return (
+            value is None
+            or value == "mtg_sim"
+            or value.startswith("mtg_sim.")
+            or (value == "mtg_kernel" or value.startswith("mtg_kernel."))
+        )
+
+    def record(node: ast.AST, code: str, reason: str, detail: str | None = None) -> None:
+        rendered = detail or ast.unparse(node)
+        line = getattr(node, "lineno", 1)
+        violations[(line, f"{code}:{rendered}")] = Violation(
+            path=_relative(path, root),
+            line=line,
+            code=code,
+            reason=reason,
+            detail=rendered,
+        )
+
     for node in ast.walk(tree):
+        assignment_targets: list[ast.AST] = []
+        if isinstance(node, ast.Assign):
+            assignment_targets = list(node.targets)
+        elif isinstance(node, ast.AnnAssign):
+            assignment_targets = [node.target]
+        elif isinstance(node, ast.AugAssign):
+            assignment_targets = [node.target]
+        elif isinstance(node, ast.Delete):
+            assignment_targets = list(node.targets)
+        for target in assignment_targets:
+            if isinstance(target, ast.Attribute) and protected_imported_object(target.value):
+                record(
+                    node,
+                    "FORBIDDEN_TEST_REPLACEMENT",
+                    "Acceptance tests may not replace members of imported kernel components.",
+                )
+            module_name = module_name_from_subscript(target)
+            if module_name is not None and forbidden_module_name(module_name):
+                record(
+                    node,
+                    "FORBIDDEN_MODULE_REPLACEMENT",
+                    "Acceptance tests may not replace or delete protected sys.modules entries.",
+                )
+
         detail: str | None = None
         if isinstance(node, ast.ImportFrom) and any(alias.name == "*" for alias in node.names):
             if (node.module or "").lstrip(".") in {"pytest", "unittest"}:
@@ -526,11 +597,13 @@ def _scan_test_invariants(
                 reason="Dynamic code execution is prohibited in clean-kernel and gate paths.",
                 detail=dynamic_detail,
             )
-        target: ast.AST | None = None
+        target: ast.AST | None = next(
+            (keyword.value for keyword in node.keywords if keyword.arg == "target"), None
+        )
         is_patch = False
         if call_name in {"monkeypatch.setattr", "monkeypatch.delattr"}:
             is_patch = True
-            target = node.args[0] if node.args else None
+            target = node.args[0] if node.args else target
         elif call_name in {
             "unittest.mock.patch",
             "unittest.mock.patch.object",
@@ -538,7 +611,7 @@ def _scan_test_invariants(
             "unittest.mock.patch.multiple",
         }:
             is_patch = True
-            target = node.args[0] if node.args else None
+            target = node.args[0] if node.args else target
         elif call_name in {
             "mocker.patch",
             "mocker.patch.object",
@@ -546,10 +619,44 @@ def _scan_test_invariants(
             "mocker.patch.multiple",
         }:
             is_patch = True
-            target = node.args[0] if node.args else None
+            target = node.args[0] if node.args else target
         elif call_name == "__patch_unresolved__" or call_name.startswith("__patch_unresolved__."):
             is_patch = True
-            target = node.args[0] if node.args else None
+            target = node.args[0] if node.args else target
+
+        if call_name in {"sys.modules.update", "sys.modules.setdefault"}:
+            module_names: list[str | None] = []
+            if node.args:
+                first = node.args[0]
+                if isinstance(first, ast.Dict):
+                    module_names.extend(_literal_string(key) for key in first.keys)
+                else:
+                    module_names.append(_literal_string(first))
+            module_names.extend(keyword.arg for keyword in node.keywords)
+            if any(forbidden_module_name(module_name) for module_name in module_names):
+                record(
+                    node,
+                    "FORBIDDEN_MODULE_REPLACEMENT",
+                    "Acceptance tests may not inject protected sys.modules entries.",
+                )
+
+        protected_arguments = [
+            value
+            for argument in node.args
+            if (value := protected_dotted_string(argument)) is not None
+        ]
+        protected_arguments.extend(
+            value
+            for keyword in node.keywords
+            if (value := protected_dotted_string(keyword.value)) is not None
+        )
+        if protected_arguments and not is_patch:
+            record(
+                node,
+                "UNRESOLVED_PROTECTED_TARGET",
+                "A protected dotted target may not be passed to an unresolved callable.",
+            )
+
         if not is_patch:
             continue
 
