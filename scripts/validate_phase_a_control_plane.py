@@ -22,6 +22,7 @@ FROZEN = (
     "automation/reference-scenarios.json",
     "automation/reference-scenario.schema.json",
     "automation/phase-a-reference-manifest.json",
+    "automation/phase-a-semantic-mutation-matrix.json",
     "automation/trace-invariants.json",
     "automation/golden-replay.schema.json",
     "automation/golden-replay-approvals.json",

@@ -25,8 +25,6 @@ def test_golden_replay(fixture) -> None:
         actions=first["actions"],
         rng_streams=first["rng_streams"],
     )
-    replay["actions"] = first["actions"]
-    replay["rng_streams"] = first["rng_streams"]
     validate_replay_artifact(first, replay)
     actions = first["actions"]
     mutations = [

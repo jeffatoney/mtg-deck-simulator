@@ -17,6 +17,9 @@ from typing import Any
 ENTRYPOINT = "mtg_kernel.executor.GameExecutor.run"
 ROOT = Path(__file__).resolve().parents[2]
 
+# Receipt vocabulary retained for artifact validation and adversarial fixtures.
+# Causal liveness is governed by each oracle's exact module/qualname contract,
+# never by these class-name strings alone.
 REQUIRED_SERVICES = {
     "ActionGenerator",
     "ActionValidator",
@@ -75,6 +78,7 @@ class CallObserver:
 
     records: list[dict[str, Any]] = field(default_factory=list)
     order: int = 0
+    frame_calls: dict[int, int] = field(default_factory=dict)
 
     def profile(self, frame: FrameType, event: str, arg: object) -> None:
         if event not in {"call", "return", "exception"}:
@@ -83,11 +87,16 @@ class CallObserver:
         if not module.startswith(("mtg_kernel", "mtg_cards")):
             return
         self.order += 1
+        frame_id = id(frame)
+        if event == "call":
+            self.frame_calls[frame_id] = self.order
         caller = frame.f_back
         local = frame.f_locals
         self.records.append(
             {
                 "order": self.order,
+                "call_id": self.frame_calls.get(frame_id),
+                "parent_call_id": self.frame_calls.get(id(caller)) if caller else None,
                 "kind": event,
                 "module": module,
                 "qualname": frame.f_code.co_qualname,
@@ -102,6 +111,7 @@ class CallObserver:
 
 
 def run_scenario(scenario: dict[str, Any]) -> dict[str, Any]:
+    candidate_input = json.loads(json.dumps(scenario["candidate_input"]))
     observer = CallObserver()
     previous = sys.getprofile()
     sys.setprofile(observer.profile)
@@ -111,7 +121,7 @@ def run_scenario(scenario: dict[str, Any]) -> dict[str, Any]:
         factory = getattr(GameExecutor, "from_reference_state", None)
         if not callable(factory):
             raise AssertionError("GameExecutor.from_reference_state is required")
-        executor = factory(json.loads(json.dumps(scenario)))
+        executor = factory(candidate_input)
         result = executor.run()
     finally:
         sys.setprofile(previous)
@@ -120,6 +130,9 @@ def run_scenario(scenario: dict[str, Any]) -> dict[str, Any]:
     reject_candidate_verdicts(result)
     assert "_referee_calls" not in result, "candidate profiler records are prohibited"
     result["_referee_calls"] = observer.records
+    result["_referee_call_contract"] = json.loads(
+        json.dumps(scenario["referee_oracle"]["required_call_contract"])
+    )
     validate_raw_artifact(result, scenario)
     return result
 
@@ -143,7 +156,8 @@ def validate_raw_artifact(result: dict[str, Any], scenario: dict[str, Any]) -> N
         "rng_streams",
     }
     assert required <= result.keys()
-    assert result["initial_state"] == scenario["initial_state"]
+    candidate_input = scenario["candidate_input"]
+    assert result["initial_state"] == candidate_input["initial_state"]
     assert result["actions"] and result["events"] and result["decisions"]
     assert result["run_manifest"]["scenario_id"] == scenario["scenario_id"]
     assert result["run_manifest"]["scenario_version"] == scenario["scenario_version"]
@@ -157,6 +171,7 @@ def _validate_hash_chain(result: dict[str, Any]) -> None:
     assert len({e["event_id"] for e in events}) == len(events)
     actions = {a["action_id"] for a in result["actions"]}
     event_ids = {e["event_id"] for e in events}
+    event_order = {e["event_id"]: e["sequence"] for e in events}
     previous = canonical_hash(result["initial_state"])
     terminal_seen = False
     for event in events:
@@ -166,6 +181,8 @@ def _validate_hash_chain(result: dict[str, Any]) -> None:
         assert canonical_hash(snapshot) == event["post_state_hash"]
         assert event.get("parent_action_id") is None or event["parent_action_id"] in actions
         assert event.get("parent_event_id") is None or event["parent_event_id"] in event_ids
+        if event.get("parent_event_id") is not None:
+            assert event_order[event["parent_event_id"]] < event["sequence"]
         assert not terminal_seen, "event after terminal state"
         terminal_seen = event["event_type"] == "terminal_state"
         previous = event["post_state_hash"]
@@ -254,8 +271,6 @@ def assert_causally_live(result: dict[str, Any]) -> None:
     first_run = min(r["order"] for r in run_calls if r["kind"] == "call")
     last_run = max(r["order"] for r in run_calls if r["kind"] in {"return", "exception"})
     beneath = [r for r in calls if first_run < r["order"] < last_run and r["kind"] == "call"]
-    observed = {r["qualname"].split(".")[0] for r in beneath}
-    assert REQUIRED_SERVICES <= observed
     transitions = {
         (e["parent_action_id"], e["pre_state_hash"], e["post_state_hash"]) for e in result["events"]
     }
@@ -264,7 +279,16 @@ def assert_causally_live(result: dict[str, Any]) -> None:
     staged_source = (ROOT / "src").resolve()
     for call in beneath:
         assert Path(call["filename"]).resolve().is_relative_to(staged_source)
-    receipt_services = set()
+    contracts = result["_referee_call_contract"]
+    for contract in contracts:
+        matches = [
+            call
+            for call in beneath
+            if call["module"] == contract["module"] and call["qualname"] == contract["qualname"]
+        ]
+        assert matches, f"missing canonical call: {contract['module']}.{contract['qualname']}"
+        if event_type := contract.get("causal_event_type"):
+            assert any(event["event_type"] == event_type for event in result["events"])
     for receipt in result["receipts"]:
         assert {
             "run_id",
@@ -291,8 +315,6 @@ def assert_causally_live(result: dict[str, Any]) -> None:
             and r["qualname"].startswith(receipt["service"] + ".")
             for r in beneath
         )
-        receipt_services.add(receipt["service"])
-    assert REQUIRED_SERVICES <= receipt_services
 
 
 def assert_predicates(result: dict[str, Any], predicates: list[dict[str, Any]]) -> None:
@@ -321,8 +343,11 @@ def assert_trace_invariants(result: dict[str, Any]) -> None:
     stack_ids: set[str] = set()
     trigger_ids: set[str] = set()
     announced_targets: dict[str, list[str]] = {}
+    registered = set(objects) | set(cards)
     for event in events:
         payload = event["payload"]
+        assert set(event["source_object_ids"]) <= registered
+        assert set(event["target_object_ids"]) <= registered
         if event["event_type"] == "stack_object_created":
             stack_ids.add(payload["stack_object_id"])
         elif event["event_type"] == "spell_resolved":
@@ -335,6 +360,9 @@ def assert_trace_invariants(result: dict[str, Any]) -> None:
             announced_targets[payload["stack_object_id"]] = event["target_object_ids"]
         elif event["event_type"] == "targets_revalidated":
             assert payload["stack_object_id"] in announced_targets
+            announced = announced_targets[payload["stack_object_id"]]
+            removed = payload.get("illegal_target_object_ids", [])
+            assert event["target_object_ids"] == [item for item in announced if item not in removed]
         elif event["event_type"] == "battlefield_entered":
             assert payload["causal_category"] in causal_entries
         elif event["event_type"] == "cleanup_completed":
@@ -369,6 +397,13 @@ def assert_trace_invariants(result: dict[str, Any]) -> None:
     for obj in objects.values():
         if obj["object_type"] in {"token", "copy"}:
             assert obj.get("card_instance_id") is None
+    for zone_name, zone_objects in result["final_state"]["zones"].items():
+        for object_id in zone_objects:
+            assert object_id in objects
+            if zone_name in {"hand", "library", "graveyard"}:
+                zone_owner = result["final_state"].get("zone_owners", {}).get(zone_name)
+                if zone_owner is not None:
+                    assert objects[object_id]["owner"] == zone_owner
     replay = result["replay"]
     for replay_field in ("actions", "events", "rng_streams", "external_ledger", "final_state"):
         assert replay[replay_field] == result[replay_field]
@@ -390,7 +425,7 @@ def validate_replay_artifact(original: dict[str, Any], replay: dict[str, Any]) -
 def assert_acceptance(
     result: dict[str, Any], mapping: dict[str, Any], scenario: dict[str, Any]
 ) -> None:
-    assert mapping["referee_evaluator_id"] == scenario["assertion_id"]
+    assert mapping["referee_evaluator_id"] == scenario["referee_oracle"]["assertion_id"]
     assertion = globals().get(str(mapping["referee_evaluator_id"]))
     assert callable(assertion), f"missing protected evaluator: {mapping['referee_evaluator_id']}"
     assertion(result, scenario)
@@ -401,8 +436,10 @@ def _assert_requirement(
     result: dict[str, Any], scenario: dict[str, Any], assertion_id: str
 ) -> None:
     """Apply frozen predicates and any requirement-specific semantic proof."""
-    assert_predicates(result, scenario["expected_state_transition_predicates"])
-    assert_predicates(result, scenario["expected_final_state_predicates"])
+    oracle = scenario["referee_oracle"]
+    assert_predicates(result, oracle["expected_state_transition_predicates"])
+    assert_predicates(result, oracle["expected_final_state_predicates"])
+    _assert_semantic_plan(result, oracle["semantic_assertion_plan"])
     special = {
         "evaluate_a1": _assert_sol_ring,
         "evaluate_b1": _assert_lantern,
@@ -416,6 +453,33 @@ def _assert_requirement(
     }.get(assertion_id)
     if special:
         special(result)
+
+
+def _assert_semantic_plan(result: dict[str, Any], plan: dict[str, Any]) -> None:
+    """Apply non-presence semantic checks shared by every frozen evaluator."""
+    events = result["events"]
+    required = plan["ordered_event_types"]
+    cursor = 0
+    selected: list[dict[str, Any]] = []
+    for event_type in required:
+        match = next(
+            (event for event in events[cursor:] if event["event_type"] == event_type),
+            None,
+        )
+        assert match is not None
+        selected.append(match)
+        cursor = events.index(match) + 1
+    assert [event["sequence"] for event in selected] == sorted(
+        event["sequence"] for event in selected
+    )
+    if plan["require_non_noop_transitions"]:
+        assert all(event["pre_state_hash"] != event["post_state_hash"] for event in selected)
+    registered = {item["object_id"] for item in result["objects"]}
+    registered.update(item["card_instance_id"] for item in result["card_instances"])
+    if plan["require_registered_object_references"]:
+        for event in selected:
+            assert set(event["source_object_ids"]) <= registered
+            assert set(event["target_object_ids"]) <= registered
 
 
 def _ordered(result: dict[str, Any], *types: str) -> list[dict[str, Any]]:

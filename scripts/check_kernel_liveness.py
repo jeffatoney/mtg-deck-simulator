@@ -7,22 +7,6 @@ import json
 import sys
 from pathlib import Path
 
-REQUIRED = {
-    "ActionGenerator",
-    "ActionValidator",
-    "CostService",
-    "StackService",
-    "PriorityEngine",
-    "ResolutionEngine",
-    "TargetValidator",
-    "ZoneService",
-    "StateBasedActions",
-    "TriggerEngine",
-    "TurnEngine",
-    "ExternalZoneLedger",
-    "ReplayEngine",
-}
-
 
 def validate(data: dict) -> list[str]:
     errors: list[str] = []
@@ -50,9 +34,22 @@ def validate(data: dict) -> list[str]:
     start = min(c["order"] for c in run if c["kind"] == "call")
     end = max(c["order"] for c in run if c["kind"] in {"return", "exception"})
     beneath = [c for c in calls if start < c["order"] < end and c.get("kind") == "call"]
-    services = {str(c.get("qualname", "")).split(".")[0] for c in beneath}
-    if missing := REQUIRED - services:
-        errors.append(f"services not observed beneath executor: {sorted(missing)}")
+    contracts = data.get("_referee_call_contract", [])
+    for contract in contracts:
+        canonical = [
+            call
+            for call in beneath
+            if call.get("module") == contract.get("module")
+            and call.get("qualname") == contract.get("qualname")
+        ]
+        if not canonical:
+            errors.append(
+                "canonical call not observed beneath executor: "
+                f"{contract.get('module')}.{contract.get('qualname')}"
+            )
+        event_type = contract.get("causal_event_type")
+        if event_type and not any(event.get("event_type") == event_type for event in events):
+            errors.append(f"canonical call lacks causal transition: {event_type}")
     transitions = {
         (e.get("parent_action_id"), e.get("pre_state_hash"), e.get("post_state_hash"))
         for e in events
@@ -66,6 +63,11 @@ def validate(data: dict) -> list[str]:
         correlated_call = any(
             c.get("action_id") == receipt.get("action_id")
             and str(c.get("qualname", "")).startswith(str(receipt.get("service")) + ".")
+            and any(
+                c.get("module") == contract.get("module")
+                and c.get("qualname") == contract.get("qualname")
+                for contract in contracts
+            )
             for c in beneath
         )
         if triple not in transitions or not correlated_call:

@@ -305,6 +305,16 @@ source object ID when applicable; pre/post hashes; and causal event IDs.
 ## Frozen scenarios, trace properties, and golden replay evidence
 
 Implement every frozen forced scenario in `automation/reference-scenarios.json`
+without reading its protected `referee_oracle`. Candidate code receives only a
+deep copy of `candidate_input`, whose action script uses the closed public driver
+command vocabulary. Output-event names, acceptance IDs, evaluator names,
+expected predicates, mutation cases, and golden-review metadata are referee-only.
+Every A1--G4 evaluator must reject both near misses frozen in
+`automation/phase-a-semantic-mutation-matrix.json`; generic event presence is
+never sufficient. Causal liveness requires the exact per-scenario module and
+qualified operation, not a look-alike class name in another module. Replay must
+return its own complete consumed inputs and evidence and pass generated-ID
+variants; the referee never repairs or fills candidate replay output.
 and at least 200 deterministic random-seed games for trace-property testing.
 Random games never replace forced scenarios. Enforce every invariant in
 `automation/trace-invariants.json`. The five setup fixtures are deliberately

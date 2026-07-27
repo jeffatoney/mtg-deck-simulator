@@ -13,5 +13,6 @@ SCENARIOS = json.loads((ROOT / "automation/reference-scenarios.json").read_text(
 def test_forced_scenario(scenario: dict[str, object]) -> None:
     result = run_scenario(scenario)
     assert_causally_live(result)
-    assert_predicates(result, scenario["expected_state_transition_predicates"])
-    assert_predicates(result, scenario["expected_final_state_predicates"])
+    oracle = scenario["referee_oracle"]
+    assert_predicates(result, oracle["expected_state_transition_predicates"])
+    assert_predicates(result, oracle["expected_final_state_predicates"])

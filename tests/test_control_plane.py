@@ -604,3 +604,115 @@ def test_replay_tampering_is_rejected(field: str) -> None:
     replay[field] = ["tampered"] if isinstance(replay[field], list) else {"tampered": True}
     with pytest.raises(AssertionError):
         validate_replay_artifact(original, replay)
+
+
+def test_candidate_input_is_physically_separated_from_referee_oracle() -> None:
+    document = json.loads((ROOT / "automation/reference-scenarios.json").read_text())
+    forbidden = {
+        "assertion_id",
+        "acceptance_requirement",
+        "requirement_text",
+        "expected_state_transition_predicates",
+        "expected_final_state_predicates",
+        "semantic_assertion_plan",
+        "required_call_contract",
+    }
+    for scenario in document["scenarios"]:
+        assert set(scenario) == {
+            "scenario_id",
+            "scenario_version",
+            "schema_version",
+            "candidate_input",
+            "referee_oracle",
+        }
+        serialized = json.dumps(scenario["candidate_input"])
+        assert forbidden.isdisjoint(scenario["candidate_input"])
+        assert scenario["referee_oracle"]["requirement_text"] not in serialized
+
+
+def test_candidate_scripts_use_only_closed_driver_commands() -> None:
+    document = json.loads((ROOT / "automation/reference-scenarios.json").read_text())
+    allowed = {
+        "cast_spell",
+        "activate_ability",
+        "pass_priority",
+        "choose_target",
+        "choose_mode",
+        "choose_payment",
+        "declare_attacker",
+        "choose_optional_action",
+        "choose_commander_replacement",
+        "inject_external_spell",
+        "advance_step",
+        "play_land",
+        "take_game_action",
+    }
+    for scenario in document["scenarios"]:
+        commands = scenario["candidate_input"]["action_script"]
+        assert commands
+        assert {command["command"] for command in commands} <= allowed
+        assert all("action_type" not in command for command in commands)
+
+
+def test_every_acceptance_has_two_semantic_near_misses() -> None:
+    document = json.loads((ROOT / "automation/phase-a-semantic-mutation-matrix.json").read_text())
+    families = document["families"]
+    assert len(families) == 42
+    assert len({family["acceptance_id"] for family in families}) == 42
+    assert all(len(family["near_misses"]) >= 2 for family in families)
+    assert all(
+        case["preserves_event_types"] is True
+        for family in families
+        for case in family["near_misses"]
+    )
+
+
+def test_liveness_rejects_fake_service_names_in_executor_module() -> None:
+    from scripts.check_kernel_liveness import validate
+
+    data = {
+        "events": [
+            {
+                "event_type": "zone_moved",
+                "parent_action_id": "a",
+                "pre_state_hash": "before",
+                "post_state_hash": "after",
+            }
+        ],
+        "receipts": [],
+        "_referee_call_contract": [
+            {
+                "module": "mtg_kernel.zones",
+                "qualname": "ZoneService.move",
+                "causal_event_type": "zone_moved",
+            }
+        ],
+        "_referee_calls": [
+            {
+                "order": 1,
+                "kind": "call",
+                "module": "mtg_kernel.executor",
+                "qualname": "GameExecutor.run",
+            },
+            {
+                "order": 2,
+                "kind": "call",
+                "module": "mtg_kernel.executor",
+                "qualname": "ZoneService.move",
+            },
+            {
+                "order": 3,
+                "kind": "return",
+                "module": "mtg_kernel.executor",
+                "qualname": "GameExecutor.run",
+            },
+        ],
+    }
+    errors = validate(data)
+    assert any("mtg_kernel.zones.ZoneService.move" in error for error in errors)
+
+
+def test_replay_contract_does_not_repair_candidate_output() -> None:
+    source = (ROOT / "tests/phase_a_acceptance/test_replay_contract.py").read_text()
+    assert 'replay["actions"] =' not in source
+    assert 'replay["rng_streams"] =' not in source

@@ -19,11 +19,12 @@ SEEDS = json.loads((ROOT / "automation/trace-invariants.json").read_text())["see
 @pytest.mark.parametrize("seed", SEEDS)
 def test_random_trace_invariants(seed: int) -> None:
     scenario = load_scenario("random-trace")
-    scenario["rng_streams"] = {"game": seed, "policy": seed ^ 0x5A5A}
+    scenario["candidate_input"]["rng_streams"] = {"game": seed, "policy": seed ^ 0x5A5A}
     scenario["scenario_id"] = f"random-trace-{seed}"
+    scenario["candidate_input"]["initial_state"]["game_id"] = scenario["scenario_id"]
     result = run_scenario(scenario)
     validate_raw_artifact(result, scenario)
     assert_causally_live(result)
     assert_trace_invariants(result)
     assert result["run_manifest"]["game_id"] == f"random-trace-{seed}"
-    assert result["rng_streams"] == scenario["rng_streams"]
+    assert result["rng_streams"] == scenario["candidate_input"]["rng_streams"]

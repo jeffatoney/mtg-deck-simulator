@@ -22,8 +22,10 @@ SCENARIO_FIELDS = {
     "scenario_id",
     "scenario_version",
     "schema_version",
-    "assertion_id",
-    "acceptance_requirement",
+    "candidate_input",
+    "referee_oracle",
+}
+CANDIDATE_INPUT_FIELDS = {
     "number_of_players",
     "active_player",
     "priority_holder",
@@ -36,14 +38,36 @@ SCENARIO_FIELDS = {
     "initial_state",
     "library_constraints",
     "external_objects",
-    "external_zone_ledger_expectations",
     "action_script",
     "legal_alternatives",
     "rng_streams",
+}
+ORACLE_FIELDS = {
+    "assertion_id",
+    "acceptance_requirement",
+    "external_zone_ledger_expectations",
     "prerequisites",
     "expected_state_transition_predicates",
     "expected_final_state_predicates",
     "requirement_text",
+    "forbidden_transitions",
+    "required_call_contract",
+    "semantic_assertion_plan",
+}
+COMMANDS = {
+    "cast_spell",
+    "activate_ability",
+    "pass_priority",
+    "choose_target",
+    "choose_mode",
+    "choose_payment",
+    "declare_attacker",
+    "choose_optional_action",
+    "choose_commander_replacement",
+    "inject_external_spell",
+    "advance_step",
+    "play_land",
+    "take_game_action",
 }
 BANNED_NAMES = {"skip", "skipif", "xfail", "importorskip", "monkeypatch", "mock", "patch"}
 
@@ -108,6 +132,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         )
     scenario_document = json.loads((root / "automation/reference-scenarios.json").read_text())
     scenarios = {item["scenario_id"]: item for item in scenario_document.get("scenarios", [])}
+    mutation_path = root / "automation/phase-a-semantic-mutation-matrix.json"
+    if not mutation_path.is_file():
+        errors.append("missing semantic mutation matrix")
+        mutations = {}
+    else:
+        mutation_doc = json.loads(mutation_path.read_text())
+        mutations = {item.get("acceptance_id"): item for item in mutation_doc.get("families", [])}
     for item in mappings:
         if (
             not item.get("referee_evaluator_id")
@@ -123,42 +154,64 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             continue
         if set(scenario) != SCENARIO_FIELDS:
             errors.append(f"scenario schema mismatch: {scenario['scenario_id']}")
-        if item["referee_evaluator_id"] != scenario["assertion_id"]:
+        candidate_input = scenario.get("candidate_input", {})
+        oracle = scenario.get("referee_oracle", {})
+        if set(candidate_input) != CANDIDATE_INPUT_FIELDS or set(oracle) != ORACLE_FIELDS:
+            errors.append(f"candidate/oracle boundary mismatch: {scenario['scenario_id']}")
+            continue
+        if item["referee_evaluator_id"] != oracle["assertion_id"]:
             errors.append(f"evaluator mismatch: {item['acceptance_id']}")
-        if scenario.get("schema_version") != 3 or not scenario.get("action_script"):
+        if scenario.get("schema_version") != 4 or not candidate_input.get("action_script"):
             errors.append(f"invalid frozen scenario input: {item['acceptance_id']}")
-        player_ids = set(scenario.get("life_totals", {}))
-        object_ids = [obj.get("object_id") for obj in scenario.get("objects", [])]
-        card_ids = [card.get("card_instance_id") for card in scenario.get("card_instances", [])]
+        player_ids = set(candidate_input.get("life_totals", {}))
+        object_ids = [obj.get("object_id") for obj in candidate_input.get("objects", [])]
+        card_ids = [
+            card.get("card_instance_id") for card in candidate_input.get("card_instances", [])
+        ]
         zone_ids = [
             oid
-            for zone in scenario.get("initial_state", {}).get("zones", {}).values()
+            for zone in candidate_input.get("initial_state", {}).get("zones", {}).values()
             for oid in zone
         ]
         if (
-            len(player_ids) != scenario.get("number_of_players")
-            or scenario.get("active_player") not in player_ids
-            or scenario.get("priority_holder") not in player_ids
+            len(player_ids) != candidate_input.get("number_of_players")
+            or candidate_input.get("active_player") not in player_ids
+            or candidate_input.get("priority_holder") not in player_ids
             or len(object_ids) != len(set(object_ids))
             or len(card_ids) != len(set(card_ids))
             or not set(zone_ids) <= set(object_ids)
-            or [a.get("script_index") for a in scenario["action_script"]]
-            != list(range(1, len(scenario["action_script"]) + 1))
+            or [a.get("script_index") for a in candidate_input["action_script"]]
+            != list(range(1, len(candidate_input["action_script"]) + 1))
         ):
             errors.append(f"malformed frozen scenario identity/script: {item['acceptance_id']}")
-        if any("expected" in action or "result" in action for action in scenario["action_script"]):
+        if any(
+            action.get("command") not in COMMANDS for action in candidate_input["action_script"]
+        ):
+            errors.append(f"scenario script uses an engine output event: {item['acceptance_id']}")
+        if any(
+            "expected" in action or "result" in action
+            for action in candidate_input["action_script"]
+        ):
             errors.append(f"scenario script requests an outcome: {item['acceptance_id']}")
         evaluator_source = (reference / "reference_adapter.py").read_text(encoding="utf-8")
         if f"def {item['referee_evaluator_id']}(" not in evaluator_source:
             errors.append(f"missing referee evaluator: {item['acceptance_id']}")
         prerequisites = item.get("required_prerequisites", {})
-        declared = scenario.get("prerequisites", {})
+        declared = oracle.get("prerequisites", {})
         if any(
             not set(values) <= set(declared.get(key, [])) for key, values in prerequisites.items()
         ):
             errors.append(f"scenario prerequisites missing: {item['acceptance_id']}")
         if item["acceptance_id"] not in declared.get("acceptance_ids", []):
             errors.append(f"unrelated scenario mapping: {item['acceptance_id']}")
+        mutation = mutations.get(item["acceptance_id"], {})
+        near_misses = mutation.get("near_misses", [])
+        if (
+            mutation.get("evaluator_id") != item["referee_evaluator_id"]
+            or len(near_misses) < 2
+            or not all(case.get("preserves_event_types") is True for case in near_misses)
+        ):
+            errors.append(f"incomplete semantic mutation coverage: {item['acceptance_id']}")
     if len({(item["scenario_id"], item["referee_evaluator_id"]) for item in mappings}) != len(
         mappings
     ):

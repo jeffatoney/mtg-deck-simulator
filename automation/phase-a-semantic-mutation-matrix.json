@@ -1,0 +1,593 @@
+{
+  "schema_version": 1,
+  "families": [
+    {
+      "acceptance_id": "A1",
+      "evaluator_id": "evaluate_a1",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A2",
+      "evaluator_id": "evaluate_a2",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A3",
+      "evaluator_id": "evaluate_a3",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A4",
+      "evaluator_id": "evaluate_a4",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A5",
+      "evaluator_id": "evaluate_a5",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A6",
+      "evaluator_id": "evaluate_a6",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A7",
+      "evaluator_id": "evaluate_a7",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B1",
+      "evaluator_id": "evaluate_b1",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B2",
+      "evaluator_id": "evaluate_b2",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B3",
+      "evaluator_id": "evaluate_b3",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B4",
+      "evaluator_id": "evaluate_b4",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B5",
+      "evaluator_id": "evaluate_b5",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B6",
+      "evaluator_id": "evaluate_b6",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C1",
+      "evaluator_id": "evaluate_c1",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C2",
+      "evaluator_id": "evaluate_c2",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C3",
+      "evaluator_id": "evaluate_c3",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C4",
+      "evaluator_id": "evaluate_c4",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C5",
+      "evaluator_id": "evaluate_c5",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C6",
+      "evaluator_id": "evaluate_c6",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C7",
+      "evaluator_id": "evaluate_c7",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C8",
+      "evaluator_id": "evaluate_c8",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D1",
+      "evaluator_id": "evaluate_d1",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D2",
+      "evaluator_id": "evaluate_d2",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D3",
+      "evaluator_id": "evaluate_d3",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D4",
+      "evaluator_id": "evaluate_d4",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D5",
+      "evaluator_id": "evaluate_d5",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D6",
+      "evaluator_id": "evaluate_d6",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D7",
+      "evaluator_id": "evaluate_d7",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D8",
+      "evaluator_id": "evaluate_d8",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D9",
+      "evaluator_id": "evaluate_d9",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "E1",
+      "evaluator_id": "evaluate_e1",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "E2",
+      "evaluator_id": "evaluate_e2",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "E3",
+      "evaluator_id": "evaluate_e3",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "E4",
+      "evaluator_id": "evaluate_e4",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "E5",
+      "evaluator_id": "evaluate_e5",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "F1",
+      "evaluator_id": "evaluate_f1",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "F2",
+      "evaluator_id": "evaluate_f2",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "F3",
+      "evaluator_id": "evaluate_f3",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "G1",
+      "evaluator_id": "evaluate_g1",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "G2",
+      "evaluator_id": "evaluate_g2",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "G3",
+      "evaluator_id": "evaluate_g3",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    },
+    {
+      "acceptance_id": "G4",
+      "evaluator_id": "evaluate_g4",
+      "near_misses": [
+        {
+          "mutation": "reverse_required_event_order",
+          "preserves_event_types": true
+        },
+        {
+          "mutation": "replace_registered_object_reference",
+          "preserves_event_types": true
+        }
+      ]
+    }
+  ]
+}
