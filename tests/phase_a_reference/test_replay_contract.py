@@ -13,7 +13,7 @@ FIXTURES = sorted((ROOT / "tests/fixtures/golden-replays").glob("*.json"))
 def test_golden_replay(fixture) -> None:
     golden = json.loads(fixture.read_text())
     assert golden["review_status"] in {
-        "draft-unreviewed",
+        "draft-needs-human-review",
         "rules-reviewed",
         "independently-reviewed",
     }

@@ -24,6 +24,7 @@ FROZEN = (
     "automation/phase-a-reference-manifest.json",
     "automation/trace-invariants.json",
     "automation/golden-replay.schema.json",
+    "automation/golden-replay-approvals.json",
     "tests/fixtures/golden-replays/README.md",
     "tests/phase_a_reference/test_reference_contract.py",
     "tests/phase_a_reference/test_forced_scenarios.py",

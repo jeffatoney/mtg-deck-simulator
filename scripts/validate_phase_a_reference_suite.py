@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 EXPECTED_FILES = {
@@ -134,6 +137,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     if len({(item["scenario_id"], item["assertion_id"]) for item in mappings}) != len(mappings):
         errors.append("duplicate scenario/assertion mapping")
     fixtures = root / "tests/fixtures/golden-replays"
+    approval_document = json.loads((root / "automation/golden-replay-approvals.json").read_text())
+    approvals = {item["fixture_path"]: item for item in approval_document["approvals"]}
     core = {
         "sol-ring",
         "soul-guide-lantern-targeted-etb",
@@ -147,30 +152,63 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             errors.append(f"missing golden replay fixture: {fixture.name}")
         else:
             status = json.loads(fixture.read_text()).get("review_status")
-            if status not in {"draft-unreviewed", "rules-reviewed", "independently-reviewed"}:
+            if status not in {
+                "draft-needs-human-review",
+                "rules-reviewed",
+                "independently-reviewed",
+            }:
                 errors.append(f"invalid golden replay provenance: {fixture.name}")
-    completed = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pytest",
-            "--collect-only",
-            "-q",
-            f"--confcutdir={reference}",
-            str(reference),
-        ],
-        cwd=root,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=False,
-    )
+            if status == "independently-reviewed":
+                relative = fixture.relative_to(root).as_posix()
+                approval = approvals.get(relative)
+                digest = hashlib.sha256(fixture.read_bytes()).hexdigest()
+                if (
+                    not approval
+                    or approval.get("sha256") != digest
+                    or not all(
+                        approval.get(field)
+                        for field in ("reviewer", "approval_date", "approving_commit")
+                    )
+                ):
+                    errors.append(f"missing matching human approval: {fixture.name}")
+    # The protected sources live outside the candidate-controlled acceptance
+    # directory on main, but the closed-world runner stages them at the exact
+    # path required by the frozen specification.
+    with tempfile.TemporaryDirectory(prefix="phase-a-reference-collection-") as temporary:
+        stage = Path(temporary)
+        staged_reference = stage / "tests/phase_a_acceptance"
+        shutil.copytree(reference, staged_reference)
+        shutil.copytree(root / "automation", stage / "automation")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "--collect-only",
+                "-q",
+                f"--confcutdir={staged_reference}",
+                str(staged_reference),
+            ],
+            cwd=stage,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
     nodes = [line for line in completed.stdout.splitlines() if "::" in line]
     if completed.returncode != 0:
         errors.append("protected reference collection failed:\n" + completed.stdout)
     missing_nodes = sorted({item["reference_node_id"] for item in mappings} - set(nodes))
     if missing_nodes:
         errors.append(f"manifest nodes not collected: {missing_nodes}")
+    node_ids = [item["reference_node_id"] for item in mappings]
+    if len(node_ids) != len(set(node_ids)) or len(mappings) != len(expected):
+        errors.append("acceptance mappings must have one unique protected node per requirement")
+    for item in mappings:
+        acceptance_id = item["acceptance_id"]
+        prefix = f"tests/phase_a_acceptance/test_reference_contract.py::test_{acceptance_id}_"
+        if not item["reference_node_id"].startswith(prefix):
+            errors.append(f"invalid protected node prefix: {acceptance_id}")
     return errors, nodes
 
 

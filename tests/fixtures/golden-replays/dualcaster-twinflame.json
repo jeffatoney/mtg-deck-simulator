@@ -2,7 +2,7 @@
   "schema_version": 2,
   "scenario_id": "dualcaster-twinflame",
   "scenario_version": 1,
-  "review_status": "draft-unreviewed",
+  "review_status": "draft-needs-human-review",
   "review_evidence": null,
   "initial_state": {
     "game_id": "dualcaster-twinflame",

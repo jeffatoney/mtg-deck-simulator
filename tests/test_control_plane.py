@@ -357,7 +357,7 @@ def test_control_plane_bootstrap_positive_path(tmp_path: Path) -> None:
     assert manifest["candidate_sha"] == sha
     assert manifest["run_id"] == runs[0].name
     assert manifest["collected_node_ids"] == [
-        "tests/phase_a_reference/test_bootstrap.py::test_protected_runner_bootstrap"
+        "tests/phase_a_acceptance/test_bootstrap.py::test_protected_runner_bootstrap"
     ]
     assert (runs[0] / "pytest.log").is_file()
     assert (runs[0] / "collection.log").is_file()
@@ -557,8 +557,40 @@ def test_golden_fixtures_are_honestly_unreviewed() -> None:
     fixtures = list((ROOT / "tests/fixtures/golden-replays").glob("*.json"))
     assert len(fixtures) == 9
     assert all(
-        json.loads(path.read_text())["review_status"] == "draft-unreviewed" for path in fixtures
+        json.loads(path.read_text())["review_status"] == "draft-needs-human-review"
+        for path in fixtures
     )
+
+
+def test_candidate_verdict_fields_are_rejected_recursively() -> None:
+    from tests.phase_a_reference.reference_adapter import reject_candidate_verdicts
+
+    for field in (
+        "satisfied_acceptance_ids",
+        "postconditions",
+        "trace_invariants",
+        "referee_observations",
+        "production_entrypoint",
+        "passed",
+        "valid",
+        "legal",
+        "correct",
+    ):
+        with pytest.raises(AssertionError):
+            reject_candidate_verdicts({"payload": {field: True}})
+
+
+def test_reference_manifest_uses_exact_acceptance_nodes() -> None:
+    manifest = json.loads((ROOT / "automation/phase-a-reference-manifest.json").read_text())
+    mappings = manifest["mappings"]
+    assert len(mappings) == 42
+    assert len({item["acceptance_id"] for item in mappings}) == len(mappings)
+    assert len({item["reference_node_id"] for item in mappings}) == len(mappings)
+    for item in mappings:
+        expected = (
+            f"tests/phase_a_acceptance/test_reference_contract.py::test_{item['acceptance_id']}_"
+        )
+        assert item["reference_node_id"].startswith(expected)
 
 
 @pytest.mark.parametrize(

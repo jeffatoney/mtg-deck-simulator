@@ -15,11 +15,11 @@ import time
 from pathlib import Path
 
 STAGED_REFERENCE_PATHS = (
-    "tests/phase_a_reference",
     "automation/reference-scenarios.json",
     "automation/reference-scenario.schema.json",
     "automation/trace-invariants.json",
     "automation/golden-replay.schema.json",
+    "automation/golden-replay-approvals.json",
     "automation/phase-a-reference-manifest.json",
     "tests/fixtures/golden-replays",
     "scripts/phase_a_runtime_guard.py",
@@ -51,7 +51,11 @@ def main() -> int:
             _copy(args.candidate / "src" / package, stage / "src" / package)
         for relative in STAGED_REFERENCE_PATHS:
             _copy(args.referee / relative, stage / relative)
-        reference = stage / "tests/phase_a_reference"
+        _copy(
+            args.referee / "tests/phase_a_reference",
+            stage / "tests/phase_a_acceptance",
+        )
+        reference = stage / "tests/phase_a_acceptance"
         if not reference.is_dir():
             print(
                 "Phase A reference suite unavailable: kernel evidence is intentionally future work"

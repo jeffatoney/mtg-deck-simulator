@@ -1,10 +1,9 @@
 {
   "schema_version": 2,
-  "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
   "mappings": [
     {
       "acceptance_id": "A1",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[A1]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A1_assert_a1",
       "scenario_id": "sol-ring",
       "assertion_id": "assert_a1",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -50,7 +49,7 @@
     },
     {
       "acceptance_id": "A2",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[A2]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A2_assert_a2",
       "scenario_id": "acceptance-a2",
       "assertion_id": "assert_a2",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -96,7 +95,7 @@
     },
     {
       "acceptance_id": "A3",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[A3]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A3_assert_a3",
       "scenario_id": "acceptance-a3",
       "assertion_id": "assert_a3",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -142,7 +141,7 @@
     },
     {
       "acceptance_id": "A4",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[A4]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A4_assert_a4",
       "scenario_id": "acceptance-a4",
       "assertion_id": "assert_a4",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -188,7 +187,7 @@
     },
     {
       "acceptance_id": "A5",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[A5]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A5_assert_a5",
       "scenario_id": "acceptance-a5",
       "assertion_id": "assert_a5",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -234,7 +233,7 @@
     },
     {
       "acceptance_id": "A6",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[A6]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A6_assert_a6",
       "scenario_id": "acceptance-a6",
       "assertion_id": "assert_a6",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -280,7 +279,7 @@
     },
     {
       "acceptance_id": "A7",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[A7]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A7_assert_a7",
       "scenario_id": "acceptance-a7",
       "assertion_id": "assert_a7",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -326,7 +325,7 @@
     },
     {
       "acceptance_id": "B1",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[B1]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B1_assert_b1",
       "scenario_id": "soul-guide-lantern-targeted-etb",
       "assertion_id": "assert_b1",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -372,7 +371,7 @@
     },
     {
       "acceptance_id": "B2",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[B2]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B2_assert_b2",
       "scenario_id": "acceptance-b2",
       "assertion_id": "assert_b2",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -418,7 +417,7 @@
     },
     {
       "acceptance_id": "B3",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[B3]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B3_assert_b3",
       "scenario_id": "acceptance-b3",
       "assertion_id": "assert_b3",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -464,7 +463,7 @@
     },
     {
       "acceptance_id": "B4",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[B4]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B4_assert_b4",
       "scenario_id": "acceptance-b4",
       "assertion_id": "assert_b4",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -510,7 +509,7 @@
     },
     {
       "acceptance_id": "B5",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[B5]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B5_assert_b5",
       "scenario_id": "acceptance-b5",
       "assertion_id": "assert_b5",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -556,7 +555,7 @@
     },
     {
       "acceptance_id": "B6",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[B6]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B6_assert_b6",
       "scenario_id": "acceptance-b6",
       "assertion_id": "assert_b6",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -602,7 +601,7 @@
     },
     {
       "acceptance_id": "C1",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[C1]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C1_assert_c1",
       "scenario_id": "acceptance-c1",
       "assertion_id": "assert_c1",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -648,7 +647,7 @@
     },
     {
       "acceptance_id": "C2",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[C2]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C2_assert_c2",
       "scenario_id": "acceptance-c2",
       "assertion_id": "assert_c2",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -694,7 +693,7 @@
     },
     {
       "acceptance_id": "C3",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[C3]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C3_assert_c3",
       "scenario_id": "acceptance-c3",
       "assertion_id": "assert_c3",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -740,7 +739,7 @@
     },
     {
       "acceptance_id": "C4",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[C4]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C4_assert_c4",
       "scenario_id": "acceptance-c4",
       "assertion_id": "assert_c4",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -786,7 +785,7 @@
     },
     {
       "acceptance_id": "C5",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[C5]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C5_assert_c5",
       "scenario_id": "acceptance-c5",
       "assertion_id": "assert_c5",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -832,7 +831,7 @@
     },
     {
       "acceptance_id": "C6",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[C6]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C6_assert_c6",
       "scenario_id": "glint-horn-attack-cleanup",
       "assertion_id": "assert_c6",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -878,7 +877,7 @@
     },
     {
       "acceptance_id": "C7",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[C7]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C7_assert_c7",
       "scenario_id": "acceptance-c7",
       "assertion_id": "assert_c7",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -924,7 +923,7 @@
     },
     {
       "acceptance_id": "C8",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[C8]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C8_assert_c8",
       "scenario_id": "acceptance-c8",
       "assertion_id": "assert_c8",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -970,7 +969,7 @@
     },
     {
       "acceptance_id": "D1",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[D1]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D1_assert_d1",
       "scenario_id": "acceptance-d1",
       "assertion_id": "assert_d1",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1016,7 +1015,7 @@
     },
     {
       "acceptance_id": "D2",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[D2]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D2_assert_d2",
       "scenario_id": "acceptance-d2",
       "assertion_id": "assert_d2",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1062,7 +1061,7 @@
     },
     {
       "acceptance_id": "D3",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[D3]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D3_assert_d3",
       "scenario_id": "acceptance-d3",
       "assertion_id": "assert_d3",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1108,7 +1107,7 @@
     },
     {
       "acceptance_id": "D4",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[D4]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D4_assert_d4",
       "scenario_id": "acceptance-d4",
       "assertion_id": "assert_d4",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1154,7 +1153,7 @@
     },
     {
       "acceptance_id": "D5",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[D5]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D5_assert_d5",
       "scenario_id": "acceptance-d5",
       "assertion_id": "assert_d5",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1200,7 +1199,7 @@
     },
     {
       "acceptance_id": "D6",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[D6]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D6_assert_d6",
       "scenario_id": "acceptance-d6",
       "assertion_id": "assert_d6",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1246,7 +1245,7 @@
     },
     {
       "acceptance_id": "D7",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[D7]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D7_assert_d7",
       "scenario_id": "acceptance-d7",
       "assertion_id": "assert_d7",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1292,7 +1291,7 @@
     },
     {
       "acceptance_id": "D8",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[D8]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D8_assert_d8",
       "scenario_id": "acceptance-d8",
       "assertion_id": "assert_d8",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1338,7 +1337,7 @@
     },
     {
       "acceptance_id": "D9",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[D9]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D9_assert_d9",
       "scenario_id": "acceptance-d9",
       "assertion_id": "assert_d9",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1384,7 +1383,7 @@
     },
     {
       "acceptance_id": "E1",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[E1]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E1_assert_e1",
       "scenario_id": "acceptance-e1",
       "assertion_id": "assert_e1",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1430,7 +1429,7 @@
     },
     {
       "acceptance_id": "E2",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[E2]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E2_assert_e2",
       "scenario_id": "malcolm-counterspell-commit",
       "assertion_id": "assert_e2",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1476,7 +1475,7 @@
     },
     {
       "acceptance_id": "E3",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[E3]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E3_assert_e3",
       "scenario_id": "acceptance-e3",
       "assertion_id": "assert_e3",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1522,7 +1521,7 @@
     },
     {
       "acceptance_id": "E4",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[E4]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E4_assert_e4",
       "scenario_id": "acceptance-e4",
       "assertion_id": "assert_e4",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1568,7 +1567,7 @@
     },
     {
       "acceptance_id": "E5",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[E5]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E5_assert_e5",
       "scenario_id": "acceptance-e5",
       "assertion_id": "assert_e5",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1614,7 +1613,7 @@
     },
     {
       "acceptance_id": "F1",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[F1]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_F1_assert_f1",
       "scenario_id": "acceptance-f1",
       "assertion_id": "assert_f1",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1660,7 +1659,7 @@
     },
     {
       "acceptance_id": "F2",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[F2]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_F2_assert_f2",
       "scenario_id": "dualcaster-twinflame",
       "assertion_id": "assert_f2",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1706,7 +1705,7 @@
     },
     {
       "acceptance_id": "F3",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[F3]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_F3_assert_f3",
       "scenario_id": "acceptance-f3",
       "assertion_id": "assert_f3",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1752,7 +1751,7 @@
     },
     {
       "acceptance_id": "G1",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[G1]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G1_assert_g1",
       "scenario_id": "acceptance-g1",
       "assertion_id": "assert_g1",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1798,7 +1797,7 @@
     },
     {
       "acceptance_id": "G2",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[G2]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G2_assert_g2",
       "scenario_id": "acceptance-g2",
       "assertion_id": "assert_g2",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1844,7 +1843,7 @@
     },
     {
       "acceptance_id": "G3",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[G3]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G3_assert_g3",
       "scenario_id": "acceptance-g3",
       "assertion_id": "assert_g3",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
@@ -1890,7 +1889,7 @@
     },
     {
       "acceptance_id": "G4",
-      "reference_node_id": "tests/phase_a_reference/test_reference_contract.py::test_acceptance_contract[G4]",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G4_assert_g4",
       "scenario_id": "acceptance-g4",
       "assertion_id": "assert_g4",
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
