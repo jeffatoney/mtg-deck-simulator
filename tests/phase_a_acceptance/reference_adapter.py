@@ -470,6 +470,8 @@ def _assert_requirement(
         "evaluate_a1": _assert_sol_ring,
         "evaluate_a2": _assert_glint_horn_cast,
         "evaluate_a3": _assert_commander_tax,
+        "evaluate_a4": _assert_external_counterspell,
+        "evaluate_a5": _assert_external_counterspell,
         "evaluate_b1": _assert_lantern,
         "evaluate_c1": _assert_cleanup_damage,
         "evaluate_c6": _assert_glint_horn,
@@ -626,7 +628,9 @@ def _assert_commander_tax(result: dict[str, Any]) -> None:
     commander_id = casts[0]["payload"]["card_instance_id"]
     assert all(event["payload"]["card_instance_id"] == commander_id for event in casts)
     assert [event["payload"]["cast_count_after"] for event in casts] == [1, 2]
-    assert casts[0]["sequence"] < replacements[0]["sequence"] < casts[1]["sequence"]
+    countered, moved = _ordered(result, "spell_countered", "zone_moved")
+    assert casts[0]["sequence"] < countered["sequence"] < moved["sequence"]
+    assert moved["sequence"] < replacements[0]["sequence"] < casts[1]["sequence"]
     base = payments[0]["payload"]["base_generic_cost"]
     assert payments[0]["payload"]["commander_tax"] == 0
     assert payments[1]["payload"]["commander_tax"] == 2
@@ -634,6 +638,37 @@ def _assert_commander_tax(result: dict[str, Any]) -> None:
     assert payments[1]["payload"]["generic_paid"] == base + 2
     assert replacements[0]["payload"]["destination"] == "command"
     assert replacements[0]["payload"]["card_instance_id"] == commander_id
+    assert replacements[0]["payload"]["cause_event_id"] == moved["event_id"]
+    assert moved["payload"]["from_zone"] == "stack"
+    assert moved["payload"]["to_zone"] == "graveyard"
+
+
+def _assert_external_counterspell(result: dict[str, Any]) -> None:
+    created, external, countered, moved, ledger = _ordered(
+        result,
+        "stack_object_created",
+        "external_counterspell_created",
+        "spell_countered",
+        "zone_moved",
+        "external_ledger_moved",
+    )
+    stack_id = created["payload"]["stack_object_id"]
+    card_id = created["payload"]["card_instance_id"]
+    assert external["target_object_ids"] == [stack_id]
+    assert countered["payload"]["stack_object_id"] == stack_id
+    assert countered["payload"]["card_instance_id"] == card_id
+    assert moved["payload"]["card_instance_id"] == card_id
+    assert moved["payload"]["from_zone"] == "stack"
+    assert moved["payload"]["to_zone"] == "graveyard"
+    assert moved["payload"]["zone_owner"] == "p1"
+    assert ledger["payload"]["owner"] == "p2"
+    assert ledger["payload"]["destination"] == "graveyard"
+    assert "position" not in ledger["payload"]
+    assert not any(
+        event["event_type"] in {"battlefield_entered", "trigger_created"}
+        and card_id in event.get("source_object_ids", [])
+        for event in result["events"]
+    )
 
 
 def _assert_lantern(result: dict[str, Any]) -> None:

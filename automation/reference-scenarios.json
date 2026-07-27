@@ -460,7 +460,15 @@
           "cards": [],
           "bounded_to_scenario": true
         },
-        "external_objects": [],
+        "external_objects": [
+          {
+            "object_id": "malcolm-command-tax:external:counterspell:1",
+            "oracle_name": "Counterspell",
+            "owner": "p2",
+            "controller": "p2",
+            "object_type": "external_spell"
+          }
+        ],
         "action_script": [
           {
             "script_index": 1,
@@ -482,6 +490,20 @@
           },
           {
             "script_index": 3,
+            "actor": "p2",
+            "command": "inject_external_spell",
+            "external_object_id": "malcolm-command-tax:external:counterspell:1",
+            "targets": [
+              "latest_spell_controlled_by:p1"
+            ]
+          },
+          {
+            "script_index": 4,
+            "actor": "p2",
+            "command": "pass_priority"
+          },
+          {
+            "script_index": 5,
             "actor": "p1",
             "command": "choose_commander_replacement",
             "source_object_id": "malcolm-command-tax:object:1",
@@ -490,7 +512,7 @@
             "destination": "command"
           },
           {
-            "script_index": 4,
+            "script_index": 6,
             "actor": "p1",
             "command": "cast_spell",
             "source_object_id": "malcolm-command-tax:object:1",
@@ -531,6 +553,20 @@
               "commander-replacement:driver:4"
             ],
             "selection": "commander-replacement:driver:4"
+          },
+          {
+            "script_index": 5,
+            "action_ids": [
+              "commander-replacement:driver:5"
+            ],
+            "selection": "commander-replacement:driver:5"
+          },
+          {
+            "script_index": 6,
+            "action_ids": [
+              "commander-replacement:driver:6"
+            ],
+            "selection": "commander-replacement:driver:6"
           }
         ],
         "rng_streams": {
@@ -573,6 +609,21 @@
             "predicate_id": "A3:4",
             "event_type": "commander_replaced",
             "minimum": 1
+          },
+          {
+            "predicate_id": "A3:5",
+            "event_type": "external_counterspell_created",
+            "minimum": 1
+          },
+          {
+            "predicate_id": "A3:6",
+            "event_type": "spell_countered",
+            "minimum": 1
+          },
+          {
+            "predicate_id": "A3:7",
+            "event_type": "zone_moved",
+            "minimum": 1
           }
         ],
         "expected_final_state_predicates": [],
@@ -597,6 +648,9 @@
             "commander_cast",
             "cost_paid",
             "stack_object_created",
+            "external_counterspell_created",
+            "spell_countered",
+            "zone_moved",
             "commander_replaced",
             "commander_cast",
             "cost_paid",
@@ -628,7 +682,7 @@
         "card_instances": [
           {
             "card_instance_id": "counter-creature-spell:card:1",
-            "oracle_name": "Control Plane Fixture",
+            "oracle_name": "Glint-Horn Buccaneer",
             "owner": "p1"
           }
         ],
@@ -674,9 +728,7 @@
             "R": 5
           },
           "land_played": false,
-          "stack": [
-            "counter-creature-spell:external:1"
-          ],
+          "stack": [],
           "permanents": [],
           "attachments": [],
           "counters": {},
@@ -702,16 +754,29 @@
           {
             "script_index": 1,
             "actor": "p1",
-            "command": "inject_external_spell",
-            "external_object_id": "counter-creature-spell:external:1"
-          },
-          {
-            "script_index": 2,
-            "actor": "p1",
             "command": "cast_spell",
             "source_object_id": "counter-creature-spell:object:1",
             "choices": {},
             "targets": []
+          },
+          {
+            "script_index": 2,
+            "actor": "p1",
+            "command": "pass_priority"
+          },
+          {
+            "script_index": 3,
+            "actor": "p2",
+            "command": "inject_external_spell",
+            "external_object_id": "counter-creature-spell:external:1",
+            "targets": [
+              "latest_spell_controlled_by:p1"
+            ]
+          },
+          {
+            "script_index": 4,
+            "actor": "p2",
+            "command": "pass_priority"
           }
         ],
         "legal_alternatives": [
@@ -728,6 +793,20 @@
               "counter-creature-spell:driver:2"
             ],
             "selection": "counter-creature-spell:driver:2"
+          },
+          {
+            "script_index": 3,
+            "action_ids": [
+              "counter-creature-spell:driver:3"
+            ],
+            "selection": "counter-creature-spell:driver:3"
+          },
+          {
+            "script_index": 4,
+            "action_ids": [
+              "counter-creature-spell:driver:4"
+            ],
+            "selection": "counter-creature-spell:driver:4"
           }
         ],
         "rng_streams": {
@@ -742,13 +821,12 @@
           {
             "object_id": "counter-creature-spell:external:1",
             "owner": "p2",
-            "destination": "owners_library",
-            "position": 2
+            "destination": "graveyard"
           }
         ],
         "prerequisites": {
           "cards": [
-            "Control Plane Fixture"
+            "Glint-Horn Buccaneer"
           ],
           "mechanisms": [
             "A"
@@ -781,7 +859,16 @@
         ],
         "expected_final_state_predicates": [],
         "requirement_text": "An explicit external counterspell can counter a creature spell. The creature never enters, no ETB trigger is created, and the actual card instance moves to its owner's legal destination.",
-        "forbidden_transitions": [],
+        "forbidden_transitions": [
+          {
+            "predicate_id": "A4:no-entry",
+            "event_type": "battlefield_entered"
+          },
+          {
+            "predicate_id": "A4:no-etb",
+            "event_type": "trigger_created"
+          }
+        ],
         "required_call_contract": [
           {
             "module": "mtg_kernel.stack",
@@ -801,7 +888,8 @@
             "stack_object_created",
             "external_counterspell_created",
             "spell_countered",
-            "zone_moved"
+            "zone_moved",
+            "external_ledger_moved"
           ],
           "require_registered_object_references": true,
           "require_non_noop_transitions": true,
@@ -875,9 +963,7 @@
             "R": 5
           },
           "land_played": false,
-          "stack": [
-            "counter-artifact-spell:external:1"
-          ],
+          "stack": [],
           "permanents": [],
           "attachments": [],
           "counters": {},
@@ -903,16 +989,29 @@
           {
             "script_index": 1,
             "actor": "p1",
-            "command": "inject_external_spell",
-            "external_object_id": "counter-artifact-spell:external:1"
-          },
-          {
-            "script_index": 2,
-            "actor": "p1",
             "command": "cast_spell",
             "source_object_id": "counter-artifact-spell:object:1",
             "choices": {},
             "targets": []
+          },
+          {
+            "script_index": 2,
+            "actor": "p1",
+            "command": "pass_priority"
+          },
+          {
+            "script_index": 3,
+            "actor": "p2",
+            "command": "inject_external_spell",
+            "external_object_id": "counter-artifact-spell:external:1",
+            "targets": [
+              "latest_spell_controlled_by:p1"
+            ]
+          },
+          {
+            "script_index": 4,
+            "actor": "p2",
+            "command": "pass_priority"
           }
         ],
         "legal_alternatives": [
@@ -929,6 +1028,20 @@
               "counter-artifact-spell:driver:2"
             ],
             "selection": "counter-artifact-spell:driver:2"
+          },
+          {
+            "script_index": 3,
+            "action_ids": [
+              "counter-artifact-spell:driver:3"
+            ],
+            "selection": "counter-artifact-spell:driver:3"
+          },
+          {
+            "script_index": 4,
+            "action_ids": [
+              "counter-artifact-spell:driver:4"
+            ],
+            "selection": "counter-artifact-spell:driver:4"
           }
         ],
         "rng_streams": {
@@ -943,8 +1056,7 @@
           {
             "object_id": "counter-artifact-spell:external:1",
             "owner": "p2",
-            "destination": "owners_library",
-            "position": 2
+            "destination": "graveyard"
           }
         ],
         "prerequisites": {
@@ -982,7 +1094,16 @@
         ],
         "expected_final_state_predicates": [],
         "requirement_text": "The same is true for an artifact spell.",
-        "forbidden_transitions": [],
+        "forbidden_transitions": [
+          {
+            "predicate_id": "A5:no-entry",
+            "event_type": "battlefield_entered"
+          },
+          {
+            "predicate_id": "A5:no-etb",
+            "event_type": "trigger_created"
+          }
+        ],
         "required_call_contract": [
           {
             "module": "mtg_kernel.stack",
@@ -1002,7 +1123,8 @@
             "stack_object_created",
             "external_counterspell_created",
             "spell_countered",
-            "zone_moved"
+            "zone_moved",
+            "external_ledger_moved"
           ],
           "require_registered_object_references": true,
           "require_non_noop_transitions": true,

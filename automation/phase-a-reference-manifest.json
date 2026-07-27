@@ -155,17 +155,17 @@
         {
           "predicate_id": "A3:1",
           "event_type": "commander_cast",
-          "minimum": 1
+          "minimum": 2
         },
         {
           "predicate_id": "A3:2",
           "event_type": "cost_paid",
-          "minimum": 1
+          "minimum": 2
         },
         {
           "predicate_id": "A3:3",
           "event_type": "stack_object_created",
-          "minimum": 1
+          "minimum": 2
         },
         {
           "predicate_id": "A3:4",
@@ -198,7 +198,7 @@
       "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "Control Plane Fixture"
+          "Glint-Horn Buccaneer"
         ],
         "mechanisms": [
           "A"

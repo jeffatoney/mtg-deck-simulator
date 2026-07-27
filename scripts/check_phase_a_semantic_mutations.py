@@ -108,6 +108,44 @@ def _baseline(aid: str, scenario: dict[str, Any]) -> dict[str, Any]:
         pays[0]["payload"].update(base_generic_cost=2, commander_tax=0, generic_paid=2)
         pays[1]["payload"].update(base_generic_cost=2, commander_tax=2, generic_paid=4)
         repl["payload"].update(destination="command", card_instance_id=cid)
+        by["spell_countered"][0]["payload"].update(card_instance_id=cid)
+        by["zone_moved"][0]["payload"].update(
+            object_id=oid,
+            card_instance_id=cid,
+            from_zone="stack",
+            to_zone="graveyard",
+            zone_owner="p1",
+        )
+        by["commander_replaced"][0]["payload"]["cause_event_id"] = by["zone_moved"][0]["event_id"]
+    if aid in {"A4", "A5"}:
+        created = by["stack_object_created"][0]
+        countered = by["spell_countered"][0]
+        moved = by["zone_moved"][0]
+        external = by["external_ledger_moved"][0]
+        created["payload"].update(
+            object_type="SpellObject", stack_object_id="stack:1", card_instance_id=cid
+        )
+        result["objects"].append(
+            {
+                "object_id": "stack:1",
+                "card_instance_id": cid,
+                "owner": "p1",
+                "controller": "p1",
+                "object_type": "SpellObject",
+            }
+        )
+        by["external_counterspell_created"][0]["target_object_ids"] = ["stack:1"]
+        countered["payload"].update(stack_object_id="stack:1", card_instance_id=cid)
+        moved["payload"].update(
+            object_id=oid,
+            card_instance_id=cid,
+            from_zone="stack",
+            to_zone="graveyard",
+            zone_owner="p1",
+        )
+        external["payload"].update(
+            object_id="external:counterspell", owner="p2", destination="graveyard"
+        )
     if aid == "B1":
         by["trigger_created"][0]["payload"].update(
             trigger_object_id="trigger:1", object_type="TriggeredAbilityObject"
