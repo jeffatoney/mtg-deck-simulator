@@ -268,9 +268,20 @@ def assert_causally_live(result: dict[str, Any]) -> None:
         if r["module"] == "mtg_kernel.executor" and r["qualname"].endswith("GameExecutor.run")
     ]
     assert run_calls
-    first_run = min(r["order"] for r in run_calls if r["kind"] == "call")
-    last_run = max(r["order"] for r in run_calls if r["kind"] in {"return", "exception"})
-    beneath = [r for r in calls if first_run < r["order"] < last_run and r["kind"] == "call"]
+    run_call = min((r for r in run_calls if r["kind"] == "call"), key=lambda r: r["order"])
+    by_call_id = {r.get("call_id"): r for r in calls if r["kind"] == "call"}
+
+    def beneath_run(call: dict[str, Any]) -> bool:
+        parent = call.get("parent_call_id")
+        seen: set[object] = set()
+        while parent is not None and parent not in seen:
+            if parent == run_call["call_id"]:
+                return True
+            seen.add(parent)
+            parent = by_call_id.get(parent, {}).get("parent_call_id")
+        return False
+
+    beneath = [r for r in calls if r["kind"] == "call" and beneath_run(r)]
     transitions = {
         (e["parent_action_id"], e["pre_state_hash"], e["post_state_hash"]) for e in result["events"]
     }
@@ -287,8 +298,16 @@ def assert_causally_live(result: dict[str, Any]) -> None:
             if call["module"] == contract["module"] and call["qualname"] == contract["qualname"]
         ]
         assert matches, f"missing canonical call: {contract['module']}.{contract['qualname']}"
+        assert contract["qualname"].endswith(f".{contract['operation']}")
         if event_type := contract.get("causal_event_type"):
-            assert any(event["event_type"] == event_type for event in result["events"])
+            assert any(
+                event["event_type"] == event_type
+                and call["game_id"] == event["game_id"]
+                and call["action_id"] == event["parent_action_id"]
+                and event["pre_state_hash"] != event["post_state_hash"]
+                for call in matches
+                for event in result["events"]
+            )
     for receipt in result["receipts"]:
         assert {
             "run_id",
@@ -312,7 +331,13 @@ def assert_causally_live(result: dict[str, Any]) -> None:
         assert receipt["pre_state_hash"] != receipt["post_state_hash"]
         assert any(
             r["action_id"] == receipt["action_id"]
-            and r["qualname"].startswith(receipt["service"] + ".")
+            and r["game_id"] == receipt["game_id"]
+            and any(
+                r["module"] == contract["module"]
+                and r["qualname"] == contract["qualname"]
+                and receipt["operation"] == contract["operation"]
+                for contract in contracts
+            )
             for r in beneath
         )
 
@@ -437,11 +462,13 @@ def _assert_requirement(
 ) -> None:
     """Apply frozen predicates and any requirement-specific semantic proof."""
     oracle = scenario["referee_oracle"]
+    _assert_forbidden_transitions(result, oracle.get("forbidden_transitions", []))
     assert_predicates(result, oracle["expected_state_transition_predicates"])
     assert_predicates(result, oracle["expected_final_state_predicates"])
     _assert_semantic_plan(result, oracle["semantic_assertion_plan"])
     special = {
         "evaluate_a1": _assert_sol_ring,
+        "evaluate_a3": _assert_commander_tax,
         "evaluate_b1": _assert_lantern,
         "evaluate_c1": _assert_cleanup_damage,
         "evaluate_c6": _assert_glint_horn,
@@ -453,6 +480,27 @@ def _assert_requirement(
     }.get(assertion_id)
     if special:
         special(result)
+
+
+def _assert_forbidden_transitions(result: dict[str, Any], forbidden: list[dict[str, Any]]) -> None:
+    """Reject forbidden transitions, optionally within a bounded event window."""
+    events = result["events"]
+    for rule in forbidden:
+        start = 0
+        end = len(events)
+        if before := rule.get("before_event_type"):
+            end = next(
+                (index for index, event in enumerate(events) if event["event_type"] == before),
+                end,
+            )
+        if after := rule.get("after_event_type"):
+            start = next(
+                (index + 1 for index, event in enumerate(events) if event["event_type"] == after),
+                start,
+            )
+        assert not any(event["event_type"] == rule["event_type"] for event in events[start:end]), (
+            rule.get("predicate_id", rule["event_type"])
+        )
 
 
 def _assert_semantic_plan(result: dict[str, Any], plan: dict[str, Any]) -> None:
@@ -536,6 +584,26 @@ def _assert_sol_ring(result: dict[str, Any]) -> None:
     assert entered["payload"]["card_instance_id"] == card_id
     assert card_id not in created["payload"]["battlefield_before"]
     assert priority["payload"]["respondable_stack_object_id"] == stack_id
+
+
+def _assert_commander_tax(result: dict[str, Any]) -> None:
+    casts = [event for event in result["events"] if event["event_type"] == "commander_cast"]
+    payments = [event for event in result["events"] if event["event_type"] == "cost_paid"]
+    replacements = [
+        event for event in result["events"] if event["event_type"] == "commander_replaced"
+    ]
+    assert len(casts) == len(payments) == 2
+    commander_id = casts[0]["payload"]["card_instance_id"]
+    assert all(event["payload"]["card_instance_id"] == commander_id for event in casts)
+    assert [event["payload"]["cast_count_after"] for event in casts] == [1, 2]
+    assert casts[0]["sequence"] < replacements[0]["sequence"] < casts[1]["sequence"]
+    base = payments[0]["payload"]["base_generic_cost"]
+    assert payments[0]["payload"]["commander_tax"] == 0
+    assert payments[1]["payload"]["commander_tax"] == 2
+    assert payments[0]["payload"]["generic_paid"] == base
+    assert payments[1]["payload"]["generic_paid"] == base + 2
+    assert replacements[0]["payload"]["destination"] == "command"
+    assert replacements[0]["payload"]["card_instance_id"] == commander_id
 
 
 def _assert_lantern(result: dict[str, Any]) -> None:

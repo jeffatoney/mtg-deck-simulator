@@ -6,12 +6,16 @@
       "evaluator_id": "evaluate_a1",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "A1:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "A1:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -20,12 +24,16 @@
       "evaluator_id": "evaluate_a2",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "A2:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "A2:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -34,12 +42,16 @@
       "evaluator_id": "evaluate_a3",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "A3:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "A3:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -48,12 +60,16 @@
       "evaluator_id": "evaluate_a4",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "A4:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "A4:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -62,12 +78,16 @@
       "evaluator_id": "evaluate_a5",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "A5:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "A5:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -76,12 +96,16 @@
       "evaluator_id": "evaluate_a6",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "A6:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "A6:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -90,12 +114,16 @@
       "evaluator_id": "evaluate_a7",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "A7:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "A7:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -104,12 +132,16 @@
       "evaluator_id": "evaluate_b1",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "B1:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "B1:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -118,12 +150,16 @@
       "evaluator_id": "evaluate_b2",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "B2:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "B2:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -132,12 +168,16 @@
       "evaluator_id": "evaluate_b3",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "B3:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "B3:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -146,12 +186,16 @@
       "evaluator_id": "evaluate_b4",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "B4:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "B4:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -160,12 +204,16 @@
       "evaluator_id": "evaluate_b5",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "B5:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "B5:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -174,12 +222,16 @@
       "evaluator_id": "evaluate_b6",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "B6:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "B6:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -188,12 +240,16 @@
       "evaluator_id": "evaluate_c1",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "C1:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "C1:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -202,12 +258,16 @@
       "evaluator_id": "evaluate_c2",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "C2:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "C2:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -216,12 +276,16 @@
       "evaluator_id": "evaluate_c3",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_id": "C3:clause:1",
+          "attacks_clause": "required non-no-op state transition"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "C3:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -230,12 +294,16 @@
       "evaluator_id": "evaluate_c4",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "C4:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "C4:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -244,12 +312,16 @@
       "evaluator_id": "evaluate_c5",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "C5:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "C5:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -258,12 +330,16 @@
       "evaluator_id": "evaluate_c6",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "C6:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "C6:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -272,12 +348,16 @@
       "evaluator_id": "evaluate_c7",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "C7:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "C7:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -286,12 +366,16 @@
       "evaluator_id": "evaluate_c8",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_id": "C8:clause:1",
+          "attacks_clause": "required non-no-op state transition"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "C8:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -300,12 +384,16 @@
       "evaluator_id": "evaluate_d1",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_id": "D1:clause:1",
+          "attacks_clause": "required non-no-op state transition"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "D1:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -314,12 +402,16 @@
       "evaluator_id": "evaluate_d2",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "D2:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "D2:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -328,12 +420,16 @@
       "evaluator_id": "evaluate_d3",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "D3:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "D3:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -342,12 +438,16 @@
       "evaluator_id": "evaluate_d4",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "D4:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "D4:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -356,12 +456,16 @@
       "evaluator_id": "evaluate_d5",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_id": "D5:clause:1",
+          "attacks_clause": "required non-no-op state transition"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "D5:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -370,12 +474,16 @@
       "evaluator_id": "evaluate_d6",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "D6:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "D6:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -384,12 +492,16 @@
       "evaluator_id": "evaluate_d7",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "D7:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "D7:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -398,12 +510,16 @@
       "evaluator_id": "evaluate_d8",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_id": "D8:clause:1",
+          "attacks_clause": "required non-no-op state transition"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "D8:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -412,12 +528,16 @@
       "evaluator_id": "evaluate_d9",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "D9:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "D9:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -426,12 +546,16 @@
       "evaluator_id": "evaluate_e1",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "E1:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "E1:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -440,12 +564,16 @@
       "evaluator_id": "evaluate_e2",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "E2:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "E2:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -454,12 +582,16 @@
       "evaluator_id": "evaluate_e3",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "E3:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "E3:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -468,12 +600,16 @@
       "evaluator_id": "evaluate_e4",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_id": "E4:clause:1",
+          "attacks_clause": "required non-no-op state transition"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "E4:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -482,12 +618,16 @@
       "evaluator_id": "evaluate_e5",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_id": "E5:clause:1",
+          "attacks_clause": "required non-no-op state transition"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "E5:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -496,12 +636,16 @@
       "evaluator_id": "evaluate_f1",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "F1:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "F1:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -510,12 +654,16 @@
       "evaluator_id": "evaluate_f2",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "F2:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "F2:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -524,12 +672,16 @@
       "evaluator_id": "evaluate_f3",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "F3:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "F3:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -538,12 +690,16 @@
       "evaluator_id": "evaluate_g1",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_id": "G1:clause:1",
+          "attacks_clause": "required non-no-op state transition"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "G1:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -552,12 +708,16 @@
       "evaluator_id": "evaluate_g2",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_id": "G2:clause:1",
+          "attacks_clause": "required non-no-op state transition"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "G2:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -566,12 +726,16 @@
       "evaluator_id": "evaluate_g3",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_id": "G3:clause:1",
+          "attacks_clause": "required non-no-op state transition"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "G3:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     },
@@ -580,12 +744,16 @@
       "evaluator_id": "evaluate_g4",
       "near_misses": [
         {
-          "mutation": "reverse_required_event_order",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_id": "G4:clause:1",
+          "attacks_clause": "required causal ordering"
         },
         {
-          "mutation": "replace_registered_object_reference",
-          "preserves_event_types": true
+          "preserves_event_types": true,
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_id": "G4:clause:2",
+          "attacks_clause": "registered same-object identity"
         }
       ]
     }

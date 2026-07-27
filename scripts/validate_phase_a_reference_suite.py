@@ -209,7 +209,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if (
             mutation.get("evaluator_id") != item["referee_evaluator_id"]
             or len(near_misses) < 2
-            or not all(case.get("preserves_event_types") is True for case in near_misses)
+            or not all(
+                case.get("preserves_event_types") is True
+                and case.get("mutation_function_id")
+                and case.get("clause_id")
+                and case.get("attacks_clause")
+                for case in near_misses
+            )
         ):
             errors.append(f"incomplete semantic mutation coverage: {item['acceptance_id']}")
     if len({(item["scenario_id"], item["referee_evaluator_id"]) for item in mappings}) != len(

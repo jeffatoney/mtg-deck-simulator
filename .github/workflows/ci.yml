@@ -32,6 +32,8 @@ jobs:
         run: uv run pytest -q
       - name: Protected Reference Collection
         run: uv run python scripts/validate_phase_a_reference_suite.py
+      - name: Phase A Semantic Mutation Matrix
+        run: uv run python scripts/check_phase_a_semantic_mutations.py
       - name: Control Plane Bootstrap Self-Test
         run: uv run pytest -q tests/test_control_plane.py::test_control_plane_bootstrap_positive_path
       - name: Manifest integrity

@@ -665,6 +665,19 @@ def test_every_acceptance_has_two_semantic_near_misses() -> None:
         for family in families
         for case in family["near_misses"]
     )
+    assert all(
+        case["mutation_function_id"] and case["clause_id"] and case["attacks_clause"]
+        for family in families
+        for case in family["near_misses"]
+    )
+
+
+def test_phase_a_semantic_mutation_matrix_executes_every_near_miss() -> None:
+    from scripts.check_phase_a_semantic_mutations import execute
+
+    executed, errors = execute()
+    assert executed == 84
+    assert errors == []
 
 
 def test_liveness_rejects_fake_service_names_in_executor_module() -> None:

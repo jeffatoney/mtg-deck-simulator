@@ -465,6 +465,24 @@
           {
             "script_index": 1,
             "actor": "p1",
+            "command": "cast_spell",
+            "source_object_id": "malcolm-command-tax:object:1",
+            "choices": {
+              "mana_payment": {
+                "U": 1,
+                "generic": 2
+              }
+            },
+            "targets": []
+          },
+          {
+            "script_index": 2,
+            "actor": "p1",
+            "command": "pass_priority"
+          },
+          {
+            "script_index": 3,
+            "actor": "p1",
             "command": "choose_commander_replacement",
             "source_object_id": "malcolm-command-tax:object:1",
             "choices": {},
@@ -472,11 +490,16 @@
             "destination": "command"
           },
           {
-            "script_index": 2,
+            "script_index": 4,
             "actor": "p1",
             "command": "cast_spell",
             "source_object_id": "malcolm-command-tax:object:1",
-            "choices": {},
+            "choices": {
+              "mana_payment": {
+                "U": 1,
+                "generic": 4
+              }
+            },
             "targets": []
           }
         ],
@@ -494,6 +517,20 @@
               "commander-replacement:driver:2"
             ],
             "selection": "commander-replacement:driver:2"
+          },
+          {
+            "script_index": 3,
+            "action_ids": [
+              "commander-replacement:driver:3"
+            ],
+            "selection": "commander-replacement:driver:3"
+          },
+          {
+            "script_index": 4,
+            "action_ids": [
+              "commander-replacement:driver:4"
+            ],
+            "selection": "commander-replacement:driver:4"
           }
         ],
         "rng_streams": {
@@ -520,17 +557,17 @@
           {
             "predicate_id": "A3:1",
             "event_type": "commander_cast",
-            "minimum": 1
+            "minimum": 2
           },
           {
             "predicate_id": "A3:2",
             "event_type": "cost_paid",
-            "minimum": 1
+            "minimum": 2
           },
           {
             "predicate_id": "A3:3",
             "event_type": "stack_object_created",
-            "minimum": 1
+            "minimum": 2
           },
           {
             "predicate_id": "A3:4",
@@ -560,7 +597,10 @@
             "commander_cast",
             "cost_paid",
             "stack_object_created",
-            "commander_replaced"
+            "commander_replaced",
+            "commander_cast",
+            "cost_paid",
+            "stack_object_created"
           ],
           "require_registered_object_references": true,
           "require_non_noop_transitions": true,

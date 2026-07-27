@@ -31,9 +31,21 @@ def validate(data: dict) -> list[str]:
     ]
     if not run:
         return [*errors, "no referee-observed GameExecutor.run call"]
-    start = min(c["order"] for c in run if c["kind"] == "call")
-    end = max(c["order"] for c in run if c["kind"] in {"return", "exception"})
-    beneath = [c for c in calls if start < c["order"] < end and c.get("kind") == "call"]
+    run_call = min((c for c in run if c["kind"] == "call"), key=lambda c: c["order"])
+    run_call_id = run_call.get("call_id")
+    by_call_id = {c.get("call_id"): c for c in calls if c.get("kind") == "call"}
+
+    def descends_from_run(call: dict) -> bool:
+        parent = call.get("parent_call_id")
+        seen: set[object] = set()
+        while parent is not None and parent not in seen:
+            if parent == run_call_id:
+                return True
+            seen.add(parent)
+            parent = by_call_id.get(parent, {}).get("parent_call_id")
+        return False
+
+    beneath = [c for c in calls if c.get("kind") == "call" and descends_from_run(c)]
     contracts = data.get("_referee_call_contract", [])
     for contract in contracts:
         canonical = [
@@ -42,13 +54,25 @@ def validate(data: dict) -> list[str]:
             if call.get("module") == contract.get("module")
             and call.get("qualname") == contract.get("qualname")
         ]
+        operation = contract.get("operation")
+        if operation and not str(contract.get("qualname", "")).endswith(f".{operation}"):
+            errors.append(f"call contract operation mismatch: {operation}")
         if not canonical:
             errors.append(
                 "canonical call not observed beneath executor: "
                 f"{contract.get('module')}.{contract.get('qualname')}"
             )
         event_type = contract.get("causal_event_type")
-        if event_type and not any(event.get("event_type") == event_type for event in events):
+        causal_events = [event for event in events if event.get("event_type") == event_type]
+        correlated = [
+            (call, event)
+            for call in canonical
+            for event in causal_events
+            if call.get("game_id") == event.get("game_id")
+            and call.get("action_id") == event.get("parent_action_id")
+            and event.get("pre_state_hash") != event.get("post_state_hash")
+        ]
+        if event_type and not correlated:
             errors.append(f"canonical call lacks causal transition: {event_type}")
     transitions = {
         (e.get("parent_action_id"), e.get("pre_state_hash"), e.get("post_state_hash"))
@@ -62,10 +86,11 @@ def validate(data: dict) -> list[str]:
         )
         correlated_call = any(
             c.get("action_id") == receipt.get("action_id")
-            and str(c.get("qualname", "")).startswith(str(receipt.get("service")) + ".")
+            and c.get("game_id") == receipt.get("game_id")
             and any(
                 c.get("module") == contract.get("module")
                 and c.get("qualname") == contract.get("qualname")
+                and receipt.get("operation") == contract.get("operation")
                 for contract in contracts
             )
             for c in beneath
