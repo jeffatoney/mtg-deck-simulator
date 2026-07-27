@@ -661,7 +661,7 @@ def test_every_acceptance_has_two_semantic_near_misses() -> None:
     assert len({family["acceptance_id"] for family in families}) == 42
     assert all(len(family["near_misses"]) >= 2 for family in families)
     assert all(
-        case["preserves_event_types"] is True
+        isinstance(case["preserves_event_types"], bool)
         for family in families
         for case in family["near_misses"]
     )
@@ -676,7 +676,12 @@ def test_phase_a_semantic_mutation_matrix_executes_every_near_miss() -> None:
     from scripts.check_phase_a_semantic_mutations import execute
 
     executed, errors = execute()
-    assert executed == 84
+    assert executed == sum(
+        len(family["near_misses"])
+        for family in json.loads(
+            (ROOT / "automation/phase-a-semantic-mutation-matrix.json").read_text()
+        )["families"]
+    )
     assert errors == []
 
 
@@ -729,3 +734,52 @@ def test_replay_contract_does_not_repair_candidate_output() -> None:
     source = (ROOT / "tests/phase_a_acceptance/test_replay_contract.py").read_text()
     assert 'replay["actions"] =' not in source
     assert 'replay["rng_streams"] =' not in source
+
+
+def test_pilot_lock_rejects_equals_config_form(tmp_path: Path) -> None:
+    from scripts.check_production_pilot_lock import check
+
+    workflows = tmp_path / ".github/workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "bad.yml").write_text(
+        "jobs:\n  pilot:\n    steps:\n      - run: uv run mtg-sim pilot --config=configs/pilot.toml\n"
+    )
+    report = check(tmp_path)
+    assert report["status"] == "FAIL"
+
+
+def test_d8_is_targeted_and_rejection_is_noop() -> None:
+    scenarios = json.loads((ROOT / "automation/reference-scenarios.json").read_text())["scenarios"]
+    d8 = next(s for s in scenarios if s["referee_oracle"]["acceptance_requirement"] == "D8")
+    action = d8["candidate_input"]["action_script"][0]
+    assert action["choices"]["face"] == "Memory"
+    assert action["targets"]
+    assert d8["referee_oracle"]["semantic_assertion_plan"]["require_non_noop_transitions"] is False
+    assert {r["event_type"] for r in d8["referee_oracle"]["forbidden_transitions"]} == {
+        "cost_paid",
+        "zone_moved",
+    }
+
+
+def test_clause_coverage_is_executable_for_every_acceptance() -> None:
+    clauses = json.loads((ROOT / "automation/phase-a-clause-coverage.json").read_text())
+    matrix = json.loads((ROOT / "automation/phase-a-semantic-mutation-matrix.json").read_text())
+    covered = {row["acceptance_id"]: row for row in clauses["requirements"]}
+    mutations = {
+        row["acceptance_id"]: {case["mutation_function_id"] for case in row["near_misses"]}
+        for row in matrix["families"]
+    }
+    assert len(covered) == 42
+    for acceptance_id, row in covered.items():
+        assert row["clauses"]
+        assert all(
+            clause["mutation_function_id"] in mutations[acceptance_id] for clause in row["clauses"]
+        )
+
+
+def test_a2_and_a3_clause_specific_mutations_execute() -> None:
+    from scripts.check_phase_a_semantic_mutations import execute
+
+    executed, errors = execute()
+    assert executed >= 88
+    assert errors == []

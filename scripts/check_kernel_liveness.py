@@ -74,6 +74,18 @@ def validate(data: dict) -> list[str]:
         ]
         if event_type and not correlated:
             errors.append(f"canonical call lacks causal transition: {event_type}")
+        for call, event in correlated:
+            matching_receipt = any(
+                receipt.get("operation") == operation
+                and receipt.get("game_id") == call.get("game_id")
+                and receipt.get("action_id") == call.get("action_id")
+                and event.get("event_id") in receipt.get("causal_event_ids", [])
+                and receipt.get("pre_state_hash") == event.get("pre_state_hash")
+                and receipt.get("post_state_hash") == event.get("post_state_hash")
+                for receipt in receipts
+            )
+            if not matching_receipt:
+                errors.append(f"canonical call lacks exact receipt/event correlation: {event_type}")
     transitions = {
         (e.get("parent_action_id"), e.get("pre_state_hash"), e.get("post_state_hash"))
         for e in events
@@ -95,7 +107,13 @@ def validate(data: dict) -> list[str]:
             )
             for c in beneath
         )
-        if triple not in transitions or not correlated_call:
+        causal_events = {
+            event.get("event_id")
+            for event in events
+            if event.get("parent_action_id") == receipt.get("action_id")
+        }
+        causal_ids = set(receipt.get("causal_event_ids", []))
+        if triple not in transitions or not correlated_call or not causal_ids <= causal_events:
             errors.append(f"uncorrelated receipt: {receipt.get('service')}")
     return errors
 

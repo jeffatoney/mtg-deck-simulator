@@ -133,12 +133,19 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     scenario_document = json.loads((root / "automation/reference-scenarios.json").read_text())
     scenarios = {item["scenario_id"]: item for item in scenario_document.get("scenarios", [])}
     mutation_path = root / "automation/phase-a-semantic-mutation-matrix.json"
+    clause_path = root / "automation/phase-a-clause-coverage.json"
     if not mutation_path.is_file():
         errors.append("missing semantic mutation matrix")
         mutations = {}
     else:
         mutation_doc = json.loads(mutation_path.read_text())
         mutations = {item.get("acceptance_id"): item for item in mutation_doc.get("families", [])}
+    if not clause_path.is_file():
+        errors.append("missing clause coverage manifest")
+        clauses = {}
+    else:
+        clause_doc = json.loads(clause_path.read_text())
+        clauses = {item.get("acceptance_id"): item for item in clause_doc.get("requirements", [])}
     for item in mappings:
         if (
             not item.get("referee_evaluator_id")
@@ -210,7 +217,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             mutation.get("evaluator_id") != item["referee_evaluator_id"]
             or len(near_misses) < 2
             or not all(
-                case.get("preserves_event_types") is True
+                isinstance(case.get("preserves_event_types"), bool)
                 and case.get("mutation_function_id")
                 and case.get("clause_id")
                 and case.get("attacks_clause")
@@ -218,6 +225,21 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             )
         ):
             errors.append(f"incomplete semantic mutation coverage: {item['acceptance_id']}")
+        clause = clauses.get(item["acceptance_id"], {})
+        covered_mutations = {case.get("mutation_function_id") for case in near_misses}
+        clause_rows = clause.get("clauses", [])
+        if (
+            clause.get("evaluator_id") != item["referee_evaluator_id"]
+            or not clause_rows
+            or any(
+                not row.get("clause_id")
+                or not row.get("assertion_operator")
+                or not row.get("evidence_fields")
+                or row.get("mutation_function_id") not in covered_mutations
+                for row in clause_rows
+            )
+        ):
+            errors.append(f"incomplete clause assertion/mutation coverage: {item['acceptance_id']}")
     if len({(item["scenario_id"], item["referee_evaluator_id"]) for item in mappings}) != len(
         mappings
     ):

@@ -25,15 +25,21 @@
       "near_misses": [
         {
           "preserves_event_types": true,
-          "mutation_function_id": "reverse_required_event_order",
-          "clause_id": "A2:clause:1",
-          "attacks_clause": "required causal ordering"
+          "mutation_function_id": "set_wrong_summoning_sickness",
+          "clause_id": "A2:summoning-sickness",
+          "attacks_clause": "correct summoning-sickness state"
         },
         {
           "preserves_event_types": true,
-          "mutation_function_id": "replace_registered_object_reference",
-          "clause_id": "A2:clause:2",
-          "attacks_clause": "registered same-object identity"
+          "mutation_function_id": "mismatch_battlefield_card_identity",
+          "clause_id": "A2:same-instance",
+          "attacks_clause": "same Glint-Horn instance enters"
+        },
+        {
+          "preserves_event_types": true,
+          "mutation_function_id": "enter_before_resolution",
+          "clause_id": "A2:resolution-order",
+          "attacks_clause": "permanent enters only on resolution"
         }
       ]
     },
@@ -43,15 +49,33 @@
       "near_misses": [
         {
           "preserves_event_types": true,
-          "mutation_function_id": "reverse_required_event_order",
-          "clause_id": "A3:clause:1",
-          "attacks_clause": "required causal ordering"
+          "mutation_function_id": "wrong_first_commander_cost",
+          "clause_id": "A3:first-cost",
+          "attacks_clause": "first cast exact base cost"
         },
         {
           "preserves_event_types": true,
-          "mutation_function_id": "replace_registered_object_reference",
-          "clause_id": "A3:clause:2",
-          "attacks_clause": "registered same-object identity"
+          "mutation_function_id": "wrong_second_commander_tax",
+          "clause_id": "A3:second-tax",
+          "attacks_clause": "second cast base cost plus {2} tax"
+        },
+        {
+          "preserves_event_types": false,
+          "mutation_function_id": "remove_second_commander_cast",
+          "clause_id": "A3:two-casts",
+          "attacks_clause": "second cast after return"
+        },
+        {
+          "preserves_event_types": true,
+          "mutation_function_id": "wrong_commander_instance",
+          "clause_id": "A3:same-instance",
+          "attacks_clause": "same commander card instance"
+        },
+        {
+          "preserves_event_types": true,
+          "mutation_function_id": "wrong_commander_cast_count",
+          "clause_id": "A3:cast-count",
+          "attacks_clause": "cast count increments at cast time"
         }
       ]
     },
@@ -511,15 +535,15 @@
       "near_misses": [
         {
           "preserves_event_types": true,
-          "mutation_function_id": "erase_required_state_transition",
+          "mutation_function_id": "introduce_rejected_state_change",
           "clause_id": "D8:clause:1",
-          "attacks_clause": "required non-no-op state transition"
+          "attacks_clause": "bit-identical state after rejection"
         },
         {
           "preserves_event_types": true,
-          "mutation_function_id": "replace_registered_object_reference",
+          "mutation_function_id": "add_payment_after_rejection",
           "clause_id": "D8:clause:2",
-          "attacks_clause": "registered same-object identity"
+          "attacks_clause": "rejection before mana payment or zone movement"
         }
       ]
     },

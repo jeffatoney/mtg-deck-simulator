@@ -23,6 +23,8 @@ FROZEN = (
     "automation/reference-scenario.schema.json",
     "automation/phase-a-reference-manifest.json",
     "automation/phase-a-semantic-mutation-matrix.json",
+    "automation/phase-a-clause-coverage.json",
+    "scripts/check_phase_a_semantic_mutations.py",
     "automation/trace-invariants.json",
     "automation/golden-replay.schema.json",
     "automation/golden-replay-approvals.json",

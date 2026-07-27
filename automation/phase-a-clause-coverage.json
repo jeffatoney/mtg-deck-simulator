@@ -1,0 +1,1313 @@
+{
+  "schema_version": 1,
+  "requirements": [
+    {
+      "acceptance_id": "A1",
+      "evaluator_id": "evaluate_a1",
+      "clauses": [
+        {
+          "clause_id": "A1:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "A1:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A2",
+      "evaluator_id": "evaluate_a2",
+      "clauses": [
+        {
+          "clause_id": "A2:summoning-sickness",
+          "assertion_operator": "set_assert_summoning_sickness",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "set_wrong_summoning_sickness",
+          "clause_text": "correct summoning-sickness state"
+        },
+        {
+          "clause_id": "A2:same-instance",
+          "assertion_operator": "mismatch_battlefield_card_identity",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "mismatch_battlefield_card_identity",
+          "clause_text": "same Glint-Horn instance enters"
+        },
+        {
+          "clause_id": "A2:resolution-order",
+          "assertion_operator": "enter_before_resolution",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "enter_before_resolution",
+          "clause_text": "permanent enters only on resolution"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A3",
+      "evaluator_id": "evaluate_a3",
+      "clauses": [
+        {
+          "clause_id": "A3:first-cost",
+          "assertion_operator": "assert_first_commander_cost",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "wrong_first_commander_cost",
+          "clause_text": "first cast exact base cost"
+        },
+        {
+          "clause_id": "A3:second-tax",
+          "assertion_operator": "assert_second_commander_tax",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "wrong_second_commander_tax",
+          "clause_text": "second cast base cost plus {2} tax"
+        },
+        {
+          "clause_id": "A3:two-casts",
+          "assertion_operator": "require_second_commander_cast",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "remove_second_commander_cast",
+          "clause_text": "second cast after return"
+        },
+        {
+          "clause_id": "A3:same-instance",
+          "assertion_operator": "assert_commander_instance",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "wrong_commander_instance",
+          "clause_text": "same commander card instance"
+        },
+        {
+          "clause_id": "A3:cast-count",
+          "assertion_operator": "assert_commander_cast_count",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "wrong_commander_cast_count",
+          "clause_text": "cast count increments at cast time"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A4",
+      "evaluator_id": "evaluate_a4",
+      "clauses": [
+        {
+          "clause_id": "A4:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "A4:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A5",
+      "evaluator_id": "evaluate_a5",
+      "clauses": [
+        {
+          "clause_id": "A5:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "A5:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A6",
+      "evaluator_id": "evaluate_a6",
+      "clauses": [
+        {
+          "clause_id": "A6:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "A6:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "A7",
+      "evaluator_id": "evaluate_a7",
+      "clauses": [
+        {
+          "clause_id": "A7:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "A7:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B1",
+      "evaluator_id": "evaluate_b1",
+      "clauses": [
+        {
+          "clause_id": "B1:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "B1:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B2",
+      "evaluator_id": "evaluate_b2",
+      "clauses": [
+        {
+          "clause_id": "B2:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "B2:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B3",
+      "evaluator_id": "evaluate_b3",
+      "clauses": [
+        {
+          "clause_id": "B3:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "B3:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B4",
+      "evaluator_id": "evaluate_b4",
+      "clauses": [
+        {
+          "clause_id": "B4:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "B4:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B5",
+      "evaluator_id": "evaluate_b5",
+      "clauses": [
+        {
+          "clause_id": "B5:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "B5:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "B6",
+      "evaluator_id": "evaluate_b6",
+      "clauses": [
+        {
+          "clause_id": "B6:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "B6:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C1",
+      "evaluator_id": "evaluate_c1",
+      "clauses": [
+        {
+          "clause_id": "C1:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "C1:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C2",
+      "evaluator_id": "evaluate_c2",
+      "clauses": [
+        {
+          "clause_id": "C2:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "C2:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C3",
+      "evaluator_id": "evaluate_c3",
+      "clauses": [
+        {
+          "clause_id": "C3:clause:1",
+          "assertion_operator": "assert_required_state_transition",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_text": "required non-no-op state transition"
+        },
+        {
+          "clause_id": "C3:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C4",
+      "evaluator_id": "evaluate_c4",
+      "clauses": [
+        {
+          "clause_id": "C4:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "C4:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C5",
+      "evaluator_id": "evaluate_c5",
+      "clauses": [
+        {
+          "clause_id": "C5:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "C5:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C6",
+      "evaluator_id": "evaluate_c6",
+      "clauses": [
+        {
+          "clause_id": "C6:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "C6:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C7",
+      "evaluator_id": "evaluate_c7",
+      "clauses": [
+        {
+          "clause_id": "C7:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "C7:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "C8",
+      "evaluator_id": "evaluate_c8",
+      "clauses": [
+        {
+          "clause_id": "C8:clause:1",
+          "assertion_operator": "assert_required_state_transition",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_text": "required non-no-op state transition"
+        },
+        {
+          "clause_id": "C8:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D1",
+      "evaluator_id": "evaluate_d1",
+      "clauses": [
+        {
+          "clause_id": "D1:clause:1",
+          "assertion_operator": "assert_required_state_transition",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_text": "required non-no-op state transition"
+        },
+        {
+          "clause_id": "D1:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D2",
+      "evaluator_id": "evaluate_d2",
+      "clauses": [
+        {
+          "clause_id": "D2:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "D2:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D3",
+      "evaluator_id": "evaluate_d3",
+      "clauses": [
+        {
+          "clause_id": "D3:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "D3:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D4",
+      "evaluator_id": "evaluate_d4",
+      "clauses": [
+        {
+          "clause_id": "D4:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "D4:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D5",
+      "evaluator_id": "evaluate_d5",
+      "clauses": [
+        {
+          "clause_id": "D5:clause:1",
+          "assertion_operator": "assert_required_state_transition",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_text": "required non-no-op state transition"
+        },
+        {
+          "clause_id": "D5:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D6",
+      "evaluator_id": "evaluate_d6",
+      "clauses": [
+        {
+          "clause_id": "D6:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "D6:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D7",
+      "evaluator_id": "evaluate_d7",
+      "clauses": [
+        {
+          "clause_id": "D7:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "D7:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D8",
+      "evaluator_id": "evaluate_d8",
+      "clauses": [
+        {
+          "clause_id": "D8:clause:1",
+          "assertion_operator": "assert_rejected_state_change",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "introduce_rejected_state_change",
+          "clause_text": "bit-identical state after rejection"
+        },
+        {
+          "clause_id": "D8:clause:2",
+          "assertion_operator": "forbid_payment_after_rejection",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "add_payment_after_rejection",
+          "clause_text": "rejection before mana payment or zone movement"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "D9",
+      "evaluator_id": "evaluate_d9",
+      "clauses": [
+        {
+          "clause_id": "D9:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "D9:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "E1",
+      "evaluator_id": "evaluate_e1",
+      "clauses": [
+        {
+          "clause_id": "E1:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "E1:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "E2",
+      "evaluator_id": "evaluate_e2",
+      "clauses": [
+        {
+          "clause_id": "E2:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "E2:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "E3",
+      "evaluator_id": "evaluate_e3",
+      "clauses": [
+        {
+          "clause_id": "E3:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "E3:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "E4",
+      "evaluator_id": "evaluate_e4",
+      "clauses": [
+        {
+          "clause_id": "E4:clause:1",
+          "assertion_operator": "assert_required_state_transition",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_text": "required non-no-op state transition"
+        },
+        {
+          "clause_id": "E4:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "E5",
+      "evaluator_id": "evaluate_e5",
+      "clauses": [
+        {
+          "clause_id": "E5:clause:1",
+          "assertion_operator": "assert_required_state_transition",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_text": "required non-no-op state transition"
+        },
+        {
+          "clause_id": "E5:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "F1",
+      "evaluator_id": "evaluate_f1",
+      "clauses": [
+        {
+          "clause_id": "F1:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "F1:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "F2",
+      "evaluator_id": "evaluate_f2",
+      "clauses": [
+        {
+          "clause_id": "F2:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "F2:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "F3",
+      "evaluator_id": "evaluate_f3",
+      "clauses": [
+        {
+          "clause_id": "F3:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "F3:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "G1",
+      "evaluator_id": "evaluate_g1",
+      "clauses": [
+        {
+          "clause_id": "G1:clause:1",
+          "assertion_operator": "assert_required_state_transition",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_text": "required non-no-op state transition"
+        },
+        {
+          "clause_id": "G1:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "G2",
+      "evaluator_id": "evaluate_g2",
+      "clauses": [
+        {
+          "clause_id": "G2:clause:1",
+          "assertion_operator": "assert_required_state_transition",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_text": "required non-no-op state transition"
+        },
+        {
+          "clause_id": "G2:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "G3",
+      "evaluator_id": "evaluate_g3",
+      "clauses": [
+        {
+          "clause_id": "G3:clause:1",
+          "assertion_operator": "assert_required_state_transition",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "erase_required_state_transition",
+          "clause_text": "required non-no-op state transition"
+        },
+        {
+          "clause_id": "G3:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    },
+    {
+      "acceptance_id": "G4",
+      "evaluator_id": "evaluate_g4",
+      "clauses": [
+        {
+          "clause_id": "G4:clause:1",
+          "assertion_operator": "assert_required_event_order",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "reverse_required_event_order",
+          "clause_text": "required causal ordering"
+        },
+        {
+          "clause_id": "G4:clause:2",
+          "assertion_operator": "assert_registered_object_reference",
+          "evidence_fields": [
+            "events",
+            "objects",
+            "state_snapshots",
+            "final_state"
+          ],
+          "mutation_function_id": "replace_registered_object_reference",
+          "clause_text": "registered same-object identity"
+        }
+      ]
+    }
+  ]
+}

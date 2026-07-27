@@ -4,7 +4,13 @@ import json
 
 import pytest
 
-from .reference_adapter import ROOT, load_scenario, run_scenario, validate_replay_artifact
+from .reference_adapter import (
+    ROOT,
+    load_scenario,
+    metamorphic_scenario,
+    run_scenario,
+    validate_replay_artifact,
+)
 
 FIXTURES = sorted((ROOT / "tests/fixtures/golden-replays").glob("*.json"))
 
@@ -43,3 +49,26 @@ def test_golden_replay(fixture) -> None:
                 actions=mutated_actions,
                 rng_streams=first["rng_streams"],
             )
+
+
+@pytest.mark.parametrize(
+    "scenario_id",
+    [
+        "sol-ring",
+        "soul-guide-lantern-targeted-etb",
+        "malcolm-counterspell-commit",
+        "dualcaster-twinflame",
+        "glint-horn-attack-cleanup",
+    ],
+)
+def test_replay_is_generic_across_remapped_identities(scenario_id: str) -> None:
+    scenario = metamorphic_scenario(load_scenario(scenario_id))
+    first = run_scenario(scenario)
+    from mtg_kernel.replay import ReplayEngine
+
+    replay = ReplayEngine.run(
+        initial_state=first["initial_state"],
+        actions=first["actions"],
+        rng_streams=first["rng_streams"],
+    )
+    validate_replay_artifact(first, replay)

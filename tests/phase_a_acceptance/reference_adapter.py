@@ -468,14 +468,15 @@ def _assert_requirement(
     _assert_semantic_plan(result, oracle["semantic_assertion_plan"])
     special = {
         "evaluate_a1": _assert_sol_ring,
+        "evaluate_a2": _assert_glint_horn_cast,
         "evaluate_a3": _assert_commander_tax,
         "evaluate_b1": _assert_lantern,
         "evaluate_c1": _assert_cleanup_damage,
         "evaluate_c6": _assert_glint_horn,
         "evaluate_d4": _assert_commit_external,
         "evaluate_d7": _assert_memory_actions,
-        "evaluate_e2": _assert_commit_external,
-        "evaluate_f2": _assert_dualcaster_twinflame,
+        "evaluate_d8": _assert_memory_rejection,
+        "evaluate_f2": _assert_twinflame_token,
         "evaluate_g4": _assert_pilot_lock,
     }.get(assertion_id)
     if special:
@@ -560,6 +561,20 @@ def _assert_memory_actions(result: dict[str, Any]) -> None:
     assert all("target" not in action or action["target"] is None for action in memory)
 
 
+def _assert_memory_rejection(result: dict[str, Any]) -> None:
+    rejected = _ordered(result, "action_rejected")[0]
+    attempted = next(
+        action
+        for action in result["actions"]
+        if action["action_id"] == rejected["parent_action_id"]
+    )
+    assert attempted.get("face") == "Memory"
+    assert len(attempted.get("targets", [])) >= 1
+    assert rejected["pre_state_hash"] == rejected["post_state_hash"]
+    assert canonical_hash(result["initial_state"]) == canonical_hash(result["final_state"])
+    assert not any(event["event_type"] in {"cost_paid", "zone_moved"} for event in result["events"])
+
+
 def _assert_pilot_lock(result: dict[str, Any]) -> None:
     # G4 is grounded in the protected workflow tree, not candidate metadata.
     import runpy
@@ -584,6 +599,21 @@ def _assert_sol_ring(result: dict[str, Any]) -> None:
     assert entered["payload"]["card_instance_id"] == card_id
     assert card_id not in created["payload"]["battlefield_before"]
     assert priority["payload"]["respondable_stack_object_id"] == stack_id
+
+
+def _assert_glint_horn_cast(result: dict[str, Any]) -> None:
+    announced, created, resolved, entered = _ordered(
+        result, "spell_announced", "stack_object_created", "spell_resolved", "battlefield_entered"
+    )
+    card_id = announced["payload"]["card_instance_id"]
+    stack_id = created["payload"]["stack_object_id"]
+    assert created["payload"]["object_type"] == "SpellObject"
+    assert created["payload"]["card_instance_id"] == card_id
+    assert resolved["payload"]["stack_object_id"] == stack_id
+    assert entered["payload"]["card_instance_id"] == card_id
+    assert card_id not in resolved["payload"].get("battlefield_before", [])
+    snapshot = result["state_snapshots"][entered["sequence"]]
+    assert snapshot["summoning_sickness"][entered["payload"]["object_id"]] is True
 
 
 def _assert_commander_tax(result: dict[str, Any]) -> None:
@@ -641,6 +671,26 @@ def _assert_commit_external(result: dict[str, Any]) -> None:
     assert target not in result["final_state"]["zones"]["library"]
 
 
+def _assert_twinflame_token(result: dict[str, Any]) -> None:
+    copied, token, delayed, placed, exiled, ceased = _ordered(
+        result,
+        "spell_copied",
+        "token_created",
+        "delayed_trigger_created",
+        "trigger_put_on_stack",
+        "token_exiled",
+        "token_ceased",
+    )
+    token_id = token["payload"]["object_id"]
+    assert token["payload"]["card_instance_id"] is None
+    assert token["payload"]["haste"] is True
+    assert delayed["payload"]["token_object_id"] == token_id
+    assert placed["payload"]["trigger_object_id"] == delayed["payload"]["trigger_object_id"]
+    assert exiled["payload"]["object_id"] == token_id
+    assert ceased["payload"]["object_id"] == token_id
+    assert copied["payload"]["cast"] is False
+
+
 def _assert_dualcaster_twinflame(result: dict[str, Any]) -> None:
     cast, copied, retargeted, token, cleanup = _ordered(
         result, "spell_cast", "spell_copied", "targets_revalidated", "token_created", "token_ceased"
@@ -678,6 +728,30 @@ def _assert_glint_horn(result: dict[str, Any]) -> None:
 def load_scenario(scenario_id: str) -> dict[str, Any]:
     document = json.loads((ROOT / "automation/reference-scenarios.json").read_text())
     return next(item for item in document["scenarios"] if item["scenario_id"] == scenario_id)
+
+
+def metamorphic_scenario(scenario: dict[str, Any], variant: int = 1) -> dict[str, Any]:
+    """Remap candidate-visible identities without exposing or changing the oracle."""
+    transformed = json.loads(json.dumps(scenario))
+    candidate = transformed["candidate_input"]
+    old_game_id = candidate["initial_state"]["game_id"]
+    new_game_id = f"metamorphic-{variant}-{old_game_id}"
+
+    def remap(value: object) -> object:
+        if isinstance(value, str):
+            return value.replace(old_game_id, new_game_id)
+        if isinstance(value, list):
+            return [remap(item) for item in value]
+        if isinstance(value, dict):
+            return {key: remap(item) for key, item in value.items()}
+        return value
+
+    transformed["candidate_input"] = remap(candidate)
+    transformed["candidate_input"]["initial_state"]["game_id"] = new_game_id
+    transformed["candidate_input"]["rng_streams"] = {
+        name: int(seed) + 1009 * variant for name, seed in candidate["rng_streams"].items()
+    }
+    return transformed
 
 
 # Explicit frozen acceptance assertions. Each manifest entry resolves to one.

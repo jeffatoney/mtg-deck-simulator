@@ -5199,7 +5199,9 @@
             "choices": {
               "face": "Memory"
             },
-            "targets": [],
+            "targets": [
+              "memory-target-rejected:illegal-target:1"
+            ],
             "action_id": "memory-target-rejected:scripted-action"
           }
         ],
@@ -5241,7 +5243,18 @@
         ],
         "expected_final_state_predicates": [],
         "requirement_text": "Validation rejects targeted Memory actions before mana payment or zone movement; state is bit-identical before and after rejection.",
-        "forbidden_transitions": [],
+        "forbidden_transitions": [
+          {
+            "predicate_id": "D8:no-payment",
+            "event_type": "cost_paid",
+            "after_event_type": "action_rejected"
+          },
+          {
+            "predicate_id": "D8:no-movement",
+            "event_type": "zone_moved",
+            "after_event_type": "action_rejected"
+          }
+        ],
         "required_call_contract": [
           {
             "module": "mtg_kernel.actions",
@@ -5255,7 +5268,7 @@
             "action_rejected"
           ],
           "require_registered_object_references": true,
-          "require_non_noop_transitions": true,
+          "require_non_noop_transitions": false,
           "require_causal_parent_order": true
         }
       }

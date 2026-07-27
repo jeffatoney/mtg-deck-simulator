@@ -11,7 +11,7 @@ import shlex
 from pathlib import Path
 
 SCRIPT_SUFFIXES = {".sh", ".bash", ".py"}
-PILOT = re.compile(r"\bmtg-sim\s+pilot\s+--config\s+(?:\./)?configs/pilot\.toml\b")
+PILOT = re.compile(r"\bmtg-sim\s+pilot\s+--config(?:\s+|=)(?:\./)?configs/pilot\.toml\b")
 LOCAL_PATH = re.compile(r"(?:^|\s)(?:bash|sh|python\d*|uv\s+run\s+python)\s+(\.?/?[\w./-]+)")
 LOCAL_WORKFLOW = re.compile(r"uses:\s*(\./\.github/workflows/[\w./-]+)")
 
@@ -22,7 +22,7 @@ def _workflow_commands(text: str) -> list[str]:
     commands: list[str] = []
     index = 0
     while index < len(lines):
-        match = re.match(r"^(\s*)run:\s*(.*)$", lines[index])
+        match = re.match(r"^(\s*)(?:-\s+)?run:\s*(.*)$", lines[index])
         if not match:
             index += 1
             continue
