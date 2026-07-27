@@ -64,3 +64,13 @@ copies of the referee scripts and workflows never replace the copies checked
 out from protected `main`. An `isolated-reference-suite` skip on the setup PR is
 expected; a failed future-kernel acceptance job is not equivalent to that
 expected bootstrap skip.
+
+## Control Plane Bootstrap Self-Test
+
+Ordinary setup CI executes the real protected reference runner against a
+temporary protected referee and minimal candidate. This proves collection,
+execution, standard-library and pytest access, exact candidate-SHA recording,
+unique artifacts, and exclusion of candidate-controlled packages and helpers.
+Each protected layer must retain a malicious failing fixture, a minimal valid
+passing fixture, and an end-to-end test; static inspection alone is not proof
+that a workflow is installed.

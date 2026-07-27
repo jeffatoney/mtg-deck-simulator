@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "scenario_id": "illegal-target-before-resolution",
+  "review_status": "independently-reviewed",
+  "actions": [
+    {
+      "action_id": "illegal-target-before-resolution:action:1",
+      "kind": "run_forced_scenario",
+      "scenario_id": "illegal-target-before-resolution"
+    }
+  ],
+  "events": [
+    {
+      "event_id": "illegal-target-before-resolution:event:1",
+      "event_type": "forced_scenario_completed",
+      "parent_action_id": "illegal-target-before-resolution:action:1"
+    }
+  ],
+  "rng_streams": {
+    "scenario": 0
+  },
+  "external_ledger": [],
+  "final_state_hash": "phase-a-v1:illegal-target-before-resolution"
+}

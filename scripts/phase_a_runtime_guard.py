@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.abc
 import sys
+import sysconfig
 from pathlib import Path
 
 
@@ -21,7 +22,25 @@ def install(staging_root: Path) -> PhaseAImportGuard:
     guard = PhaseAImportGuard()
     sys.meta_path.insert(0, guard)
     source = (staging_root / "src").resolve()
-    sys.path[:] = [str(source), *[item for item in sys.path if "site-packages" in item]]
+    isolated_path = list(sys.path)
+    standard_paths = {
+        str(Path(value).resolve())
+        for key in ("stdlib", "platstdlib")
+        if (value := sysconfig.get_path(key))
+    }
+    dependency_paths = {
+        str(Path(item).resolve()) for item in isolated_path if "site-packages" in Path(item).parts
+    }
+    approved = standard_paths | dependency_paths
+    sys.path[:] = [
+        str(source),
+        *[
+            item
+            for item in isolated_path
+            if str(Path(item).resolve()) in approved
+            or any(root in Path(item).resolve().parents for root in map(Path, standard_paths))
+        ],
+    ]
     return guard
 
 
@@ -29,6 +48,13 @@ def verify_loaded(staging_root: Path) -> None:
     source = (staging_root / "src").resolve()
     for name, module in tuple(sys.modules.items()):
         if name in {"mtg_kernel", "mtg_cards"} or name.startswith(("mtg_kernel.", "mtg_cards.")):
-            origin = getattr(getattr(module, "__spec__", None), "origin", None)
-            if not origin or source not in Path(origin).resolve().parents:
+            spec = getattr(module, "__spec__", None)
+            origin = getattr(spec, "origin", None)
+            locations = tuple(getattr(spec, "submodule_search_locations", ()) or ())
+            origin_ok = bool(origin and source in Path(origin).resolve().parents)
+            namespace_ok = bool(locations) and all(
+                source == Path(location).resolve() or source in Path(location).resolve().parents
+                for location in locations
+            )
+            if not (origin_ok or namespace_ok):
                 raise RuntimeError(f"unapproved module provenance: {name}: {origin}")

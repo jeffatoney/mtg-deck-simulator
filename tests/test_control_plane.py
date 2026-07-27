@@ -104,7 +104,9 @@ def test_isolated_reference_suite_uses_only_protected_main_runner() -> None:
         (
             "python",
             "run: uv run python scripts/go.py",
-            {"scripts/go.py": "# mtg-sim pilot --config configs/pilot.toml"},
+            {
+                "scripts/go.py": 'import subprocess\nsubprocess.run(["mtg-sim", "pilot", "--config", "configs/pilot.toml"])\n'
+            },
         ),
         ("yaml-lines", "run: >\n  uv run mtg-sim pilot --config\n  configs/pilot.toml", {}),
         ("prefix", "run: poetry run mtg-sim pilot --config configs/pilot.toml", {}),
@@ -125,7 +127,6 @@ def test_pilot_lock_rejects_reachable_production_paths(
 @pytest.mark.parametrize(
     "command",
     [
-        "run: uv run mtg-sim pilot --config configs/pilot.toml --dry-run",
         "run: uv run mtg-sim validate-sources",
     ],
 )
@@ -290,3 +291,149 @@ def test_attack_matrix_families_are_nonempty() -> None:
     data = json.loads((ROOT / "automation/architecture-attack-matrix.json").read_text())
     assert len(data["families"]) >= 7
     assert all(data["families"].values())
+
+
+def test_control_plane_bootstrap_positive_path(tmp_path: Path) -> None:
+    referee = tmp_path / "referee"
+    candidate = tmp_path / "candidate"
+    output = tmp_path / "artifacts"
+    for relative in ("scripts/run_phase_a_reference_tests.py", "scripts/phase_a_runtime_guard.py"):
+        target = referee / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((ROOT / relative).read_bytes())
+    reference = referee / "tests/phase_a_reference"
+    reference.mkdir(parents=True)
+    reference.joinpath("test_bootstrap.py").write_text(
+        "import dataclasses, enum, json, pathlib, sys, typing, pytest\n"
+        "def test_protected_runner_bootstrap():\n"
+        "    from mtg_kernel.executor import GameExecutor\n"
+        "    import mtg_cards\n"
+        "    assert GameExecutor().run() == 'live'\n"
+        "    assert 'mtg_sim' not in sys.modules\n",
+        encoding="utf-8",
+    )
+    executor = candidate / "src/mtg_kernel/executor.py"
+    executor.parent.mkdir(parents=True)
+    executor.write_text("class GameExecutor:\n    def run(self): return 'live'\n", encoding="utf-8")
+    cards = candidate / "src/mtg_cards/__init__.py"
+    cards.parent.mkdir(parents=True)
+    cards.write_text("CARD = 'approved'\n", encoding="utf-8")
+    excluded = [
+        "src/mtg_sim/engine.py",
+        "src/escape/helper.py",
+        "tests/test_fake.py",
+        "tests/conftest.py",
+        "helpers.py",
+        ".github/workflows/evil.yml",
+        "scripts/evil.py",
+    ]
+    for relative in excluded:
+        path = candidate / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("raise RuntimeError('candidate escape loaded')\n", encoding="utf-8")
+    sha = "0123456789abcdef0123456789abcdef01234567"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(referee / "scripts/run_phase_a_reference_tests.py"),
+            "--candidate",
+            str(candidate),
+            "--referee",
+            str(referee),
+            "--candidate-sha",
+            sha,
+            "--output",
+            str(output),
+        ],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout
+    runs = list(output.iterdir())
+    assert len(runs) == 1
+    manifest = json.loads((runs[0] / "manifest.json").read_text())
+    assert manifest["candidate_sha"] == sha
+    assert manifest["run_id"] == runs[0].name
+    assert manifest["collected_node_ids"] == [
+        "tests/phase_a_reference/test_bootstrap.py::test_protected_runner_bootstrap"
+    ]
+    assert (runs[0] / "pytest.log").is_file()
+    assert (runs[0] / "collection.log").is_file()
+    staged = manifest["staged_files"]
+    assert "src/mtg_kernel/executor.py" in staged and "src/mtg_cards/__init__.py" in staged
+    assert all(
+        not any(
+            token in path for token in ("mtg_sim", "evil", "conftest", "helpers.py", "test_fake")
+        )
+        for path in staged
+    )
+
+
+def test_runtime_guard_preserves_standard_library_and_pytest(tmp_path: Path) -> None:
+    program = (
+        "from pathlib import Path; import runpy; "
+        f"g=runpy.run_path({str(ROOT / 'scripts/phase_a_runtime_guard.py')!r}); "
+        "g['install'](Path('.')); "
+        "import dataclasses,enum,json,pathlib,typing,pytest; print('imports-ok')"
+    )
+    result = subprocess.run(
+        [sys.executable, "-I", "-c", program],
+        cwd=tmp_path,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "imports-ok"
+
+
+def test_runtime_guard_rejects_legacy_after_install(tmp_path: Path) -> None:
+    program = (
+        "from pathlib import Path; import runpy; "
+        f"g=runpy.run_path({str(ROOT / 'scripts/phase_a_runtime_guard.py')!r}); "
+        "g['install'](Path('.')); import mtg_sim.engine"
+    )
+    result = subprocess.run(
+        [sys.executable, "-I", "-c", program],
+        cwd=tmp_path,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "Phase A closed world rejects mtg_sim" in result.stderr
+
+
+@pytest.mark.parametrize(
+    "workflow,extra",
+    [
+        ("run: uv run mtg-sim pilot --config configs/pilot.toml # --dry-run", {}),
+        ("run: uv run mtg-sim pilot --config configs/pilot.toml ; echo --dry-run", {}),
+        ("run: echo --dry-run; uv run mtg-sim pilot --config configs/pilot.toml", {}),
+        ("run: >\n  uv run mtg-sim pilot --config\n  configs/pilot.toml", {}),
+        ("run: bash scripts/go.sh", {"scripts/go.sh": "mtg-sim pilot --config configs/pilot.toml"}),
+        (
+            "run: python scripts/go.py",
+            {
+                "scripts/go.py": "import subprocess\nsubprocess.run(['mtg-sim','pilot','--config','configs/pilot.toml'])\n"
+            },
+        ),
+        ("run: uv run mtg-sim pilot --config configs/pilot.toml --dry-run", {}),
+    ],
+)
+def test_pilot_lock_has_no_phase_ab_dry_run_exception(
+    tmp_path: Path, workflow: str, extra: dict[str, str]
+) -> None:
+    write_workflow(tmp_path, workflow)
+    for relative, content in extra.items():
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+    assert run("check_production_pilot_lock.py", "--root", str(tmp_path)).returncode == 1
+
+
+def test_pilot_lock_ignores_comments_and_unrelated_commands(tmp_path: Path) -> None:
+    write_workflow(tmp_path, "run: echo unrelated # mtg-sim pilot --config configs/pilot.toml")
+    assert run("check_production_pilot_lock.py", "--root", str(tmp_path)).returncode == 0

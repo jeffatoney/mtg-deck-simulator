@@ -10,5 +10,5 @@
     "pilot-lock": ["workflow", "workflow-call", "shell", "python", "yaml-folding", "prefix"],
     "semantic-evidence": ["fake-trigger", "helper-only", "facade-liveness"]
   },
-  "rule": "Every malicious fixture must fail; every family includes a benign control."
+  "rule": "Every protected enforcement layer requires a malicious fixture that fails, a minimal valid fixture that passes, and an end-to-end test of the exact future workflow mechanism. Static inspection alone does not install a workflow."
 }

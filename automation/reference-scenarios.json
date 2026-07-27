@@ -1,10 +1,75 @@
 {
   "schema_version": 1,
-  "status": "PLACEHOLDERS_REQUIRING_INDEPENDENT_REVIEW",
   "minimum_random_seed_games": 200,
   "forced_scenarios": [
-    "sol-ring", "soul-guide-lantern-targeted-etb", "malcolm-counterspell-commit",
-    "dualcaster-twinflame", "glint-horn-attack-cleanup", "illegal-target-before-resolution",
-    "additional-cleanup", "commander-replacement", "empty-library-loss"
+    {
+      "scenario_id": "sol-ring",
+      "scenario_version": 1,
+      "expected_postconditions": {
+        "spell_used_stack": true,
+        "entered_battlefield_after_resolution": true
+      }
+    },
+    {
+      "scenario_id": "soul-guide-lantern-targeted-etb",
+      "scenario_version": 1,
+      "expected_postconditions": {
+        "real_trigger_object": true,
+        "target_revalidated": true
+      }
+    },
+    {
+      "scenario_id": "malcolm-counterspell-commit",
+      "scenario_version": 1,
+      "expected_postconditions": {
+        "external_spell_ledgered": true,
+        "commit_same_object_identity": true
+      }
+    },
+    {
+      "scenario_id": "dualcaster-twinflame",
+      "scenario_version": 1,
+      "expected_postconditions": {
+        "copy_not_cast": true,
+        "token_exiled": true
+      }
+    },
+    {
+      "scenario_id": "glint-horn-attack-cleanup",
+      "scenario_version": 1,
+      "expected_postconditions": {
+        "cleanup_trigger_resolved": true,
+        "marked_damage_cleared": true
+      }
+    },
+    {
+      "scenario_id": "illegal-target-before-resolution",
+      "scenario_version": 1,
+      "expected_postconditions": {
+        "illegal_target_did_not_resolve": true
+      }
+    },
+    {
+      "scenario_id": "additional-cleanup",
+      "scenario_version": 1,
+      "expected_postconditions": {
+        "additional_cleanup_only_after_trigger": true
+      }
+    },
+    {
+      "scenario_id": "commander-replacement",
+      "scenario_version": 1,
+      "expected_postconditions": {
+        "commander_replacement_applied": true
+      }
+    },
+    {
+      "scenario_id": "empty-library-loss",
+      "scenario_version": 1,
+      "expected_postconditions": {
+        "terminal_draw_loss": true,
+        "no_action_after_terminal": true
+      }
+    }
   ]
 }

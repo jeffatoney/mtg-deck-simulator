@@ -1,5 +1,7 @@
-# Frozen golden replay placeholders
+# Frozen golden replay fixtures
 
-Phase A must replace these placeholders with independently reviewed expected
-outcomes for every forced scenario. A candidate branch may not author its own
-examiner or expected semantics.
+These protected-main fixtures define the independently reviewed Phase A replay
+shape and scenario identities. Candidate branches may neither replace the
+fixtures nor author expected semantics. The initially empty action/event lists
+are intentional bootstrap expectations; each scenario must reproduce the exact
+fixture through the public executor and replay path.

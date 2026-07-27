@@ -19,6 +19,7 @@ STAGED_REFERENCE_PATHS = (
     "automation/reference-scenarios.json",
     "automation/trace-invariants.json",
     "automation/golden-replay.schema.json",
+    "automation/phase-a-reference-manifest.json",
     "tests/fixtures/golden-replays",
     "scripts/phase_a_runtime_guard.py",
 )
@@ -54,16 +55,19 @@ def main() -> int:
                 "Phase A reference suite unavailable: kernel evidence is intentionally future work"
             )
             return 2
-        bootstrap = (
+        bootstrap_prefix = (
             "from pathlib import Path; import runpy; "
             "g=runpy.run_path('scripts/phase_a_runtime_guard.py'); "
             "g['install'](Path('.')); import pytest; "
-            f"code=pytest.main(['-q','-ra','--confcutdir={reference}', '{reference}']); "
+        )
+        collect_bootstrap = (
+            bootstrap_prefix
+            + f"code=pytest.main(['--collect-only','-q','--confcutdir={reference}', '{reference}']); "
             "g['verify_loaded'](Path('.')); raise SystemExit(code)"
         )
         env = {"PATH": os.environ.get("PATH", ""), "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"}
-        completed = subprocess.run(
-            [sys.executable, "-I", "-c", bootstrap],
+        collected = subprocess.run(
+            [sys.executable, "-I", "-c", collect_bootstrap],
             cwd=stage,
             env=env,
             text=True,
@@ -71,12 +75,31 @@ def main() -> int:
             stderr=subprocess.STDOUT,
             check=False,
         )
+        (output / "collection.log").write_text(collected.stdout, encoding="utf-8")
+        if collected.returncode:
+            completed = collected
+        else:
+            run_bootstrap = (
+                bootstrap_prefix
+                + f"code=pytest.main(['-q','-ra','--confcutdir={reference}', '{reference}']); "
+                "g['verify_loaded'](Path('.')); raise SystemExit(code)"
+            )
+            completed = subprocess.run(
+                [sys.executable, "-I", "-c", run_bootstrap],
+                cwd=stage,
+                env=env,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
         (output / "pytest.log").write_text(completed.stdout, encoding="utf-8")
         manifest = {
             "schema_version": 1,
             "run_id": run_id,
             "candidate_sha": args.candidate_sha,
             "exit_code": completed.returncode,
+            "collected_node_ids": [line for line in collected.stdout.splitlines() if "::" in line],
             "staged_files": sorted(
                 p.relative_to(stage).as_posix() for p in stage.rglob("*") if p.is_file()
             ),

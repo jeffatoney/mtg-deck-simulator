@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "scenario_id": "malcolm-counterspell-commit",
+  "review_status": "independently-reviewed",
+  "actions": [
+    {
+      "action_id": "malcolm-counterspell-commit:action:1",
+      "kind": "run_forced_scenario",
+      "scenario_id": "malcolm-counterspell-commit"
+    }
+  ],
+  "events": [
+    {
+      "event_id": "malcolm-counterspell-commit:event:1",
+      "event_type": "forced_scenario_completed",
+      "parent_action_id": "malcolm-counterspell-commit:action:1"
+    }
+  ],
+  "rng_streams": {
+    "scenario": 0
+  },
+  "external_ledger": [],
+  "final_state_hash": "phase-a-v1:malcolm-counterspell-commit"
+}

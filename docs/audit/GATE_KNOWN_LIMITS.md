@@ -32,3 +32,12 @@ definitions are compared against the candidate as part of `immutable-referee`;
 there is no candidate-owned runner fallback. A skipped future-kernel acceptance
 job on PR #31 is expected bootstrap behavior. A failed job is not a pass and
 must not be summarized as one.
+
+## Positive-path installation rule
+
+Every protected enforcement layer requires at least one malicious fixture that
+must fail, at least one minimal valid fixture that must pass, and an end-to-end
+test of the exact future workflow mechanism. A workflow that has only been
+statically inspected is not installed. Setup CI therefore validates collection
+and manifest coverage for the protected reference suite and executes the exact
+closed-world runner against a temporary valid candidate.
