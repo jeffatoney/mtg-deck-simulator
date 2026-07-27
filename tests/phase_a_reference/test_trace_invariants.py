@@ -1,16 +1,29 @@
 from __future__ import annotations
+
 import json
-from pathlib import Path
+
 import pytest
-from .reference_adapter import run_scenario
 
-ROOT = Path(__file__).resolve().parents[2]
-INVARIANTS = json.loads((ROOT / "automation/trace-invariants.json").read_text())["invariants"]
+from .reference_adapter import (
+    ROOT,
+    assert_causally_live,
+    assert_trace_invariants,
+    load_scenario,
+    run_scenario,
+    validate_raw_artifact,
+)
+
+SEEDS = json.loads((ROOT / "automation/trace-invariants.json").read_text())["seed_schedule"]
 
 
-@pytest.mark.parametrize("seed", range(200))
+@pytest.mark.parametrize("seed", SEEDS)
 def test_random_trace_invariants(seed: int) -> None:
-    result = run_scenario({"scenario_id": "random-trace", "scenario_version": 1, "seed": seed})
-    checks = result.get("trace_invariants", {})
-    assert set(INVARIANTS) <= checks.keys()
-    assert all(checks[name] is True for name in INVARIANTS)
+    scenario = load_scenario("random-trace")
+    scenario["rng_streams"] = {"game": seed, "policy": seed ^ 0x5A5A}
+    scenario["scenario_id"] = f"random-trace-{seed}"
+    result = run_scenario(scenario)
+    validate_raw_artifact(result, scenario)
+    assert_causally_live(result)
+    assert_trace_invariants(result)
+    assert result["run_manifest"]["game_id"] == f"random-trace-{seed}"
+    assert result["rng_streams"] == scenario["rng_streams"]

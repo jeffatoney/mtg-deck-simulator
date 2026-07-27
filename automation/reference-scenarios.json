@@ -1,75 +1,7126 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "additional_properties": false,
   "minimum_random_seed_games": 200,
-  "forced_scenarios": [
+  "scenarios": [
     {
       "scenario_id": "sol-ring",
       "scenario_version": 1,
-      "expected_postconditions": {
-        "spell_used_stack": true,
-        "entered_battlefield_after_resolution": true
-      }
+      "schema_version": 2,
+      "assertion_id": "assert_a1",
+      "acceptance_requirement": "A1",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "sol-ring:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "sol-ring:object:1",
+          "card_instance_id": "sol-ring:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "sol-ring",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "sol-ring:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "cast_sol_ring",
+          "source_object_id": "sol-ring:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 2,
+          "actor": "p1",
+          "action_type": "pass_priority_cycle",
+          "source_object_id": "sol-ring:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 3,
+          "actor": "p1",
+          "action_type": "resolve_top_of_stack",
+          "source_object_id": "sol-ring:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "sol-ring:action:1"
+          ],
+          "selection": "sol-ring:action:1"
+        },
+        {
+          "script_index": 2,
+          "action_ids": [
+            "sol-ring:action:2"
+          ],
+          "selection": "sol-ring:action:2"
+        },
+        {
+          "script_index": 3,
+          "action_ids": [
+            "sol-ring:action:3"
+          ],
+          "selection": "sol-ring:action:3"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "A"
+        ],
+        "acceptance_ids": [
+          "A1"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "A1:transition",
+          "event_type": "spell_resolved",
+          "minimum": 1,
+          "source_object_id": "sol-ring:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "A1:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "A1"
+          }
+        }
+      ],
+      "requirement_text": "Casting Sol Ring places a `SpellObject` on the stack; the battlefield is unchanged until resolution. Assert stack contents between cast and resolution."
+    },
+    {
+      "scenario_id": "acceptance-a2",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_a2",
+      "acceptance_requirement": "A2",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-a2:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-a2:object:1",
+          "card_instance_id": "acceptance-a2:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-a2",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-a2:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "A2",
+          "source_object_id": "acceptance-a2:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-a2:action:1"
+          ],
+          "selection": "acceptance-a2:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "A"
+        ],
+        "acceptance_ids": [
+          "A2"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "A2:transition",
+          "event_type": "spell_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-a2:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "A2:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "A2"
+          }
+        }
+      ],
+      "requirement_text": "Casting Glint-Horn Buccaneer places a `SpellObject` on the stack; the permanent enters only on resolution and has correct summoning-sickness state."
+    },
+    {
+      "scenario_id": "acceptance-a3",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_a3",
+      "acceptance_requirement": "A3",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-a3:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-a3:object:1",
+          "card_instance_id": "acceptance-a3:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-a3",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-a3:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "A3",
+          "source_object_id": "acceptance-a3:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-a3:action:1"
+          ],
+          "selection": "acceptance-a3:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "A"
+        ],
+        "acceptance_ids": [
+          "A3"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "A3:transition",
+          "event_type": "spell_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-a3:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "A3:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "A3"
+          }
+        }
+      ],
+      "requirement_text": "Casting Malcolm from the command zone places a `SpellObject` on the stack; commander cast count increments at cast time; commander tax is included in the paid cost and escalates correctly after Malcolm returns to the command zone."
+    },
+    {
+      "scenario_id": "acceptance-a4",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_a4",
+      "acceptance_requirement": "A4",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-a4:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-a4:object:1",
+          "card_instance_id": "acceptance-a4:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-a4",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-a4:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-a4:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-a4:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "A4",
+          "source_object_id": "acceptance-a4:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-a4:action:1"
+          ],
+          "selection": "acceptance-a4:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "A"
+        ],
+        "acceptance_ids": [
+          "A4"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "A4:transition",
+          "event_type": "spell_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-a4:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "A4:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "A4"
+          }
+        }
+      ],
+      "requirement_text": "An explicit external counterspell can counter a creature spell. The creature never enters, no ETB trigger is created, and the actual card instance moves to its owner's legal destination."
+    },
+    {
+      "scenario_id": "acceptance-a5",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_a5",
+      "acceptance_requirement": "A5",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-a5:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-a5:object:1",
+          "card_instance_id": "acceptance-a5:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-a5",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-a5:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-a5:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-a5:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "A5",
+          "source_object_id": "acceptance-a5:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-a5:action:1"
+          ],
+          "selection": "acceptance-a5:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "A"
+        ],
+        "acceptance_ids": [
+          "A5"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "A5:transition",
+          "event_type": "spell_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-a5:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "A5:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "A5"
+          }
+        }
+      ],
+      "requirement_text": "The same is true for an artifact spell."
+    },
+    {
+      "scenario_id": "acceptance-a6",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_a6",
+      "acceptance_requirement": "A6",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-a6:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-a6:object:1",
+          "card_instance_id": "acceptance-a6:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-a6",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-a6:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "A6",
+          "source_object_id": "acceptance-a6:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-a6:action:1"
+          ],
+          "selection": "acceptance-a6:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "A"
+        ],
+        "acceptance_ids": [
+          "A6"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "A6:transition",
+          "event_type": "spell_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-a6:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "A6:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "A6"
+          }
+        }
+      ],
+      "requirement_text": "No enter-the-battlefield trigger exists before a permanent spell resolves."
+    },
+    {
+      "scenario_id": "acceptance-a7",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_a7",
+      "acceptance_requirement": "A7",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-a7:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-a7:object:1",
+          "card_instance_id": "acceptance-a7:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-a7",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-a7:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-a7:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-a7:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "A7",
+          "source_object_id": "acceptance-a7:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-a7:action:1"
+          ],
+          "selection": "acceptance-a7:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "A"
+        ],
+        "acceptance_ids": [
+          "A7"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "A7:transition",
+          "event_type": "spell_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-a7:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "A7:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "A7"
+          }
+        }
+      ],
+      "requirement_text": "Priority is offered after a spell is put on the stack and before resolution; a policy holding priority can respond."
     },
     {
       "scenario_id": "soul-guide-lantern-targeted-etb",
       "scenario_version": 1,
-      "expected_postconditions": {
-        "real_trigger_object": true,
-        "target_revalidated": true
-      }
+      "schema_version": 2,
+      "assertion_id": "assert_b1",
+      "acceptance_requirement": "B1",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "soul-guide-lantern-targeted-etb:card:1",
+          "oracle_name": "Soul Guide Lantern",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "soul-guide-lantern-targeted-etb:grave:1:card",
+          "oracle_name": "Opt",
+          "owner": "p2"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "soul-guide-lantern-targeted-etb:object:1",
+          "card_instance_id": "soul-guide-lantern-targeted-etb:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "soul-guide-lantern-targeted-etb:grave:1",
+          "card_instance_id": "soul-guide-lantern-targeted-etb:grave:1:card",
+          "owner": "p2",
+          "controller": "p2",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "soul-guide-lantern-targeted-etb",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "soul-guide-lantern-targeted-etb:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [
+        {
+          "object_id": "soul-guide-lantern-targeted-etb:grave:1",
+          "object_type": "card",
+          "owner": "p2",
+          "controller": "p2",
+          "zone": "graveyard"
+        }
+      ],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "cast_soul_guide_lantern",
+          "source_object_id": "soul-guide-lantern-targeted-etb:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 2,
+          "actor": "p1",
+          "action_type": "resolve_permanent",
+          "source_object_id": "soul-guide-lantern-targeted-etb:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 3,
+          "actor": "p1",
+          "action_type": "choose_graveyard_target",
+          "source_object_id": "soul-guide-lantern-targeted-etb:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 4,
+          "actor": "p1",
+          "action_type": "pass_priority_cycle",
+          "source_object_id": "soul-guide-lantern-targeted-etb:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 5,
+          "actor": "p1",
+          "action_type": "resolve_trigger",
+          "source_object_id": "soul-guide-lantern-targeted-etb:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "soul-guide-lantern-targeted-etb:action:1"
+          ],
+          "selection": "soul-guide-lantern-targeted-etb:action:1"
+        },
+        {
+          "script_index": 2,
+          "action_ids": [
+            "soul-guide-lantern-targeted-etb:action:2"
+          ],
+          "selection": "soul-guide-lantern-targeted-etb:action:2"
+        },
+        {
+          "script_index": 3,
+          "action_ids": [
+            "soul-guide-lantern-targeted-etb:action:3"
+          ],
+          "selection": "soul-guide-lantern-targeted-etb:action:3"
+        },
+        {
+          "script_index": 4,
+          "action_ids": [
+            "soul-guide-lantern-targeted-etb:action:4"
+          ],
+          "selection": "soul-guide-lantern-targeted-etb:action:4"
+        },
+        {
+          "script_index": 5,
+          "action_ids": [
+            "soul-guide-lantern-targeted-etb:action:5"
+          ],
+          "selection": "soul-guide-lantern-targeted-etb:action:5"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "soul-guide-lantern"
+        ],
+        "mechanisms": [
+          "B"
+        ],
+        "acceptance_ids": [
+          "B1"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "B1:transition",
+          "event_type": "trigger_resolved",
+          "minimum": 1,
+          "source_object_id": "soul-guide-lantern-targeted-etb:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "B1:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "B1"
+          }
+        }
+      ],
+      "requirement_text": "Soul-Guide Lantern resolving with one legal modeled graveyard card creates a real `TriggeredAbilityObject` on the stack. The card is not exiled while the trigger is pending and is exiled only on legal resolution."
     },
     {
-      "scenario_id": "malcolm-counterspell-commit",
+      "scenario_id": "acceptance-b2",
       "scenario_version": 1,
-      "expected_postconditions": {
-        "external_spell_ledgered": true,
-        "commit_same_object_identity": true
-      }
+      "schema_version": 2,
+      "assertion_id": "assert_b2",
+      "acceptance_requirement": "B2",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-b2:card:1",
+          "oracle_name": "Soul Guide Lantern",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "acceptance-b2:grave:1:card",
+          "oracle_name": "Opt",
+          "owner": "p2"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-b2:object:1",
+          "card_instance_id": "acceptance-b2:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "acceptance-b2:grave:1",
+          "card_instance_id": "acceptance-b2:grave:1:card",
+          "owner": "p2",
+          "controller": "p2",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-b2",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-b2:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [
+        {
+          "object_id": "acceptance-b2:grave:1",
+          "object_type": "card",
+          "owner": "p2",
+          "controller": "p2",
+          "zone": "graveyard"
+        }
+      ],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "B2",
+          "source_object_id": "acceptance-b2:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-b2:action:1"
+          ],
+          "selection": "acceptance-b2:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "soul-guide-lantern"
+        ],
+        "mechanisms": [
+          "B"
+        ],
+        "acceptance_ids": [
+          "B2"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "B2:transition",
+          "event_type": "trigger_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-b2:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "B2:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "B2"
+          }
+        }
+      ],
+      "requirement_text": "With multiple legal modeled graveyard cards, exactly one target is selected and preserved in the action log and replay."
     },
     {
-      "scenario_id": "dualcaster-twinflame",
+      "scenario_id": "acceptance-b3",
       "scenario_version": 1,
-      "expected_postconditions": {
-        "copy_not_cast": true,
-        "token_exiled": true
-      }
+      "schema_version": 2,
+      "assertion_id": "assert_b3",
+      "acceptance_requirement": "B3",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-b3:card:1",
+          "oracle_name": "Soul Guide Lantern",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-b3:object:1",
+          "card_instance_id": "acceptance-b3:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-b3",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-b3:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "B3",
+          "source_object_id": "acceptance-b3:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-b3:action:1"
+          ],
+          "selection": "acceptance-b3:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "soul-guide-lantern"
+        ],
+        "mechanisms": [
+          "B"
+        ],
+        "acceptance_ids": [
+          "B3"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "B3:transition",
+          "event_type": "trigger_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-b3:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "B3:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "B3"
+          }
+        }
+      ],
+      "requirement_text": "With all modeled graveyards empty, Lantern still resolves and enters. No target is invented, no exile occurs, and no `trigger_put_on_stack` event is emitted without a corresponding stack object."
+    },
+    {
+      "scenario_id": "acceptance-b4",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_b4",
+      "acceptance_requirement": "B4",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-b4:card:1",
+          "oracle_name": "Soul Guide Lantern",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "acceptance-b4:grave:1:card",
+          "oracle_name": "Opt",
+          "owner": "p2"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-b4:object:1",
+          "card_instance_id": "acceptance-b4:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "acceptance-b4:grave:1",
+          "card_instance_id": "acceptance-b4:grave:1:card",
+          "owner": "p2",
+          "controller": "p2",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-b4",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-b4:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-b4:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-b4:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [
+        {
+          "object_id": "acceptance-b4:grave:1",
+          "object_type": "card",
+          "owner": "p2",
+          "controller": "p2",
+          "zone": "graveyard"
+        }
+      ],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "B4",
+          "source_object_id": "acceptance-b4:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-b4:action:1"
+          ],
+          "selection": "acceptance-b4:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "soul-guide-lantern"
+        ],
+        "mechanisms": [
+          "B"
+        ],
+        "acceptance_ids": [
+          "B4"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "B4:transition",
+          "event_type": "trigger_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-b4:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "B4:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "B4"
+          }
+        }
+      ],
+      "requirement_text": "If the target leaves the graveyard before resolution, the triggered ability resolves with no legal targets and exiles nothing."
+    },
+    {
+      "scenario_id": "acceptance-b5",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_b5",
+      "acceptance_requirement": "B5",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-b5:card:1",
+          "oracle_name": "Soul Guide Lantern",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "acceptance-b5:grave:1:card",
+          "oracle_name": "Opt",
+          "owner": "p2"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-b5:object:1",
+          "card_instance_id": "acceptance-b5:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "acceptance-b5:grave:1",
+          "card_instance_id": "acceptance-b5:grave:1:card",
+          "owner": "p2",
+          "controller": "p2",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-b5",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-b5:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-b5:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-b5:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [
+        {
+          "object_id": "acceptance-b5:grave:1",
+          "object_type": "card",
+          "owner": "p2",
+          "controller": "p2",
+          "zone": "graveyard"
+        }
+      ],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "B5",
+          "source_object_id": "acceptance-b5:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-b5:action:1"
+          ],
+          "selection": "acceptance-b5:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "soul-guide-lantern"
+        ],
+        "mechanisms": [
+          "B"
+        ],
+        "acceptance_ids": [
+          "B5"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "B5:transition",
+          "event_type": "trigger_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-b5:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "B5:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "B5"
+          }
+        }
+      ],
+      "requirement_text": "Priority exists between trigger placement and resolution."
+    },
+    {
+      "scenario_id": "acceptance-b6",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_b6",
+      "acceptance_requirement": "B6",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-b6:card:1",
+          "oracle_name": "Soul Guide Lantern",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "acceptance-b6:grave:1:card",
+          "oracle_name": "Opt",
+          "owner": "p2"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-b6:object:1",
+          "card_instance_id": "acceptance-b6:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "acceptance-b6:grave:1",
+          "card_instance_id": "acceptance-b6:grave:1:card",
+          "owner": "p2",
+          "controller": "p2",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-b6",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-b6:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [
+        {
+          "object_id": "acceptance-b6:grave:1",
+          "object_type": "card",
+          "owner": "p2",
+          "controller": "p2",
+          "zone": "graveyard"
+        }
+      ],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "B6",
+          "source_object_id": "acceptance-b6:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-b6:action:1"
+          ],
+          "selection": "acceptance-b6:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "soul-guide-lantern"
+        ],
+        "mechanisms": [
+          "B"
+        ],
+        "acceptance_ids": [
+          "B6"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "B6:transition",
+          "event_type": "trigger_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-b6:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "B6:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "B6"
+          }
+        }
+      ],
+      "requirement_text": "Across every acceptance game, each `trigger_put_on_stack` event corresponds to a real `TriggeredAbilityObject` present on the stack at that timestamp."
+    },
+    {
+      "scenario_id": "acceptance-c1",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_c1",
+      "acceptance_requirement": "C1",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-c1:card:1",
+          "oracle_name": "Glint Horn",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-c1:object:1",
+          "card_instance_id": "acceptance-c1:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-c1",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-c1:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "C1",
+          "source_object_id": "acceptance-c1:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-c1:action:1"
+          ],
+          "selection": "acceptance-c1:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "glint-horn"
+        ],
+        "mechanisms": [
+          "C"
+        ],
+        "acceptance_ids": [
+          "C1"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "C1:transition",
+          "event_type": "cleanup_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-c1:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "C1:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "C1"
+          }
+        }
+      ],
+      "requirement_text": "Through `GameExecutor.run`, three damage marked on a creature during turn 1 is absent at the start of turn 2."
+    },
+    {
+      "scenario_id": "acceptance-c2",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_c2",
+      "acceptance_requirement": "C2",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-c2:card:1",
+          "oracle_name": "Glint Horn",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-c2:object:1",
+          "card_instance_id": "acceptance-c2:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-c2",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-c2:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "C2",
+          "source_object_id": "acceptance-c2:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-c2:action:1"
+          ],
+          "selection": "acceptance-c2:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "glint-horn"
+        ],
+        "mechanisms": [
+          "C"
+        ],
+        "acceptance_ids": [
+          "C2"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "C2:transition",
+          "event_type": "cleanup_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-c2:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "C2:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "C2"
+          }
+        }
+      ],
+      "requirement_text": "Three damage in turn 1 and one damage in turn 2 are never combined; a four-toughness creature survives both nonlethal events."
+    },
+    {
+      "scenario_id": "acceptance-c3",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_c3",
+      "acceptance_requirement": "C3",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-c3:card:1",
+          "oracle_name": "Glint Horn",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-c3:object:1",
+          "card_instance_id": "acceptance-c3:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-c3",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-c3:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "C3",
+          "source_object_id": "acceptance-c3:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-c3:action:1"
+          ],
+          "selection": "acceptance-c3:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "glint-horn"
+        ],
+        "mechanisms": [
+          "C"
+        ],
+        "acceptance_ids": [
+          "C3"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "C3:transition",
+          "event_type": "cleanup_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-c3:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "C3:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "C3"
+          }
+        }
+      ],
+      "requirement_text": "Lethal damage before cleanup removes a creature through state-based actions before cleanup runs."
+    },
+    {
+      "scenario_id": "acceptance-c4",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_c4",
+      "acceptance_requirement": "C4",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-c4:card:1",
+          "oracle_name": "Glint Horn",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-c4:object:1",
+          "card_instance_id": "acceptance-c4:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-c4",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-c4:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "C4",
+          "source_object_id": "acceptance-c4:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-c4:action:1"
+          ],
+          "selection": "acceptance-c4:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "glint-horn"
+        ],
+        "mechanisms": [
+          "C"
+        ],
+        "acceptance_ids": [
+          "C4"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "C4:transition",
+          "event_type": "cleanup_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-c4:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "C4:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "C4"
+          }
+        }
+      ],
+      "requirement_text": "A nine-card hand at cleanup discards exactly two cards through real zone moves; discard-triggered abilities trigger from those actual discards."
+    },
+    {
+      "scenario_id": "acceptance-c5",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_c5",
+      "acceptance_requirement": "C5",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-c5:card:1",
+          "oracle_name": "Glint Horn",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-c5:object:1",
+          "card_instance_id": "acceptance-c5:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-c5",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-c5:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "C5",
+          "source_object_id": "acceptance-c5:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-c5:action:1"
+          ],
+          "selection": "acceptance-c5:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "glint-horn"
+        ],
+        "mechanisms": [
+          "C"
+        ],
+        "acceptance_ids": [
+          "C5"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "C5:transition",
+          "event_type": "cleanup_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-c5:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "C5:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "C5"
+          }
+        }
+      ],
+      "requirement_text": "Curiosity attached to a creature that dealt no damage to an opponent creates no Curiosity trigger during cleanup."
     },
     {
       "scenario_id": "glint-horn-attack-cleanup",
       "scenario_version": 1,
-      "expected_postconditions": {
-        "cleanup_trigger_resolved": true,
-        "marked_damage_cleared": true
-      }
+      "schema_version": 2,
+      "assertion_id": "assert_c6",
+      "acceptance_requirement": "C6",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "glint-horn-attack-cleanup:card:1",
+          "oracle_name": "Glint Horn",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "glint-horn-attack-cleanup:card:2",
+          "oracle_name": "Malcolm, Keen-Eyed Navigator",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "glint-horn-attack-cleanup:card:3",
+          "oracle_name": "Curiosity",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "glint-horn-attack-cleanup:object:1",
+          "card_instance_id": "glint-horn-attack-cleanup:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "glint-horn-attack-cleanup:object:2",
+          "card_instance_id": "glint-horn-attack-cleanup:card:2",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "glint-horn-attack-cleanup:object:3",
+          "card_instance_id": "glint-horn-attack-cleanup:card:3",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "glint-horn-attack-cleanup",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "glint-horn-attack-cleanup:object:1"
+          ],
+          "library": [],
+          "battlefield": [
+            "glint-horn-attack-cleanup:object:2",
+            "glint-horn-attack-cleanup:object:3"
+          ],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "declare_glint_horn_attacker",
+          "source_object_id": "glint-horn-attack-cleanup:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 2,
+          "actor": "p1",
+          "action_type": "activate_glint_horn",
+          "source_object_id": "glint-horn-attack-cleanup:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 3,
+          "actor": "p1",
+          "action_type": "pay_discard_and_draw_cost",
+          "source_object_id": "glint-horn-attack-cleanup:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 4,
+          "actor": "p1",
+          "action_type": "resolve_discard_trigger_before_draw",
+          "source_object_id": "glint-horn-attack-cleanup:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 5,
+          "actor": "p1",
+          "action_type": "deal_damage_to_each_opponent",
+          "source_object_id": "glint-horn-attack-cleanup:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 6,
+          "actor": "p1",
+          "action_type": "create_malcolm_treasures",
+          "source_object_id": "glint-horn-attack-cleanup:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 7,
+          "actor": "p1",
+          "action_type": "complete_cleanup",
+          "source_object_id": "glint-horn-attack-cleanup:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 8,
+          "actor": "p1",
+          "action_type": "stabilize_terminal_state",
+          "source_object_id": "glint-horn-attack-cleanup:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "glint-horn-attack-cleanup:action:1"
+          ],
+          "selection": "glint-horn-attack-cleanup:action:1"
+        },
+        {
+          "script_index": 2,
+          "action_ids": [
+            "glint-horn-attack-cleanup:action:2"
+          ],
+          "selection": "glint-horn-attack-cleanup:action:2"
+        },
+        {
+          "script_index": 3,
+          "action_ids": [
+            "glint-horn-attack-cleanup:action:3"
+          ],
+          "selection": "glint-horn-attack-cleanup:action:3"
+        },
+        {
+          "script_index": 4,
+          "action_ids": [
+            "glint-horn-attack-cleanup:action:4"
+          ],
+          "selection": "glint-horn-attack-cleanup:action:4"
+        },
+        {
+          "script_index": 5,
+          "action_ids": [
+            "glint-horn-attack-cleanup:action:5"
+          ],
+          "selection": "glint-horn-attack-cleanup:action:5"
+        },
+        {
+          "script_index": 6,
+          "action_ids": [
+            "glint-horn-attack-cleanup:action:6"
+          ],
+          "selection": "glint-horn-attack-cleanup:action:6"
+        },
+        {
+          "script_index": 7,
+          "action_ids": [
+            "glint-horn-attack-cleanup:action:7"
+          ],
+          "selection": "glint-horn-attack-cleanup:action:7"
+        },
+        {
+          "script_index": 8,
+          "action_ids": [
+            "glint-horn-attack-cleanup:action:8"
+          ],
+          "selection": "glint-horn-attack-cleanup:action:8"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "glint-horn"
+        ],
+        "mechanisms": [
+          "C"
+        ],
+        "acceptance_ids": [
+          "C6"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "C6:transition",
+          "event_type": "cleanup_completed",
+          "minimum": 1,
+          "source_object_id": "glint-horn-attack-cleanup:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "C6:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "C6"
+          }
+        }
+      ],
+      "requirement_text": "A real cleanup discard with Glint-Horn on the battlefield creates its damage trigger. When that trigger resolves and Glint-Horn is enchanted by Curiosity, Curiosity creates one trigger for each opponent actually damaged. Each optional draw is a recorded choice. The resulting priority process causes a complete additional cleanup step."
+    },
+    {
+      "scenario_id": "acceptance-c7",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_c7",
+      "acceptance_requirement": "C7",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-c7:card:1",
+          "oracle_name": "Glint Horn",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-c7:object:1",
+          "card_instance_id": "acceptance-c7:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-c7",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-c7:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "C7",
+          "source_object_id": "acceptance-c7:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-c7:action:1"
+          ],
+          "selection": "acceptance-c7:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "glint-horn"
+        ],
+        "mechanisms": [
+          "C"
+        ],
+        "acceptance_ids": [
+          "C7"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "C7:transition",
+          "event_type": "cleanup_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-c7:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "C7:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "C7"
+          }
+        }
+      ],
+      "requirement_text": "A quiet cleanup runs once. Additional cleanup steps occur only after the rules required state-based actions or waiting triggers and priority."
+    },
+    {
+      "scenario_id": "acceptance-c8",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_c8",
+      "acceptance_requirement": "C8",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-c8:card:1",
+          "oracle_name": "Glint Horn",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-c8:object:1",
+          "card_instance_id": "acceptance-c8:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-c8",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-c8:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "C8",
+          "source_object_id": "acceptance-c8:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-c8:action:1"
+          ],
+          "selection": "acceptance-c8:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "glint-horn"
+        ],
+        "mechanisms": [
+          "C"
+        ],
+        "acceptance_ids": [
+          "C8"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "C8:transition",
+          "event_type": "cleanup_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-c8:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "C8:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "C8"
+          }
+        }
+      ],
+      "requirement_text": "`GameExecutor` contains no direct phase or step assignment. Every phase and step transition in acceptance-game logs is emitted by `TurnEngine`."
+    },
+    {
+      "scenario_id": "acceptance-d1",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_d1",
+      "acceptance_requirement": "D1",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-d1:card:1",
+          "oracle_name": "Commit",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-d1:object:1",
+          "card_instance_id": "acceptance-d1:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-d1",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-d1:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "D1",
+          "source_object_id": "acceptance-d1:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-d1:action:1"
+          ],
+          "selection": "acceptance-d1:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "commit"
+        ],
+        "mechanisms": [
+          "D"
+        ],
+        "acceptance_ids": [
+          "D1"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "D1:transition",
+          "event_type": "zone_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-d1:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "D1:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "D1"
+          }
+        }
+      ],
+      "requirement_text": "All game zones contain instance/object IDs, never bare card-name strings."
+    },
+    {
+      "scenario_id": "acceptance-d2",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_d2",
+      "acceptance_requirement": "D2",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-d2:card:1",
+          "oracle_name": "Commit",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-d2:object:1",
+          "card_instance_id": "acceptance-d2:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-d2",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-d2:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-d2:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-d2:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "D2",
+          "source_object_id": "acceptance-d2:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-d2:action:1"
+          ],
+          "selection": "acceptance-d2:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "commit"
+        ],
+        "mechanisms": [
+          "D"
+        ],
+        "acceptance_ids": [
+          "D2"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "D2:transition",
+          "event_type": "zone_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-d2:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "D2:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "D2"
+          }
+        }
+      ],
+      "requirement_text": "Commit targeting the simulated player's real spell puts the same `CardInstance` second from the top of its owner's library; the spell leaves the stack and library size remains correct."
+    },
+    {
+      "scenario_id": "acceptance-d3",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_d3",
+      "acceptance_requirement": "D3",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-d3:card:1",
+          "oracle_name": "Commit",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-d3:object:1",
+          "card_instance_id": "acceptance-d3:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-d3",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-d3:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-d3:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-d3:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "D3",
+          "source_object_id": "acceptance-d3:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-d3:action:1"
+          ],
+          "selection": "acceptance-d3:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "commit"
+        ],
+        "mechanisms": [
+          "D"
+        ],
+        "acceptance_ids": [
+          "D3"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "D3:transition",
+          "event_type": "zone_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-d3:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "D3:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "D3"
+          }
+        }
+      ],
+      "requirement_text": "Commit targeting a spell copy makes the copy cease to exist and adds nothing to any library."
+    },
+    {
+      "scenario_id": "acceptance-d4",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_d4",
+      "acceptance_requirement": "D4",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-d4:card:1",
+          "oracle_name": "Commit",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-d4:object:1",
+          "card_instance_id": "acceptance-d4:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-d4",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-d4:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-d4:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-d4:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [
+        {
+          "object_id": "acceptance-d4:external:1",
+          "object_type": "SpellObject",
+          "owner": "p2",
+          "controller": "p2",
+          "zone": "stack"
+        }
+      ],
+      "external_zone_ledger_expectations": [
+        {
+          "object_id": "acceptance-d4:external:1",
+          "owner": "p2",
+          "destination": "owners_library",
+          "position": 2
+        }
+      ],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "D4",
+          "source_object_id": "acceptance-d4:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-d4:action:1"
+          ],
+          "selection": "acceptance-d4:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "commit"
+        ],
+        "mechanisms": [
+          "D"
+        ],
+        "acceptance_ids": [
+          "D4"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "D4:transition",
+          "event_type": "zone_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-d4:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "D4:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "D4"
+          }
+        }
+      ],
+      "requirement_text": "Commit targeting an opponent-owned external spell removes it from the stack and records owner, destination `owners_library`, and position 2 in the `ExternalZoneLedger`. Nothing enters the simulated player's hand, library, or graveyard."
+    },
+    {
+      "scenario_id": "acceptance-d5",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_d5",
+      "acceptance_requirement": "D5",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-d5:card:1",
+          "oracle_name": "Commit",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-d5:object:1",
+          "card_instance_id": "acceptance-d5:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-d5",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-d5:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "D5",
+          "source_object_id": "acceptance-d5:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-d5:action:1"
+          ],
+          "selection": "acceptance-d5:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "commit"
+        ],
+        "mechanisms": [
+          "D"
+        ],
+        "acceptance_ids": [
+          "D5"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "D5:transition",
+          "event_type": "zone_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-d5:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "D5:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "D5"
+          }
+        }
+      ],
+      "requirement_text": "Action generation never offers a Commit target whose destination cannot be represented by the modeled internal zones or external ledger."
+    },
+    {
+      "scenario_id": "acceptance-d6",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_d6",
+      "acceptance_requirement": "D6",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-d6:card:1",
+          "oracle_name": "Commit",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-d6:object:1",
+          "card_instance_id": "acceptance-d6:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-d6",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-d6:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-d6:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-d6:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "D6",
+          "source_object_id": "acceptance-d6:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-d6:action:1"
+          ],
+          "selection": "acceptance-d6:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "commit"
+        ],
+        "mechanisms": [
+          "D"
+        ],
+        "acceptance_ids": [
+          "D6"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "D6:transition",
+          "event_type": "zone_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-d6:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "D6:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "D6"
+          }
+        }
+      ],
+      "requirement_text": "If Commit's target leaves the stack before resolution, Commit resolves with no legal targets, does nothing to the former target, and the Commit card moves to its normal post-resolution zone."
+    },
+    {
+      "scenario_id": "acceptance-d7",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_d7",
+      "acceptance_requirement": "D7",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-d7:card:1",
+          "oracle_name": "Commit",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-d7:object:1",
+          "card_instance_id": "acceptance-d7:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-d7",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-d7:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "D7",
+          "source_object_id": "acceptance-d7:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-d7:action:1"
+          ],
+          "selection": "acceptance-d7:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "commit"
+        ],
+        "mechanisms": [
+          "D"
+        ],
+        "acceptance_ids": [
+          "D7"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "D7:transition",
+          "event_type": "zone_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-d7:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "D7:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "D7"
+          }
+        }
+      ],
+      "requirement_text": "Every generated Memory action is cast from the graveyard, has `targets == ()`, and has no stack target."
+    },
+    {
+      "scenario_id": "acceptance-d8",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_d8",
+      "acceptance_requirement": "D8",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-d8:card:1",
+          "oracle_name": "Commit",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-d8:object:1",
+          "card_instance_id": "acceptance-d8:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-d8",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-d8:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "D8",
+          "source_object_id": "acceptance-d8:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-d8:action:1"
+          ],
+          "selection": "acceptance-d8:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "commit"
+        ],
+        "mechanisms": [
+          "D"
+        ],
+        "acceptance_ids": [
+          "D8"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "D8:transition",
+          "event_type": "zone_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-d8:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "D8:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "D8"
+          }
+        }
+      ],
+      "requirement_text": "Validation rejects targeted Memory actions before mana payment or zone movement; state is bit-identical before and after rejection."
+    },
+    {
+      "scenario_id": "acceptance-d9",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_d9",
+      "acceptance_requirement": "D9",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-d9:card:1",
+          "oracle_name": "Commit",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-d9:object:1",
+          "card_instance_id": "acceptance-d9:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-d9",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-d9:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "D9",
+          "source_object_id": "acceptance-d9:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-d9:action:1"
+          ],
+          "selection": "acceptance-d9:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "commit"
+        ],
+        "mechanisms": [
+          "D"
+        ],
+        "acceptance_ids": [
+          "D9"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "D9:transition",
+          "event_type": "zone_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-d9:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "D9:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "D9"
+          }
+        }
+      ],
+      "requirement_text": "Replays containing each supported Commit outcome and a targetless Memory cast reproduce identical final states and external-ledger contents."
+    },
+    {
+      "scenario_id": "acceptance-e1",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_e1",
+      "acceptance_requirement": "E1",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-e1:card:1",
+          "oracle_name": "Malcolm",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-e1:object:1",
+          "card_instance_id": "acceptance-e1:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-e1",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-e1:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "E1",
+          "source_object_id": "acceptance-e1:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-e1:action:1"
+          ],
+          "selection": "acceptance-e1:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "malcolm"
+        ],
+        "mechanisms": [
+          "E"
+        ],
+        "acceptance_ids": [
+          "E1"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "E1:transition",
+          "event_type": "external_ledger_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-e1:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "E1:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "E1"
+          }
+        }
+      ],
+      "requirement_text": "No opponent-owned object ever appears in the simulated player's hand, library, graveyard, exile, or command zone."
+    },
+    {
+      "scenario_id": "malcolm-counterspell-commit",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_e2",
+      "acceptance_requirement": "E2",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "malcolm-counterspell-commit:card:1",
+          "oracle_name": "Malcolm",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "malcolm-counterspell-commit:card:2",
+          "oracle_name": "Commit // Memory",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "malcolm-counterspell-commit:card:3",
+          "oracle_name": "External Counterspell",
+          "owner": "p2"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "malcolm-counterspell-commit:object:1",
+          "card_instance_id": "malcolm-counterspell-commit:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "malcolm-counterspell-commit:object:2",
+          "card_instance_id": "malcolm-counterspell-commit:card:2",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "malcolm-counterspell-commit:object:3",
+          "card_instance_id": "malcolm-counterspell-commit:card:3",
+          "owner": "p2",
+          "controller": "p2",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "malcolm-counterspell-commit",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "malcolm-counterspell-commit:object:1",
+            "malcolm-counterspell-commit:object:2"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "malcolm-counterspell-commit:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "malcolm-counterspell-commit:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [
+        {
+          "object_id": "malcolm-counterspell-commit:external:1",
+          "object_type": "SpellObject",
+          "owner": "p2",
+          "controller": "p2",
+          "zone": "stack"
+        },
+        {
+          "object_id": "malcolm-counterspell-commit:object:3",
+          "object_type": "SpellObject",
+          "owner": "p2",
+          "controller": "p2",
+          "zone": "stack"
+        }
+      ],
+      "external_zone_ledger_expectations": [
+        {
+          "object_id": "malcolm-counterspell-commit:external:1",
+          "owner": "p2",
+          "destination": "owners_library",
+          "position": 2
+        }
+      ],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "cast_malcolm",
+          "source_object_id": "malcolm-counterspell-commit:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 2,
+          "actor": "p1",
+          "action_type": "inject_external_counterspell",
+          "source_object_id": "malcolm-counterspell-commit:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 3,
+          "actor": "p1",
+          "action_type": "cast_commit_targeting_external_spell",
+          "source_object_id": "malcolm-counterspell-commit:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 4,
+          "actor": "p1",
+          "action_type": "resolve_commit",
+          "source_object_id": "malcolm-counterspell-commit:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 5,
+          "actor": "p1",
+          "action_type": "resolve_malcolm",
+          "source_object_id": "malcolm-counterspell-commit:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "malcolm-counterspell-commit:action:1"
+          ],
+          "selection": "malcolm-counterspell-commit:action:1"
+        },
+        {
+          "script_index": 2,
+          "action_ids": [
+            "malcolm-counterspell-commit:action:2"
+          ],
+          "selection": "malcolm-counterspell-commit:action:2"
+        },
+        {
+          "script_index": 3,
+          "action_ids": [
+            "malcolm-counterspell-commit:action:3"
+          ],
+          "selection": "malcolm-counterspell-commit:action:3"
+        },
+        {
+          "script_index": 4,
+          "action_ids": [
+            "malcolm-counterspell-commit:action:4"
+          ],
+          "selection": "malcolm-counterspell-commit:action:4"
+        },
+        {
+          "script_index": 5,
+          "action_ids": [
+            "malcolm-counterspell-commit:action:5"
+          ],
+          "selection": "malcolm-counterspell-commit:action:5"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "malcolm"
+        ],
+        "mechanisms": [
+          "E"
+        ],
+        "acceptance_ids": [
+          "E2"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "E2:transition",
+          "event_type": "external_ledger_moved",
+          "minimum": 1,
+          "source_object_id": "malcolm-counterspell-commit:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "E2:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "E2"
+          }
+        }
+      ],
+      "requirement_text": "Scenario `opponent_counter_on_first_commander` injects an external counterspell targeting Malcolm. Priority returns to the simulated player; Commit can target that external spell; after Commit resolves, Malcolm remains on the stack and may later resolve."
+    },
+    {
+      "scenario_id": "acceptance-e3",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_e3",
+      "acceptance_requirement": "E3",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-e3:card:1",
+          "oracle_name": "Malcolm",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-e3:object:1",
+          "card_instance_id": "acceptance-e3:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-e3",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-e3:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [
+        {
+          "object_id": "acceptance-e3:external:1",
+          "object_type": "SpellObject",
+          "owner": "p2",
+          "controller": "p2",
+          "zone": "stack"
+        }
+      ],
+      "external_zone_ledger_expectations": [
+        {
+          "object_id": "acceptance-e3:external:1",
+          "owner": "p2",
+          "destination": "owners_library",
+          "position": 2
+        }
+      ],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "E3",
+          "source_object_id": "acceptance-e3:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-e3:action:1"
+          ],
+          "selection": "acceptance-e3:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "malcolm"
+        ],
+        "mechanisms": [
+          "E"
+        ],
+        "acceptance_ids": [
+          "E3"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "E3:transition",
+          "event_type": "external_ledger_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-e3:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "E3:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "E3"
+          }
+        }
+      ],
+      "requirement_text": "Every external object leaving the active model passes through the `ExternalZoneLedger` with owner, destination, and position or cessation state."
+    },
+    {
+      "scenario_id": "acceptance-e4",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_e4",
+      "acceptance_requirement": "E4",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-e4:card:1",
+          "oracle_name": "Malcolm",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-e4:object:1",
+          "card_instance_id": "acceptance-e4:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-e4",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-e4:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "E4",
+          "source_object_id": "acceptance-e4:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-e4:action:1"
+          ],
+          "selection": "acceptance-e4:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "malcolm"
+        ],
+        "mechanisms": [
+          "E"
+        ],
+        "acceptance_ids": [
+          "E4"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "E4:transition",
+          "event_type": "external_ledger_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-e4:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "E4:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "E4"
+          }
+        }
+      ],
+      "requirement_text": "Baseline goldfish mode contains no external objects. Cards requiring an external target are not offered illegal actions and are classified `stranded_no_legal_external_target` when applicable."
+    },
+    {
+      "scenario_id": "acceptance-e5",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_e5",
+      "acceptance_requirement": "E5",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-e5:card:1",
+          "oracle_name": "Malcolm",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-e5:object:1",
+          "card_instance_id": "acceptance-e5:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-e5",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-e5:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "E5",
+          "source_object_id": "acceptance-e5:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-e5:action:1"
+          ],
+          "selection": "acceptance-e5:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "malcolm"
+        ],
+        "mechanisms": [
+          "E"
+        ],
+        "acceptance_ids": [
+          "E5"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "E5:transition",
+          "event_type": "external_ledger_moved",
+          "minimum": 1,
+          "source_object_id": "acceptance-e5:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "E5:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "E5"
+          }
+        }
+      ],
+      "requirement_text": "Interaction-scenario results and baseline results use separate artifact namespaces and are never aggregated together."
+    },
+    {
+      "scenario_id": "acceptance-f1",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_f1",
+      "acceptance_requirement": "F1",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-f1:card:1",
+          "oracle_name": "Twinflame",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-f1:object:1",
+          "card_instance_id": "acceptance-f1:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-f1",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-f1:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "F1",
+          "source_object_id": "acceptance-f1:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-f1:action:1"
+          ],
+          "selection": "acceptance-f1:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "twinflame"
+        ],
+        "mechanisms": [
+          "F"
+        ],
+        "acceptance_ids": [
+          "F1"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "F1:transition",
+          "event_type": "replay_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-f1:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "F1:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "F1"
+          }
+        }
+      ],
+      "requirement_text": "A complete vertical-slice scenario containing lands, Sol Ring, Opt, Malcolm combat and Treasure production, Twinflame, Dualcaster copying Opt, Abrade, Soul-Guide Lantern, Commit on an external spell, Memory from the graveyard, and Glint-Horn/Curiosity cleanup replays to a bit-identical final state from the initial state, named RNG streams, and recorded actions."
+    },
+    {
+      "scenario_id": "dualcaster-twinflame",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_f2",
+      "acceptance_requirement": "F2",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "dualcaster-twinflame:card:1",
+          "oracle_name": "Twinflame",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "dualcaster-twinflame:card:2",
+          "oracle_name": "Dualcaster Mage",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "dualcaster-twinflame:object:1",
+          "card_instance_id": "dualcaster-twinflame:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "dualcaster-twinflame:object:2",
+          "card_instance_id": "dualcaster-twinflame:card:2",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "dualcaster-twinflame",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "dualcaster-twinflame:object:1",
+            "dualcaster-twinflame:object:2"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "cast_twinflame",
+          "source_object_id": "dualcaster-twinflame:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 2,
+          "actor": "p1",
+          "action_type": "cast_dualcaster_in_response",
+          "source_object_id": "dualcaster-twinflame:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 3,
+          "actor": "p1",
+          "action_type": "resolve_dualcaster",
+          "source_object_id": "dualcaster-twinflame:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 4,
+          "actor": "p1",
+          "action_type": "place_copy_trigger",
+          "source_object_id": "dualcaster-twinflame:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 5,
+          "actor": "p1",
+          "action_type": "copy_and_retarget_twinflame",
+          "source_object_id": "dualcaster-twinflame:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 6,
+          "actor": "p1",
+          "action_type": "resolve_copy",
+          "source_object_id": "dualcaster-twinflame:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 7,
+          "actor": "p1",
+          "action_type": "resolve_original",
+          "source_object_id": "dualcaster-twinflame:object:1",
+          "choices": {},
+          "targets": []
+        },
+        {
+          "script_index": 8,
+          "actor": "p1",
+          "action_type": "process_delayed_token_exile",
+          "source_object_id": "dualcaster-twinflame:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "dualcaster-twinflame:action:1"
+          ],
+          "selection": "dualcaster-twinflame:action:1"
+        },
+        {
+          "script_index": 2,
+          "action_ids": [
+            "dualcaster-twinflame:action:2"
+          ],
+          "selection": "dualcaster-twinflame:action:2"
+        },
+        {
+          "script_index": 3,
+          "action_ids": [
+            "dualcaster-twinflame:action:3"
+          ],
+          "selection": "dualcaster-twinflame:action:3"
+        },
+        {
+          "script_index": 4,
+          "action_ids": [
+            "dualcaster-twinflame:action:4"
+          ],
+          "selection": "dualcaster-twinflame:action:4"
+        },
+        {
+          "script_index": 5,
+          "action_ids": [
+            "dualcaster-twinflame:action:5"
+          ],
+          "selection": "dualcaster-twinflame:action:5"
+        },
+        {
+          "script_index": 6,
+          "action_ids": [
+            "dualcaster-twinflame:action:6"
+          ],
+          "selection": "dualcaster-twinflame:action:6"
+        },
+        {
+          "script_index": 7,
+          "action_ids": [
+            "dualcaster-twinflame:action:7"
+          ],
+          "selection": "dualcaster-twinflame:action:7"
+        },
+        {
+          "script_index": 8,
+          "action_ids": [
+            "dualcaster-twinflame:action:8"
+          ],
+          "selection": "dualcaster-twinflame:action:8"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "twinflame"
+        ],
+        "mechanisms": [
+          "F"
+        ],
+        "acceptance_ids": [
+          "F2"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "F2:transition",
+          "event_type": "replay_completed",
+          "minimum": 1,
+          "source_object_id": "dualcaster-twinflame:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "F2:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "F2"
+          }
+        }
+      ],
+      "requirement_text": "Twinflame token copies gain haste and are exiled at the beginning of the next end step by a real delayed trigger; the token then ceases to exist through the normal object/state process, not hardcoded cleanup."
+    },
+    {
+      "scenario_id": "acceptance-f3",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_f3",
+      "acceptance_requirement": "F3",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-f3:card:1",
+          "oracle_name": "Twinflame",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-f3:object:1",
+          "card_instance_id": "acceptance-f3:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-f3",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-f3:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-f3:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-f3:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "F3",
+          "source_object_id": "acceptance-f3:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-f3:action:1"
+          ],
+          "selection": "acceptance-f3:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "twinflame"
+        ],
+        "mechanisms": [
+          "F"
+        ],
+        "acceptance_ids": [
+          "F3"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "F3:transition",
+          "event_type": "replay_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-f3:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "F3:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "F3"
+          }
+        }
+      ],
+      "requirement_text": "Dualcaster Mage cast in response to Opt uses a real ETB triggered-ability object; the spell copy is a real stack object; resolving the copy does not put a card into a graveyard."
+    },
+    {
+      "scenario_id": "acceptance-g1",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_g1",
+      "acceptance_requirement": "G1",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-g1:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-g1:object:1",
+          "card_instance_id": "acceptance-g1:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-g1",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-g1:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "G1",
+          "source_object_id": "acceptance-g1:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-g1:action:1"
+          ],
+          "selection": "acceptance-g1:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "G"
+        ],
+        "acceptance_ids": [
+          "G1"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "G1:transition",
+          "event_type": "control_gate_verified",
+          "minimum": 1,
+          "source_object_id": "acceptance-g1:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "G1:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "G1"
+          }
+        }
+      ],
+      "requirement_text": "`validate-prepolicy-readiness` and `mtg-sim recovery kernel` fail if A1, B1, C1, D4, or D7 is missing, skipped, xfailed, or absent from pytest collection."
+    },
+    {
+      "scenario_id": "acceptance-g2",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_g2",
+      "acceptance_requirement": "G2",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-g2:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-g2:object:1",
+          "card_instance_id": "acceptance-g2:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-g2",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-g2:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "G2",
+          "source_object_id": "acceptance-g2:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-g2:action:1"
+          ],
+          "selection": "acceptance-g2:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "G"
+        ],
+        "acceptance_ids": [
+          "G2"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "G2:transition",
+          "event_type": "control_gate_verified",
+          "minimum": 1,
+          "source_object_id": "acceptance-g2:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "G2:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "G2"
+          }
+        }
+      ],
+      "requirement_text": "`scripts/check_architecture_invariants.py` passes and the new kernel imports no legacy engine, legacy game executor, phase patch, or pilot module."
+    },
+    {
+      "scenario_id": "acceptance-g3",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_g3",
+      "acceptance_requirement": "G3",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-g3:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-g3:object:1",
+          "card_instance_id": "acceptance-g3:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-g3",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-g3:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "G3",
+          "source_object_id": "acceptance-g3:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-g3:action:1"
+          ],
+          "selection": "acceptance-g3:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "G"
+        ],
+        "acceptance_ids": [
+          "G3"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "G3:transition",
+          "event_type": "control_gate_verified",
+          "minimum": 1,
+          "source_object_id": "acceptance-g3:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "G3:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "G3"
+          }
+        }
+      ],
+      "requirement_text": "This specification and `automation/frozen-spec-sha256.txt` are unchanged from `main`; CI verifies both the content hash and the PR diff."
+    },
+    {
+      "scenario_id": "acceptance-g4",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_g4",
+      "acceptance_requirement": "G4",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-g4:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-g4:object:1",
+          "card_instance_id": "acceptance-g4:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "acceptance-g4",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-g4:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "G4",
+          "source_object_id": "acceptance-g4:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-g4:action:1"
+          ],
+          "selection": "acceptance-g4:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "G"
+        ],
+        "acceptance_ids": [
+          "G4"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "G4:transition",
+          "event_type": "control_gate_verified",
+          "minimum": 1,
+          "source_object_id": "acceptance-g4:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "G4:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "G4"
+          }
+        }
+      ],
+      "requirement_text": "The existing 500/200 production pilot remains locked. Phase A may run only its own recovery gate and non-production fixtures. ---"
+    },
+    {
+      "scenario_id": "random-trace",
+      "scenario_version": 1,
+      "schema_version": 2,
+      "assertion_id": "assert_random_trace",
+      "acceptance_requirement": "TRACE",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-f1:card:1",
+          "oracle_name": "Twinflame",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-f1:object:1",
+          "card_instance_id": "acceptance-f1:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "random-trace",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-f1:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "F1",
+          "source_object_id": "acceptance-f1:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-f1:action:1"
+          ],
+          "selection": "acceptance-f1:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "twinflame"
+        ],
+        "mechanisms": [
+          "F"
+        ],
+        "acceptance_ids": [
+          "F1"
+        ]
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "F1:transition",
+          "event_type": "replay_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-f1:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "F1:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "TRACE"
+          }
+        }
+      ],
+      "requirement_text": "A complete vertical-slice scenario containing lands, Sol Ring, Opt, Malcolm combat and Treasure production, Twinflame, Dualcaster copying Opt, Abrade, Soul-Guide Lantern, Commit on an external spell, Memory from the graveyard, and Glint-Horn/Curiosity cleanup replays to a bit-identical final state from the initial state, named RNG streams, and recorded actions."
     },
     {
       "scenario_id": "illegal-target-before-resolution",
       "scenario_version": 1,
-      "expected_postconditions": {
-        "illegal_target_did_not_resolve": true
-      }
+      "schema_version": 2,
+      "assertion_id": "assert_scenario_illegal_target_before_resolution",
+      "acceptance_requirement": "FORCED",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-b4:card:1",
+          "oracle_name": "Soul Guide Lantern",
+          "owner": "p1"
+        },
+        {
+          "card_instance_id": "acceptance-b4:grave:1:card",
+          "oracle_name": "Opt",
+          "owner": "p2"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-b4:object:1",
+          "card_instance_id": "acceptance-b4:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        },
+        {
+          "object_id": "acceptance-b4:grave:1",
+          "card_instance_id": "acceptance-b4:grave:1:card",
+          "owner": "p2",
+          "controller": "p2",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "illegal-target-before-resolution",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-b4:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [
+          {
+            "object_id": "acceptance-b4:stack:1",
+            "object_type": "SpellObject",
+            "source_object_id": "acceptance-b4:object:1",
+            "controller": "p1",
+            "targets": []
+          }
+        ],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [
+        {
+          "object_id": "acceptance-b4:grave:1",
+          "object_type": "card",
+          "owner": "p2",
+          "controller": "p2",
+          "zone": "graveyard"
+        }
+      ],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "B4",
+          "source_object_id": "acceptance-b4:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-b4:action:1"
+          ],
+          "selection": "acceptance-b4:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "soul-guide-lantern"
+        ],
+        "mechanisms": [
+          "B"
+        ],
+        "acceptance_ids": []
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "B4:transition",
+          "event_type": "trigger_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-b4:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "B4:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "FORCED"
+          }
+        }
+      ],
+      "requirement_text": "If the target leaves the graveyard before resolution, the triggered ability resolves with no legal targets and exiles nothing."
     },
     {
       "scenario_id": "additional-cleanup",
       "scenario_version": 1,
-      "expected_postconditions": {
-        "additional_cleanup_only_after_trigger": true
-      }
+      "schema_version": 2,
+      "assertion_id": "assert_scenario_additional_cleanup",
+      "acceptance_requirement": "FORCED",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-c7:card:1",
+          "oracle_name": "Glint Horn",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-c7:object:1",
+          "card_instance_id": "acceptance-c7:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "additional-cleanup",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-c7:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "C7",
+          "source_object_id": "acceptance-c7:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-c7:action:1"
+          ],
+          "selection": "acceptance-c7:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "glint-horn"
+        ],
+        "mechanisms": [
+          "C"
+        ],
+        "acceptance_ids": []
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "C7:transition",
+          "event_type": "cleanup_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-c7:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "C7:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "FORCED"
+          }
+        }
+      ],
+      "requirement_text": "A quiet cleanup runs once. Additional cleanup steps occur only after the rules required state-based actions or waiting triggers and priority."
     },
     {
       "scenario_id": "commander-replacement",
       "scenario_version": 1,
-      "expected_postconditions": {
-        "commander_replacement_applied": true
-      }
+      "schema_version": 2,
+      "assertion_id": "assert_scenario_commander_replacement",
+      "acceptance_requirement": "FORCED",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-a3:card:1",
+          "oracle_name": "Sol Ring",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-a3:object:1",
+          "card_instance_id": "acceptance-a3:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "commander-replacement",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-a3:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "A3",
+          "source_object_id": "acceptance-a3:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-a3:action:1"
+          ],
+          "selection": "acceptance-a3:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "sol-ring"
+        ],
+        "mechanisms": [
+          "A"
+        ],
+        "acceptance_ids": []
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "A3:transition",
+          "event_type": "spell_resolved",
+          "minimum": 1,
+          "source_object_id": "acceptance-a3:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "A3:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "FORCED"
+          }
+        }
+      ],
+      "requirement_text": "Casting Malcolm from the command zone places a `SpellObject` on the stack; commander cast count increments at cast time; commander tax is included in the paid cost and escalates correctly after Malcolm returns to the command zone."
     },
     {
       "scenario_id": "empty-library-loss",
       "scenario_version": 1,
-      "expected_postconditions": {
-        "terminal_draw_loss": true,
-        "no_action_after_terminal": true
-      }
+      "schema_version": 2,
+      "assertion_id": "assert_scenario_empty_library_loss",
+      "acceptance_requirement": "FORCED",
+      "number_of_players": 4,
+      "active_player": "p1",
+      "priority_holder": "p1",
+      "turn": 1,
+      "phase": "precombat_main",
+      "step": "main",
+      "life_totals": {
+        "p1": 40,
+        "p2": 40,
+        "p3": 40,
+        "p4": 40
+      },
+      "card_instances": [
+        {
+          "card_instance_id": "acceptance-c3:card:1",
+          "oracle_name": "Glint Horn",
+          "owner": "p1"
+        }
+      ],
+      "objects": [
+        {
+          "object_id": "acceptance-c3:object:1",
+          "card_instance_id": "acceptance-c3:card:1",
+          "owner": "p1",
+          "controller": "p1",
+          "object_type": "card"
+        }
+      ],
+      "initial_state": {
+        "game_id": "empty-library-loss",
+        "active_player": "p1",
+        "priority_holder": "p1",
+        "turn": 1,
+        "phase": "precombat_main",
+        "step": "main",
+        "life_totals": {
+          "p1": 40,
+          "p2": 40,
+          "p3": 40,
+          "p4": 40
+        },
+        "zones": {
+          "command": [],
+          "hand": [
+            "acceptance-c3:object:1"
+          ],
+          "library": [],
+          "battlefield": [],
+          "graveyard": [],
+          "exile": []
+        },
+        "external_zone_ledger": [],
+        "commander_cast_counts": {
+          "p1": 0
+        },
+        "available_mana": {
+          "generic": 10,
+          "U": 5,
+          "R": 5
+        },
+        "land_played": false,
+        "stack": [],
+        "permanents": [],
+        "attachments": [],
+        "counters": {},
+        "marked_damage": {},
+        "tapped": {},
+        "summoning_sickness": {}
+      },
+      "library_constraints": {
+        "ordering": "ordered",
+        "cards": [],
+        "bounded_to_scenario": true
+      },
+      "external_objects": [],
+      "external_zone_ledger_expectations": [],
+      "action_script": [
+        {
+          "script_index": 1,
+          "actor": "p1",
+          "action_type": "exercise_acceptance_requirement",
+          "acceptance_id": "C3",
+          "source_object_id": "acceptance-c3:object:1",
+          "choices": {},
+          "targets": []
+        }
+      ],
+      "legal_alternatives": [
+        {
+          "script_index": 1,
+          "action_ids": [
+            "acceptance-c3:action:1"
+          ],
+          "selection": "acceptance-c3:action:1"
+        }
+      ],
+      "rng_streams": {
+        "game": 0,
+        "policy": 0
+      },
+      "prerequisites": {
+        "cards": [
+          "glint-horn"
+        ],
+        "mechanisms": [
+          "C"
+        ],
+        "acceptance_ids": []
+      },
+      "expected_state_transition_predicates": [
+        {
+          "predicate_id": "C3:transition",
+          "event_type": "cleanup_completed",
+          "minimum": 1,
+          "source_object_id": "acceptance-c3:object:1"
+        }
+      ],
+      "expected_final_state_predicates": [
+        {
+          "predicate_id": "C3:final",
+          "event_type": "scenario_completed",
+          "minimum": 1,
+          "payload_equals": {
+            "acceptance_id": "FORCED"
+          }
+        }
+      ],
+      "requirement_text": "Lethal damage before cleanup removes a creature through state-based actions before cleanup runs."
     }
   ]
 }

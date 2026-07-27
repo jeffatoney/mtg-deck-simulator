@@ -1,24 +1,123 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "scenario_id": "illegal-target-before-resolution",
-  "review_status": "independently-reviewed",
+  "scenario_version": 1,
+  "review_status": "draft-unreviewed",
+  "review_evidence": null,
+  "initial_state": {
+    "game_id": "illegal-target-before-resolution",
+    "active_player": "p1",
+    "priority_holder": "p1",
+    "turn": 1,
+    "phase": "precombat_main",
+    "step": "main",
+    "life_totals": {
+      "p1": 40,
+      "p2": 40,
+      "p3": 40,
+      "p4": 40
+    },
+    "zones": {
+      "command": [],
+      "hand": [
+        "acceptance-b4:object:1"
+      ],
+      "library": [],
+      "battlefield": [],
+      "graveyard": [],
+      "exile": []
+    },
+    "external_zone_ledger": [],
+    "commander_cast_counts": {
+      "p1": 0
+    },
+    "available_mana": {
+      "generic": 10,
+      "U": 5,
+      "R": 5
+    },
+    "land_played": false,
+    "stack": [
+      {
+        "object_id": "acceptance-b4:stack:1",
+        "object_type": "SpellObject",
+        "source_object_id": "acceptance-b4:object:1",
+        "controller": "p1",
+        "targets": []
+      }
+    ],
+    "permanents": [],
+    "attachments": [],
+    "counters": {},
+    "marked_damage": {},
+    "tapped": {},
+    "summoning_sickness": {}
+  },
   "actions": [
     {
-      "action_id": "illegal-target-before-resolution:action:1",
-      "kind": "run_forced_scenario",
-      "scenario_id": "illegal-target-before-resolution"
+      "sequence": 1,
+      "script_index": 1,
+      "actor": "p1",
+      "action_type": "exercise_acceptance_requirement",
+      "acceptance_id": "B4",
+      "source_object_id": "acceptance-b4:object:1",
+      "choices": {},
+      "targets": []
     }
   ],
-  "events": [
+  "expected_transitions": [
     {
-      "event_id": "illegal-target-before-resolution:event:1",
-      "event_type": "forced_scenario_completed",
-      "parent_action_id": "illegal-target-before-resolution:action:1"
+      "sequence": 1,
+      "event_type": "trigger_resolved",
+      "source_object_id": "acceptance-b4:object:1",
+      "expected_payload": {},
+      "expected_stack_before": [],
+      "expected_stack_after": [],
+      "priority_passes": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "targets": [],
+      "zone_changes": [],
+      "mana_payments": [],
+      "state_based_actions": []
+    },
+    {
+      "sequence": 2,
+      "event_type": "scenario_completed",
+      "source_object_id": null,
+      "expected_payload": {
+        "acceptance_id": "FORCED"
+      },
+      "expected_stack_before": [],
+      "expected_stack_after": [],
+      "priority_passes": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "targets": [],
+      "zone_changes": [],
+      "mana_payments": [],
+      "state_based_actions": []
     }
   ],
   "rng_streams": {
-    "scenario": 0
+    "game": 0,
+    "policy": 0
   },
   "external_ledger": [],
-  "final_state_hash": "phase-a-v1:illegal-target-before-resolution"
+  "expected_final_predicates": [
+    {
+      "predicate_id": "B4:final",
+      "event_type": "scenario_completed",
+      "minimum": 1,
+      "payload_equals": {
+        "acceptance_id": "FORCED"
+      }
+    }
+  ]
 }

@@ -17,11 +17,13 @@ from pathlib import Path
 STAGED_REFERENCE_PATHS = (
     "tests/phase_a_reference",
     "automation/reference-scenarios.json",
+    "automation/reference-scenario.schema.json",
     "automation/trace-invariants.json",
     "automation/golden-replay.schema.json",
     "automation/phase-a-reference-manifest.json",
     "tests/fixtures/golden-replays",
     "scripts/phase_a_runtime_guard.py",
+    "scripts/check_kernel_liveness.py",
 )
 
 

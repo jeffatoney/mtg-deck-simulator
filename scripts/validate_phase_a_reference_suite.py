@@ -17,6 +17,33 @@ EXPECTED_FILES = {
     "test_replay_contract.py",
     "test_analytics_contract.py",
 }
+SCENARIO_FIELDS = {
+    "scenario_id",
+    "scenario_version",
+    "schema_version",
+    "assertion_id",
+    "acceptance_requirement",
+    "number_of_players",
+    "active_player",
+    "priority_holder",
+    "turn",
+    "phase",
+    "step",
+    "life_totals",
+    "card_instances",
+    "objects",
+    "initial_state",
+    "library_constraints",
+    "external_objects",
+    "external_zone_ledger_expectations",
+    "action_script",
+    "legal_alternatives",
+    "rng_streams",
+    "prerequisites",
+    "expected_state_transition_predicates",
+    "expected_final_state_predicates",
+    "requirement_text",
+}
 BANNED_NAMES = {"skip", "skipif", "xfail", "importorskip", "monkeypatch", "mock", "patch"}
 
 
@@ -78,20 +105,50 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         errors.append(
             f"acceptance mapping mismatch: missing={sorted(expected - mapped)} extra={sorted(mapped - expected)}"
         )
+    scenario_document = json.loads((root / "automation/reference-scenarios.json").read_text())
+    scenarios = {item["scenario_id"]: item for item in scenario_document.get("scenarios", [])}
     for item in mappings:
         if (
-            not item.get("expected_postconditions")
+            not item.get("assertion_id")
+            or not item.get("event_state_predicates")
             or item.get("required_production_entrypoint") != "mtg_kernel.executor.GameExecutor.run"
         ):
             errors.append(f"incomplete mapping: {item.get('acceptance_id')}")
-    scenarios = json.loads((root / "automation/reference-scenarios.json").read_text())
+            continue
+        scenario = scenarios.get(item.get("scenario_id"))
+        if scenario is None:
+            errors.append(f"unknown mapping scenario: {item.get('acceptance_id')}")
+            continue
+        if set(scenario) != SCENARIO_FIELDS:
+            errors.append(f"scenario schema mismatch: {scenario['scenario_id']}")
+        if item["assertion_id"] != scenario["assertion_id"]:
+            errors.append(f"assertion mismatch: {item['acceptance_id']}")
+        prerequisites = item.get("required_prerequisites", {})
+        declared = scenario.get("prerequisites", {})
+        if any(
+            not set(values) <= set(declared.get(key, [])) for key, values in prerequisites.items()
+        ):
+            errors.append(f"scenario prerequisites missing: {item['acceptance_id']}")
+        if item["acceptance_id"] not in declared.get("acceptance_ids", []):
+            errors.append(f"unrelated scenario mapping: {item['acceptance_id']}")
+    if len({(item["scenario_id"], item["assertion_id"]) for item in mappings}) != len(mappings):
+        errors.append("duplicate scenario/assertion mapping")
     fixtures = root / "tests/fixtures/golden-replays"
-    for scenario in scenarios.get("forced_scenarios", []):
-        fixture = fixtures / f"{scenario['scenario_id']}.json"
+    core = {
+        "sol-ring",
+        "soul-guide-lantern-targeted-etb",
+        "malcolm-counterspell-commit",
+        "dualcaster-twinflame",
+        "glint-horn-attack-cleanup",
+    }
+    for scenario_id in core:
+        fixture = fixtures / f"{scenario_id}.json"
         if not fixture.is_file():
             errors.append(f"missing golden replay fixture: {fixture.name}")
-        elif json.loads(fixture.read_text()).get("review_status") != "independently-reviewed":
-            errors.append(f"unreviewed golden replay fixture: {fixture.name}")
+        else:
+            status = json.loads(fixture.read_text()).get("review_status")
+            if status not in {"draft-unreviewed", "rules-reviewed", "independently-reviewed"}:
+                errors.append(f"invalid golden replay provenance: {fixture.name}")
     completed = subprocess.run(
         [
             sys.executable,

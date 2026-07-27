@@ -20,6 +20,7 @@ FROZEN = (
     "scripts/phase_a_runtime_guard.py",
     "scripts/check_kernel_liveness.py",
     "automation/reference-scenarios.json",
+    "automation/reference-scenario.schema.json",
     "automation/phase-a-reference-manifest.json",
     "automation/trace-invariants.json",
     "automation/golden-replay.schema.json",

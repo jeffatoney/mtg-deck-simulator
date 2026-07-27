@@ -437,3 +437,139 @@ def test_pilot_lock_has_no_phase_ab_dry_run_exception(
 def test_pilot_lock_ignores_comments_and_unrelated_commands(tmp_path: Path) -> None:
     write_workflow(tmp_path, "run: echo unrelated # mtg-sim pilot --config configs/pilot.toml")
     assert run("check_production_pilot_lock.py", "--root", str(tmp_path)).returncode == 0
+
+
+def test_malicious_all_claims_facade_is_rejected() -> None:
+    from tests.phase_a_reference.reference_adapter import REQUIRED_SERVICES, validate_raw_artifact
+
+    facade = {
+        "satisfied_acceptance_ids": [
+            f"{group}{number}" for group in "ABCDEFG" for number in range(1, 10)
+        ],
+        "postconditions": {"everything": True},
+        "trace_invariants": {"everything": True},
+        "referee_observations": {
+            "call_trees": True,
+            "state_transitions": True,
+            "receipt_correlations": True,
+        },
+        "receipts": [{"service": name} for name in REQUIRED_SERVICES],
+        "replay": json.loads((ROOT / "tests/fixtures/golden-replays/sol-ring.json").read_text()),
+    }
+    with pytest.raises(AssertionError):
+        validate_raw_artifact(facade, {"initial_state": {}})
+
+
+@pytest.mark.parametrize(
+    "mode", ["setup-probe", "disconnected-kernel", "receipts-only", "no-transition"]
+)
+def test_referee_liveness_rejects_disconnected_evidence(mode: str) -> None:
+    from scripts.check_kernel_liveness import validate
+
+    data = {
+        "events": [],
+        "receipts": [
+            {
+                "service": "ZoneService",
+                "action_id": "a",
+                "pre_state_hash": "x",
+                "post_state_hash": "x",
+            }
+        ],
+        "_referee_calls": [
+            {
+                "order": 1,
+                "kind": "call",
+                "module": "mtg_kernel.executor",
+                "qualname": "GameExecutor.run",
+            },
+            {
+                "order": 2,
+                "kind": "return",
+                "module": "mtg_kernel.executor",
+                "qualname": "GameExecutor.run",
+            },
+            {
+                "order": 3,
+                "kind": "call",
+                "module": "mtg_kernel.zones",
+                "qualname": "ZoneService.move",
+                "action_id": "a",
+            },
+        ],
+    }
+    assert validate(data), mode
+
+
+@pytest.mark.parametrize(
+    "defect",
+    ["empty-events", "empty-decisions", "missing-field", "duplicate-id", "strategic-label"],
+)
+def test_analytics_referee_rejects_invalid_artifacts(defect: str) -> None:
+    from tests.phase_a_reference.reference_adapter import _validate_analytics
+
+    event = {
+        "schema_version": 1,
+        "run_id": "r",
+        "game_id": "g",
+        "event_id": "e",
+        "sequence": 1,
+        "turn": 1,
+        "phase": "main",
+        "step": "main",
+        "priority_window_id": "p",
+        "actor": "p1",
+        "event_type": "pass",
+        "source_object_ids": [],
+        "target_object_ids": [],
+        "parent_action_id": None,
+        "parent_event_id": None,
+        "pre_state_hash": "a",
+        "post_state_hash": "b",
+        "payload": {},
+    }
+    decision = {
+        "decision_id": "d",
+        "observation_hash": "o",
+        "legal_actions": [{"action_id": "pass"}],
+        "selected_action_id": "pass",
+        "policy_id": "p",
+        "policy_version": "1",
+        "action_set_hash": "h",
+        "future_information_used": False,
+    }
+    artifact = {"events": [event], "decisions": [decision]}
+    if defect == "empty-events":
+        artifact["events"] = []
+    elif defect == "empty-decisions":
+        artifact["decisions"] = []
+    elif defect == "missing-field":
+        del event["pre_state_hash"]
+    elif defect == "duplicate-id":
+        artifact["decisions"] = [decision, decision.copy()]
+    else:
+        event["payload"]["combo_access"] = True
+    with pytest.raises(AssertionError):
+        _validate_analytics(artifact)
+
+
+def test_golden_fixtures_are_honestly_unreviewed() -> None:
+    fixtures = list((ROOT / "tests/fixtures/golden-replays").glob("*.json"))
+    assert len(fixtures) == 9
+    assert all(
+        json.loads(path.read_text())["review_status"] == "draft-unreviewed" for path in fixtures
+    )
+
+
+@pytest.mark.parametrize(
+    "field", ["actions", "events", "rng_streams", "external_ledger", "objects", "final_state"]
+)
+def test_replay_tampering_is_rejected(field: str) -> None:
+    from tests.phase_a_reference.reference_adapter import validate_replay_artifact
+
+    original = {name: [] for name in ("actions", "events", "external_ledger", "objects")}
+    original.update({"rng_streams": {"game": 1}, "final_state": {"life_totals": {"p1": 40}}})
+    replay = json.loads(json.dumps(original))
+    replay[field] = ["tampered"] if isinstance(replay[field], list) else {"tampered": True}
+    with pytest.raises(AssertionError):
+        validate_replay_artifact(original, replay)

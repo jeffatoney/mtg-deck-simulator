@@ -307,10 +307,21 @@ source object ID when applicable; pre/post hashes; and causal event IDs.
 Implement every frozen forced scenario in `automation/reference-scenarios.json`
 and at least 200 deterministic random-seed games for trace-property testing.
 Random games never replace forced scenarios. Enforce every invariant in
-`automation/trace-invariants.json`. Golden replays conform to the frozen schema
-and independently reviewed fixtures; candidate-authored expected outcomes are
-not evidence. Replay must reproduce action and event order, named RNG streams,
-external ledger, and final state hashes.
+`automation/trace-invariants.json`. The five setup fixtures are deliberately
+marked `draft-unreviewed`; Phase A **must not merge** until a separately recorded
+human approval advances each complete transcript to `independently-reviewed`.
+No reviewer identity, date, or approval may be invented. Candidate-authored
+expected outcomes are not evidence. Replay must execute through the public
+`ReplayEngine` in a fresh state and reproduce action and event order, named RNG
+streams, external ledger, object identities, zone contents, life totals, and
+final state hashes; altered, omitted, duplicated, or reordered actions must be
+rejected.
+
+Candidate verdict fields (`satisfied_acceptance_ids`, `postconditions`,
+`trace_invariants`, and `referee_observations`) are prohibited. The candidate
+emits objective raw facts only. The protected referee derives every acceptance,
+scenario, invariant, and liveness verdict from those facts and profiler-owned
+observations.
 
 ## Simulation Analytics Contract
 

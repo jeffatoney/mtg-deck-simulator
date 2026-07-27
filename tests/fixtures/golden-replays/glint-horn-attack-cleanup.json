@@ -1,24 +1,180 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "scenario_id": "glint-horn-attack-cleanup",
-  "review_status": "independently-reviewed",
+  "scenario_version": 1,
+  "review_status": "draft-unreviewed",
+  "review_evidence": null,
+  "initial_state": {
+    "game_id": "glint-horn-attack-cleanup",
+    "active_player": "p1",
+    "priority_holder": "p1",
+    "turn": 1,
+    "phase": "precombat_main",
+    "step": "main",
+    "life_totals": {
+      "p1": 40,
+      "p2": 40,
+      "p3": 40,
+      "p4": 40
+    },
+    "zones": {
+      "command": [],
+      "hand": [
+        "glint-horn-attack-cleanup:object:1"
+      ],
+      "library": [],
+      "battlefield": [
+        "glint-horn-attack-cleanup:object:2",
+        "glint-horn-attack-cleanup:object:3"
+      ],
+      "graveyard": [],
+      "exile": []
+    },
+    "external_zone_ledger": [],
+    "commander_cast_counts": {
+      "p1": 0
+    },
+    "available_mana": {
+      "generic": 10,
+      "U": 5,
+      "R": 5
+    },
+    "land_played": false,
+    "stack": [],
+    "permanents": [],
+    "attachments": [],
+    "counters": {},
+    "marked_damage": {},
+    "tapped": {},
+    "summoning_sickness": {}
+  },
   "actions": [
     {
-      "action_id": "glint-horn-attack-cleanup:action:1",
-      "kind": "run_forced_scenario",
-      "scenario_id": "glint-horn-attack-cleanup"
+      "sequence": 1,
+      "script_index": 1,
+      "actor": "p1",
+      "action_type": "declare_glint_horn_attacker",
+      "source_object_id": "glint-horn-attack-cleanup:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 2,
+      "script_index": 2,
+      "actor": "p1",
+      "action_type": "activate_glint_horn",
+      "source_object_id": "glint-horn-attack-cleanup:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 3,
+      "script_index": 3,
+      "actor": "p1",
+      "action_type": "pay_discard_and_draw_cost",
+      "source_object_id": "glint-horn-attack-cleanup:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 4,
+      "script_index": 4,
+      "actor": "p1",
+      "action_type": "resolve_discard_trigger_before_draw",
+      "source_object_id": "glint-horn-attack-cleanup:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 5,
+      "script_index": 5,
+      "actor": "p1",
+      "action_type": "deal_damage_to_each_opponent",
+      "source_object_id": "glint-horn-attack-cleanup:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 6,
+      "script_index": 6,
+      "actor": "p1",
+      "action_type": "create_malcolm_treasures",
+      "source_object_id": "glint-horn-attack-cleanup:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 7,
+      "script_index": 7,
+      "actor": "p1",
+      "action_type": "complete_cleanup",
+      "source_object_id": "glint-horn-attack-cleanup:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 8,
+      "script_index": 8,
+      "actor": "p1",
+      "action_type": "stabilize_terminal_state",
+      "source_object_id": "glint-horn-attack-cleanup:object:1",
+      "choices": {},
+      "targets": []
     }
   ],
-  "events": [
+  "expected_transitions": [
     {
-      "event_id": "glint-horn-attack-cleanup:event:1",
-      "event_type": "forced_scenario_completed",
-      "parent_action_id": "glint-horn-attack-cleanup:action:1"
+      "sequence": 1,
+      "event_type": "cleanup_completed",
+      "source_object_id": "glint-horn-attack-cleanup:object:1",
+      "expected_payload": {},
+      "expected_stack_before": [],
+      "expected_stack_after": [],
+      "priority_passes": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "targets": [],
+      "zone_changes": [],
+      "mana_payments": [],
+      "state_based_actions": []
+    },
+    {
+      "sequence": 2,
+      "event_type": "scenario_completed",
+      "source_object_id": null,
+      "expected_payload": {
+        "acceptance_id": "C6"
+      },
+      "expected_stack_before": [],
+      "expected_stack_after": [],
+      "priority_passes": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "targets": [],
+      "zone_changes": [],
+      "mana_payments": [],
+      "state_based_actions": []
     }
   ],
   "rng_streams": {
-    "scenario": 0
+    "game": 0,
+    "policy": 0
   },
   "external_ledger": [],
-  "final_state_hash": "phase-a-v1:glint-horn-attack-cleanup"
+  "expected_final_predicates": [
+    {
+      "predicate_id": "C6:final",
+      "event_type": "scenario_completed",
+      "minimum": 1,
+      "payload_equals": {
+        "acceptance_id": "C6"
+      }
+    }
+  ]
 }
