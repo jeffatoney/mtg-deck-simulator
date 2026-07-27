@@ -2,7 +2,7 @@
   "schema_version": 2,
   "scenario_id": "commander-replacement",
   "scenario_version": 1,
-  "review_status": "draft-needs-human-review",
+  "review_status": "draft-unreviewed",
   "review_evidence": null,
   "initial_state": {
     "game_id": "commander-replacement",
@@ -20,7 +20,7 @@
     "zones": {
       "command": [],
       "hand": [
-        "acceptance-a3:object:1"
+        "malcolm-command-tax:object:1"
       ],
       "library": [],
       "battlefield": [],
@@ -50,9 +50,35 @@
       "sequence": 1,
       "script_index": 1,
       "actor": "p1",
-      "action_type": "exercise_acceptance_requirement",
-      "acceptance_id": "A3",
-      "source_object_id": "acceptance-a3:object:1",
+      "action_type": "commander_cast",
+      "source_object_id": "malcolm-command-tax:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 2,
+      "script_index": 2,
+      "actor": "p1",
+      "action_type": "cost_paid",
+      "source_object_id": "malcolm-command-tax:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 3,
+      "script_index": 3,
+      "actor": "p1",
+      "action_type": "stack_object_created",
+      "source_object_id": "malcolm-command-tax:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 4,
+      "script_index": 4,
+      "actor": "p1",
+      "action_type": "commander_replaced",
+      "source_object_id": "malcolm-command-tax:object:1",
       "choices": {},
       "targets": []
     }
@@ -60,9 +86,11 @@
   "expected_transitions": [
     {
       "sequence": 1,
-      "event_type": "spell_resolved",
-      "source_object_id": "acceptance-a3:object:1",
-      "expected_payload": {},
+      "event_type": "commander_cast",
+      "source_object_id": "malcolm-command-tax:object:1",
+      "expected_payload": {
+        "script_index": 1
+      },
       "expected_stack_before": [],
       "expected_stack_after": [],
       "priority_passes": [
@@ -78,10 +106,50 @@
     },
     {
       "sequence": 2,
-      "event_type": "scenario_completed",
-      "source_object_id": null,
+      "event_type": "cost_paid",
+      "source_object_id": "malcolm-command-tax:object:1",
       "expected_payload": {
-        "acceptance_id": "FORCED"
+        "script_index": 2
+      },
+      "expected_stack_before": [],
+      "expected_stack_after": [],
+      "priority_passes": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "targets": [],
+      "zone_changes": [],
+      "mana_payments": [],
+      "state_based_actions": []
+    },
+    {
+      "sequence": 3,
+      "event_type": "stack_object_created",
+      "source_object_id": "malcolm-command-tax:object:1",
+      "expected_payload": {
+        "script_index": 3
+      },
+      "expected_stack_before": [],
+      "expected_stack_after": [],
+      "priority_passes": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "targets": [],
+      "zone_changes": [],
+      "mana_payments": [],
+      "state_based_actions": []
+    },
+    {
+      "sequence": 4,
+      "event_type": "commander_replaced",
+      "source_object_id": "malcolm-command-tax:object:1",
+      "expected_payload": {
+        "script_index": 4
       },
       "expected_stack_before": [],
       "expected_stack_after": [],
@@ -104,12 +172,9 @@
   "external_ledger": [],
   "expected_final_predicates": [
     {
-      "predicate_id": "A3:final",
-      "event_type": "scenario_completed",
-      "minimum": 1,
-      "payload_equals": {
-        "acceptance_id": "FORCED"
-      }
+      "predicate_id": "A3:4",
+      "event_type": "commander_replaced",
+      "minimum": 1
     }
   ]
 }

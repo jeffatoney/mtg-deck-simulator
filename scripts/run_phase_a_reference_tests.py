@@ -24,6 +24,9 @@ STAGED_REFERENCE_PATHS = (
     "tests/fixtures/golden-replays",
     "scripts/phase_a_runtime_guard.py",
     "scripts/check_kernel_liveness.py",
+    "scripts/check_production_pilot_lock.py",
+    ".github/workflows",
+    "docs/workflows/pilot-simulation.phase-c.yml.template",
 )
 
 
@@ -52,7 +55,7 @@ def main() -> int:
         for relative in STAGED_REFERENCE_PATHS:
             _copy(args.referee / relative, stage / relative)
         _copy(
-            args.referee / "tests/phase_a_reference",
+            args.referee / "tests/phase_a_acceptance",
             stage / "tests/phase_a_acceptance",
         )
         reference = stage / "tests/phase_a_acceptance"

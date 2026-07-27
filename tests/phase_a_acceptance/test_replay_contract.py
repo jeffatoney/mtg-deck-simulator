@@ -13,7 +13,7 @@ FIXTURES = sorted((ROOT / "tests/fixtures/golden-replays").glob("*.json"))
 def test_golden_replay(fixture) -> None:
     golden = json.loads(fixture.read_text())
     assert golden["review_status"] in {
-        "draft-needs-human-review",
+        "draft-unreviewed",
         "rules-reviewed",
         "independently-reviewed",
     }
@@ -28,11 +28,20 @@ def test_golden_replay(fixture) -> None:
     replay["actions"] = first["actions"]
     replay["rng_streams"] = first["rng_streams"]
     validate_replay_artifact(first, replay)
-    for mutation in ("omit", "duplicate", "reorder", "alter"):
+    actions = first["actions"]
+    mutations = [
+        actions[:-1],
+        [*actions, actions[-1]],
+        [*reversed(actions)],
+        [{**actions[0], "targets": ["referee:illegal-target"]}, *actions[1:]],
+        [{**actions[0], "mode": "referee:wrong-mode"}, *actions[1:]],
+        [{**actions[0], "face": "referee:wrong-face"}, *actions[1:]],
+        [{**actions[0], "payment": {"generic": 999}}, *actions[1:]],
+    ]
+    for mutated_actions in mutations:
         with pytest.raises(Exception):
             ReplayEngine.run(
                 initial_state=first["initial_state"],
-                actions=first["actions"],
+                actions=mutated_actions,
                 rng_streams=first["rng_streams"],
-                validation_probe=mutation,
             )

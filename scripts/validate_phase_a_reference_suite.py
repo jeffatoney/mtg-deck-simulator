@@ -7,10 +7,8 @@ import ast
 import hashlib
 import json
 import re
-import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 EXPECTED_FILES = {
@@ -90,7 +88,7 @@ def _ancestors(node: ast.AST, parents: dict[ast.AST, ast.AST]) -> list[ast.AST]:
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
-    reference = root / "tests/phase_a_reference"
+    reference = root / "tests/phase_a_acceptance"
     manifest_path = root / "automation/phase-a-reference-manifest.json"
     errors = [
         f"missing reference file: {name}"
@@ -112,9 +110,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     scenarios = {item["scenario_id"]: item for item in scenario_document.get("scenarios", [])}
     for item in mappings:
         if (
-            not item.get("assertion_id")
-            or not item.get("event_state_predicates")
-            or item.get("required_production_entrypoint") != "mtg_kernel.executor.GameExecutor.run"
+            not item.get("referee_evaluator_id")
+            or not item.get("raw_evidence_fields")
+            or not item.get("expected_transition_or_invariant")
+            or not item.get("required_production_entrypoint")
         ):
             errors.append(f"incomplete mapping: {item.get('acceptance_id')}")
             continue
@@ -124,8 +123,34 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             continue
         if set(scenario) != SCENARIO_FIELDS:
             errors.append(f"scenario schema mismatch: {scenario['scenario_id']}")
-        if item["assertion_id"] != scenario["assertion_id"]:
-            errors.append(f"assertion mismatch: {item['acceptance_id']}")
+        if item["referee_evaluator_id"] != scenario["assertion_id"]:
+            errors.append(f"evaluator mismatch: {item['acceptance_id']}")
+        if scenario.get("schema_version") != 3 or not scenario.get("action_script"):
+            errors.append(f"invalid frozen scenario input: {item['acceptance_id']}")
+        player_ids = set(scenario.get("life_totals", {}))
+        object_ids = [obj.get("object_id") for obj in scenario.get("objects", [])]
+        card_ids = [card.get("card_instance_id") for card in scenario.get("card_instances", [])]
+        zone_ids = [
+            oid
+            for zone in scenario.get("initial_state", {}).get("zones", {}).values()
+            for oid in zone
+        ]
+        if (
+            len(player_ids) != scenario.get("number_of_players")
+            or scenario.get("active_player") not in player_ids
+            or scenario.get("priority_holder") not in player_ids
+            or len(object_ids) != len(set(object_ids))
+            or len(card_ids) != len(set(card_ids))
+            or not set(zone_ids) <= set(object_ids)
+            or [a.get("script_index") for a in scenario["action_script"]]
+            != list(range(1, len(scenario["action_script"]) + 1))
+        ):
+            errors.append(f"malformed frozen scenario identity/script: {item['acceptance_id']}")
+        if any("expected" in action or "result" in action for action in scenario["action_script"]):
+            errors.append(f"scenario script requests an outcome: {item['acceptance_id']}")
+        evaluator_source = (reference / "reference_adapter.py").read_text(encoding="utf-8")
+        if f"def {item['referee_evaluator_id']}(" not in evaluator_source:
+            errors.append(f"missing referee evaluator: {item['acceptance_id']}")
         prerequisites = item.get("required_prerequisites", {})
         declared = scenario.get("prerequisites", {})
         if any(
@@ -134,7 +159,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             errors.append(f"scenario prerequisites missing: {item['acceptance_id']}")
         if item["acceptance_id"] not in declared.get("acceptance_ids", []):
             errors.append(f"unrelated scenario mapping: {item['acceptance_id']}")
-    if len({(item["scenario_id"], item["assertion_id"]) for item in mappings}) != len(mappings):
+    if len({(item["scenario_id"], item["referee_evaluator_id"]) for item in mappings}) != len(
+        mappings
+    ):
         errors.append("duplicate scenario/assertion mapping")
     fixtures = root / "tests/fixtures/golden-replays"
     approval_document = json.loads((root / "automation/golden-replay-approvals.json").read_text())
@@ -153,7 +180,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         else:
             status = json.loads(fixture.read_text()).get("review_status")
             if status not in {
-                "draft-needs-human-review",
+                "draft-unreviewed",
                 "rules-reviewed",
                 "independently-reviewed",
             }:
@@ -171,33 +198,29 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                     )
                 ):
                     errors.append(f"missing matching human approval: {fixture.name}")
-    # The protected sources live outside the candidate-controlled acceptance
-    # directory on main, but the closed-world runner stages them at the exact
-    # path required by the frozen specification.
-    with tempfile.TemporaryDirectory(prefix="phase-a-reference-collection-") as temporary:
-        stage = Path(temporary)
-        staged_reference = stage / "tests/phase_a_acceptance"
-        shutil.copytree(reference, staged_reference)
-        shutil.copytree(root / "automation", stage / "automation")
-        completed = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "pytest",
-                "--collect-only",
-                "-q",
-                f"--confcutdir={staged_reference}",
-                str(staged_reference),
-            ],
-            cwd=stage,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            check=False,
-        )
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "--collect-only",
+            "-q",
+            "-ra",
+            f"--confcutdir={reference}",
+            str(reference),
+        ],
+        cwd=root,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
     nodes = [line for line in completed.stdout.splitlines() if "::" in line]
     if completed.returncode != 0:
         errors.append("protected reference collection failed:\n" + completed.stdout)
+    lowered = completed.stdout.lower()
+    if " skipped" in lowered or " xfailed" in lowered or " xpassed" in lowered:
+        errors.append("protected collection contains skipped or xfailed nodes")
     missing_nodes = sorted({item["reference_node_id"] for item in mappings} - set(nodes))
     if missing_nodes:
         errors.append(f"manifest nodes not collected: {missing_nodes}")

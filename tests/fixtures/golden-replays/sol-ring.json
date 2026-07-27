@@ -2,7 +2,7 @@
   "schema_version": 2,
   "scenario_id": "sol-ring",
   "scenario_version": 1,
-  "review_status": "draft-needs-human-review",
+  "review_status": "draft-unreviewed",
   "review_evidence": null,
   "initial_state": {
     "game_id": "sol-ring",
@@ -20,7 +20,7 @@
     "zones": {
       "command": [],
       "hand": [
-        "sol-ring:object:1"
+        "sol-ring-stack-resolution:object:1"
       ],
       "library": [],
       "battlefield": [],
@@ -50,8 +50,8 @@
       "sequence": 1,
       "script_index": 1,
       "actor": "p1",
-      "action_type": "cast_sol_ring",
-      "source_object_id": "sol-ring:object:1",
+      "action_type": "spell_announced",
+      "source_object_id": "sol-ring-stack-resolution:object:1",
       "choices": {},
       "targets": []
     },
@@ -59,8 +59,8 @@
       "sequence": 2,
       "script_index": 2,
       "actor": "p1",
-      "action_type": "pass_priority_cycle",
-      "source_object_id": "sol-ring:object:1",
+      "action_type": "stack_object_created",
+      "source_object_id": "sol-ring-stack-resolution:object:1",
       "choices": {},
       "targets": []
     },
@@ -68,8 +68,26 @@
       "sequence": 3,
       "script_index": 3,
       "actor": "p1",
-      "action_type": "resolve_top_of_stack",
-      "source_object_id": "sol-ring:object:1",
+      "action_type": "priority_window_opened",
+      "source_object_id": "sol-ring-stack-resolution:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 4,
+      "script_index": 4,
+      "actor": "p1",
+      "action_type": "spell_resolved",
+      "source_object_id": "sol-ring-stack-resolution:object:1",
+      "choices": {},
+      "targets": []
+    },
+    {
+      "sequence": 5,
+      "script_index": 5,
+      "actor": "p1",
+      "action_type": "battlefield_entered",
+      "source_object_id": "sol-ring-stack-resolution:object:1",
       "choices": {},
       "targets": []
     }
@@ -77,9 +95,11 @@
   "expected_transitions": [
     {
       "sequence": 1,
-      "event_type": "spell_resolved",
-      "source_object_id": "sol-ring:object:1",
-      "expected_payload": {},
+      "event_type": "spell_announced",
+      "source_object_id": "sol-ring-stack-resolution:object:1",
+      "expected_payload": {
+        "script_index": 1
+      },
       "expected_stack_before": [],
       "expected_stack_after": [],
       "priority_passes": [
@@ -95,10 +115,70 @@
     },
     {
       "sequence": 2,
-      "event_type": "scenario_completed",
-      "source_object_id": null,
+      "event_type": "stack_object_created",
+      "source_object_id": "sol-ring-stack-resolution:object:1",
       "expected_payload": {
-        "acceptance_id": "A1"
+        "script_index": 2
+      },
+      "expected_stack_before": [],
+      "expected_stack_after": [],
+      "priority_passes": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "targets": [],
+      "zone_changes": [],
+      "mana_payments": [],
+      "state_based_actions": []
+    },
+    {
+      "sequence": 3,
+      "event_type": "priority_window_opened",
+      "source_object_id": "sol-ring-stack-resolution:object:1",
+      "expected_payload": {
+        "script_index": 3
+      },
+      "expected_stack_before": [],
+      "expected_stack_after": [],
+      "priority_passes": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "targets": [],
+      "zone_changes": [],
+      "mana_payments": [],
+      "state_based_actions": []
+    },
+    {
+      "sequence": 4,
+      "event_type": "spell_resolved",
+      "source_object_id": "sol-ring-stack-resolution:object:1",
+      "expected_payload": {
+        "script_index": 4
+      },
+      "expected_stack_before": [],
+      "expected_stack_after": [],
+      "priority_passes": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "targets": [],
+      "zone_changes": [],
+      "mana_payments": [],
+      "state_based_actions": []
+    },
+    {
+      "sequence": 5,
+      "event_type": "battlefield_entered",
+      "source_object_id": "sol-ring-stack-resolution:object:1",
+      "expected_payload": {
+        "script_index": 5
       },
       "expected_stack_before": [],
       "expected_stack_after": [],
@@ -121,12 +201,9 @@
   "external_ledger": [],
   "expected_final_predicates": [
     {
-      "predicate_id": "A1:final",
-      "event_type": "scenario_completed",
-      "minimum": 1,
-      "payload_equals": {
-        "acceptance_id": "A1"
-      }
+      "predicate_id": "A1:5",
+      "event_type": "battlefield_entered",
+      "minimum": 1
     }
   ]
 }

@@ -308,7 +308,7 @@ Implement every frozen forced scenario in `automation/reference-scenarios.json`
 and at least 200 deterministic random-seed games for trace-property testing.
 Random games never replace forced scenarios. Enforce every invariant in
 `automation/trace-invariants.json`. The five setup fixtures are deliberately
-marked `draft-needs-human-review`; Phase A **must not merge** until a separately recorded
+marked `draft-unreviewed`; Phase A **must not merge** until a separately recorded
 human approval advances each complete transcript to `independently-reviewed`.
 No reviewer identity, date, or approval may be invented. Candidate-authored
 expected outcomes are not evidence. Replay must execute through the public

@@ -1,25 +1,123 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://mtg-sim.invalid/schemas/reference-scenario-v2.json",
-  "title": "Frozen Phase A reference scenario v2",
+  "$id": "https://mtg-sim.invalid/schemas/reference-scenario-v3.json",
+  "title": "Frozen Phase A reference scenario v3",
   "type": "object",
-  "required": ["scenario_id", "scenario_version", "schema_version", "assertion_id", "acceptance_requirement", "number_of_players", "active_player", "priority_holder", "turn", "phase", "step", "life_totals", "card_instances", "objects", "initial_state", "library_constraints", "external_objects", "external_zone_ledger_expectations", "action_script", "legal_alternatives", "rng_streams", "prerequisites", "expected_state_transition_predicates", "expected_final_state_predicates", "requirement_text"],
+  "required": [
+    "scenario_id",
+    "scenario_version",
+    "schema_version",
+    "assertion_id",
+    "acceptance_requirement",
+    "number_of_players",
+    "active_player",
+    "priority_holder",
+    "turn",
+    "phase",
+    "step",
+    "life_totals",
+    "card_instances",
+    "objects",
+    "initial_state",
+    "library_constraints",
+    "external_objects",
+    "external_zone_ledger_expectations",
+    "action_script",
+    "legal_alternatives",
+    "rng_streams",
+    "prerequisites",
+    "expected_state_transition_predicates",
+    "expected_final_state_predicates",
+    "requirement_text"
+  ],
   "properties": {
-    "scenario_id": {"type": "string", "minLength": 1},
-    "scenario_version": {"type": "integer", "minimum": 1},
-    "schema_version": {"const": 2},
-    "assertion_id": {"type": "string", "pattern": "^assert_"},
-    "acceptance_requirement": {"type": "string"},
-    "number_of_players": {"type": "integer", "minimum": 2},
-    "active_player": {"type": "string"}, "priority_holder": {"type": "string"},
-    "turn": {"type": "integer", "minimum": 1}, "phase": {"type": "string"}, "step": {"type": "string"},
-    "life_totals": {"type": "object"}, "card_instances": {"type": "array", "minItems": 1},
-    "objects": {"type": "array", "minItems": 1}, "initial_state": {"type": "object"},
-    "library_constraints": {"type": "object"}, "external_objects": {"type": "array"},
-    "external_zone_ledger_expectations": {"type": "array"}, "action_script": {"type": "array", "minItems": 1},
-    "legal_alternatives": {"type": "array", "minItems": 1}, "rng_streams": {"type": "object", "minProperties": 1},
-    "prerequisites": {"type": "object"}, "expected_state_transition_predicates": {"type": "array", "minItems": 1},
-    "expected_final_state_predicates": {"type": "array", "minItems": 1}, "requirement_text": {"type": "string", "minLength": 1}
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenario_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "schema_version": {
+      "const": 3
+    },
+    "assertion_id": {
+      "type": "string",
+      "pattern": "^evaluate_[a-g][0-9]+$"
+    },
+    "acceptance_requirement": {
+      "type": "string"
+    },
+    "number_of_players": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "active_player": {
+      "type": "string"
+    },
+    "priority_holder": {
+      "type": "string"
+    },
+    "turn": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "phase": {
+      "type": "string"
+    },
+    "step": {
+      "type": "string"
+    },
+    "life_totals": {
+      "type": "object"
+    },
+    "card_instances": {
+      "type": "array",
+      "minItems": 1
+    },
+    "objects": {
+      "type": "array",
+      "minItems": 1
+    },
+    "initial_state": {
+      "type": "object"
+    },
+    "library_constraints": {
+      "type": "object"
+    },
+    "external_objects": {
+      "type": "array"
+    },
+    "external_zone_ledger_expectations": {
+      "type": "array"
+    },
+    "action_script": {
+      "type": "array",
+      "minItems": 1
+    },
+    "legal_alternatives": {
+      "type": "array",
+      "minItems": 1
+    },
+    "rng_streams": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "prerequisites": {
+      "type": "object"
+    },
+    "expected_state_transition_predicates": {
+      "type": "array",
+      "minItems": 1
+    },
+    "expected_final_state_predicates": {
+      "type": "array"
+    },
+    "requirement_text": {
+      "type": "string",
+      "minLength": 1
+    }
   },
   "additionalProperties": false
 }

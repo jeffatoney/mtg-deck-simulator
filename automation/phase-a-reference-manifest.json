@@ -1,26 +1,31 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "mappings": [
     {
       "acceptance_id": "A1",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A1_assert_a1",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A1_protected_acceptance",
       "scenario_id": "sol-ring",
-      "assertion_id": "assert_a1",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "referee_evaluator_id": "evaluate_a1",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Casting Sol Ring places a `SpellObject` on the stack; the battlefield is unchanged until resolution. Assert stack contents between cast and resolution.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Sol Ring"
         ],
         "mechanisms": [
           "A"
@@ -31,42 +36,57 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "A1:transition",
-          "event_type": "spell_resolved",
-          "minimum": 1,
-          "source_object_id": "sol-ring:object:1"
+          "predicate_id": "A1:1",
+          "event_type": "spell_announced",
+          "minimum": 1
         },
         {
-          "predicate_id": "A1:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "A1"
-          }
+          "predicate_id": "A1:2",
+          "event_type": "stack_object_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A1:3",
+          "event_type": "priority_window_opened",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A1:4",
+          "event_type": "spell_resolved",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A1:5",
+          "event_type": "battlefield_entered",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Casting Sol Ring places a `SpellObject` on the stack; the battlefield is unchanged until resolution. Assert stack contents between cast and resolution."
+      ]
     },
     {
       "acceptance_id": "A2",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A2_assert_a2",
-      "scenario_id": "acceptance-a2",
-      "assertion_id": "assert_a2",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A2_protected_acceptance",
+      "scenario_id": "glint-horn-stack-resolution",
+      "referee_evaluator_id": "evaluate_a2",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Casting Glint-Horn Buccaneer places a `SpellObject` on the stack; the permanent enters only on resolution and has correct summoning-sickness state.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Glint-Horn Buccaneer"
         ],
         "mechanisms": [
           "A"
@@ -77,42 +97,52 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "A2:transition",
-          "event_type": "spell_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-a2:object:1"
+          "predicate_id": "A2:1",
+          "event_type": "spell_announced",
+          "minimum": 1
         },
         {
-          "predicate_id": "A2:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "A2"
-          }
+          "predicate_id": "A2:2",
+          "event_type": "stack_object_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A2:3",
+          "event_type": "spell_resolved",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A2:4",
+          "event_type": "battlefield_entered",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Casting Glint-Horn Buccaneer places a `SpellObject` on the stack; the permanent enters only on resolution and has correct summoning-sickness state."
+      ]
     },
     {
       "acceptance_id": "A3",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A3_assert_a3",
-      "scenario_id": "acceptance-a3",
-      "assertion_id": "assert_a3",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A3_protected_acceptance",
+      "scenario_id": "commander-replacement",
+      "referee_evaluator_id": "evaluate_a3",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Casting Malcolm from the command zone places a `SpellObject` on the stack; commander cast count increments at cast time; commander tax is included in the paid cost and escalates correctly after Malcolm returns to the command zone.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Malcolm, Keen-Eyed Navigator"
         ],
         "mechanisms": [
           "A"
@@ -123,42 +153,52 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "A3:transition",
-          "event_type": "spell_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-a3:object:1"
+          "predicate_id": "A3:1",
+          "event_type": "commander_cast",
+          "minimum": 1
         },
         {
-          "predicate_id": "A3:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "A3"
-          }
+          "predicate_id": "A3:2",
+          "event_type": "cost_paid",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A3:3",
+          "event_type": "stack_object_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A3:4",
+          "event_type": "commander_replaced",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Casting Malcolm from the command zone places a `SpellObject` on the stack; commander cast count increments at cast time; commander tax is included in the paid cost and escalates correctly after Malcolm returns to the command zone."
+      ]
     },
     {
       "acceptance_id": "A4",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A4_assert_a4",
-      "scenario_id": "acceptance-a4",
-      "assertion_id": "assert_a4",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A4_protected_acceptance",
+      "scenario_id": "counter-creature-spell",
+      "referee_evaluator_id": "evaluate_a4",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "An explicit external counterspell can counter a creature spell. The creature never enters, no ETB trigger is created, and the actual card instance moves to its owner's legal destination.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Control Plane Fixture"
         ],
         "mechanisms": [
           "A"
@@ -169,42 +209,52 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "A4:transition",
-          "event_type": "spell_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-a4:object:1"
+          "predicate_id": "A4:1",
+          "event_type": "stack_object_created",
+          "minimum": 1
         },
         {
-          "predicate_id": "A4:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "A4"
-          }
+          "predicate_id": "A4:2",
+          "event_type": "external_counterspell_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A4:3",
+          "event_type": "spell_countered",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A4:4",
+          "event_type": "zone_moved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "An explicit external counterspell can counter a creature spell. The creature never enters, no ETB trigger is created, and the actual card instance moves to its owner's legal destination."
+      ]
     },
     {
       "acceptance_id": "A5",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A5_assert_a5",
-      "scenario_id": "acceptance-a5",
-      "assertion_id": "assert_a5",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A5_protected_acceptance",
+      "scenario_id": "counter-artifact-spell",
+      "referee_evaluator_id": "evaluate_a5",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "The same is true for an artifact spell.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Soul-Guide Lantern"
         ],
         "mechanisms": [
           "A"
@@ -215,42 +265,52 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "A5:transition",
-          "event_type": "spell_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-a5:object:1"
+          "predicate_id": "A5:1",
+          "event_type": "stack_object_created",
+          "minimum": 1
         },
         {
-          "predicate_id": "A5:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "A5"
-          }
+          "predicate_id": "A5:2",
+          "event_type": "external_counterspell_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A5:3",
+          "event_type": "spell_countered",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A5:4",
+          "event_type": "zone_moved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "The same is true for an artifact spell."
+      ]
     },
     {
       "acceptance_id": "A6",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A6_assert_a6",
-      "scenario_id": "acceptance-a6",
-      "assertion_id": "assert_a6",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A6_protected_acceptance",
+      "scenario_id": "etb-after-resolution",
+      "referee_evaluator_id": "evaluate_a6",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "No enter-the-battlefield trigger exists before a permanent spell resolves.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Control Plane Fixture"
         ],
         "mechanisms": [
           "A"
@@ -261,42 +321,47 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "A6:transition",
-          "event_type": "spell_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-a6:object:1"
+          "predicate_id": "A6:1",
+          "event_type": "stack_object_created",
+          "minimum": 1
         },
         {
-          "predicate_id": "A6:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "A6"
-          }
+          "predicate_id": "A6:2",
+          "event_type": "spell_resolved",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A6:3",
+          "event_type": "trigger_created",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "No enter-the-battlefield trigger exists before a permanent spell resolves."
+      ]
     },
     {
       "acceptance_id": "A7",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A7_assert_a7",
-      "scenario_id": "acceptance-a7",
-      "assertion_id": "assert_a7",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_A7_protected_acceptance",
+      "scenario_id": "priority-response-window",
+      "referee_evaluator_id": "evaluate_a7",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Priority is offered after a spell is put on the stack and before resolution; a policy holding priority can respond.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Control Plane Fixture"
         ],
         "mechanisms": [
           "A"
@@ -307,42 +372,47 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "A7:transition",
-          "event_type": "spell_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-a7:object:1"
+          "predicate_id": "A7:1",
+          "event_type": "stack_object_created",
+          "minimum": 1
         },
         {
-          "predicate_id": "A7:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "A7"
-          }
+          "predicate_id": "A7:2",
+          "event_type": "priority_window_opened",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "A7:3",
+          "event_type": "response_announced",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Priority is offered after a spell is put on the stack and before resolution; a policy holding priority can respond."
+      ]
     },
     {
       "acceptance_id": "B1",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B1_assert_b1",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B1_protected_acceptance",
       "scenario_id": "soul-guide-lantern-targeted-etb",
-      "assertion_id": "assert_b1",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "referee_evaluator_id": "evaluate_b1",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Soul-Guide Lantern resolving with one legal modeled graveyard card creates a real `TriggeredAbilityObject` on the stack. The card is not exiled while the trigger is pending and is exiled only on legal resolution.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "soul-guide-lantern"
+          "Soul-Guide Lantern"
         ],
         "mechanisms": [
           "B"
@@ -353,42 +423,62 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "B1:transition",
-          "event_type": "trigger_resolved",
-          "minimum": 1,
-          "source_object_id": "soul-guide-lantern-targeted-etb:object:1"
+          "predicate_id": "B1:1",
+          "event_type": "spell_resolved",
+          "minimum": 1
         },
         {
-          "predicate_id": "B1:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "B1"
-          }
+          "predicate_id": "B1:2",
+          "event_type": "trigger_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "B1:3",
+          "event_type": "trigger_put_on_stack",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "B1:4",
+          "event_type": "priority_window_opened",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "B1:5",
+          "event_type": "targets_revalidated",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "B1:6",
+          "event_type": "zone_moved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Soul-Guide Lantern resolving with one legal modeled graveyard card creates a real `TriggeredAbilityObject` on the stack. The card is not exiled while the trigger is pending and is exiled only on legal resolution."
+      ]
     },
     {
       "acceptance_id": "B2",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B2_assert_b2",
-      "scenario_id": "acceptance-b2",
-      "assertion_id": "assert_b2",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B2_protected_acceptance",
+      "scenario_id": "lantern-multiple-target-choice",
+      "referee_evaluator_id": "evaluate_b2",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "With multiple legal modeled graveyard cards, exactly one target is selected and preserved in the action log and replay.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "soul-guide-lantern"
+          "Soul-Guide Lantern"
         ],
         "mechanisms": [
           "B"
@@ -399,42 +489,52 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "B2:transition",
-          "event_type": "trigger_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-b2:object:1"
+          "predicate_id": "B2:1",
+          "event_type": "trigger_created",
+          "minimum": 1
         },
         {
-          "predicate_id": "B2:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "B2"
-          }
+          "predicate_id": "B2:2",
+          "event_type": "targets_announced",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "B2:3",
+          "event_type": "trigger_put_on_stack",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "B2:4",
+          "event_type": "replay_action_recorded",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "With multiple legal modeled graveyard cards, exactly one target is selected and preserved in the action log and replay."
+      ]
     },
     {
       "acceptance_id": "B3",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B3_assert_b3",
-      "scenario_id": "acceptance-b3",
-      "assertion_id": "assert_b3",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B3_protected_acceptance",
+      "scenario_id": "lantern-empty-graveyards",
+      "referee_evaluator_id": "evaluate_b3",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "With all modeled graveyards empty, Lantern still resolves and enters. No target is invented, no exile occurs, and no `trigger_put_on_stack` event is emitted without a corresponding stack object.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "soul-guide-lantern"
+          "Soul-Guide Lantern"
         ],
         "mechanisms": [
           "B"
@@ -445,42 +545,42 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "B3:transition",
-          "event_type": "trigger_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-b3:object:1"
+          "predicate_id": "B3:1",
+          "event_type": "spell_resolved",
+          "minimum": 1
         },
         {
-          "predicate_id": "B3:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "B3"
-          }
+          "predicate_id": "B3:2",
+          "event_type": "battlefield_entered",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "With all modeled graveyards empty, Lantern still resolves and enters. No target is invented, no exile occurs, and no `trigger_put_on_stack` event is emitted without a corresponding stack object."
+      ]
     },
     {
       "acceptance_id": "B4",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B4_assert_b4",
-      "scenario_id": "acceptance-b4",
-      "assertion_id": "assert_b4",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B4_protected_acceptance",
+      "scenario_id": "illegal-target-before-resolution",
+      "referee_evaluator_id": "evaluate_b4",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "If the target leaves the graveyard before resolution, the triggered ability resolves with no legal targets and exiles nothing.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "soul-guide-lantern"
+          "Soul-Guide Lantern"
         ],
         "mechanisms": [
           "B"
@@ -491,42 +591,52 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "B4:transition",
-          "event_type": "trigger_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-b4:object:1"
+          "predicate_id": "B4:1",
+          "event_type": "trigger_put_on_stack",
+          "minimum": 1
         },
         {
-          "predicate_id": "B4:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "B4"
-          }
+          "predicate_id": "B4:2",
+          "event_type": "zone_moved",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "B4:3",
+          "event_type": "targets_revalidated",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "B4:4",
+          "event_type": "trigger_resolved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "If the target leaves the graveyard before resolution, the triggered ability resolves with no legal targets and exiles nothing."
+      ]
     },
     {
       "acceptance_id": "B5",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B5_assert_b5",
-      "scenario_id": "acceptance-b5",
-      "assertion_id": "assert_b5",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B5_protected_acceptance",
+      "scenario_id": "lantern-trigger-priority",
+      "referee_evaluator_id": "evaluate_b5",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Priority exists between trigger placement and resolution.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "soul-guide-lantern"
+          "Soul-Guide Lantern"
         ],
         "mechanisms": [
           "B"
@@ -537,42 +647,47 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "B5:transition",
-          "event_type": "trigger_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-b5:object:1"
+          "predicate_id": "B5:1",
+          "event_type": "trigger_put_on_stack",
+          "minimum": 1
         },
         {
-          "predicate_id": "B5:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "B5"
-          }
+          "predicate_id": "B5:2",
+          "event_type": "priority_window_opened",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "B5:3",
+          "event_type": "trigger_resolved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Priority exists between trigger placement and resolution."
+      ]
     },
     {
       "acceptance_id": "B6",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B6_assert_b6",
-      "scenario_id": "acceptance-b6",
-      "assertion_id": "assert_b6",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_B6_protected_acceptance",
+      "scenario_id": "trigger-object-correspondence",
+      "referee_evaluator_id": "evaluate_b6",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Across every acceptance game, each `trigger_put_on_stack` event corresponds to a real `TriggeredAbilityObject` present on the stack at that timestamp.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "soul-guide-lantern"
+          "Soul-Guide Lantern"
         ],
         "mechanisms": [
           "B"
@@ -583,42 +698,42 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "B6:transition",
-          "event_type": "trigger_resolved",
-          "minimum": 1,
-          "source_object_id": "acceptance-b6:object:1"
+          "predicate_id": "B6:1",
+          "event_type": "trigger_created",
+          "minimum": 1
         },
         {
-          "predicate_id": "B6:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "B6"
-          }
+          "predicate_id": "B6:2",
+          "event_type": "trigger_put_on_stack",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Across every acceptance game, each `trigger_put_on_stack` event corresponds to a real `TriggeredAbilityObject` present on the stack at that timestamp."
+      ]
     },
     {
       "acceptance_id": "C1",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C1_assert_c1",
-      "scenario_id": "acceptance-c1",
-      "assertion_id": "assert_c1",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C1_protected_acceptance",
+      "scenario_id": "damage-clears-next-turn",
+      "referee_evaluator_id": "evaluate_c1",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Through `GameExecutor.run`, three damage marked on a creature during turn 1 is absent at the start of turn 2.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "glint-horn"
+          "Curiosity"
         ],
         "mechanisms": [
           "C"
@@ -629,42 +744,47 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "C1:transition",
-          "event_type": "cleanup_completed",
-          "minimum": 1,
-          "source_object_id": "acceptance-c1:object:1"
+          "predicate_id": "C1:1",
+          "event_type": "damage_marked",
+          "minimum": 1
         },
         {
-          "predicate_id": "C1:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "C1"
-          }
+          "predicate_id": "C1:2",
+          "event_type": "cleanup_completed",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C1:3",
+          "event_type": "turn_changed",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Through `GameExecutor.run`, three damage marked on a creature during turn 1 is absent at the start of turn 2."
+      ]
     },
     {
       "acceptance_id": "C2",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C2_assert_c2",
-      "scenario_id": "acceptance-c2",
-      "assertion_id": "assert_c2",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C2_protected_acceptance",
+      "scenario_id": "damage-not-combined",
+      "referee_evaluator_id": "evaluate_c2",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Three damage in turn 1 and one damage in turn 2 are never combined; a four-toughness creature survives both nonlethal events.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "glint-horn"
+          "Curiosity"
         ],
         "mechanisms": [
           "C"
@@ -675,42 +795,52 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "C2:transition",
-          "event_type": "cleanup_completed",
-          "minimum": 1,
-          "source_object_id": "acceptance-c2:object:1"
+          "predicate_id": "C2:1",
+          "event_type": "damage_marked",
+          "minimum": 1
         },
         {
-          "predicate_id": "C2:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "C2"
-          }
+          "predicate_id": "C2:2",
+          "event_type": "cleanup_completed",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C2:3",
+          "event_type": "turn_changed",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C2:4",
+          "event_type": "damage_marked",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Three damage in turn 1 and one damage in turn 2 are never combined; a four-toughness creature survives both nonlethal events."
+      ]
     },
     {
       "acceptance_id": "C3",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C3_assert_c3",
-      "scenario_id": "acceptance-c3",
-      "assertion_id": "assert_c3",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C3_protected_acceptance",
+      "scenario_id": "lethal-damage-sba",
+      "referee_evaluator_id": "evaluate_c3",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Lethal damage before cleanup removes a creature through state-based actions before cleanup runs.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "glint-horn"
+          "Curiosity"
         ],
         "mechanisms": [
           "C"
@@ -721,42 +851,52 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "C3:transition",
-          "event_type": "cleanup_completed",
-          "minimum": 1,
-          "source_object_id": "acceptance-c3:object:1"
+          "predicate_id": "C3:1",
+          "event_type": "damage_marked",
+          "minimum": 1
         },
         {
-          "predicate_id": "C3:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "C3"
-          }
+          "predicate_id": "C3:2",
+          "event_type": "state_based_action",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C3:3",
+          "event_type": "zone_moved",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C3:4",
+          "event_type": "cleanup_started",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Lethal damage before cleanup removes a creature through state-based actions before cleanup runs."
+      ]
     },
     {
       "acceptance_id": "C4",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C4_assert_c4",
-      "scenario_id": "acceptance-c4",
-      "assertion_id": "assert_c4",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C4_protected_acceptance",
+      "scenario_id": "cleanup-discard-two",
+      "referee_evaluator_id": "evaluate_c4",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "A nine-card hand at cleanup discards exactly two cards through real zone moves; discard-triggered abilities trigger from those actual discards.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "glint-horn"
+          "Curiosity"
         ],
         "mechanisms": [
           "C"
@@ -767,42 +907,52 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "C4:transition",
-          "event_type": "cleanup_completed",
-          "minimum": 1,
-          "source_object_id": "acceptance-c4:object:1"
+          "predicate_id": "C4:1",
+          "event_type": "cleanup_started",
+          "minimum": 1
         },
         {
-          "predicate_id": "C4:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "C4"
-          }
+          "predicate_id": "C4:2",
+          "event_type": "cards_discarded",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C4:3",
+          "event_type": "zone_moved",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C4:4",
+          "event_type": "trigger_created",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "A nine-card hand at cleanup discards exactly two cards through real zone moves; discard-triggered abilities trigger from those actual discards."
+      ]
     },
     {
       "acceptance_id": "C5",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C5_assert_c5",
-      "scenario_id": "acceptance-c5",
-      "assertion_id": "assert_c5",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C5_protected_acceptance",
+      "scenario_id": "curiosity-no-damage",
+      "referee_evaluator_id": "evaluate_c5",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Curiosity attached to a creature that dealt no damage to an opponent creates no Curiosity trigger during cleanup.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "glint-horn"
+          "Curiosity"
         ],
         "mechanisms": [
           "C"
@@ -813,42 +963,42 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "C5:transition",
-          "event_type": "cleanup_completed",
-          "minimum": 1,
-          "source_object_id": "acceptance-c5:object:1"
+          "predicate_id": "C5:1",
+          "event_type": "cleanup_started",
+          "minimum": 1
         },
         {
-          "predicate_id": "C5:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "C5"
-          }
+          "predicate_id": "C5:2",
+          "event_type": "cleanup_completed",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Curiosity attached to a creature that dealt no damage to an opponent creates no Curiosity trigger during cleanup."
+      ]
     },
     {
       "acceptance_id": "C6",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C6_assert_c6",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C6_protected_acceptance",
       "scenario_id": "glint-horn-attack-cleanup",
-      "assertion_id": "assert_c6",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "referee_evaluator_id": "evaluate_c6",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "A real cleanup discard with Glint-Horn on the battlefield creates its damage trigger. When that trigger resolves and Glint-Horn is enchanted by Curiosity, Curiosity creates one trigger for each opponent actually damaged. Each optional draw is a recorded choice. The resulting priority process causes a complete additional cleanup step.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "glint-horn"
+          "Glint-Horn Buccaneer"
         ],
         "mechanisms": [
           "C"
@@ -859,42 +1009,72 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "C6:transition",
-          "event_type": "cleanup_completed",
-          "minimum": 1,
-          "source_object_id": "glint-horn-attack-cleanup:object:1"
+          "predicate_id": "C6:1",
+          "event_type": "attacker_declared",
+          "minimum": 1
         },
         {
-          "predicate_id": "C6:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "C6"
-          }
+          "predicate_id": "C6:2",
+          "event_type": "activation_cost_paid",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C6:3",
+          "event_type": "cards_discarded",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C6:4",
+          "event_type": "trigger_put_on_stack",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C6:5",
+          "event_type": "damage_dealt",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C6:6",
+          "event_type": "treasure_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C6:7",
+          "event_type": "cleanup_completed",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C6:8",
+          "event_type": "terminal_state",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "A real cleanup discard with Glint-Horn on the battlefield creates its damage trigger. When that trigger resolves and Glint-Horn is enchanted by Curiosity, Curiosity creates one trigger for each opponent actually damaged. Each optional draw is a recorded choice. The resulting priority process causes a complete additional cleanup step."
+      ]
     },
     {
       "acceptance_id": "C7",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C7_assert_c7",
-      "scenario_id": "acceptance-c7",
-      "assertion_id": "assert_c7",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C7_protected_acceptance",
+      "scenario_id": "additional-cleanup",
+      "referee_evaluator_id": "evaluate_c7",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "A quiet cleanup runs once. Additional cleanup steps occur only after the rules required state-based actions or waiting triggers and priority.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "glint-horn"
+          "Curiosity"
         ],
         "mechanisms": [
           "C"
@@ -905,42 +1085,57 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "C7:transition",
-          "event_type": "cleanup_completed",
-          "minimum": 1,
-          "source_object_id": "acceptance-c7:object:1"
+          "predicate_id": "C7:1",
+          "event_type": "cleanup_started",
+          "minimum": 1
         },
         {
-          "predicate_id": "C7:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "C7"
-          }
+          "predicate_id": "C7:2",
+          "event_type": "cleanup_completed",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C7:3",
+          "event_type": "priority_window_opened",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C7:4",
+          "event_type": "cleanup_started",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "C7:5",
+          "event_type": "cleanup_completed",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "A quiet cleanup runs once. Additional cleanup steps occur only after the rules required state-based actions or waiting triggers and priority."
+      ]
     },
     {
       "acceptance_id": "C8",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C8_assert_c8",
-      "scenario_id": "acceptance-c8",
-      "assertion_id": "assert_c8",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_C8_protected_acceptance",
+      "scenario_id": "turn-engine-transition-ownership",
+      "referee_evaluator_id": "evaluate_c8",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "`GameExecutor` contains no direct phase or step assignment. Every phase and step transition in acceptance-game logs is emitted by `TurnEngine`.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "glint-horn"
+          "Curiosity"
         ],
         "mechanisms": [
           "C"
@@ -951,42 +1146,37 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "C8:transition",
-          "event_type": "cleanup_completed",
-          "minimum": 1,
-          "source_object_id": "acceptance-c8:object:1"
-        },
-        {
-          "predicate_id": "C8:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "C8"
-          }
+          "predicate_id": "C8:1",
+          "event_type": "turn_changed",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "`GameExecutor` contains no direct phase or step assignment. Every phase and step transition in acceptance-game logs is emitted by `TurnEngine`."
+      ]
     },
     {
       "acceptance_id": "D1",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D1_assert_d1",
-      "scenario_id": "acceptance-d1",
-      "assertion_id": "assert_d1",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D1_protected_acceptance",
+      "scenario_id": "zone-object-identities",
+      "referee_evaluator_id": "evaluate_d1",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "All game zones contain instance/object IDs, never bare card-name strings.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "commit"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "D"
@@ -997,42 +1187,37 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "D1:transition",
+          "predicate_id": "D1:1",
           "event_type": "zone_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-d1:object:1"
-        },
-        {
-          "predicate_id": "D1:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "D1"
-          }
+          "minimum": 1
         }
-      ],
-      "requirement_text": "All game zones contain instance/object IDs, never bare card-name strings."
+      ]
     },
     {
       "acceptance_id": "D2",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D2_assert_d2",
-      "scenario_id": "acceptance-d2",
-      "assertion_id": "assert_d2",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D2_protected_acceptance",
+      "scenario_id": "commit-internal-spell",
+      "referee_evaluator_id": "evaluate_d2",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Commit targeting the simulated player's real spell puts the same `CardInstance` second from the top of its owner's library; the spell leaves the stack and library size remains correct.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "commit"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "D"
@@ -1043,42 +1228,47 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "D2:transition",
-          "event_type": "zone_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-d2:object:1"
+          "predicate_id": "D2:1",
+          "event_type": "targets_announced",
+          "minimum": 1
         },
         {
-          "predicate_id": "D2:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "D2"
-          }
+          "predicate_id": "D2:2",
+          "event_type": "targets_revalidated",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "D2:3",
+          "event_type": "zone_moved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Commit targeting the simulated player's real spell puts the same `CardInstance` second from the top of its owner's library; the spell leaves the stack and library size remains correct."
+      ]
     },
     {
       "acceptance_id": "D3",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D3_assert_d3",
-      "scenario_id": "acceptance-d3",
-      "assertion_id": "assert_d3",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D3_protected_acceptance",
+      "scenario_id": "commit-spell-copy",
+      "referee_evaluator_id": "evaluate_d3",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Commit targeting a spell copy makes the copy cease to exist and adds nothing to any library.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "commit"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "D"
@@ -1089,42 +1279,42 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "D3:transition",
-          "event_type": "zone_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-d3:object:1"
+          "predicate_id": "D3:1",
+          "event_type": "targets_announced",
+          "minimum": 1
         },
         {
-          "predicate_id": "D3:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "D3"
-          }
+          "predicate_id": "D3:2",
+          "event_type": "spell_copy_ceased",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Commit targeting a spell copy makes the copy cease to exist and adds nothing to any library."
+      ]
     },
     {
       "acceptance_id": "D4",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D4_assert_d4",
-      "scenario_id": "acceptance-d4",
-      "assertion_id": "assert_d4",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D4_protected_acceptance",
+      "scenario_id": "commit-external-spell",
+      "referee_evaluator_id": "evaluate_d4",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Commit targeting an opponent-owned external spell removes it from the stack and records owner, destination `owners_library`, and position 2 in the `ExternalZoneLedger`. Nothing enters the simulated player's hand, library, or graveyard.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "commit"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "D"
@@ -1135,42 +1325,47 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "D4:transition",
-          "event_type": "zone_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-d4:object:1"
+          "predicate_id": "D4:1",
+          "event_type": "targets_announced",
+          "minimum": 1
         },
         {
-          "predicate_id": "D4:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "D4"
-          }
+          "predicate_id": "D4:2",
+          "event_type": "targets_revalidated",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "D4:3",
+          "event_type": "external_ledger_moved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Commit targeting an opponent-owned external spell removes it from the stack and records owner, destination `owners_library`, and position 2 in the `ExternalZoneLedger`. Nothing enters the simulated player's hand, library, or graveyard."
+      ]
     },
     {
       "acceptance_id": "D5",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D5_assert_d5",
-      "scenario_id": "acceptance-d5",
-      "assertion_id": "assert_d5",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D5_protected_acceptance",
+      "scenario_id": "commit-representable-targets",
+      "referee_evaluator_id": "evaluate_d5",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Action generation never offers a Commit target whose destination cannot be represented by the modeled internal zones or external ledger.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "commit"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "D"
@@ -1181,42 +1376,37 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "D5:transition",
-          "event_type": "zone_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-d5:object:1"
-        },
-        {
-          "predicate_id": "D5:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "D5"
-          }
+          "predicate_id": "D5:1",
+          "event_type": "legal_actions_generated",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Action generation never offers a Commit target whose destination cannot be represented by the modeled internal zones or external ledger."
+      ]
     },
     {
       "acceptance_id": "D6",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D6_assert_d6",
-      "scenario_id": "acceptance-d6",
-      "assertion_id": "assert_d6",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D6_protected_acceptance",
+      "scenario_id": "commit-target-illegal",
+      "referee_evaluator_id": "evaluate_d6",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "If Commit's target leaves the stack before resolution, Commit resolves with no legal targets, does nothing to the former target, and the Commit card moves to its normal post-resolution zone.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "commit"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "D"
@@ -1227,42 +1417,52 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "D6:transition",
-          "event_type": "zone_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-d6:object:1"
+          "predicate_id": "D6:1",
+          "event_type": "targets_announced",
+          "minimum": 1
         },
         {
-          "predicate_id": "D6:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "D6"
-          }
+          "predicate_id": "D6:2",
+          "event_type": "targets_revalidated",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "D6:3",
+          "event_type": "spell_resolved",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "D6:4",
+          "event_type": "zone_moved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "If Commit's target leaves the stack before resolution, Commit resolves with no legal targets, does nothing to the former target, and the Commit card moves to its normal post-resolution zone."
+      ]
     },
     {
       "acceptance_id": "D7",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D7_assert_d7",
-      "scenario_id": "acceptance-d7",
-      "assertion_id": "assert_d7",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D7_protected_acceptance",
+      "scenario_id": "memory-targetless-graveyard",
+      "referee_evaluator_id": "evaluate_d7",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Every generated Memory action is cast from the graveyard, has `targets == ()`, and has no stack target.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "commit"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "D"
@@ -1273,42 +1473,42 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "D7:transition",
-          "event_type": "zone_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-d7:object:1"
+          "predicate_id": "D7:1",
+          "event_type": "legal_actions_generated",
+          "minimum": 1
         },
         {
-          "predicate_id": "D7:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "D7"
-          }
+          "predicate_id": "D7:2",
+          "event_type": "spell_announced",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Every generated Memory action is cast from the graveyard, has `targets == ()`, and has no stack target."
+      ]
     },
     {
       "acceptance_id": "D8",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D8_assert_d8",
-      "scenario_id": "acceptance-d8",
-      "assertion_id": "assert_d8",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D8_protected_acceptance",
+      "scenario_id": "memory-target-rejected",
+      "referee_evaluator_id": "evaluate_d8",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Validation rejects targeted Memory actions before mana payment or zone movement; state is bit-identical before and after rejection.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "commit"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "D"
@@ -1319,42 +1519,37 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "D8:transition",
-          "event_type": "zone_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-d8:object:1"
-        },
-        {
-          "predicate_id": "D8:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "D8"
-          }
+          "predicate_id": "D8:1",
+          "event_type": "action_rejected",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Validation rejects targeted Memory actions before mana payment or zone movement; state is bit-identical before and after rejection."
+      ]
     },
     {
       "acceptance_id": "D9",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D9_assert_d9",
-      "scenario_id": "acceptance-d9",
-      "assertion_id": "assert_d9",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_D9_protected_acceptance",
+      "scenario_id": "commit-memory-replay",
+      "referee_evaluator_id": "evaluate_d9",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Replays containing each supported Commit outcome and a targetless Memory cast reproduce identical final states and external-ledger contents.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "commit"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "D"
@@ -1365,42 +1560,42 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "D9:transition",
-          "event_type": "zone_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-d9:object:1"
+          "predicate_id": "D9:1",
+          "event_type": "replay_started",
+          "minimum": 1
         },
         {
-          "predicate_id": "D9:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "D9"
-          }
+          "predicate_id": "D9:2",
+          "event_type": "replay_completed",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Replays containing each supported Commit outcome and a targetless Memory cast reproduce identical final states and external-ledger contents."
+      ]
     },
     {
       "acceptance_id": "E1",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E1_assert_e1",
-      "scenario_id": "acceptance-e1",
-      "assertion_id": "assert_e1",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E1_protected_acceptance",
+      "scenario_id": "opponent-private-zone-isolation",
+      "referee_evaluator_id": "evaluate_e1",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "No opponent-owned object ever appears in the simulated player's hand, library, graveyard, exile, or command zone.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "malcolm"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "E"
@@ -1411,42 +1606,42 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "E1:transition",
-          "event_type": "external_ledger_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-e1:object:1"
+          "predicate_id": "E1:1",
+          "event_type": "external_object_created",
+          "minimum": 1
         },
         {
-          "predicate_id": "E1:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "E1"
-          }
+          "predicate_id": "E1:2",
+          "event_type": "external_ledger_moved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "No opponent-owned object ever appears in the simulated player's hand, library, graveyard, exile, or command zone."
+      ]
     },
     {
       "acceptance_id": "E2",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E2_assert_e2",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E2_protected_acceptance",
       "scenario_id": "malcolm-counterspell-commit",
-      "assertion_id": "assert_e2",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "referee_evaluator_id": "evaluate_e2",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Scenario `opponent_counter_on_first_commander` injects an external counterspell targeting Malcolm. Priority returns to the simulated player; Commit can target that external spell; after Commit resolves, Malcolm remains on the stack and may later resolve.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "malcolm"
+          "Malcolm, Keen-Eyed Navigator"
         ],
         "mechanisms": [
           "E"
@@ -1457,42 +1652,57 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "E2:transition",
-          "event_type": "external_ledger_moved",
-          "minimum": 1,
-          "source_object_id": "malcolm-counterspell-commit:object:1"
+          "predicate_id": "E2:1",
+          "event_type": "external_counterspell_created",
+          "minimum": 1
         },
         {
-          "predicate_id": "E2:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "E2"
-          }
+          "predicate_id": "E2:2",
+          "event_type": "priority_window_opened",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "E2:3",
+          "event_type": "targets_announced",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "E2:4",
+          "event_type": "external_ledger_moved",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "E2:5",
+          "event_type": "spell_resolved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Scenario `opponent_counter_on_first_commander` injects an external counterspell targeting Malcolm. Priority returns to the simulated player; Commit can target that external spell; after Commit resolves, Malcolm remains on the stack and may later resolve."
+      ]
     },
     {
       "acceptance_id": "E3",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E3_assert_e3",
-      "scenario_id": "acceptance-e3",
-      "assertion_id": "assert_e3",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E3_protected_acceptance",
+      "scenario_id": "external-ledger-departure",
+      "referee_evaluator_id": "evaluate_e3",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Every external object leaving the active model passes through the `ExternalZoneLedger` with owner, destination, and position or cessation state.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "malcolm"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "E"
@@ -1503,42 +1713,42 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "E3:transition",
-          "event_type": "external_ledger_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-e3:object:1"
+          "predicate_id": "E3:1",
+          "event_type": "external_object_created",
+          "minimum": 1
         },
         {
-          "predicate_id": "E3:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "E3"
-          }
+          "predicate_id": "E3:2",
+          "event_type": "external_ledger_moved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Every external object leaving the active model passes through the `ExternalZoneLedger` with owner, destination, and position or cessation state."
+      ]
     },
     {
       "acceptance_id": "E4",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E4_assert_e4",
-      "scenario_id": "acceptance-e4",
-      "assertion_id": "assert_e4",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E4_protected_acceptance",
+      "scenario_id": "baseline-no-external-target",
+      "referee_evaluator_id": "evaluate_e4",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Baseline goldfish mode contains no external objects. Cards requiring an external target are not offered illegal actions and are classified `stranded_no_legal_external_target` when applicable.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "malcolm"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "E"
@@ -1549,42 +1759,37 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "E4:transition",
-          "event_type": "external_ledger_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-e4:object:1"
-        },
-        {
-          "predicate_id": "E4:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "E4"
-          }
+          "predicate_id": "E4:1",
+          "event_type": "legal_actions_generated",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Baseline goldfish mode contains no external objects. Cards requiring an external target are not offered illegal actions and are classified `stranded_no_legal_external_target` when applicable."
+      ]
     },
     {
       "acceptance_id": "E5",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E5_assert_e5",
-      "scenario_id": "acceptance-e5",
-      "assertion_id": "assert_e5",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_E5_protected_acceptance",
+      "scenario_id": "artifact-namespace-separation",
+      "referee_evaluator_id": "evaluate_e5",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Interaction-scenario results and baseline results use separate artifact namespaces and are never aggregated together.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "malcolm"
+          "Commit // Memory"
         ],
         "mechanisms": [
           "E"
@@ -1595,42 +1800,37 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "E5:transition",
-          "event_type": "external_ledger_moved",
-          "minimum": 1,
-          "source_object_id": "acceptance-e5:object:1"
-        },
-        {
-          "predicate_id": "E5:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "E5"
-          }
+          "predicate_id": "E5:1",
+          "event_type": "run_manifest_written",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Interaction-scenario results and baseline results use separate artifact namespaces and are never aggregated together."
+      ]
     },
     {
       "acceptance_id": "F1",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_F1_assert_f1",
-      "scenario_id": "acceptance-f1",
-      "assertion_id": "assert_f1",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_F1_protected_acceptance",
+      "scenario_id": "vertical-slice-replay",
+      "referee_evaluator_id": "evaluate_f1",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "A complete vertical-slice scenario containing lands, Sol Ring, Opt, Malcolm combat and Treasure production, Twinflame, Dualcaster copying Opt, Abrade, Soul-Guide Lantern, Commit on an external spell, Memory from the graveyard, and Glint-Horn/Curiosity cleanup replays to a bit-identical final state from the initial state, named RNG streams, and recorded actions.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "twinflame"
+          "Opt"
         ],
         "mechanisms": [
           "F"
@@ -1641,42 +1841,67 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "F1:transition",
-          "event_type": "replay_completed",
-          "minimum": 1,
-          "source_object_id": "acceptance-f1:object:1"
+          "predicate_id": "F1:1",
+          "event_type": "spell_resolved",
+          "minimum": 1
         },
         {
-          "predicate_id": "F1:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "F1"
-          }
+          "predicate_id": "F1:2",
+          "event_type": "combat_damage_dealt",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F1:3",
+          "event_type": "treasure_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F1:4",
+          "event_type": "spell_copied",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F1:5",
+          "event_type": "external_ledger_moved",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F1:6",
+          "event_type": "cleanup_completed",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F1:7",
+          "event_type": "replay_completed",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "A complete vertical-slice scenario containing lands, Sol Ring, Opt, Malcolm combat and Treasure production, Twinflame, Dualcaster copying Opt, Abrade, Soul-Guide Lantern, Commit on an external spell, Memory from the graveyard, and Glint-Horn/Curiosity cleanup replays to a bit-identical final state from the initial state, named RNG streams, and recorded actions."
+      ]
     },
     {
       "acceptance_id": "F2",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_F2_assert_f2",
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_F2_protected_acceptance",
       "scenario_id": "dualcaster-twinflame",
-      "assertion_id": "assert_f2",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "referee_evaluator_id": "evaluate_f2",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Twinflame token copies gain haste and are exiled at the beginning of the next end step by a real delayed trigger; the token then ceases to exist through the normal object/state process, not hardcoded cleanup.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "twinflame"
+          "Twinflame"
         ],
         "mechanisms": [
           "F"
@@ -1687,42 +1912,62 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "F2:transition",
-          "event_type": "replay_completed",
-          "minimum": 1,
-          "source_object_id": "dualcaster-twinflame:object:1"
+          "predicate_id": "F2:1",
+          "event_type": "spell_copied",
+          "minimum": 1
         },
         {
-          "predicate_id": "F2:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "F2"
-          }
+          "predicate_id": "F2:2",
+          "event_type": "token_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F2:3",
+          "event_type": "delayed_trigger_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F2:4",
+          "event_type": "trigger_put_on_stack",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F2:5",
+          "event_type": "token_exiled",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F2:6",
+          "event_type": "token_ceased",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Twinflame token copies gain haste and are exiled at the beginning of the next end step by a real delayed trigger; the token then ceases to exist through the normal object/state process, not hardcoded cleanup."
+      ]
     },
     {
       "acceptance_id": "F3",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_F3_assert_f3",
-      "scenario_id": "acceptance-f3",
-      "assertion_id": "assert_f3",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_F3_protected_acceptance",
+      "scenario_id": "dualcaster-opt-copy",
+      "referee_evaluator_id": "evaluate_f3",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "Dualcaster Mage cast in response to Opt uses a real ETB triggered-ability object; the spell copy is a real stack object; resolving the copy does not put a card into a graveyard.",
+      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
       "required_prerequisites": {
         "cards": [
-          "twinflame"
+          "Dualcaster Mage"
         ],
         "mechanisms": [
           "F"
@@ -1733,42 +1978,57 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "F3:transition",
-          "event_type": "replay_completed",
-          "minimum": 1,
-          "source_object_id": "acceptance-f3:object:1"
+          "predicate_id": "F3:1",
+          "event_type": "spell_cast",
+          "minimum": 1
         },
         {
-          "predicate_id": "F3:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "F3"
-          }
+          "predicate_id": "F3:2",
+          "event_type": "trigger_created",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F3:3",
+          "event_type": "trigger_put_on_stack",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F3:4",
+          "event_type": "spell_copied",
+          "minimum": 1
+        },
+        {
+          "predicate_id": "F3:5",
+          "event_type": "spell_resolved",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "Dualcaster Mage cast in response to Opt uses a real ETB triggered-ability object; the spell copy is a real stack object; resolving the copy does not put a card into a graveyard."
+      ]
     },
     {
       "acceptance_id": "G1",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G1_assert_g1",
-      "scenario_id": "acceptance-g1",
-      "assertion_id": "assert_g1",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G1_protected_acceptance",
+      "scenario_id": "acceptance-collection-gate",
+      "referee_evaluator_id": "evaluate_g1",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "`validate-prepolicy-readiness` and `mtg-sim recovery kernel` fail if A1, B1, C1, D4, or D7 is missing, skipped, xfailed, or absent from pytest collection.",
+      "required_production_entrypoint": "scripts/validate_phase_a_reference_suite.py",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Control Plane Fixture"
         ],
         "mechanisms": [
           "G"
@@ -1779,42 +2039,37 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "G1:transition",
-          "event_type": "control_gate_verified",
-          "minimum": 1,
-          "source_object_id": "acceptance-g1:object:1"
-        },
-        {
-          "predicate_id": "G1:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "G1"
-          }
+          "predicate_id": "G1:1",
+          "event_type": "acceptance_collection_validated",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "`validate-prepolicy-readiness` and `mtg-sim recovery kernel` fail if A1, B1, C1, D4, or D7 is missing, skipped, xfailed, or absent from pytest collection."
+      ]
     },
     {
       "acceptance_id": "G2",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G2_assert_g2",
-      "scenario_id": "acceptance-g2",
-      "assertion_id": "assert_g2",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G2_protected_acceptance",
+      "scenario_id": "architecture-import-gate",
+      "referee_evaluator_id": "evaluate_g2",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "`scripts/check_architecture_invariants.py` passes and the new kernel imports no legacy engine, legacy game executor, phase patch, or pilot module.",
+      "required_production_entrypoint": "scripts/check_architecture_invariants.py",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Control Plane Fixture"
         ],
         "mechanisms": [
           "G"
@@ -1825,42 +2080,37 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "G2:transition",
-          "event_type": "control_gate_verified",
-          "minimum": 1,
-          "source_object_id": "acceptance-g2:object:1"
-        },
-        {
-          "predicate_id": "G2:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "G2"
-          }
+          "predicate_id": "G2:1",
+          "event_type": "architecture_gate_validated",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "`scripts/check_architecture_invariants.py` passes and the new kernel imports no legacy engine, legacy game executor, phase patch, or pilot module."
+      ]
     },
     {
       "acceptance_id": "G3",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G3_assert_g3",
-      "scenario_id": "acceptance-g3",
-      "assertion_id": "assert_g3",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G3_protected_acceptance",
+      "scenario_id": "frozen-source-gate",
+      "referee_evaluator_id": "evaluate_g3",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "This specification and `automation/frozen-spec-sha256.txt` are unchanged from `main`; CI verifies both the content hash and the PR diff.",
+      "required_production_entrypoint": "scripts/check_manifest.py",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Control Plane Fixture"
         ],
         "mechanisms": [
           "G"
@@ -1871,42 +2121,37 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "G3:transition",
-          "event_type": "control_gate_verified",
-          "minimum": 1,
-          "source_object_id": "acceptance-g3:object:1"
-        },
-        {
-          "predicate_id": "G3:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "G3"
-          }
+          "predicate_id": "G3:1",
+          "event_type": "frozen_sources_validated",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "This specification and `automation/frozen-spec-sha256.txt` are unchanged from `main`; CI verifies both the content hash and the PR diff."
+      ]
     },
     {
       "acceptance_id": "G4",
-      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G4_assert_g4",
-      "scenario_id": "acceptance-g4",
-      "assertion_id": "assert_g4",
-      "required_production_entrypoint": "mtg_kernel.executor.GameExecutor.run",
-      "consumes": [
+      "reference_node_id": "tests/phase_a_acceptance/test_reference_contract.py::test_G4_protected_acceptance",
+      "scenario_id": "workflow-pilot-lock",
+      "referee_evaluator_id": "evaluate_g4",
+      "raw_evidence_fields": [
         "initial_state",
         "actions",
         "events",
         "decisions",
-        "objects",
         "card_instances",
+        "objects",
         "state_snapshots",
         "receipts",
-        "final_state"
+        "final_state",
+        "external_ledger",
+        "rng_streams",
+        "run_manifest",
+        "replay"
       ],
+      "expected_transition_or_invariant": "The existing 500/200 production pilot remains locked. Phase A may run only its own recovery gate and non-production fixtures.",
+      "required_production_entrypoint": "scripts/check_production_pilot_lock.py",
       "required_prerequisites": {
         "cards": [
-          "sol-ring"
+          "Control Plane Fixture"
         ],
         "mechanisms": [
           "G"
@@ -1917,21 +2162,16 @@
       },
       "event_state_predicates": [
         {
-          "predicate_id": "G4:transition",
-          "event_type": "control_gate_verified",
-          "minimum": 1,
-          "source_object_id": "acceptance-g4:object:1"
+          "predicate_id": "G4:1",
+          "event_type": "workflow_tree_validated",
+          "minimum": 1
         },
         {
-          "predicate_id": "G4:final",
-          "event_type": "scenario_completed",
-          "minimum": 1,
-          "payload_equals": {
-            "acceptance_id": "G4"
-          }
+          "predicate_id": "G4:2",
+          "event_type": "production_pilot_lock_validated",
+          "minimum": 1
         }
-      ],
-      "requirement_text": "The existing 500/200 production pilot remains locked. Phase A may run only its own recovery gate and non-production fixtures. ---"
+      ]
     }
   ]
 }

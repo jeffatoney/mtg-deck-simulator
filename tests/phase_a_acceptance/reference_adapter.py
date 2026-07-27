@@ -43,6 +43,11 @@ TRUST_BEARING_FIELDS = {
     "valid",
     "legal",
     "correct",
+    "verdict",
+    "compliant",
+    "satisfied",
+    "success",
+    "status",
 }
 
 
@@ -157,6 +162,8 @@ def _validate_hash_chain(result: dict[str, Any]) -> None:
     for event in events:
         assert event["pre_state_hash"] == previous
         assert event["post_state_hash"]
+        snapshot = result["state_snapshots"][event["sequence"]]
+        assert canonical_hash(snapshot) == event["post_state_hash"]
         assert event.get("parent_action_id") is None or event["parent_action_id"] in actions
         assert event.get("parent_event_id") is None or event["parent_event_id"] in event_ids
         assert not terminal_seen, "event after terminal state"
@@ -215,6 +222,9 @@ def _validate_analytics(result: dict[str, Any]) -> None:
     for decision in result["decisions"]:
         assert decision["legal_actions"] or decision.get("forced_pass_reason")
         assert canonical_hash(decision["legal_actions"]) == decision["action_set_hash"]
+        legal_ids = {action["action_id"] for action in decision["legal_actions"]}
+        assert decision["selected_action_id"] in legal_ids
+        assert "library_order" not in decision.get("policy_observation", {})
     if "run_manifest" in result:
         manifest = result["run_manifest"]
         assert {
@@ -249,6 +259,11 @@ def assert_causally_live(result: dict[str, Any]) -> None:
     transitions = {
         (e["parent_action_id"], e["pre_state_hash"], e["post_state_hash"]) for e in result["events"]
     }
+    event_ids = {e["event_id"] for e in result["events"]}
+    game_ids = {e["game_id"] for e in result["events"]}
+    staged_source = (ROOT / "src").resolve()
+    for call in beneath:
+        assert Path(call["filename"]).resolve().is_relative_to(staged_source)
     receipt_services = set()
     for receipt in result["receipts"]:
         assert {
@@ -262,11 +277,15 @@ def assert_causally_live(result: dict[str, Any]) -> None:
             "post_state_hash",
             "causal_event_ids",
         } <= receipt.keys()
+        assert receipt["game_id"] in game_ids
+        assert receipt["causal_event_ids"]
+        assert set(receipt["causal_event_ids"]) <= event_ids
         assert (
             receipt["action_id"],
             receipt["pre_state_hash"],
             receipt["post_state_hash"],
         ) in transitions
+        assert receipt["pre_state_hash"] != receipt["post_state_hash"]
         assert any(
             r["action_id"] == receipt["action_id"]
             and r["qualname"].startswith(receipt["service"] + ".")
@@ -371,9 +390,9 @@ def validate_replay_artifact(original: dict[str, Any], replay: dict[str, Any]) -
 def assert_acceptance(
     result: dict[str, Any], mapping: dict[str, Any], scenario: dict[str, Any]
 ) -> None:
-    assert mapping["assertion_id"] == scenario["assertion_id"]
-    assertion = globals().get(str(mapping["assertion_id"]))
-    assert callable(assertion), f"missing protected assertion: {mapping['assertion_id']}"
+    assert mapping["referee_evaluator_id"] == scenario["assertion_id"]
+    assertion = globals().get(str(mapping["referee_evaluator_id"]))
+    assert callable(assertion), f"missing protected evaluator: {mapping['referee_evaluator_id']}"
     assertion(result, scenario)
     assert_causally_live(result)
 
@@ -385,11 +404,15 @@ def _assert_requirement(
     assert_predicates(result, scenario["expected_state_transition_predicates"])
     assert_predicates(result, scenario["expected_final_state_predicates"])
     special = {
-        "assert_a1": _assert_sol_ring,
-        "assert_b1": _assert_lantern,
-        "assert_c6": _assert_glint_horn,
-        "assert_e2": _assert_commit_external,
-        "assert_f2": _assert_dualcaster_twinflame,
+        "evaluate_a1": _assert_sol_ring,
+        "evaluate_b1": _assert_lantern,
+        "evaluate_c1": _assert_cleanup_damage,
+        "evaluate_c6": _assert_glint_horn,
+        "evaluate_d4": _assert_commit_external,
+        "evaluate_d7": _assert_memory_actions,
+        "evaluate_e2": _assert_commit_external,
+        "evaluate_f2": _assert_dualcaster_twinflame,
+        "evaluate_g4": _assert_pilot_lock,
     }.get(assertion_id)
     if special:
         special(result)
@@ -402,6 +425,36 @@ def _ordered(result: dict[str, Any], *types: str) -> list[dict[str, Any]]:
         positions.append(event)
     assert [e["sequence"] for e in positions] == sorted(e["sequence"] for e in positions)
     return positions
+
+
+def _assert_cleanup_damage(result: dict[str, Any]) -> None:
+    marked, cleanup, next_turn = _ordered(
+        result, "damage_marked", "cleanup_completed", "turn_changed"
+    )
+    assert result["state_snapshots"][marked["sequence"]]["marked_damage"]
+    assert not result["state_snapshots"][cleanup["sequence"]]["marked_damage"]
+    assert not result["state_snapshots"][next_turn["sequence"]]["marked_damage"]
+
+
+def _assert_memory_actions(result: dict[str, Any]) -> None:
+    memory = [
+        action
+        for action in result["actions"]
+        if action.get("oracle_name") == "Memory" or action.get("face") == "Memory"
+    ]
+    assert memory
+    assert all(action.get("origin_zone") == "graveyard" for action in memory)
+    assert all(action.get("targets") in ([], ()) for action in memory)
+    assert all("target" not in action or action["target"] is None for action in memory)
+
+
+def _assert_pilot_lock(result: dict[str, Any]) -> None:
+    # G4 is grounded in the protected workflow tree, not candidate metadata.
+    import runpy
+
+    check = runpy.run_path(str(ROOT / "scripts/check_production_pilot_lock.py"))["check"]
+    assert check(ROOT)["status"] == "PASS"
+    assert not (ROOT / ".github/workflows/pilot-simulation.yml").exists()
 
 
 def _assert_sol_ring(result: dict[str, Any]) -> None:
@@ -498,169 +551,169 @@ def load_scenario(scenario_id: str) -> dict[str, Any]:
 # Explicit frozen acceptance assertions. Each manifest entry resolves to one.
 
 
-def assert_a1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_a1")
+def evaluate_a1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_a1")
 
 
-def assert_a2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_a2")
+def evaluate_a2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_a2")
 
 
-def assert_a3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_a3")
+def evaluate_a3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_a3")
 
 
-def assert_a4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_a4")
+def evaluate_a4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_a4")
 
 
-def assert_a5(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_a5")
+def evaluate_a5(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_a5")
 
 
-def assert_a6(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_a6")
+def evaluate_a6(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_a6")
 
 
-def assert_a7(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_a7")
+def evaluate_a7(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_a7")
 
 
-def assert_b1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_b1")
+def evaluate_b1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_b1")
 
 
-def assert_b2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_b2")
+def evaluate_b2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_b2")
 
 
-def assert_b3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_b3")
+def evaluate_b3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_b3")
 
 
-def assert_b4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_b4")
+def evaluate_b4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_b4")
 
 
-def assert_b5(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_b5")
+def evaluate_b5(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_b5")
 
 
-def assert_b6(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_b6")
+def evaluate_b6(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_b6")
 
 
-def assert_c1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_c1")
+def evaluate_c1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_c1")
 
 
-def assert_c2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_c2")
+def evaluate_c2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_c2")
 
 
-def assert_c3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_c3")
+def evaluate_c3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_c3")
 
 
-def assert_c4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_c4")
+def evaluate_c4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_c4")
 
 
-def assert_c5(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_c5")
+def evaluate_c5(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_c5")
 
 
-def assert_c6(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_c6")
+def evaluate_c6(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_c6")
 
 
-def assert_c7(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_c7")
+def evaluate_c7(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_c7")
 
 
-def assert_c8(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_c8")
+def evaluate_c8(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_c8")
 
 
-def assert_d1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_d1")
+def evaluate_d1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_d1")
 
 
-def assert_d2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_d2")
+def evaluate_d2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_d2")
 
 
-def assert_d3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_d3")
+def evaluate_d3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_d3")
 
 
-def assert_d4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_d4")
+def evaluate_d4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_d4")
 
 
-def assert_d5(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_d5")
+def evaluate_d5(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_d5")
 
 
-def assert_d6(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_d6")
+def evaluate_d6(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_d6")
 
 
-def assert_d7(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_d7")
+def evaluate_d7(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_d7")
 
 
-def assert_d8(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_d8")
+def evaluate_d8(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_d8")
 
 
-def assert_d9(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_d9")
+def evaluate_d9(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_d9")
 
 
-def assert_e1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_e1")
+def evaluate_e1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_e1")
 
 
-def assert_e2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_e2")
+def evaluate_e2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_e2")
 
 
-def assert_e3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_e3")
+def evaluate_e3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_e3")
 
 
-def assert_e4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_e4")
+def evaluate_e4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_e4")
 
 
-def assert_e5(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_e5")
+def evaluate_e5(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_e5")
 
 
-def assert_f1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_f1")
+def evaluate_f1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_f1")
 
 
-def assert_f2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_f2")
+def evaluate_f2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_f2")
 
 
-def assert_f3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_f3")
+def evaluate_f3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_f3")
 
 
-def assert_g1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_g1")
+def evaluate_g1(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_g1")
 
 
-def assert_g2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_g2")
+def evaluate_g2(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_g2")
 
 
-def assert_g3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_g3")
+def evaluate_g3(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_g3")
 
 
-def assert_g4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
-    _assert_requirement(result, scenario, "assert_g4")
+def evaluate_g4(result: dict[str, Any], scenario: dict[str, Any]) -> None:
+    _assert_requirement(result, scenario, "evaluate_g4")

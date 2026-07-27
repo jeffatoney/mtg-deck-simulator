@@ -301,7 +301,7 @@ def test_control_plane_bootstrap_positive_path(tmp_path: Path) -> None:
         target = referee / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes((ROOT / relative).read_bytes())
-    reference = referee / "tests/phase_a_reference"
+    reference = referee / "tests/phase_a_acceptance"
     reference.mkdir(parents=True)
     reference.joinpath("test_bootstrap.py").write_text(
         "import dataclasses, enum, json, pathlib, sys, typing, pytest\n"
@@ -440,7 +440,7 @@ def test_pilot_lock_ignores_comments_and_unrelated_commands(tmp_path: Path) -> N
 
 
 def test_malicious_all_claims_facade_is_rejected() -> None:
-    from tests.phase_a_reference.reference_adapter import REQUIRED_SERVICES, validate_raw_artifact
+    from tests.phase_a_acceptance.reference_adapter import REQUIRED_SERVICES, validate_raw_artifact
 
     facade = {
         "satisfied_acceptance_ids": [
@@ -506,7 +506,7 @@ def test_referee_liveness_rejects_disconnected_evidence(mode: str) -> None:
     ["empty-events", "empty-decisions", "missing-field", "duplicate-id", "strategic-label"],
 )
 def test_analytics_referee_rejects_invalid_artifacts(defect: str) -> None:
-    from tests.phase_a_reference.reference_adapter import _validate_analytics
+    from tests.phase_a_acceptance.reference_adapter import _validate_analytics
 
     event = {
         "schema_version": 1,
@@ -557,13 +557,12 @@ def test_golden_fixtures_are_honestly_unreviewed() -> None:
     fixtures = list((ROOT / "tests/fixtures/golden-replays").glob("*.json"))
     assert len(fixtures) == 9
     assert all(
-        json.loads(path.read_text())["review_status"] == "draft-needs-human-review"
-        for path in fixtures
+        json.loads(path.read_text())["review_status"] == "draft-unreviewed" for path in fixtures
     )
 
 
 def test_candidate_verdict_fields_are_rejected_recursively() -> None:
-    from tests.phase_a_reference.reference_adapter import reject_candidate_verdicts
+    from tests.phase_a_acceptance.reference_adapter import reject_candidate_verdicts
 
     for field in (
         "satisfied_acceptance_ids",
@@ -597,7 +596,7 @@ def test_reference_manifest_uses_exact_acceptance_nodes() -> None:
     "field", ["actions", "events", "rng_streams", "external_ledger", "objects", "final_state"]
 )
 def test_replay_tampering_is_rejected(field: str) -> None:
-    from tests.phase_a_reference.reference_adapter import validate_replay_artifact
+    from tests.phase_a_acceptance.reference_adapter import validate_replay_artifact
 
     original = {name: [] for name in ("actions", "events", "external_ledger", "objects")}
     original.update({"rng_streams": {"game": 1}, "final_state": {"life_totals": {"p1": 40}}})
