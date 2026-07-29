@@ -22,20 +22,23 @@ Start only after the engine-preparation pull request has merged to `main`.
 Read these sources in order:
 
 1. `AGENTS.md`
-2. `docs/source/MagicCompRules_2026-06-19.txt`
-3. the frozen Oracle snapshot under `docs/source/oracle/`
-4. `docs/spec/LEAGUE_MULLIGAN.md`
-5. `docs/spec/identity/IDENTITY_MODEL_V2.0.0.md`
-6. `docs/spec/identity/IDENTITY_MODEL_V2.0.0_APPROVAL_RECORD.json`
-7. `docs/spec/identity/IDENTITY_MODEL_V2.0.0_LOCK_MANIFEST.txt`
-8. `docs/spec/ENGINE_BUILD_PHASE_A.md`
-9. `docs/architecture/LEGACY_QUARANTINE.md`
+2. `docs/governance/PHASE_A_AUTHORITY_MAP.md`
+3. `automation/phase-a-authority-map.json`
+4. `docs/source/MagicCompRules_2026-06-19.txt`
+5. the frozen Oracle snapshot under `docs/source/oracle/`
+6. `docs/spec/LEAGUE_MULLIGAN.md`
+7. `docs/spec/identity/IDENTITY_MODEL_V2.0.0.md`
+8. `docs/spec/identity/IDENTITY_MODEL_V2.0.0_APPROVAL_RECORD.json`
+9. `docs/spec/identity/IDENTITY_MODEL_V2.0.0_LOCK_MANIFEST.txt`
+10. `docs/spec/ENGINE_BUILD_PHASE_A.md`
+11. `docs/architecture/LEGACY_QUARANTINE.md`
 
 Before implementation, run:
 
 ```bash
 uv sync --frozen --all-extras
 uv run python scripts/check_identity_lock.py
+uv run python scripts/check_phase_a_authority.py
 uv run python scripts/check_clean_engine_boundary.py
 uv run ruff format --check .
 uv run ruff check .
@@ -45,11 +48,13 @@ uv run python scripts/check_manifest.py
 uv run mtg-sim validate-sources
 ```
 
-Record the exact starting commit and results. If the frozen identity check fails, stop. Do not regenerate, weaken, or replace the approved specification.
+Record the exact starting commit and results. If the frozen identity or Phase A authority check fails, stop. Do not regenerate, weaken, or replace the approved specification or authority map.
 
 ## Authority and decision rule
 
 The Comprehensive Rules and frozen Oracle records determine Magic behavior. The league mulligan file is the only league override. The frozen identity model determines object identity, references, hidden identities, hashing, and supported continuity scope.
+
+The classification in `docs/governance/PHASE_A_AUTHORITY_MAP.md` is binding for what may be used as implementation authority or Phase A evidence. Pre-V2 architecture documents, numbered prompts, legacy tests, old reports, and unmerged recovery branches are archival reference only. They may suggest scenarios or failure modes, but every imported idea must be revalidated against the active binding sources.
 
 When implementation details are not selected by Magic rules, choose a deterministic, testable, fail-closed design that preserves the experiment and follows the frozen specification. Do not ask the owner to decide ordinary software representation choices. Stop only for a genuine experiment, scope, or policy decision that cannot be derived from the binding sources or reliability requirements.
 
@@ -210,7 +215,7 @@ Add a dedicated command:
 uv run mtg-sim engine verify-phase-a
 ```
 
-It must run the clean-boundary check, frozen-identity check, Phase A test mapping, production-path acceptance suite, replay validation, and pilot-lock validation.
+It must run the clean-boundary check, frozen-identity check, Phase A authority check, Phase A test mapping, production-path acceptance suite, replay validation, and pilot-lock validation.
 
 Write an immutable result artifact under:
 
@@ -229,6 +234,7 @@ The artifact must include:
 - mapping from every blocking identity requirement to test nodes;
 - Oracle and rules source hashes;
 - architecture-boundary result;
+- authority-map result and evidence classification;
 - replay and hash result;
 - remaining unsupported capabilities;
 - final `PASS` or `FAIL`.
@@ -240,14 +246,17 @@ Skipped, xfailed, missing, or helper-only blocking tests are failures.
 Do not:
 
 - edit the frozen V2 identity document, approval record, or lock manifest;
+- edit or weaken the Phase A authority classification to admit legacy evidence;
 - delete or rename `src/mtg_sim/`;
 - close or merge stale pull requests;
+- reactivate `.github/workflows/pilot-simulation.yml`;
 - run the 500/200 pilot or 25,000-game study;
 - migrate the remaining deck cards;
 - use live Oracle or Gatherer retrieval in tests or CI;
 - weaken a requirement to make a test pass;
 - fabricate human approval for a transcript or result;
-- report the legacy executor as the clean engine.
+- report the legacy executor as the clean engine;
+- use archival material as authority without revalidation against active binding sources.
 
 ## Final checks
 
@@ -256,6 +265,7 @@ Run and report:
 ```bash
 uv sync --frozen --all-extras
 uv run python scripts/check_identity_lock.py
+uv run python scripts/check_phase_a_authority.py
 uv run python scripts/check_clean_engine_boundary.py
 uv run ruff format --check .
 uv run ruff check .
@@ -266,7 +276,7 @@ uv run mtg-sim validate-sources
 uv run mtg-sim engine verify-phase-a
 ```
 
-Do not report GO unless every blocking Phase A requirement passes through the clean production path, the repository is clean at the tested commit, replay is real, hidden-information checks pass, and the production pilot remains locked.
+Do not report GO unless every blocking Phase A requirement passes through the clean production path, the authority classification passes, the repository is clean at the tested commit, replay is real, hidden-information checks pass, and the production pilot remains locked.
 
 ## Return
 
