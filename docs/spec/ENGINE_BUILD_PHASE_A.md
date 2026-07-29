@@ -8,6 +8,9 @@
 - frozen Oracle records under `docs/source/oracle/`
 - `docs/spec/LEAGUE_MULLIGAN.md`
 - frozen `docs/spec/identity/IDENTITY_MODEL_V2.0.0.md` and its approval record
+- `docs/governance/PHASE_A_AUTHORITY_MAP.md` and `automation/phase-a-authority-map.json`
+
+The authority map classifies superseded prompts, architecture documents, tests, reports, workflows, and legacy execution as archival or prohibited evidence. Inclusion in Git history or `HANDOFF_MANIFEST.json` proves preservation only and does not make an item current authority.
 
 ## 1. Purpose
 
@@ -150,6 +153,7 @@ Phase A may be called complete only when all of the following are true on one cl
 [ ] src/mtg_kernel and src/mtg_cards contain the production implementation.
 [ ] Neither clean package imports or delegates to mtg_sim.
 [ ] The frozen identity digest and lock records verify.
+[ ] The Phase A authority map passes and the legacy pilot workflow is absent.
 [ ] Every blocking identity requirement has executable passing tests.
 [ ] The representative real cards load complete frozen Oracle records.
 [ ] Required scenarios execute through the clean production path.
@@ -174,8 +178,9 @@ Phase A does not:
 - run the 25,000-game study;
 - delete the legacy package;
 - merge or reuse stale recovery control-plane branches;
+- treat archival materials or legacy execution as acceptance evidence;
 - implement unsupported side formats or every CR 400.7 capability.
 
 ## 8. Removal and transition rule
 
-No legacy file, workflow, branch, or pull request is deleted or closed as part of this preparation contract without owner approval. See `docs/architecture/ENGINE_TRANSITION_REMOVALS.md` for the proposed sequence.
+No legacy file, workflow, branch, or pull request is deleted or closed as part of this preparation contract without owner approval. The owner approved closing PR #31 without merging and disabling the active legacy pilot workflow on 2026-07-29. See `docs/architecture/ENGINE_TRANSITION_REMOVALS.md` for the recorded sequence.
