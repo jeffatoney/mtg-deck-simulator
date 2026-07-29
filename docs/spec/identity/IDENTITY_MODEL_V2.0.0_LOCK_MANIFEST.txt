@@ -1,0 +1,13 @@
+IDENTITY_MODEL_V2.0.0 LOCK MANIFEST
+Status: FROZEN_BINDING_FOR_PHASE_A
+Approved by: Jeff Toney
+Approved at: 2026-07-29T03:02:00-07:00
+Repository: jeffatoney/mtg-deck-simulator
+Branch: main
+Canonical approved document: docs/spec/identity/IDENTITY_MODEL_V2.0.0.md
+Repository document commit SHA: 725cc699ca5fee3b5b1a1e33bdd20829713f7d05
+Repository document blob SHA: 96be85d4223d04d7f1997e1d47eb8d92701e1e49
+Document SHA-256: c839c16aa08ed6053233745fd2a35c38cbe4aadb16423ecac3d5390999af3ce6
+Approval statement: APPROVE IDENTITY_MODEL_V2.0.0 SHA256 c839c16aa08ed6053233745fd2a35c38cbe4aadb16423ecac3d5390999af3ce6
+
+The Markdown bytes remain unchanged after approval. The companion approval record supplies the freeze transition and effective binding status.
