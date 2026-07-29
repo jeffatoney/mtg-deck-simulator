@@ -27,7 +27,9 @@ jobs:
       - name: Clean engine legacy boundary
         run: uv run python scripts/check_clean_engine_boundary.py
       - name: Format
-        run: uv run ruff format --check .
+        run: |
+          uv run ruff format --diff scripts/check_identity_lock.py scripts/check_clean_engine_boundary.py
+          uv run ruff format --check .
       - name: Lint
         run: uv run ruff check .
       - name: Type check
