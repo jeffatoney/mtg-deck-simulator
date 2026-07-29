@@ -55,6 +55,7 @@ jobs:
           uv run mypy src
           uv run pytest -q
           uv run mtg-sources validate-sources
+          git add -A
           uv run python scripts/check_manifest.py
 
       - name: Commit corrected hardening
