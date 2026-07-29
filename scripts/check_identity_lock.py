@@ -8,9 +8,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-APPROVAL_PATH = (
-    ROOT / "docs/spec/identity/IDENTITY_MODEL_V2.0.0_APPROVAL_RECORD.json"
-)
+APPROVAL_PATH = ROOT / "docs/spec/identity/IDENTITY_MODEL_V2.0.0_APPROVAL_RECORD.json"
 MANIFEST_PATH = ROOT / "docs/spec/identity/IDENTITY_MODEL_V2.0.0_LOCK_MANIFEST.txt"
 EXPECTED_STATUS = "FROZEN_BINDING_FOR_PHASE_A"
 
