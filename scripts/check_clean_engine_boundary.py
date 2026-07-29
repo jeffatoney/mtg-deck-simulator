@@ -33,18 +33,22 @@ def _scan_file(path: Path) -> list[str]:
             for alias in node.names:
                 if _is_forbidden_module(alias.name):
                     findings.append(
-                        f"{path.relative_to(ROOT)}:{node.lineno}: forbidden import {alias.name}"
+                        f"{path.relative_to(ROOT)}:{node.lineno}: "
+                        f"forbidden import {alias.name}"
                     )
         elif isinstance(node, ast.ImportFrom):
             if node.module and _is_forbidden_module(node.module):
                 findings.append(
-                    f"{path.relative_to(ROOT)}:{node.lineno}: forbidden import from {node.module}"
+                    f"{path.relative_to(ROOT)}:{node.lineno}: "
+                    f"forbidden import from {node.module}"
                 )
         elif isinstance(node, ast.Call) and node.args:
             function_name: str | None = None
             if isinstance(node.func, ast.Name):
                 function_name = node.func.id
-            elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+            elif isinstance(node.func, ast.Attribute) and isinstance(
+                node.func.value, ast.Name
+            ):
                 function_name = f"{node.func.value.id}.{node.func.attr}"
 
             if function_name in {"__import__", "importlib.import_module"}:
@@ -59,7 +63,9 @@ def _scan_file(path: Path) -> list[str]:
 
 
 def main() -> int:
-    missing = [str(path.relative_to(ROOT)) for path in CLEAN_ROOTS if not path.is_dir()]
+    missing = [
+        str(path.relative_to(ROOT)) for path in CLEAN_ROOTS if not path.is_dir()
+    ]
     findings: list[str] = []
     scanned_files = 0
 
