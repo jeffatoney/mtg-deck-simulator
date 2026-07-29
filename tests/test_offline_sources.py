@@ -1,18 +1,19 @@
-"""Rules-gate tests for committed offline Scryfall sources."""
+"""Source-validation tests for the committed offline Scryfall snapshot.
+
+SOURCE_VALIDATION_ONLY. These assert that the frozen deck, snapshot, and behavior
+registry files agree with each other and with their recorded hashes. They make no
+claim about rules behavior.
+
+The legacy behavior-primitive assertions that used to live here moved to
+legacy/tests/test_legacy_behavior_primitives.py: they exercised `mtg_sim.behaviors`,
+which is quarantined rules logic and is PROHIBITED_AS_PHASE_A_EVIDENCE.
+"""
 
 from __future__ import annotations
 
 import json
 
-from mtg_sim.behaviors import (
-    EXECUTABLE_IMPLEMENTATIONS,
-    LibraryState,
-    MalcolmDamageEvent,
-    curiosity_draws,
-    glint_horn_damage,
-    malcolm_treasures,
-)
-from mtg_sim.offline_sources import (
+from mtg_sources.offline_sources import (
     DATA_BEHAVIORS_PATH,
     REPORT_PATH,
     SNAPSHOT_BEHAVIORS_PATH,
@@ -64,31 +65,7 @@ def test_card_behavior_files_are_identical() -> None:
     assert DATA_BEHAVIORS_PATH.read_bytes() == SNAPSHOT_BEHAVIORS_PATH.read_bytes()
 
 
-def test_behavior_declarations_are_not_all_executable_yet() -> None:
-    declared = {entry.implementation for entry in load_behavior_registry()}
-    missing = declared - EXECUTABLE_IMPLEMENTATIONS
-    assert missing
-
-
 def test_report_blocks_pilot_until_rules_engine_tests_pass() -> None:
     report = json.loads(REPORT_PATH.read_text(encoding="utf-8"))
     assert report["rules_engine_tests_status"] == "PENDING"
     assert report["pilot_allowed_under_original_requirements"] is False
-
-
-def test_malcolm_treasures_are_opponent_dependent() -> None:
-    assert malcolm_treasures(MalcolmDamageEvent((True, False, True))) == 2
-    assert malcolm_treasures(MalcolmDamageEvent((False, False, False))) == 0
-
-
-def test_empty_library_draw_fails_closed() -> None:
-    try:
-        curiosity_draws(1, LibraryState(0))
-    except ValueError as exc:
-        assert "empty" in str(exc)
-    else:  # pragma: no cover
-        raise AssertionError("drawing from an empty library must fail closed")
-
-
-def test_glint_horn_damage_scales_per_discard_and_opponent() -> None:
-    assert glint_horn_damage(discarded_cards=2, opponents=3) == 6

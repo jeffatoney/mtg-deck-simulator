@@ -75,3 +75,12 @@ During Phases A and B:
 ## Change control
 
 Changing an `ACTIVE_BINDING` source, promoting an archival item to binding status, reactivating a pilot workflow, or allowing legacy execution as acceptance evidence requires an explicit reviewed repository change. Changes to the frozen identity model additionally require a new version, digest, and owner approval.
+
+
+## Machine-enforcement boundary
+
+CI verifies this classification's structure, required references, and forbidden or
+required paths. CI does not yet inspect Phase A result artifacts for evidence labels.
+Artifact-level enforcement belongs to the future `mtg-engine verify-phase-a` result
+validator. Until that exists, evidence labels are a binding review requirement rather
+than an artifact-level machine check.

@@ -23,16 +23,27 @@ dev = [
 ]
 
 [project.scripts]
-mtg-sim = "mtg_sim.cli:app"
+# The former `mtg-sim` entry point is deliberately gone. It exposed the legacy
+# rules engine, the coverage counters, and the 500/200 pilot -- all classified
+# PROHIBITED_AS_PHASE_A_EVIDENCE. Source validation survives on its own command.
+mtg-sources = "mtg_sources.cli:app"
 
 [build-system]
 requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mtg_sim", "src/mtg_kernel", "src/mtg_cards"]
+# `legacy/mtg_sim` is intentionally absent. The legacy engine remains in the tree as
+# readable evidence but is NOT an installed package, so it is not importable from any
+# environment built from this project. This is the primary clean-engine boundary:
+# every dynamic-import bypass of a static scanner still fails with ModuleNotFoundError.
+# See docs/architecture/LEGACY_QUARANTINE.md.
+packages = ["src/mtg_sources", "src/mtg_kernel", "src/mtg_cards"]
 
 [tool.pytest.ini_options]
+# `legacy/tests` is intentionally outside testpaths. Those tests exercise the legacy
+# engine and are classified ARCHIVAL_REFERENCE_ONLY by the Phase A authority map; a
+# merge gate must not depend on archival material.
 testpaths = ["tests"]
 addopts = "--strict-markers --strict-config"
 

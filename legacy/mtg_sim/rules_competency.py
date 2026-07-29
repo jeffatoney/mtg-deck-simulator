@@ -30,13 +30,13 @@ from mtg_sim.engine import (
     use_single_tutor_for_combo_halves,
     wizardcycle,
 )
-from mtg_sim.offline_sources import audit_offline_snapshot, build_simulation_deck
+from mtg_sources.offline_sources import audit_offline_snapshot, build_simulation_deck
 from mtg_sim.phase5d_cards import (
     activate_crab_umbra_untap,
     activate_lightning_rig_crew,
     pirate_damage_event,
 )
-from mtg_sim.source_validation import REQUIRED_SOURCE_FILES, validate_sources
+from mtg_sources.source_validation import REQUIRED_SOURCE_FILES, validate_sources
 
 
 @dataclass(frozen=True, slots=True)

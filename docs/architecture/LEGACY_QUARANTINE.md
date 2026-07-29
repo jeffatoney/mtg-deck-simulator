@@ -4,15 +4,22 @@
 
 ## Purpose
 
-The repository already contains a legacy implementation under `src/mtg_sim/`. It preserves useful source-validation work, deck coverage records, historical tests, and examples, but it is not the rules authority or the production path for the clean Phase A engine.
+The repository already contains a legacy implementation under `legacy/mtg_sim/`. It preserves useful source-validation work, deck coverage records, historical tests, and examples, but it is not the rules authority or the production path for the clean Phase A engine.
 
 Keeping it temporarily avoids destructive cleanup before the replacement engine has independent evidence. Quarantine means isolation, not endorsement.
 
 ## Quarantined path
 
 ```text
-src/mtg_sim/
+legacy/mtg_sim/
 ```
+
+It is deliberately **not an installed package**. `[tool.hatch.build.targets.wheel]`
+in `pyproject.toml` lists only `src/mtg_sources`, `src/mtg_kernel`, and `src/mtg_cards`,
+so `import mtg_sim` fails from any environment built from this project. Quarantine is
+enforced by absence from the import path, not by scanning source text. Deliberate
+reading of the legacy code is still possible with `PYTHONPATH=legacy`, outside CI, and
+never as Phase A evidence.
 
 Existing tests, configurations, reports, and commands that execute this package are also legacy evidence unless a Phase A contract explicitly reclassifies them after independent review.
 

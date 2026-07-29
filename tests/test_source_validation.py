@@ -7,8 +7,8 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from mtg_sim.cli import app
-from mtg_sim.source_validation import EXPECTED_COMMANDERS, validate_sources
+from mtg_sources.cli import app
+from mtg_sources.source_validation import EXPECTED_COMMANDERS, validate_sources
 
 ROOT = Path(__file__).resolve().parents[1]
 

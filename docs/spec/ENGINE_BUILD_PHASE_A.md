@@ -27,7 +27,7 @@ src/mtg_kernel/   card-agnostic game state and universal rules services
 src/mtg_cards/    frozen-Oracle-backed card specifications and primitive compositions
 ```
 
-The current `src/mtg_sim/` package is legacy reference code during the transition.
+The `legacy/mtg_sim/` package is legacy reference code during the transition and is not importable.
 
 The clean packages must not:
 
