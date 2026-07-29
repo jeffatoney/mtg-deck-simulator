@@ -89,7 +89,7 @@ def build_inventory() -> dict[str, Any]:
         )
     return {
         "schema_version": 1,
-        "generated_by": "uv run mtg-sim validate-sources --write-inventory",
+        "generated_by": "uv run mtg-sources validate-sources --write-inventory",
         "entries": entries,
     }
 

@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 
-from mtg_sim.offline_sources import build_simulation_deck
+from mtg_sources.offline_sources import build_simulation_deck
 
 EXECUTABLE_CARDS = {
     "Abrade",

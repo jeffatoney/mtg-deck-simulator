@@ -11,8 +11,13 @@ permissions:
 jobs:
   checks:
     runs-on: ubuntu-latest
+    env:
+      # Repository-controlled external anchor shared by the lock check and its tests.
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
@@ -23,11 +28,26 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --all-extras
       - name: Frozen identity lock integrity
+        # IDENTITY_MODEL_SHA256 comes from a repository VARIABLE, not from the tree.
+        # A pull request cannot change repository settings, so editing the document and
+        # the in-tree constant together still fails here. The checker hard-fails under
+        # GITHUB_ACTIONS if this is unset, so deleting the job-level env block does not
+        # downgrade the gate -- it breaks it. See docs/audit/GATE_KNOWN_LIMITS.md.
         run: uv run python scripts/check_identity_lock.py
       - name: Phase A authority classification
         run: uv run python scripts/check_phase_a_authority.py
-      - name: Clean engine legacy boundary
+      - name: Clean engine legacy boundary (static tripwire)
         run: uv run python scripts/check_clean_engine_boundary.py
+      - name: Legacy package is not importable
+        # The primary boundary. `legacy/mtg_sim` is deliberately not an installed
+        # package, so this import must fail. If it ever succeeds, every static check
+        # above is moot -- see docs/audit/GATE_KNOWN_LIMITS.md.
+        run: |
+          if uv run python -c "import mtg_sim" 2>/dev/null; then
+            echo "FAIL: mtg_sim is importable from the installed environment" >&2
+            exit 1
+          fi
+          echo "PASS: mtg_sim is not importable"
       - name: Format
         run: uv run ruff format --check .
       - name: Lint

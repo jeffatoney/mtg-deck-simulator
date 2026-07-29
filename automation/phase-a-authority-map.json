@@ -19,16 +19,16 @@
     "docs/spec"
   ],
   "source_validation_only": [
-    "src/mtg_sim/source_validation.py",
-    "src/mtg_sim/offline_sources.py",
+    "src/mtg_sources/source_validation.py",
+    "src/mtg_sources/offline_sources.py",
+    "src/mtg_sources/cli.py",
     "scripts/check_manifest.py",
     "docs/source/source_inventory.json"
   ],
   "archival_reference_only_roots": [
     "docs/architecture/decisions",
     "artifacts",
-    "src/mtg_sim",
-    "tests"
+    "legacy"
   ],
   "archival_reference_only_files": [
     "docs/architecture/PROPOSED_ARCHITECTURE.md",
@@ -64,10 +64,17 @@
   ],
   "only_acceptance_evidence_label": "CLEAN_ENGINE_PRODUCTION_PATH",
   "forbidden_active_paths": [
-    ".github/workflows/pilot-simulation.yml"
+    ".github/workflows/pilot-simulation.yml",
+    "src/mtg_sim"
   ],
   "required_archival_paths": [
     "docs/workflows/pilot-simulation.phase-c.yml.template"
   ],
-  "handoff_manifest_semantics": "HISTORICAL_INTEGRITY_ONLY_NOT_CURRENT_AUTHORITY"
+  "handoff_manifest_semantics": "HISTORICAL_INTEGRITY_ONLY_NOT_CURRENT_AUTHORITY",
+  "legacy_import_policy": {
+    "mechanism": "NOT_AN_INSTALLED_PACKAGE",
+    "location": "legacy/mtg_sim",
+    "rationale": "The legacy engine remains in the tree as readable evidence but is absent from [tool.hatch.build.targets.wheel], so it cannot be imported from any environment built from this project. Static scanning is a tripwire over this boundary, not the boundary itself.",
+    "deliberate_access": "PYTHONPATH=legacy, outside CI, never as Phase A evidence"
+  }
 }

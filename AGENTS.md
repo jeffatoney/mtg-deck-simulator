@@ -6,7 +6,7 @@ Build a reproducible, deck-scoped Magic: The Gathering Commander simulator for t
 
 The current task is Phase A: build a clean rules kernel and representative Oracle-backed production-card slice under `src/mtg_kernel/` and `src/mtg_cards/`.
 
-`src/mtg_sim/` is legacy reference code during the transition. New clean-engine packages must not import it, execute it, copy its event-log shortcuts, or treat its tests as proof of Phase A correctness. The legacy package remains present only to preserve repository history and existing checks until its removal is separately approved.
+`legacy/mtg_sim/` is legacy reference code during the transition. It is not an installed package and cannot be imported. New clean-engine packages must not import it, execute it, copy its event-log shortcuts, or treat its tests as proof of Phase A correctness. The legacy package remains present only to preserve repository history and existing checks until its removal is separately approved.
 
 Do not run or resume the older numbered Codex prompt sequence. Use `docs/spec/ENGINE_BUILD_PHASE_A.md` and `prompts/recovery/PHASE_A_ENGINE_BUILD.md`.
 
@@ -75,7 +75,7 @@ These checks apply during preparation and remain part of the implementation gate
 - Type check: `uv run mypy src`
 - Unit and integration tests: `uv run pytest -q`
 - Manifest integrity: `uv run python scripts/check_manifest.py`
-- Source validation: `uv run mtg-sim validate-sources`
+- Source validation: `uv run mtg-sources validate-sources`
 
 Phase A must add a dedicated clean-engine acceptance command and immutable result artifact before it may merge. Existing legacy commands are not Phase A evidence.
 

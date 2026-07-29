@@ -9,13 +9,13 @@ import typer
 
 from mtg_sim.phase5a_cards import ASSIGNED_CARDS
 from mtg_sim.rules_competency import run_competency
-from mtg_sim.offline_sources import build_simulation_deck
+from mtg_sources.offline_sources import build_simulation_deck
 from mtg_sim.pilot import dry_run as run_pilot_dry_run
 from mtg_sim.pilot import run as run_pilot
-from mtg_sim.source_validation import validate_sources as run_source_validation
+from mtg_sources.source_validation import validate_sources as run_source_validation
 from mtg_sim.executable_adapters import validate_executable_coverage as run_executable_coverage
 from mtg_sim.executable_adapters import write_report as write_executable_report
-from mtg_sim.source_validation import write_inventory
+from mtg_sources.source_validation import write_inventory
 
 app = typer.Typer(help="Malcolm and Breeches simulator tooling.")
 

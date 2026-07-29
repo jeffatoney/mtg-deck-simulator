@@ -45,7 +45,7 @@ uv run ruff check .
 uv run mypy src
 uv run pytest -q
 uv run python scripts/check_manifest.py
-uv run mtg-sim validate-sources
+uv run mtg-sources validate-sources
 ```
 
 Record the exact starting commit and results. If the frozen identity or Phase A authority check fails, stop. Do not regenerate, weaken, or replace the approved specification or authority map.
@@ -69,7 +69,7 @@ src/mtg_cards/
 
 The new packages must not import, wrap, subclass, monkey-patch, dynamically load, or delegate to `mtg_sim`.
 
-`src/mtg_sim/` is legacy reference code. It may be read to locate prior scenarios or source artifacts, but its behavior is not authoritative and its outputs are not Phase A evidence.
+`legacy/mtg_sim/` is legacy reference code and is not an importable package. It may be read to locate prior scenarios or source artifacts, but its behavior is not authoritative and its outputs are not Phase A evidence.
 
 The kernel may not branch on a real card name. Named cards are structured Oracle-backed specifications composed from universal primitives.
 
@@ -212,8 +212,10 @@ Tests that patch away production behavior, bypass the executor, or merely assert
 Add a dedicated command:
 
 ```bash
-uv run mtg-sim engine verify-phase-a
+uv run mtg-engine verify-phase-a
 ```
+
+Phase A must add the `mtg-engine` project entry point and its clean `mtg_kernel` CLI implementation. The source-only `mtg-sources` command must remain separate and must never execute rules or simulations.
 
 It must run the clean-boundary check, frozen-identity check, Phase A authority check, Phase A test mapping, production-path acceptance suite, replay validation, and pilot-lock validation.
 
@@ -247,7 +249,7 @@ Do not:
 
 - edit the frozen V2 identity document, approval record, or lock manifest;
 - edit or weaken the Phase A authority classification to admit legacy evidence;
-- delete or rename `src/mtg_sim/`;
+- delete `legacy/mtg_sim/`;
 - close or merge stale pull requests;
 - reactivate `.github/workflows/pilot-simulation.yml`;
 - run the 500/200 pilot or 25,000-game study;
@@ -272,8 +274,8 @@ uv run ruff check .
 uv run mypy src
 uv run pytest -q -ra
 uv run python scripts/check_manifest.py
-uv run mtg-sim validate-sources
-uv run mtg-sim engine verify-phase-a
+uv run mtg-sources validate-sources
+uv run mtg-engine verify-phase-a
 ```
 
 Do not report GO unless every blocking Phase A requirement passes through the clean production path, the authority classification passes, the repository is clean at the tested commit, replay is real, hidden-information checks pass, and the production pilot remains locked.

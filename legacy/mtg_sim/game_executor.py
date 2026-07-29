@@ -25,7 +25,7 @@ from mtg_sim.engine import (
     generate_legal_actions,
     validate_action,
 )
-from mtg_sim.offline_sources import build_simulation_deck
+from mtg_sources.offline_sources import build_simulation_deck
 from mtg_sim.policies import CandidatePolicy, LANDS
 from mtg_sim.rng import ScenarioSeed
 

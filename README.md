@@ -31,7 +31,7 @@ New engine work belongs in:
 - `src/mtg_kernel/` — card-agnostic rules, state, actions, zones, stack, priority, triggers, turn processing, replay, and observations
 - `src/mtg_cards/` — structured Oracle-backed card specifications and primitive compositions
 
-The existing `src/mtg_sim/` implementation is legacy reference code during the transition. The clean packages may not import it, delegate rules execution to it, or use its event logs as substitutes for rules objects. See `docs/architecture/LEGACY_QUARANTINE.md`.
+The `legacy/mtg_sim/` implementation is legacy reference code during the transition and is not an installed package, so it cannot be imported. The clean packages may not import it, delegate rules execution to it, or use its event logs as substitutes for rules objects. See `docs/architecture/LEGACY_QUARANTINE.md`.
 
 ## Safety gates
 
@@ -52,7 +52,7 @@ uv run ruff check .
 uv run mypy src
 uv run pytest -q
 uv run python scripts/check_manifest.py
-uv run mtg-sim validate-sources
+uv run mtg-sources validate-sources
 ```
 
 Phase A will add its own production-path acceptance command and artifacts. Do not treat the legacy smoke executor or legacy pilot command as proof that the clean engine works.

@@ -1,0 +1,28 @@
+# CODEOWNERS identifies the owner for Phase A gate files.
+#
+# This file does not enforce review by itself. It becomes a merge control only when a
+# protected-branch rule or repository ruleset requires code-owner review and prevents
+# the pull-request author from satisfying that review alone. The repository variable
+# IDENTITY_MODEL_V2_SHA256 is the external digest anchor; CODEOWNERS is review metadata.
+#
+# The checkers, CI invocation, packaging boundary, identity files, governance map, and
+# session audit hook are covered so a ruleset can protect the whole gate surface.
+
+# The trusted base: checkers, their CI invocation, and this file itself.
+/scripts/                       @jeffatoney
+/.github/workflows/             @jeffatoney
+/.github/CODEOWNERS             @jeffatoney
+
+# Packaging. The clean-engine boundary is "legacy/mtg_sim is not an installed package",
+# which is one line of pyproject.toml away from being undone.
+/pyproject.toml                 @jeffatoney
+
+# The frozen identity model and its lock.
+/docs/spec/identity/            @jeffatoney
+
+# Governance classification.
+/automation/phase-a-authority-map.json  @jeffatoney
+/docs/governance/               @jeffatoney
+
+# The guard that runs for the whole test session.
+/tests/conftest.py              @jeffatoney
