@@ -1,0 +1,59 @@
+name: Apply reviewed Phase A hardening patch
+
+on:
+  push:
+    branches:
+      - hardening/phase-a-boundaries
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      IDENTITY_MODEL_SHA256: c839c16aa08ed6053233745fd2a35c38cbe4aadb16423ecac3d5390999af3ce6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/phase-a-boundaries
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+
+      - name: Apply reviewed patch and corrections
+        run: |
+          gzip -dc .phase-a-hardening.patch.gz > /tmp/phase-a-hardening.patch
+          git apply --check /tmp/phase-a-hardening.patch
+          git apply /tmp/phase-a-hardening.patch
+          python .phase-a-postprocess.py
+          rm -f .phase-a-hardening.patch.gz .phase-a-postprocess.py
+          rm -f .github/workflows/apply-phase-a-hardening.yml
+
+      - name: Install, format, and validate
+        run: |
+          uv sync --frozen --all-extras
+          uv run ruff format .
+          uv run python scripts/check_identity_lock.py
+          uv run python scripts/check_phase_a_authority.py
+          uv run python scripts/check_clean_engine_boundary.py
+          uv run ruff format --check .
+          uv run ruff check .
+          uv run mypy src
+          uv run pytest -q
+          uv run mtg-sources validate-sources
+          uv run python scripts/check_manifest.py
+
+      - name: Commit corrected hardening
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Harden Phase A identity and legacy boundaries"
+          git push origin HEAD:hardening/phase-a-boundaries
