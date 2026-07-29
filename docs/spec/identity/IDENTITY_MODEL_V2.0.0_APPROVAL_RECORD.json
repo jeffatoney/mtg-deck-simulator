@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.1",
+  "document": "docs/spec/identity/IDENTITY_MODEL_V2.0.0.md",
+  "document_declared_status": "LOCK_READY",
+  "effective_status": "FROZEN_BINDING_FOR_PHASE_A",
+  "document_normalization": "UTF-8, LF line endings, no BOM",
+  "digest_algorithm": "SHA-256",
+  "document_sha256": "c839c16aa08ed6053233745fd2a35c38cbe4aadb16423ecac3d5390999af3ce6",
+  "repository_document_commit_sha": "725cc699ca5fee3b5b1a1e33bdd20829713f7d05",
+  "repository_document_blob_sha": "96be85d4223d04d7f1997e1d47eb8d92701e1e49",
+  "bound_sources": {
+    "rules_authority": "WOTC_CR_2026-06-19",
+    "deck_sha256": "d620c125d5cbb422196a2037fb9dafaaa60ce4e4b449198a84473540fc265edd",
+    "oracle_bulk_sha256": "6dc3ad46f5bbfaa77a556e73aafb0521cf33ccd5bfaba2590b95de2405739f71",
+    "oracle_exact_entries_resolved": 80,
+    "oracle_exact_entries_expected": 80,
+    "total_deck_cards": 100
+  },
+  "approval_statement": "APPROVE IDENTITY_MODEL_V2.0.0 SHA256 c839c16aa08ed6053233745fd2a35c38cbe4aadb16423ecac3d5390999af3ce6",
+  "approval_effect": "This approval record freezes the exact approved Markdown digest without mutating the approved document bytes.",
+  "approved_by": "Jeff Toney",
+  "approved_at": "2026-07-29T03:02:00-07:00",
+  "qa_checks": {
+    "repository_blob_matches_local_git_blob": true,
+    "balanced_code_fences": true,
+    "no_proposed_scope": true,
+    "no_old_copy_assertion": true,
+    "no_token_permanent_enum": true,
+    "all_requirements_have_machine_contract_and_tests": true,
+    "all_lock_decisions_resolved": true
+  }
+}
