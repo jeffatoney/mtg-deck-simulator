@@ -32,11 +32,15 @@ jobs:
 
       - name: Apply reviewed patch and corrections
         run: |
-          gzip -dc .phase-a-hardening.patch.gz > /tmp/phase-a-hardening.patch
+          cat .phase-a-part-* | base64 -d | gzip -dc > /tmp/phase-a-hardening.patch
+          test "$(sha256sum /tmp/phase-a-hardening.patch | cut -d' ' -f1)" = "73acd9a325fc0d66e0f67df6cee5cffba76b9b3ebaedb56c65c66b220bb49fce"
           git apply --check /tmp/phase-a-hardening.patch
           git apply /tmp/phase-a-hardening.patch
           python .phase-a-postprocess.py
-          rm -f .phase-a-hardening.patch.gz .phase-a-postprocess.py
+          sed -i 's/uv run mtg-sim validate-sources --write-inventory/uv run mtg-sources validate-sources --write-inventory/' src/mtg_sources/source_validation.py
+          rm -f .phase-a-part-* .phase-a-postprocess.py
+          rm -f .phase-a-hardening.patch.gz
+          rm -f .hardening-pr-note .hardening-pr-note-2 .hardening-pr-note-3
           rm -f .github/workflows/apply-phase-a-hardening.yml
 
       - name: Install, format, and validate
