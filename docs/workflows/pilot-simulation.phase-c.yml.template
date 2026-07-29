@@ -1,0 +1,68 @@
+# ARCHIVAL PHASE C TEMPLATE — NOT AN ACTIVE GITHUB WORKFLOW
+#
+# This file preserves the former legacy pilot workflow for historical reference.
+# It must not be copied into .github/workflows unchanged. Before Phase C activation,
+# replace every mtg_sim/legacy command with the clean-engine production path, add the
+# Phase A and Phase B completion gates, obtain independent review, and record explicit
+# owner authorization for the exact workflow commit.
+
+name: Pilot Simulation — Phase C Template
+
+on: []
+
+permissions:
+  contents: read
+
+# Historical legacy workflow body follows. It is intentionally disabled and is not
+# valid Phase A or Phase B evidence.
+
+x-legacy-workflow-reference:
+  former_trigger:
+    workflow_dispatch:
+      inputs:
+        confirmation:
+          description: Type RUN_500_STANDARD_200_EXPLORATORY to run the pilot.
+          required: true
+          type: string
+  former_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm explicit authorization
+        run: test "${{ inputs.confirmation }}" = "RUN_500_STANDARD_200_EXPLORATORY"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Capture expected immutable state
+        run: |
+          git rev-parse HEAD > artifacts_expected_commit.txt
+          git status --porcelain --untracked-files=no > artifacts_expected_status.txt
+          test ! -s artifacts_expected_status.txt
+          sha256sum docs/source/MagicCompRules_2026-06-19.txt docs/source/decklist.txt docs/source/commanders.txt uv.lock > artifacts_expected_hashes.txt
+          find docs/source/oracle -type f -print0 | sort -z | xargs -0 sha256sum >> artifacts_expected_hashes.txt
+      - name: Format
+        run: uv run ruff format --check .
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check
+        run: uv run mypy src
+      - name: Unit and integration tests
+        run: uv run pytest -q
+      - name: Source validation
+        run: uv run mtg-sim validate-sources
+      - name: Card coverage gate — legacy, replace before activation
+        run: uv run mtg-sim validate-coverage
+      - name: Rules competency gate — legacy, replace before activation
+        run: uv run mtg-sim verify-rules --output artifacts/rules/
+      - name: Pilot dry run — legacy, replace before activation
+        run: uv run mtg-sim pilot --config configs/pilot.toml --dry-run
+      - name: Pilot games — prohibited until Phase C authorization
+        run: uv run mtg-sim pilot --config configs/pilot.toml
