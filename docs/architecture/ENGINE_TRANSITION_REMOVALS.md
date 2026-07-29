@@ -1,10 +1,10 @@
 # Engine Transition Removal Plan
 
-**Status:** `PENDING_OWNER_APPROVAL`
+**Status:** `IMMEDIATE_ACTIONS_APPROVED_AND_APPLIED`
 
-This file separates preparation changes from destructive cleanup. Nothing listed here is authorized for deletion or closure merely because it appears in this plan.
+This file separates preparation changes from destructive cleanup. Only the immediate actions explicitly approved by the owner on 2026-07-29 are authorized. Later deletion still requires a new exact inventory and approval.
 
-## A. Immediate cleanup proposed before the engine branch starts
+## A. Immediate cleanup before the engine branch starts
 
 ### A1. Close stale draft PR #31
 
@@ -12,9 +12,9 @@ This file separates preparation changes from destructive cleanup. Nothing listed
 
 **Reason:** It was created before `IDENTITY_MODEL_V2.0.0` was frozen on `main`, contains an older independently frozen acceptance specification, and adds a large 49-file control package. Merging it now would create competing authorities and reintroduce the control-plane expansion the V2 review rejected.
 
-**Proposed action:** Close without merging. Retain its discussion and commits as historical reference. Do not copy its frozen acceptance file or its candidate-owned referee framework into the new engine branch.
+**Approved action:** Close without merging. Retain its discussion and commits as historical reference. Do not copy its frozen acceptance file or its candidate-owned referee framework into the new engine branch.
 
-**Owner approval required:** Yes.
+**Owner approval:** Approved by Jeff Toney on 2026-07-29.
 
 ### A2. Retire the old numbered-prompt instruction
 
@@ -22,9 +22,7 @@ This file separates preparation changes from destructive cleanup. Nothing listed
 
 **Reason:** It points new work back toward the legacy sequence rather than the frozen V2 engine build.
 
-**Proposed action:** Replace the instruction with the current Phase A start order. This is already prepared on `agent/prepare-engine-build`; it does not delete repository history.
-
-**Owner approval required:** No separate destructive approval; the change remains reviewable in the preparation pull request.
+**Applied action:** Replace the instruction with the current Phase A start order on `agent/prepare-engine-build`. Repository history remains intact.
 
 ### A3. Preserve legacy code under quarantine
 
@@ -32,9 +30,17 @@ This file separates preparation changes from destructive cleanup. Nothing listed
 
 **Reason:** Immediate deletion would remove useful historical evidence before clean replacements exist and could break current CI.
 
-**Proposed action:** Do not delete now. Enforce a one-way boundary: new packages may not import or delegate to it.
+**Applied action:** Do not delete now. Enforce a one-way boundary: new packages may not import or delegate to it.
 
-**Owner approval required:** No deletion is proposed at this stage.
+### A4. Disable the legacy pilot workflow
+
+**Target:** `.github/workflows/pilot-simulation.yml`
+
+**Reason:** The active workflow executes the legacy `mtg_sim` validation and pilot path. During Phases A and B it could create new-looking artifacts that are not valid clean-engine evidence.
+
+**Approved action:** Remove it from the active GitHub workflow directory and preserve its historical body at `docs/workflows/pilot-simulation.phase-c.yml.template`. The template cannot be activated unchanged; Phase C requires clean-engine commands, completed Phase A and Phase B gates, independent review, and explicit owner authorization.
+
+**Owner approval:** Approved by Jeff Toney on 2026-07-29.
 
 ## B. Cleanup proposed only after Phase A passes
 
@@ -79,9 +85,15 @@ The following remain retained, versioned project evidence:
 ```yaml
 owner_decisions:
   close_pr_31:
-    status: PENDING
-    approved_by: null
-    approved_at: null
+    status: APPROVED_AND_APPLIED
+    approved_by: Jeff Toney
+    approved_at: 2026-07-29T05:29:00-07:00
+
+  disable_legacy_pilot_during_phases_a_b:
+    status: APPROVED_AND_APPLIED
+    approved_by: Jeff Toney
+    approved_at: 2026-07-29T05:29:00-07:00
+    preserved_template: docs/workflows/pilot-simulation.phase-c.yml.template
 
   delete_legacy_before_phase_a:
     status: REJECTED_BY_PLAN
