@@ -24,9 +24,7 @@ def _load_map() -> dict[str, Any]:
 
 
 def _string_list(value: object, field: str, errors: list[str]) -> list[str]:
-    if not isinstance(value, list) or not all(
-        isinstance(item, str) for item in value
-    ):
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
         errors.append(f"{field} must be a list of strings")
         return []
     return value
@@ -81,13 +79,8 @@ def main() -> int:
     }
     if set(labels) != required_labels:
         errors.append("required evidence labels do not match the frozen Phase A set")
-    if (
-        authority.get("only_acceptance_evidence_label")
-        != "CLEAN_ENGINE_PRODUCTION_PATH"
-    ):
-        errors.append(
-            "only_acceptance_evidence_label is not CLEAN_ENGINE_PRODUCTION_PATH"
-        )
+    if authority.get("only_acceptance_evidence_label") != "CLEAN_ENGINE_PRODUCTION_PATH":
+        errors.append("only_acceptance_evidence_label is not CLEAN_ENGINE_PRODUCTION_PATH")
     if (
         authority.get("handoff_manifest_semantics")
         != "HISTORICAL_INTEGRITY_ONLY_NOT_CURRENT_AUTHORITY"
@@ -99,9 +92,7 @@ def main() -> int:
             errors.append(f"missing Phase A reference file: {path.relative_to(ROOT)}")
             continue
         if REQUIRED_MAP_REFERENCE not in path.read_text(encoding="utf-8"):
-            errors.append(
-                f"{path.relative_to(ROOT)} does not reference {REQUIRED_MAP_REFERENCE}"
-            )
+            errors.append(f"{path.relative_to(ROOT)} does not reference {REQUIRED_MAP_REFERENCE}")
 
     if errors:
         print("Phase A authority check failed:")
@@ -117,9 +108,7 @@ def main() -> int:
                 "active_binding_count": len(active),
                 "forbidden_active_paths_absent": forbidden,
                 "required_archival_paths_present": required_archival,
-                "acceptance_evidence_label": authority[
-                    "only_acceptance_evidence_label"
-                ],
+                "acceptance_evidence_label": authority["only_acceptance_evidence_label"],
             },
             indent=2,
             sort_keys=True,
