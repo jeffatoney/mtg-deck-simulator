@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - hardening/phase-a-boundaries
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
