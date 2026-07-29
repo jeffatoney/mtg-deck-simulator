@@ -30,7 +30,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mtg_sim"]
+packages = ["src/mtg_sim", "src/mtg_kernel", "src/mtg_cards"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

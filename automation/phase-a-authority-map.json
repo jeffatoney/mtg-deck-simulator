@@ -1,0 +1,73 @@
+{
+  "schema_version": "phase-a-authority-v1",
+  "phase": "PHASE_A_CLEAN_ENGINE",
+  "active_binding": [
+    "docs/source/MagicCompRules_2026-06-19.txt",
+    "docs/source/decklist.txt",
+    "docs/source/commanders.txt",
+    "docs/source/oracle/snapshot_v1.json",
+    "docs/spec/LEAGUE_MULLIGAN.md",
+    "docs/spec/identity/IDENTITY_MODEL_V2.0.0.md",
+    "docs/spec/identity/IDENTITY_MODEL_V2.0.0_APPROVAL_RECORD.json",
+    "docs/spec/identity/IDENTITY_MODEL_V2.0.0_LOCK_MANIFEST.txt",
+    "docs/spec/ENGINE_BUILD_PHASE_A.md",
+    "prompts/recovery/PHASE_A_ENGINE_BUILD.md",
+    "docs/governance/PHASE_A_AUTHORITY_MAP.md"
+  ],
+  "conditional_project_input_roots": [
+    "configs",
+    "docs/spec"
+  ],
+  "source_validation_only": [
+    "src/mtg_sim/source_validation.py",
+    "src/mtg_sim/offline_sources.py",
+    "scripts/check_manifest.py",
+    "docs/source/source_inventory.json"
+  ],
+  "archival_reference_only_roots": [
+    "docs/architecture/decisions",
+    "artifacts",
+    "src/mtg_sim",
+    "tests"
+  ],
+  "archival_reference_only_files": [
+    "docs/architecture/PROPOSED_ARCHITECTURE.md",
+    "docs/architecture/INTERFACES.md",
+    "HANDOFF_MANIFEST.json",
+    "prompts/00_REPO_ORIENTATION.md",
+    "prompts/01_FREEZE_SOURCES.md",
+    "prompts/02_ARCHITECTURE_ONLY.md",
+    "prompts/03_CORE_DOMAIN_AND_RNG.md",
+    "prompts/04_RULES_ENGINE.md",
+    "prompts/05_CARD_IMPLEMENTATION_AND_COVERAGE.md",
+    "prompts/06_COMPETENCY_TEST_GATE.md",
+    "prompts/07_POLICY_FRAMEWORK.md",
+    "prompts/08_EXPLORATORY_SEARCH.md",
+    "prompts/09_PILOT_HARNESS_DRY_RUN.md",
+    "prompts/10_EXECUTE_PILOT.md",
+    "prompts/11_AUDIT_AND_PILOT_REPORT.md",
+    "prompts/12_FULL_STUDY_LOCKED.md"
+  ],
+  "prohibited_as_phase_a_evidence": [
+    "legacy_mtg_sim_execution",
+    "legacy_game_executor",
+    "legacy_replay_or_state_hash",
+    "legacy_adapter_or_coverage_count",
+    "legacy_pilot_or_smoke_outcome",
+    "event_log_claim_without_rules_objects",
+    "helper_or_test_bypassing_clean_executor"
+  ],
+  "required_evidence_labels": [
+    "CLEAN_ENGINE_PRODUCTION_PATH",
+    "SOURCE_VALIDATION_ONLY",
+    "LEGACY_REFERENCE_PATH"
+  ],
+  "only_acceptance_evidence_label": "CLEAN_ENGINE_PRODUCTION_PATH",
+  "forbidden_active_paths": [
+    ".github/workflows/pilot-simulation.yml"
+  ],
+  "required_archival_paths": [
+    "docs/workflows/pilot-simulation.phase-c.yml.template"
+  ],
+  "handoff_manifest_semantics": "HISTORICAL_INTEGRITY_ONLY_NOT_CURRENT_AUTHORITY"
+}
