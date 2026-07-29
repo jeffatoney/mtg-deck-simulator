@@ -8,7 +8,9 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-APPROVAL_PATH = ROOT / "docs/spec/identity/IDENTITY_MODEL_V2.0.0_APPROVAL_RECORD.json"
+APPROVAL_PATH = (
+    ROOT / "docs/spec/identity/IDENTITY_MODEL_V2.0.0_APPROVAL_RECORD.json"
+)
 MANIFEST_PATH = ROOT / "docs/spec/identity/IDENTITY_MODEL_V2.0.0_LOCK_MANIFEST.txt"
 EXPECTED_STATUS = "FROZEN_BINDING_FOR_PHASE_A"
 
@@ -29,7 +31,11 @@ def main() -> int:
     errors: list[str] = []
 
     for path in (APPROVAL_PATH, MANIFEST_PATH):
-        _require(path.is_file(), f"missing required lock file: {path.relative_to(ROOT)}", errors)
+        _require(
+            path.is_file(),
+            f"missing required lock file: {path.relative_to(ROOT)}",
+            errors,
+        )
     if errors:
         for error in errors:
             print(f"ERROR: {error}")
@@ -37,7 +43,11 @@ def main() -> int:
 
     approval = _load_json(APPROVAL_PATH)
     document_value = approval.get("document")
-    _require(isinstance(document_value, str), "approval record has no document path", errors)
+    _require(
+        isinstance(document_value, str),
+        "approval record has no document path",
+        errors,
+    )
     if not isinstance(document_value, str):
         document_value = ""
 
@@ -49,8 +59,16 @@ def main() -> int:
         return 1
 
     document_bytes = document_path.read_bytes()
-    _require(not document_bytes.startswith(b"\xef\xbb\xbf"), "approved document contains a BOM", errors)
-    _require(b"\r\n" not in document_bytes, "approved document contains CRLF line endings", errors)
+    _require(
+        not document_bytes.startswith(b"\xef\xbb\xbf"),
+        "approved document contains a BOM",
+        errors,
+    )
+    _require(
+        b"\r\n" not in document_bytes,
+        "approved document contains CRLF line endings",
+        errors,
+    )
 
     actual_digest = hashlib.sha256(document_bytes).hexdigest()
     expected_digest = approval.get("document_sha256")
@@ -70,7 +88,11 @@ def main() -> int:
         errors,
     )
     _require(bool(approval.get("approved_by")), "approval record has no approver", errors)
-    _require(bool(approval.get("approved_at")), "approval record has no approval timestamp", errors)
+    _require(
+        bool(approval.get("approved_at")),
+        "approval record has no approval timestamp",
+        errors,
+    )
 
     expected_statement = f"APPROVE IDENTITY_MODEL_V2.0.0 SHA256 {actual_digest}"
     _require(
