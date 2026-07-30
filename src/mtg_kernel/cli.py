@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import typer
 
-from scripts.phase_a_verify_runner import verify_phase_a_run
+from mtg_kernel.phase_a_verify import verify_phase_a_run
 
 app = typer.Typer(no_args_is_help=True)
 
