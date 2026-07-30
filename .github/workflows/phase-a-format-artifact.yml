@@ -1,0 +1,30 @@
+name: Phase A format artifact
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    if: github.head_ref == 'governance/phase-a-certification-closeout'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: uv sync --frozen --all-extras
+      - run: uv run ruff format tests/test_certification_gate.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formatted-certification-test-${{ github.event.pull_request.head.sha }}
+          path: tests/test_certification_gate.py
+          retention-days: 1
