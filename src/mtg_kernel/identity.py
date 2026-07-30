@@ -55,9 +55,7 @@ class IdentityService:
         ).encode()
         value = hashlib.sha256(payload).hexdigest()
         stream.draw_count += 1
-        stream.state_digest = hashlib.sha256(
-            f"{stream.state_digest}:{value}".encode()
-        ).hexdigest()
+        stream.state_digest = hashlib.sha256(f"{stream.state_digest}:{value}".encode()).hexdigest()
         return value
 
     def random_index(self, stream_name: str, upper_bound: int, purpose: str) -> int:
@@ -114,14 +112,21 @@ class IdentityService:
             }:
                 raise IllegalAction("invalid nonbattlefield orientation")
             if obj.object_kind is ObjectKind.CARD_IN_ZONE and obj.controller is not None:
-                raise IllegalAction("ordinary cards outside battlefield and stack have no controller")
-            if obj.object_kind in {
-                ObjectKind.SPELL,
-                ObjectKind.SPELL_COPY,
-                ObjectKind.ACTIVATED_ABILITY,
-                ObjectKind.TRIGGERED_ABILITY,
-                ObjectKind.ABILITY_COPY,
-            } and obj.zone is Zone.STACK and obj.controller is None:
+                raise IllegalAction(
+                    "ordinary cards outside battlefield and stack have no controller"
+                )
+            if (
+                obj.object_kind
+                in {
+                    ObjectKind.SPELL,
+                    ObjectKind.SPELL_COPY,
+                    ObjectKind.ACTIVATED_ABILITY,
+                    ObjectKind.TRIGGERED_ABILITY,
+                    ObjectKind.ABILITY_COPY,
+                }
+                and obj.zone is Zone.STACK
+                and obj.controller is None
+            ):
                 raise IllegalAction("every stack object must have a controller")
             if obj.object_kind in ABILITY_KINDS and obj.owner is not None:
                 raise IllegalAction("ability objects do not receive a fabricated rules owner")
@@ -170,9 +175,13 @@ class IdentityService:
         if len(successors) != 1:
             raise IllegalAction("successor tracking requires exactly one authorized successor")
         successor = successors[0]
-        if capability in {
-            "ZONE_CHANGE_TRIGGER_FINDS_SUCCESSOR",
-            "SAME_EFFECT_FINDS_MOVED_OBJECT",
-        } and successor.zone not in PUBLIC_SUCCESSOR_ZONES:
+        if (
+            capability
+            in {
+                "ZONE_CHANGE_TRIGGER_FINDS_SUCCESSOR",
+                "SAME_EFFECT_FINDS_MOVED_OBJECT",
+            }
+            and successor.zone not in PUBLIC_SUCCESSOR_ZONES
+        ):
             raise IllegalAction("this continuity capability cannot follow into a hidden zone")
         return successor

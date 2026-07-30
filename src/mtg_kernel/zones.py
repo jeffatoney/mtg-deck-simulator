@@ -93,7 +93,9 @@ class ZoneService:
             }
             self.state.external_object_ledger.append(external_record)
         else:
-            is_synthetic = not old.component_card_instance_ids or old.copy_kind in SYNTHETIC_COPY_KINDS
+            is_synthetic = (
+                not old.component_card_instance_ids or old.copy_kind in SYNTHETIC_COPY_KINDS
+            )
             if is_synthetic:
                 characteristics = (
                     dict(explicit_characteristics)

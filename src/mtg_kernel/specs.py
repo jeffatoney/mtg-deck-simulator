@@ -50,7 +50,9 @@ def base_characteristics(spec: CardSpec, face: int | None = None) -> dict[str, o
     return characteristics
 
 
-def default_visibility(zone: Zone, owner: str, players: set[str], face_down: bool = False) -> set[str]:
+def default_visibility(
+    zone: Zone, owner: str, players: set[str], face_down: bool = False
+) -> set[str]:
     if face_down or zone in {Zone.HAND, Zone.LIBRARY}:
         return {owner}
     if zone in PUBLIC_ZONES:

@@ -39,7 +39,10 @@ def _jsonable(value: Any) -> Any:
 
 
 def state_to_data(state: GameState, *, include_replay: bool = False) -> dict[str, Any]:
-    data = _jsonable(asdict(state))
+    raw_data = _jsonable(asdict(state))
+    if not isinstance(raw_data, dict):
+        raise TypeError("serialized game state must be a JSON object")
+    data: dict[str, Any] = raw_data
     if not include_replay:
         data.pop("replay_commands", None)
         data.pop("replay_initial_state", None)
@@ -110,11 +113,13 @@ def state_from_data(data: dict[str, Any]) -> GameState:
         ),
         schema_version=str(data["schema_version"]),
     )
-    state.card_specs = {
-        key: _card_spec(value) for key, value in data.get("card_specs", {}).items()
-    }
+    state.card_specs = {key: _card_spec(value) for key, value in data.get("card_specs", {}).items()}
     state.deck_slots = {
-        key: DeckSlot(str(value["deck_slot_id"]), str(value["card_spec_id"]), int(value["deck_source_position"]))
+        key: DeckSlot(
+            str(value["deck_slot_id"]),
+            str(value["card_spec_id"]),
+            int(value["deck_source_position"]),
+        )
         for key, value in data.get("deck_slots", {}).items()
     }
     state.card_instances = {
@@ -148,8 +153,12 @@ def state_from_data(data: dict[str, Any]) -> GameState:
             counters={str(name): int(amount) for name, amount in value.get("counters", {}).items()},
             marked_damage=int(value.get("marked_damage", 0)),
             attached_to_ref=_target(value.get("attached_to_ref")),
-            permanent_status=dict(value["permanent_status"]) if value.get("permanent_status") else None,
-            nonbattlefield_orientation=str(value.get("nonbattlefield_orientation", "NOT_APPLICABLE")),
+            permanent_status=dict(value["permanent_status"])
+            if value.get("permanent_status")
+            else None,
+            nonbattlefield_orientation=str(
+                value.get("nonbattlefield_orientation", "NOT_APPLICABLE")
+            ),
             identity_visible_to=set(value.get("identity_visible_to", [])),
             lki_snapshot_id=value.get("lki_snapshot_id"),
             was_cast=value.get("was_cast"),
@@ -166,7 +175,18 @@ def state_from_data(data: dict[str, Any]) -> GameState:
             str(value["kind"]),
             str(value["actor_id"]),
             value.get("source_object_id"),
-            tuple(_target(target) for target in value.get("targets", []) if target is not None),
+            tuple(
+                TargetRef(
+                    str(target["object_id"]),
+                    ReferenceMode(
+                        str(target.get("mode", ReferenceMode.CURRENT_OBJECT_REQUIRED.value))
+                    ),
+                    target.get("capability"),
+                    target.get("authority"),
+                )
+                for target in value.get("targets", [])
+                if target is not None
+            ),
             tuple(value.get("modes", [])),
             int(value.get("x_value", 0)),
             dict(value.get("payments", {})),
@@ -185,7 +205,12 @@ def state_from_data(data: dict[str, Any]) -> GameState:
         for value in data.get("choices", [])
     ]
     state.events = [
-        Event(str(value["event_id"]), str(value["kind"]), value.get("cause_action_id"), dict(value.get("payload", {})))
+        Event(
+            str(value["event_id"]),
+            str(value["kind"]),
+            value.get("cause_action_id"),
+            dict(value.get("payload", {})),
+        )
         for value in data.get("events", [])
     ]
     state.zone_changes = [
@@ -200,7 +225,9 @@ def state_from_data(data: dict[str, Any]) -> GameState:
             str(value["cause"]),
             value.get("predecessor_relationship"),
             value.get("commander_choice_id"),
-            dict(value["external_owner_destination"]) if value.get("external_owner_destination") else None,
+            dict(value["external_owner_destination"])
+            if value.get("external_owner_destination")
+            else None,
         )
         for value in data.get("zone_changes", [])
     ]
@@ -232,7 +259,9 @@ def state_from_data(data: dict[str, Any]) -> GameState:
     state.pending_commander_choices = list(data.get("pending_commander_choices", []))
     state.external_object_ledger = [dict(value) for value in data.get("external_object_ledger", [])]
     state.rng_streams = {
-        key: RNGStreamState(str(value["domain"]), int(value["draw_count"]), str(value["state_digest"]))
+        key: RNGStreamState(
+            str(value["domain"]), int(value["draw_count"]), str(value["state_digest"])
+        )
         for key, value in data.get("rng_streams", {}).items()
     }
     state.allocation = {str(key): int(value) for key, value in data.get("allocation", {}).items()}

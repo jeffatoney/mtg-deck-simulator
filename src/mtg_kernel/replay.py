@@ -40,9 +40,7 @@ def transcript(state: GameState, *, seed: str = "phase-a") -> dict[str, Any]:
         "choices": [asdict(choice) for choice in state.choices],
         "events": [asdict(event) for event in state.events],
         "zone_changes": [asdict(change) for change in state.zone_changes],
-        "rng_streams": {
-            name: asdict(stream) for name, stream in sorted(state.rng_streams.items())
-        },
+        "rng_streams": {name: asdict(stream) for name, stream in sorted(state.rng_streams.items())},
         "final_state_hash": state_hash(state),
     }
     body["digest"] = _digest(body)

@@ -20,9 +20,8 @@ class ObservationService:
 
     @staticmethod
     def _face_down(obj: GameObject) -> bool:
-        return (
-            obj.nonbattlefield_orientation == "FACE_DOWN"
-            or bool(obj.permanent_status and obj.permanent_status.get("face") == "FACE_DOWN")
+        return obj.nonbattlefield_orientation == "FACE_DOWN" or bool(
+            obj.permanent_status and obj.permanent_status.get("face") == "FACE_DOWN"
         )
 
     def _identity_known(self, obj: GameObject, player_id: str) -> bool:
@@ -47,9 +46,7 @@ class ObservationService:
             individually_visible = obj.zone in PUBLIC_OBJECT_ZONES or (
                 obj.zone is Zone.HAND and obj.owner == player_id
             )
-            if obj.zone is Zone.LIBRARY or (
-                obj.zone is Zone.HAND and obj.owner != player_id
-            ):
+            if obj.zone is Zone.LIBRARY or (obj.zone is Zone.HAND and obj.owner != player_id):
                 individually_visible = False
             if not individually_visible:
                 continue
@@ -70,7 +67,9 @@ class ObservationService:
                     "handle": handle,
                     "zone": zone_label,
                     "owner": obj.owner if obj.zone in PUBLIC_OBJECT_ZONES else None,
-                    "controller": obj.controller if obj.zone in {Zone.BATTLEFIELD, Zone.STACK} else None,
+                    "controller": obj.controller
+                    if obj.zone in {Zone.BATTLEFIELD, Zone.STACK}
+                    else None,
                     "identity": identity,
                     "face_down": self._face_down(obj),
                     "card_types": obj.current_characteristics.get("card_types", [])
@@ -79,15 +78,11 @@ class ObservationService:
                 }
             )
         hand_counts = {
-            player: len(
-                self.state.zones.get(f"{Zone.HAND.value}:{player}", [])
-            )
+            player: len(self.state.zones.get(f"{Zone.HAND.value}:{player}", []))
             for player in self.state.players
         }
         library_counts = {
-            player: len(
-                self.state.zones.get(f"{Zone.LIBRARY.value}:{player}", [])
-            )
+            player: len(self.state.zones.get(f"{Zone.LIBRARY.value}:{player}", []))
             for player in self.state.players
         }
         return {

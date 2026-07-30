@@ -240,15 +240,31 @@ def _validate_record(record: dict[str, Any]) -> None:
     }
     missing = required - record.keys()
     if missing:
-        raise RulesError(f"incomplete frozen Oracle record {record.get('name')!r}: {sorted(missing)}")
+        raise RulesError(
+            f"incomplete frozen Oracle record {record.get('name')!r}: {sorted(missing)}"
+        )
     if not record["oracle_id"] or not isinstance(record["types"], list):
         raise RulesError(f"invalid frozen Oracle identity record: {record.get('name')!r}")
     faces = record["card_faces"] or [record]
-    face_required = {"name", "mana_cost", "oracle_text", "types", "supertypes", "subtypes", "keywords"}
+    face_required = {
+        "name",
+        "mana_cost",
+        "oracle_text",
+        "types",
+        "supertypes",
+        "subtypes",
+        "keywords",
+    }
     for face in faces:
         missing_face = face_required - face.keys()
-        if missing_face or not isinstance(face.get("oracle_text"), str) or not face["oracle_text"].strip():
-            raise RulesError(f"incomplete frozen Oracle face for {record['name']}: {sorted(missing_face)}")
+        if (
+            missing_face
+            or not isinstance(face.get("oracle_text"), str)
+            or not face["oracle_text"].strip()
+        ):
+            raise RulesError(
+                f"incomplete frozen Oracle face for {record['name']}: {sorted(missing_face)}"
+            )
 
 
 def _prepared_face(
@@ -276,7 +292,10 @@ def _prepared_face(
 def load_phase_a_specs() -> dict[str, CardSpec]:
     snapshot = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
     source = snapshot.get("source", {})
-    if snapshot.get("schema_version") != 2 or source.get("live_fetching_allowed_during_runs") is not False:
+    if (
+        snapshot.get("schema_version") != 2
+        or source.get("live_fetching_allowed_during_runs") is not False
+    ):
         raise RulesError("Oracle source is not the approved offline snapshot schema")
     source_version = f"snapshot-v2:{source.get('bulk_sha256', '')}"
     records = {record["name"]: record for record in snapshot["cards"]}

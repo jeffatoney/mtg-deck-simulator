@@ -98,7 +98,9 @@ class GameExecutor:
         )
         if event is None or event.cause_action_id is None:
             raise IllegalAction("stack object is not linked to an action")
-        return next(action for action in self.state.actions if action.action_id == event.cause_action_id)
+        return next(
+            action for action in self.state.actions if action.action_id == event.cause_action_id
+        )
 
     @staticmethod
     def _types(obj: GameObject) -> set[str]:
@@ -276,9 +278,7 @@ class GameExecutor:
             old_zone = card.zone
             if old_zone is Zone.COMMAND:
                 instance_id = card.component_card_instance_ids[0]
-                commander_tax["GENERIC"] = 2 * self.state.commander_cast_counts.get(
-                    instance_id, 0
-                )
+                commander_tax["GENERIC"] = 2 * self.state.commander_cast_counts.get(instance_id, 0)
             total_cost = combine_costs(base_cost, extra_cost, commander_tax)
             payment = pay_mana(self.state.players[actor].mana_pool, total_cost)
 
@@ -388,14 +388,12 @@ class GameExecutor:
                 raise IllegalAction("a player may activate only an ability they control")
             ability_id = str(ability.get("ability_id")) if isinstance(ability, dict) else ability
             selected = self._ability_by_id(source, ability_id)
-            if selected.get("restriction") == "SOURCE_ATTACKING" and not source.current_characteristics.get(
-                "attacking", False
-            ):
+            if selected.get(
+                "restriction"
+            ) == "SOURCE_ATTACKING" and not source.current_characteristics.get("attacking", False):
                 raise IllegalAction("this ability may be activated only while the source attacks")
             schema = dict(
-                selected.get(
-                    "target_schema", {"kind": "NONE", "min": 0, "max": 0, "unique": True}
-                )
+                selected.get("target_schema", {"kind": "NONE", "min": 0, "max": 0, "unique": True})
             )
             self._validate_targets(actor, targets, schema)
             cost = dict(selected.get("cost", {}))
@@ -577,7 +575,9 @@ class GameExecutor:
                 effect = dict(selected.get("effect", {}))
                 face = int(action.metadata.get("face", 0))
             choices = dict(action.metadata.get("choices", {}))
-            if selected.get("optional") and not bool(action.metadata.get("optional_selected", False)):
+            if selected.get("optional") and not bool(
+                action.metadata.get("optional_selected", False)
+            ):
                 effect = {"kind": "NONE"}
 
             aura_effect = effect.get("kind") == "ATTACH_AURA"
@@ -592,7 +592,9 @@ class GameExecutor:
             }:
                 self.zones.move(obj.object_id, Zone.NONE, "ABILITY_RESOLVED", resolved_event)
             elif obj.object_kind is ObjectKind.SPELL_COPY:
-                self.zones.move(obj.object_id, Zone.GRAVEYARD, "SPELL_COPY_RESOLVED", resolved_event)
+                self.zones.move(
+                    obj.object_id, Zone.GRAVEYARD, "SPELL_COPY_RESOLVED", resolved_event
+                )
             else:
                 card_types = self._types(obj)
                 if card_types.intersection(PERMANENT_TYPES):
@@ -749,7 +751,11 @@ class GameExecutor:
             self._damage_players(damage_source, assignments, action, combat=False)
             return
         if kind == "CREATE_TREASURES_FOR_DAMAGED_OPPONENTS":
-            damaged = list(source.current_characteristics.get("trigger_context", {}).get("opponents", [])) if source else []
+            damaged = (
+                list(source.current_characteristics.get("trigger_context", {}).get("opponents", []))
+                if source
+                else []
+            )
             for _ in damaged:
                 self.create_treasure(action.actor_id, action)
             return
@@ -757,12 +763,12 @@ class GameExecutor:
             for ref_data in effect.get("objects", []):
                 ref = self._target_from_data(dict(ref_data))
                 try:
-                    obj = self.identity.resolve_reference(ref)
+                    resolved_ref = self.identity.resolve_reference(ref)
                 except IllegalAction:
                     continue
-                if isinstance(obj, GameObject):
+                if isinstance(resolved_ref, GameObject):
                     self.zones.move(
-                        obj.object_id,
+                        resolved_ref.object_id,
                         Zone.EXILE,
                         "DELAYED_TRIGGER",
                         self._event("DELAYED_EXILE", action),
@@ -792,7 +798,9 @@ class GameExecutor:
                     )
                     if instance is not None and instance.commander_designation:
                         if object_id not in replacement_choices:
-                            raise IllegalAction("Memory requires an explicit commander replacement choice")
+                            raise IllegalAction(
+                                "Memory requires an explicit commander replacement choice"
+                            )
                         selected = bool(replacement_choices[object_id])
                         choice_event = self._event("COMMANDER_LIBRARY_REPLACEMENT_CHOICE", action)
                         choice = Choice(
@@ -941,10 +949,17 @@ class GameExecutor:
 
     def _scan_discard_triggers(self, player_id: str, action: Action, event: Event) -> None:
         for source in list(self.state.objects.values()):
-            if source.retired or source.zone is not Zone.BATTLEFIELD or source.controller != player_id:
+            if (
+                source.retired
+                or source.zone is not Zone.BATTLEFIELD
+                or source.controller != player_id
+            ):
                 continue
             for ability in source.current_characteristics.get("abilities", []):
-                if ability.get("kind") == "TRIGGERED" and ability.get("trigger") == "CONTROLLER_DISCARDS":
+                if (
+                    ability.get("kind") == "TRIGGERED"
+                    and ability.get("trigger") == "CONTROLLER_DISCARDS"
+                ):
                     self._queue_trigger(
                         source,
                         dict(ability),
@@ -956,16 +971,16 @@ class GameExecutor:
         self, trigger: GameObject, ability: dict[str, Any]
     ) -> tuple[TargetRef, ...]:
         schema = dict(
-            ability.get(
-                "target_schema", {"kind": "NONE", "min": 0, "max": 0, "unique": True}
-            )
+            ability.get("target_schema", {"kind": "NONE", "min": 0, "max": 0, "unique": True})
         )
         candidates = self._legal_candidates(trigger.controller or "", schema)
         minimum = int(schema.get("min", 0))
         if minimum and not candidates:
             trigger.retired = True
             trigger.ceased_to_exist = True
-            self._event("TRIGGER_REMOVED_NO_LEGAL_TARGETS", source_object_id=trigger.source_object_id)
+            self._event(
+                "TRIGGER_REMOVED_NO_LEGAL_TARGETS", source_object_id=trigger.source_object_id
+            )
             return ()
         hints = dict(trigger.current_characteristics.get("choice_hints", {}))
         target_hints = dict(hints.get("trigger_targets", {}))
@@ -982,7 +997,9 @@ class GameExecutor:
             selected_ids = [str(selected_raw)]
         refs = tuple(TargetRef(object_id) for object_id in selected_ids)
         self._validate_targets(trigger.controller or "", refs, schema)
-        choice_event = self._event("TRIGGER_TARGETS_CHOSEN", source_object_id=trigger.source_object_id)
+        choice_event = self._event(
+            "TRIGGER_TARGETS_CHOSEN", source_object_id=trigger.source_object_id
+        )
         choice = Choice(
             self.identity.new_id("choice"),
             trigger.controller or "",
@@ -1290,7 +1307,9 @@ class GameExecutor:
             source = self.state.objects[source_id]
             if source.retired or source.zone is not Zone.BATTLEFIELD:
                 raise IllegalAction("damage source is unavailable")
-            self._damage_players(source, [(player_id, amount)], None, combat=combat, choices=choices)
+            self._damage_players(
+                source, [(player_id, amount)], None, combat=combat, choices=choices
+            )
             if _record:
                 self._record_command(
                     "deal_damage_to_player",
@@ -1463,9 +1482,7 @@ class GameExecutor:
             self.state.turn.cleanup_repeat_pending = False
             self._event("CLEANUP_COMPLETED", cleanup_action)
 
-    def cleanup(
-        self, discard_ids: tuple[str, ...] = (), *, _record: bool = True
-    ) -> None:
+    def cleanup(self, discard_ids: tuple[str, ...] = (), *, _record: bool = True) -> None:
         self._ensure_active()
         before = self._begin_atomic()
         try:
@@ -1494,14 +1511,24 @@ class GameExecutor:
                 self.state.turn.phase = "BEGINNING"
             elif step in MAIN_PHASES:
                 self.state.turn.phase = step
-            elif step in {"BEGIN_COMBAT", "DECLARE_ATTACKERS", "DECLARE_BLOCKERS", "COMBAT_DAMAGE", "END_COMBAT"}:
+            elif step in {
+                "BEGIN_COMBAT",
+                "DECLARE_ATTACKERS",
+                "DECLARE_BLOCKERS",
+                "COMBAT_DAMAGE",
+                "END_COMBAT",
+            }:
                 self.state.turn.phase = "COMBAT"
             else:
                 self.state.turn.phase = "ENDING"
             self._event("STEP_BEGAN", step=step)
             if step == "UNTAP":
                 for obj in self.state.objects.values():
-                    if not obj.retired and obj.zone is Zone.BATTLEFIELD and obj.controller == self.state.turn.active_player_id:
+                    if (
+                        not obj.retired
+                        and obj.zone is Zone.BATTLEFIELD
+                        and obj.controller == self.state.turn.active_player_id
+                    ):
                         if obj.permanent_status is not None:
                             obj.permanent_status["tap"] = "UNTAPPED"
                             obj.permanent_status["phase"] = "PHASED_IN"
@@ -1530,7 +1557,9 @@ class GameExecutor:
             self.cast(
                 str(arguments["actor"]),
                 str(arguments["card_object_id"]),
-                tuple(self._target_from_data(dict(value)) for value in arguments.get("targets", [])),
+                tuple(
+                    self._target_from_data(dict(value)) for value in arguments.get("targets", [])
+                ),
                 int(arguments.get("face", 0)),
                 int(arguments.get("x_value", 0)),
                 arguments.get("mode"),
@@ -1542,7 +1571,9 @@ class GameExecutor:
                 str(arguments["actor"]),
                 str(arguments["source_id"]),
                 str(arguments["ability_id"]),
-                tuple(self._target_from_data(dict(value)) for value in arguments.get("targets", [])),
+                tuple(
+                    self._target_from_data(dict(value)) for value in arguments.get("targets", [])
+                ),
                 dict(arguments.get("choices", {})),
                 _record=False,
             )

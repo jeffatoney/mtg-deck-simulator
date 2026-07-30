@@ -62,7 +62,9 @@ def add_card(
         permanent_status={"tap": "UNTAPPED", "face": orientation, "phase": "PHASED_IN"}
         if zone is Zone.BATTLEFIELD
         else None,
-        nonbattlefield_orientation=orientation if zone is not Zone.BATTLEFIELD else "NOT_APPLICABLE",
+        nonbattlefield_orientation=orientation
+        if zone is not Zone.BATTLEFIELD
+        else "NOT_APPLICABLE",
         identity_visible_to=visible_to
         if visible_to is not None
         else default_visibility(zone, owner, set(executor.state.players), face_down),

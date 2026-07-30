@@ -110,15 +110,11 @@ def state_hash_document(state: GameState) -> dict[str, Any]:
         },
         "turn": asdict(state.turn),
         "players": {
-            player_id: asdict(player)
-            for player_id, player in sorted(state.players.items())
+            player_id: asdict(player) for player_id, player in sorted(state.players.items())
         },
-        "deck_slots": {
-            slot_id: asdict(slot) for slot_id, slot in sorted(state.deck_slots.items())
-        },
+        "deck_slots": {slot_id: asdict(slot) for slot_id, slot in sorted(state.deck_slots.items())},
         "card_instances": {
-            card_id: asdict(card)
-            for card_id, card in sorted(state.card_instances.items())
+            card_id: asdict(card) for card_id, card in sorted(state.card_instances.items())
         },
         "zones": zones,
         "objects": objects,
@@ -148,7 +144,10 @@ def state_hash_document(state: GameState) -> dict[str, Any]:
     }
     if tuple(document) != HASH_INCLUDED_ROOTS:
         raise TypeError("state hash root allowlist drifted without a schema version change")
-    return _safe(document)
+    safe = _safe(document)
+    if not isinstance(safe, dict):
+        raise TypeError("state hash document must remain a JSON object")
+    return safe
 
 
 def canonical_state_bytes(state: GameState) -> bytes:
