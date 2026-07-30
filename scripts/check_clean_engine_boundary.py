@@ -125,7 +125,9 @@ class _BoundaryVisitor(ast.NodeVisitor):
         elif canonical in PROCESS_LOADERS:
             allowed = canonical in SUPPORT_PROCESS_ALLOWLIST.get(self.relative, set())
             if self.tier == "STRICT" or not allowed:
-                self._flag(node, f"process execution via {canonical} is not allowlisted in {self.tier}")
+                self._flag(
+                    node, f"process execution via {canonical} is not allowlisted in {self.tier}"
+                )
         self.generic_visit(node)
 
 

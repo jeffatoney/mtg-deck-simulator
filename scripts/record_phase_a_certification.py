@@ -33,7 +33,9 @@ def _git(*args: str) -> str:
 
 def _require_ci_environment() -> tuple[str, str, str, str]:
     if os.environ.get("GITHUB_ACTIONS") != "true":
-        raise RuntimeError("durable certification candidates may only be produced in GitHub Actions")
+        raise RuntimeError(
+            "durable certification candidates may only be produced in GitHub Actions"
+        )
     required = {
         name: os.environ.get(name, "").strip()
         for name in ("GITHUB_RUN_ID", "GITHUB_SERVER_URL", "GITHUB_REPOSITORY", "GITHUB_SHA")

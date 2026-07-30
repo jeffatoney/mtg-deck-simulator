@@ -122,9 +122,7 @@ def test_missing_record_is_rejected(sandbox: Path) -> None:
         ({"pilot_lock": "FAIL"}, "pilot lock"),
     ],
 )
-def test_forged_record_is_rejected(
-    sandbox: Path, changes: dict[str, object], message: str
-) -> None:
+def test_forged_record_is_rejected(sandbox: Path, changes: dict[str, object], message: str) -> None:
     _patch_record(sandbox, **changes)
     result = _run(sandbox)
     assert result.returncode == 1

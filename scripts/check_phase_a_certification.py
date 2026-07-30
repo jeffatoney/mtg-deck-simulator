@@ -120,7 +120,10 @@ def main() -> int:
         errors.append("certification rules source digest is stale")
     if record.get("oracle_source_sha256") != oracle_digest:
         errors.append("certification Oracle source digest is stale")
-    if record.get("pilot_lock") != "PASS" or (ROOT / ".github/workflows/pilot-simulation.yml").exists():
+    if (
+        record.get("pilot_lock") != "PASS"
+        or (ROOT / ".github/workflows/pilot-simulation.yml").exists()
+    ):
         errors.append("pilot lock is not active")
     if record.get("unsupported_behavior") != "HARD_VALIDATION_FAILURE":
         errors.append("unsupported behavior is not fail-closed")
@@ -142,8 +145,7 @@ def main() -> int:
             if isinstance(recorded_paths, dict) and recorded_paths.get(key) != actual_paths[key]
         )
         errors.append(
-            "certification is STALE: "
-            f"missing={missing}, extra={extra}, changed={changed}"
+            f"certification is STALE: missing={missing}, extra={extra}, changed={changed}"
         )
     elif record.get("covered_content_sha256") != aggregate_digest(actual_paths):
         errors.append("covered_content_sha256 does not match covered_paths")
