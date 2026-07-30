@@ -14,9 +14,9 @@
     "ID-SYNTHETIC-001",
     "MODEL-HIDDEN-IDENTITY-001"
   ],
-  "certified_content_commit": "6edfd43f7c584404cc90d2fe89af240a4513e207",
-  "certified_repository_tree_sha": "2f0a79547d16093e4b50d17bd074b44eeaf5631b",
-  "ci_artifact_name": "phase-a-result-6edfd43f7c584404cc90d2fe89af240a4513e207",
+  "certified_content_commit": "64b2f4c92d26025d7cf0fd2614a0805482c2309d",
+  "certified_repository_tree_sha": "c6fd9e265c30bee2cd00c68722e1d1f330070477",
+  "ci_artifact_name": "phase-a-result-64b2f4c92d26025d7cf0fd2614a0805482c2309d",
   "clean_tree_before_run": true,
   "counts": {
     "fail": 0,
@@ -24,9 +24,9 @@
     "skip": 0,
     "xfail": 0
   },
-  "covered_content_sha256": "sha256:1792bcbc61fbce9e1b357b932eec4219ce1fcccf41e703c68f0f68040568c8f4",
+  "covered_content_sha256": "sha256:6ff77b6f894387e681cc89341f0130a7113613f8a9ee92436b42f7e1c3d06fc6",
   "covered_paths": {
-    ".github/workflows/ci.yml": "sha256:3666b19835c72b8c81f2973d660c1c22ba9a338d6683aaeb77d8eb27a5efb16e",
+    ".github/workflows/ci.yml": "sha256:056a4370900eebf037472e1abf1ff3474db7a3f5da68ed3780bc86c3ef2f0515",
     "automation/phase-a-test-mapping.json": "sha256:f327a967b5fb384f547d7bb71afbc401111ad5bb93c07337842d7c119a378c98",
     "docs/source/oracle/snapshot_v1.json": "sha256:3a8c7043757f80faecb25ea75881c4730a20b604a794a124ef7a14112cf0a632",
     "docs/source/source_inventory.json": "sha256:64cf4c8a6e829230628312aa755aece3afb190e964927c355857d847df1d5ede",
@@ -45,13 +45,13 @@
     "tests/conftest.py": "sha256:792e475fea08dca3ddd4058f4b36aba31d5de32db8c529b64a80db55550fa4d4",
     "tests/phase_a": "sha256:11f82023d1fbca2641e8604799555c2e7f86e46ed2b494ce5cc9f04a15377f68",
     "tests/test_boundary_support_tier.py": "sha256:8327fffe612b673f57459ef066bd49edb605896380d79aeb4e4a3952ec5dd195",
-    "tests/test_certification_gate.py": "sha256:797f3e873cb9e5f72b10308b5b358f17afcd51bb4a86bb0e1176fa098b94a87e",
+    "tests/test_certification_gate.py": "sha256:fc1429620fcffc66f250fc7cde3c99532e67c1420bbeb76c9fb386c3ee5f385c",
     "tests/test_gate_negatives.py": "sha256:78cfeea86989adb976368f20bdb462b0dfacdbb7a6d024a3981d92124504f629",
     "tests/test_source_validation.py": "sha256:68e017c9d517e67ea37abc52eed2de6ac5694272be5a7e302f122cdd256392db"
   },
   "evidence_classification": "CLEAN_ENGINE_PRODUCTION_PATH",
-  "github_run_id": "30588626232",
-  "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/30588626232",
+  "github_run_id": "30589176725",
+  "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/30589176725",
   "identity_document_sha256": "c839c16aa08ed6053233745fd2a35c38cbe4aadb16423ecac3d5390999af3ce6",
   "legacy_evidence_used": false,
   "note": "Renew this CI-produced record whenever any covered path changes. scripts/check_phase_a_certification.py enforces exact content digests.",
@@ -72,5 +72,5 @@
     "STICKER_RETENTION"
   ],
   "verification_environment": "GITHUB_ACTIONS",
-  "verifier_run_id": "20260730T225235Z-6edfd43f7c58"
+  "verifier_run_id": "20260730T230206Z-64b2f4c92d26"
 }
