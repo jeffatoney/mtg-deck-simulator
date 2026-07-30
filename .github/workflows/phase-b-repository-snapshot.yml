@@ -1,0 +1,27 @@
+name: Phase B repository snapshot
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    if: github.head_ref == 'engine/phase-b-full-deck-policy'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Package repository snapshot
+        run: |
+          tar --exclude=.git --exclude=.venv --exclude=.pytest_cache \
+            -czf /tmp/phase-b-repository-snapshot.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase-b-repository-snapshot-${{ github.event.pull_request.head.sha }}
+          path: /tmp/phase-b-repository-snapshot.tar.gz
+          retention-days: 3
