@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import asdict, dataclass, field
 from enum import StrEnum
 from typing import Any
@@ -24,9 +25,11 @@ class ObjectKind(StrEnum):
     PERMANENT = "PERMANENT"
     TRIGGERED_ABILITY = "TRIGGERED_ABILITY"
     ACTIVATED_ABILITY = "ACTIVATED_ABILITY"
+    MANA_ABILITY = "MANA_ABILITY"
     TOKEN_OBJECT = "TOKEN_OBJECT"
     SPELL_COPY = "SPELL_COPY"
     ABILITY_COPY = "ABILITY_COPY"
+    EMBLEM = "EMBLEM"
     EXTERNAL_PUBLIC_OBJECT = "EXTERNAL_PUBLIC_OBJECT"
 
 
@@ -50,11 +53,17 @@ class CardSpec:
     name: str
     oracle_id: str
     oracle_record_sha256: str
+    source_version: str
     mana_cost: str
     mana_value: int
     supertypes: tuple[str, ...]
     card_types: tuple[str, ...]
     subtypes: tuple[str, ...]
+    colors: tuple[str, ...]
+    color_identity: tuple[str, ...]
+    keywords: tuple[str, ...]
+    power: str | None
+    toughness: str | None
     oracle_text: str | None
     faces: tuple[dict[str, Any], ...]
     abilities: tuple[dict[str, Any], ...]
@@ -82,6 +91,7 @@ class TargetRef:
     object_id: str
     mode: ReferenceMode = ReferenceMode.CURRENT_OBJECT_REQUIRED
     capability: str | None = None
+    authority: str | None = None
 
 
 @dataclass
@@ -99,6 +109,7 @@ class GameObject:
     copied_from_object_id: str | None = None
     copiable_values_snapshot_id: str | None = None
     copy_creation_event_id: str | None = None
+    copy_target_choice_id: str | None = None
     current_characteristics: dict[str, Any] = field(default_factory=dict)
     counters: dict[str, int] = field(default_factory=dict)
     marked_damage: int = 0
@@ -110,6 +121,7 @@ class GameObject:
     was_cast: bool | None = None
     retired: bool = False
     ceased_to_exist: bool = False
+    pending_cease: bool = False
 
 
 @dataclass(frozen=True)
@@ -121,6 +133,7 @@ class Action:
     targets: tuple[TargetRef, ...] = ()
     modes: tuple[str, ...] = ()
     x_value: int = 0
+    payments: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -129,7 +142,7 @@ class Choice:
     choice_id: str
     player_id: str
     kind: str
-    selected: str
+    selected: Any
     cause_event_id: str
 
 
@@ -162,6 +175,9 @@ class LKISnapshot:
     object_id: str
     characteristics: dict[str, Any]
     controller: str | None
+    counters: dict[str, int]
+    marked_damage: int
+    attached_to_ref: TargetRef | None
 
 
 @dataclass
@@ -170,7 +186,9 @@ class PlayerState:
     life: int = 40
     in_game: bool = True
     loss_reasons: list[str] = field(default_factory=list)
-    mana_pool: dict[str, int] = field(default_factory=dict)
+    mana_pool: dict[str, int] = field(
+        default_factory=lambda: {symbol: 0 for symbol in ("W", "U", "B", "R", "G", "C")}
+    )
     land_plays_remaining: int = 1
     maximum_hand_size: int = 7
     failed_draw_count: int = 0
@@ -179,11 +197,13 @@ class PlayerState:
 @dataclass
 class TurnState:
     active_player_id: str
+    number: int = 1
     phase: str = "PRECOMBAT_MAIN"
-    step: str = ""
+    step: str = "PRECOMBAT_MAIN"
     priority_holder_id: str | None = None
     consecutive_priority_passes: int = 0
     cleanup_iteration: int = 0
+    cleanup_repeat_pending: bool = False
 
 
 @dataclass
@@ -195,29 +215,71 @@ class TerminalState:
 
 
 @dataclass
+class RNGStreamState:
+    domain: str
+    draw_count: int = 0
+    state_digest: str = ""
+
+
+def default_rng_streams() -> dict[str, RNGStreamState]:
+    domains = {
+        "identity": "mtg-v2/identity",
+        "shuffle": "mtg-v2/shuffle",
+        "policy": "mtg-v2/policy",
+    }
+    return {
+        name: RNGStreamState(domain, 0, hashlib.sha256(domain.encode()).hexdigest())
+        for name, domain in domains.items()
+    }
+
+
+def default_allocation() -> dict[str, int]:
+    return {
+        "object": 0,
+        "action": 0,
+        "event": 0,
+        "zone-change": 0,
+        "lki": 0,
+        "choice": 0,
+        "card": 0,
+        "deck-slot": 0,
+        "copy-snapshot": 0,
+    }
+
+
+@dataclass
 class GameState:
     game_id: str
     players: dict[str, PlayerState]
     turn: TurnState
+    schema_version: str = "identity-state-v2.0.0"
+    card_specs: dict[str, CardSpec] = field(default_factory=dict)
+    deck_slots: dict[str, DeckSlot] = field(default_factory=dict)
     card_instances: dict[str, CardInstance] = field(default_factory=dict)
     objects: dict[str, GameObject] = field(default_factory=dict)
     zones: dict[str, list[str]] = field(default_factory=dict)
     stack: list[str] = field(default_factory=list)
+    pending_actions: list[str] = field(default_factory=list)
     actions: list[Action] = field(default_factory=list)
     choices: list[Choice] = field(default_factory=list)
     events: list[Event] = field(default_factory=list)
     zone_changes: list[ZoneChange] = field(default_factory=list)
+    target_records: list[dict[str, Any]] = field(default_factory=list)
     waiting_triggers: list[str] = field(default_factory=list)
     delayed_triggers: list[str] = field(default_factory=list)
+    replacement_effects: list[dict[str, Any]] = field(default_factory=list)
+    continuous_effects: list[dict[str, Any]] = field(default_factory=list)
     lki_snapshots: dict[str, LKISnapshot] = field(default_factory=dict)
+    commander_designations: dict[str, str] = field(default_factory=dict)
     commander_cast_counts: dict[str, int] = field(default_factory=dict)
     commander_damage: dict[str, dict[str, int]] = field(default_factory=dict)
     pending_commander_choices: list[str] = field(default_factory=list)
     external_object_ledger: list[dict[str, Any]] = field(default_factory=list)
-    rng_positions: dict[str, int] = field(
-        default_factory=lambda: {"identity": 0, "shuffle": 0, "policy": 0}
-    )
+    rng_streams: dict[str, RNGStreamState] = field(default_factory=default_rng_streams)
+    allocation: dict[str, int] = field(default_factory=default_allocation)
     terminal: TerminalState = field(default_factory=TerminalState)
+    replay_commands: list[dict[str, Any]] = field(default_factory=list)
+    replay_initial_state: dict[str, Any] | None = None
 
-    def public_dict(self) -> dict[str, Any]:
+    def audit_dict(self) -> dict[str, Any]:
         return asdict(self)
