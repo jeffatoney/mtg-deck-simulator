@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 from datetime import UTC, datetime
@@ -16,7 +17,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def _run(command: str) -> dict[str, Any]:
     completed = subprocess.run(
-        command, cwd=ROOT, shell=True, text=True, capture_output=True, check=False
+        command,
+        cwd=ROOT,
+        shell=True,
+        text=True,
+        capture_output=True,
+        check=False,
     )
     return {
         "command": command,
@@ -30,12 +36,29 @@ def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _artifact_root() -> Path:
+    configured = os.environ.get("PHASE_A_ARTIFACT_ROOT", "").strip()
+    if not configured:
+        return ROOT / "artifacts" / "engine" / "phase-a"
+    path = Path(configured)
+    return path if path.is_absolute() else ROOT / path
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def verify_phase_a_run() -> int:
     """Run the clean Phase A gate and write one immutable result."""
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     branch = subprocess.check_output(
         ["git", "branch", "--show-current"], cwd=ROOT, text=True
     ).strip()
+    branch = branch or os.environ.get("GITHUB_HEAD_REF", "").strip()
+    branch = branch or os.environ.get("GITHUB_REF_NAME", "").strip()
     clean = not subprocess.check_output(
         ["git", "status", "--porcelain"], cwd=ROOT, text=True
     ).strip()
@@ -75,16 +98,20 @@ def verify_phase_a_run() -> int:
         and mapping_ok
         and pilot_locked
         and collected["exit_code"] == 0
-        and all(r["exit_code"] == 0 for r in results)
+        and all(result["exit_code"] == 0 for result in results)
     )
     run_id = f"{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}-{commit[:12]}"
-    artifact = ROOT / "artifacts/engine/phase-a" / run_id / "result.json"
+    artifact = _artifact_root() / run_id / "result.json"
     artifact.parent.mkdir(parents=True, exist_ok=False)
+    artifact_location = _display_path(artifact)
     result = {
         "schema_version": "phase-a-result-v1",
         "run_id": run_id,
         "commit": commit,
         "branch": branch,
+        "artifact_location": artifact_location,
+        "github_actions": os.environ.get("GITHUB_ACTIONS") == "true",
+        "github_run_id": os.environ.get("GITHUB_RUN_ID"),
         "clean_tree_before_run": clean,
         "commands": results + [collected],
         "counts": {
@@ -112,7 +139,8 @@ def verify_phase_a_run() -> int:
         json.dumps(
             {
                 "status": result["status"],
-                "artifact": str(artifact.relative_to(ROOT)),
+                "artifact": artifact_location,
+                "commit": commit,
                 "counts": result["counts"],
             },
             indent=2,
