@@ -39,41 +39,26 @@ jobs:
           from pathlib import Path
           path = Path("src/mtg_kernel/engine.py")
           text = path.read_text(encoding="utf-8")
-          old = '''                    selected = bool(choices["commander_to_command"])
-                    choice_event = self._event(
-                        "COMMANDER_LIBRARY_REPLACEMENT_CHOICE", action
-                    )
-                    choice = Choice(
-                        self.identity.new_id("choice"),
-                        instance.owner_id,
-                        "COMMANDER_LIBRARY_REPLACEMENT",
-                        "COMMAND" if selected else "LIBRARY",
-                        choice_event.event_id,
-                    )
-                    self.state.choices.append(choice)
-                    commander_choice_id = choice.choice_id
-                    if selected:
-                        destination = Zone.COMMAND
-          '''
-          new = '''                    commander_to_command = bool(choices["commander_to_command"])
-                    choice_event = self._event(
-                        "COMMANDER_LIBRARY_REPLACEMENT_CHOICE", action
-                    )
-                    choice = Choice(
-                        self.identity.new_id("choice"),
-                        instance.owner_id,
-                        "COMMANDER_LIBRARY_REPLACEMENT",
-                        "COMMAND" if commander_to_command else "LIBRARY",
-                        choice_event.event_id,
-                    )
-                    self.state.choices.append(choice)
-                    commander_choice_id = choice.choice_id
-                    if commander_to_command:
-                        destination = Zone.COMMAND
-          '''
-          if old not in text:
-              raise SystemExit("Commit commander-choice block not found")
-          path.write_text(text.replace(old, new), encoding="utf-8")
+          marker = '        if kind == "LIBRARY_SECOND" and targets:\n'
+          prefix, separator, suffix = text.partition(marker)
+          if not separator:
+              raise SystemExit("Commit effect section not found")
+          suffix = suffix.replace(
+              'selected = bool(choices["commander_to_command"])',
+              'commander_to_command = bool(choices["commander_to_command"])',
+              1,
+          )
+          suffix = suffix.replace(
+              '"COMMAND" if selected else "LIBRARY"',
+              '"COMMAND" if commander_to_command else "LIBRARY"',
+              1,
+          )
+          suffix = suffix.replace(
+              'if selected:\n                        destination = Zone.COMMAND',
+              'if commander_to_command:\n                        destination = Zone.COMMAND',
+              1,
+          )
+          path.write_text(prefix + separator + suffix, encoding="utf-8")
           PY
           rm .phase-a-review-repairs.b64
           rm .github/workflows/apply-phase-a-review-repairs.yml
