@@ -21,22 +21,25 @@ alone would not hold the boundary.
 ## `scripts/check_clean_engine_boundary.py`
 
 **Covers.** Direct and from-imports of `mtg_sim`; dynamic loading through resolved
-bindings (`import importlib as il`, `from importlib import import_module [as f]`, and
-assignment aliases of either); literal concatenation and f-string module names;
-non-constant arguments to any dynamic loader; the dynamic-loading and
-process-execution APIs themselves regardless of argument; a literal `"mtg_sim"` string
-anywhere in a clean package; `src/mtg_sim` reappearing on the installable import path.
+bindings and assignment aliases; executable string references to the quarantined package;
+and `src/mtg_sim` reappearing on the installable import path.
 
-**Does not cover.** `sys.modules["mtg_sim"]` lookups, which perform no import at all;
-`getattr` on a module object; names assembled at runtime from `chr()` arithmetic,
-`bytes.decode`, `base64`, or `str.join` over computed parts; C extensions; anything
-reached through a third-party package's own dynamic loading. This list is not
-exhaustive and cannot be made exhaustive — the set of ways one Python module can reach
-another is unbounded. Do not add a "final" round of hardening here; add coverage at
-level 1 or 2 instead.
+The scanner has two tiers:
 
-**Scope.** Only `src/mtg_kernel` and `src/mtg_cards` are scanned. Nothing outside the
-clean packages is examined, by design.
+- **STRICT** — `src/mtg_kernel` and `src/mtg_cards`. Dynamic code loading and process
+  execution are forbidden.
+- **SUPPORT** — `src/mtg_verify` and `src/mtg_sources`. Dynamic code loading is still
+  forbidden. Process execution is permitted only through the exact file-and-call allowlist
+  recorded by the scanner; the current allowlist is limited to the verifier's reviewed
+  `subprocess.run` and `subprocess.check_output` calls.
+
+Explanatory docstrings may name `legacy/mtg_sim`; executable literals may not.
+
+**Does not cover.** `sys.modules` lookups, `getattr` on a module object, names assembled at
+runtime from arithmetic or decoding, C extensions, or behavior reached through a
+third-party package's own dynamic loading. The set of ways one Python module can reach
+another is unbounded. Assurance therefore still depends primarily on the structural wheel
+boundary and the test-session audit hook.
 
 ## `tests/conftest.py` (audit hook)
 
@@ -49,68 +52,72 @@ subprocess gets a fresh one. Data already loaded into memory before the hook ins
 Network reads. Writes are not audited, only reads, because the concern is contamination
 of clean results by legacy input.
 
-**Why an audit hook.** `sys.addaudithook` cannot be uninstalled once registered; a
-`sys.meta_path` finder or a patched `__import__` can be removed by the code under test.
-The mechanism was chosen for that property specifically.
-
 ## `scripts/check_identity_lock.py`
 
 **Covers.** Any change to `IDENTITY_MODEL_V2.0.0.md`, because the expected digest is a
-constant in the script rather than a value read from the approval record. Also: the
-approval record pointing at a different document, disagreeing with the anchor, losing
-its frozen status, dropping its approver or timestamp, carrying an approval statement
-that does not bind the anchored digest, recording a blob id that does not match the
-bytes on disk, or citing a commit absent from this repository.
+constant in the script rather than a value read from the approval record. It also checks
+the approval record, frozen status, approval statement, blob identity, and cited commit.
+The repository variable `IDENTITY_MODEL_V2_SHA256` is the external anchor.
 
-**Does not cover.** Whether the human named in `approved_by` actually approved anything
-— that is a claim in a data file, not a signature. Cryptographic signing would close
-this; it is not currently in scope. `qa_checks` are self-declared booleans and are
-deliberately not treated as evidence.
-
-**Rotation.** Changing the identity model requires editing the document, its two
-companions, *and* `EXPECTED_DOCUMENT_SHA256` in the script, in one reviewed commit. This
-is intended friction.
+**Does not cover.** Whether the named approver actually approved anything; the approval
+record is not a cryptographic signature. Changing the identity model requires a new
+version and approval process.
 
 ## `scripts/check_phase_a_authority.py`
 
 **Covers.** ACTIVE_BINDING files exist; required archival files exist; forbidden active
-paths are absent (currently the pilot workflow and `src/mtg_sim`); no file is classified
-both active and archival; the frozen evidence-label set is intact; the two Phase A
-contract documents cross-reference the authority map.
+paths are absent; no file is both active and archival; the frozen evidence-label set is
+intact; and the Phase A contract documents cross-reference the authority map.
 
-**Does not cover.** Whether any artifact actually carries a `CLEAN_ENGINE_PRODUCTION_PATH`
-label. Nothing inspects evidence for labels. The `prohibited_as_phase_a_evidence` list is
-a classification binding on human reviewers, not a machine check. Stating this plainly
-because the merge report for `f7639ce` described this check as "CI enforcement requiring
-CLEAN_ENGINE_PRODUCTION_PATH evidence," which it is not.
+**Does not cover.** Whether an arbitrary result artifact actually carries an acceptable
+evidence label. The standing Phase A verifier and durable certification record cover the
+specific accepted production result; this authority-map check remains a classification
+and cross-reference gate.
+
+## Standing Phase A verifier
+
+`mtg-engine verify-phase-a` runs on every pull request and every push to `main`. It reruns
+the production-path acceptance suite, identity and authority gates, boundary check,
+requirement mapping, source hashes, replay/hash result, and pilot lock.
+
+**Does not cover.** The uploaded artifact is retained for 90 days and is therefore not a
+permanent repository record. Durability is provided separately by the certification gate.
+
+## Durable Phase A certification
+
+`scripts/check_phase_a_certification.py` requires
+`docs/audit/phase-a-certification/CERTIFICATION.json` to match path-and-content digests of
+the complete certified surface. The surface includes the engine, cards, verifier, source
+validator, Phase A acceptance suite, audit hook, negative gate tests, mapping, critical
+certification and boundary scripts, packaging, CI workflow, and frozen Oracle inventory.
+Path names are hashed, so a rename is a change.
+
+The authoritative record must be produced by GitHub Actions and must contain a valid run
+ID, run URL, result-artifact name, clean-tree assertion, passing counts, all blocking
+requirements, source hashes, evidence classification, legacy-evidence prohibition, and
+pilot lock. Local reproduction cannot create the authoritative record.
+
+**Does not cover.** A single-owner repository cannot obtain independent human approval
+from itself. A sufficiently privileged owner could change the checker, recorder, covered
+path list, tests, and certification together. The covered-surface digest makes such a
+change visible and forces recertification, while protected-branch CI prevents accidental
+or partial weakening; it is not a substitute for an independent signer.
 
 ## The channel no gate covers
 
 None of the above prevents the highest-likelihood contamination: **transcription**.
-Codex reading `legacy/mtg_sim/engine.py` and hand-writing equivalent logic into
-`mtg_kernel` produces no import, opens no artifact, and passes every check here. It is
-the path of least resistance for an agent asked to build an engine while a working-ish
-one sits in the tree.
+An agent reading `legacy/mtg_sim` and hand-writing equivalent logic into `mtg_kernel`
+produces no import and can pass linkage-oriented checks. Available mitigations are
+review-time source citations, golden transcripts, and similarity reports that are advisory
+rather than merge-blocking.
 
-There is no gate for this. The available mitigations are review-time and advisory:
-
-- a similarity report comparing normalized `mtg_kernel` function bodies against
-  `legacy/mtg_sim` (never merge-blocking — it will have false positives on any correct
-  implementation of the same rule);
-- requiring each `mtg_kernel` rules behavior to cite a Comprehensive Rules paragraph
-  rather than a legacy code location;
-- the golden-transcript workstream, where ground truth is human-approved rather than
-  inherited.
-
-Treat "all gates green" as meaning the linkage and provenance channels are clean. It
-says nothing about the transcription channel.
-
+Treat all-green gates as evidence that the declared production path, linkage, sources,
+identity contract, and certified content are consistent. They do not prove authorship or
+eliminate every possible semantic defect.
 
 ## CODEOWNERS and protected-branch rules
 
-`CODEOWNERS` is ownership metadata only. It does not make review mandatory and is not
-the digest anchor. The repository variable `IDENTITY_MODEL_V2_SHA256` is the external
-digest anchor. To protect the checker and workflow from same-change weakening, `main`
-must also require the CI check and an independent approval through branch protection
-or a repository ruleset. That repository setting is outside the committed code and is
-intentionally reported as a human-configured prerequisite.
+`CODEOWNERS` is ownership metadata only. This single-owner repository cannot require an
+independent approving reviewer without deadlocking normal work. The practical controls are
+required pull requests, required CI, blocked force pushes and deletions, the external
+identity digest anchor, standing Phase A verification, and durable content certification.
