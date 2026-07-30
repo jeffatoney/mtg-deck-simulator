@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from mtg_kernel.phase_a_verify import verify_phase_a_run
+from mtg_verify.phase_a import verify_phase_a_run
 
 
 if __name__ == "__main__":
