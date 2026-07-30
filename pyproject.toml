@@ -38,8 +38,9 @@ build-backend = "hatchling.build"
 # readable evidence but is NOT an installed package, so it is not importable from any
 # environment built from this project. This is the primary clean-engine boundary:
 # every dynamic-import bypass of a static scanner still fails with ModuleNotFoundError.
-# See docs/architecture/LEGACY_QUARANTINE.md.
-packages = ["src/mtg_sources", "src/mtg_kernel", "src/mtg_cards"]
+# Verification support is installed separately so subprocess-based CI tooling is not
+# part of either clean production package.
+packages = ["src/mtg_sources", "src/mtg_kernel", "src/mtg_cards", "src/mtg_verify"]
 
 [tool.pytest.ini_options]
 # `legacy/tests` is intentionally outside testpaths. Those tests exercise the legacy
