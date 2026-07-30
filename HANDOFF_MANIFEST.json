@@ -31,6 +31,14 @@
     "bytes": 1284,
     "sha256": "dfc06c3b276e39c9bacbd18b13bd7f51b839c0e5fc5ce9cc7b7c9c272a3a7d61"
   },
+  "docs/source/oracle/snapshot_v1.json": {
+    "bytes": 70914,
+    "sha256": "c84bfa504d0b66be490906d26a23c0ae98a8c52903078a5ae05f9c04a3e2b0d9"
+  },
+  "docs/source/source_inventory.json": {
+    "bytes": 2029,
+    "sha256": "d62c507de0d7b677f83ce4367821690819816330c18a8af80044c31d4aa98134"
+  },
   "docs/spec/EXPLORATORY_BRANCH.md": {
     "bytes": 14206,
     "sha256": "318f6c6fbd18db62f6e37ae7c94704a93d49c8ca7c75eca8fb4d1f1ff416c399"
@@ -66,6 +74,10 @@
   "docs/spec/RULES_ACCEPTANCE.md": {
     "bytes": 6175,
     "sha256": "9417689f4ccca125526ffc7fd5d94010c591fb279e6d44579ed254c36fb8168d"
+  },
+  "offline_snapshot/normalized/cards_snapshot.json": {
+    "bytes": 219764,
+    "sha256": "c72a2614a818b96b6bbd302233bdde5d56b96c3199a82b30e1eb999963879c61"
   },
   "prompts/00_REPO_ORIENTATION.md": {
     "bytes": 623,

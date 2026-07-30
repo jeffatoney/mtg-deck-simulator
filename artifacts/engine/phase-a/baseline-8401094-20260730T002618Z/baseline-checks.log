@@ -1,0 +1,77 @@
+starting_commit=84010946f03dfa51bf7f5c6a8981d73e13b4c2a6
+branch=engine/phase-a-rules-kernel
+clean_tree=true
+
+$ uv sync --frozen --all-extras
+Checked 34 packages in 0.91ms
+[exit_code=0]
+
+$ uv run python scripts/check_identity_lock.py
+{
+  "anchor_in_tree": "EXPECTED_DOCUMENT_SHA256 in scripts/check_identity_lock.py",
+  "anchor_out_of_tree": "ABSENT -- tamper-evident only; see docs/audit/GATE_KNOWN_LIMITS.md",
+  "approved_at": "2026-07-29T03:02:00-07:00",
+  "approved_by": "Jeff Toney",
+  "document": "docs/spec/identity/IDENTITY_MODEL_V2.0.0.md",
+  "document_sha256": "c839c16aa08ed6053233745fd2a35c38cbe4aadb16423ecac3d5390999af3ce6",
+  "effective_status": "FROZEN_BINDING_FOR_PHASE_A",
+  "status": "PASS"
+}
+[exit_code=0]
+
+$ uv run python scripts/check_phase_a_authority.py
+{
+  "acceptance_evidence_label": "CLEAN_ENGINE_PRODUCTION_PATH",
+  "active_binding_count": 11,
+  "forbidden_active_paths_absent": [
+    ".github/workflows/pilot-simulation.yml",
+    "src/mtg_sim"
+  ],
+  "required_archival_paths_present": [
+    "docs/workflows/pilot-simulation.phase-c.yml.template"
+  ],
+  "schema_version": "phase-a-authority-v1",
+  "status": "PASS"
+}
+[exit_code=0]
+
+$ uv run python scripts/check_clean_engine_boundary.py
+{
+  "check_class": "TRIPWIRE_NOT_A_COMPLETE_GATE",
+  "clean_package_directories": [
+    "src/mtg_kernel",
+    "src/mtg_cards"
+  ],
+  "forbidden_import_root": "mtg_sim",
+  "primary_boundary": "legacy/mtg_sim is not an installed package; see [tool.hatch.build.targets.wheel] in pyproject.toml",
+  "scanned_python_files": 2,
+  "status": "PASS"
+}
+[exit_code=0]
+
+$ uv run ruff format --check .
+51 files already formatted
+[exit_code=0]
+
+$ uv run ruff check .
+All checks passed!
+[exit_code=0]
+
+$ uv run mypy src
+Success: no issues found in 6 source files
+[exit_code=0]
+
+$ uv run pytest -q
+.....................................                                    [100%]
+37 passed in 3.21s
+[exit_code=0]
+
+$ uv run python scripts/check_manifest.py
+Manifest integrity check passed for 31 frozen files and 18 required paths.
+[exit_code=0]
+
+$ uv run mtg-sources validate-sources
+Source validation passed.
+[exit_code=0]
+
+overall_exit_code=0

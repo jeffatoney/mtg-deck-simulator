@@ -1,0 +1,18 @@
+{
+  "schema_version": "phase-a-test-mapping-v1",
+  "requirements": {
+    "ID-SPEC-NAMESPACE-001": ["tests/phase_a/test_kernel_acceptance.py::test_spec_oracle_completeness_and_named_pool"],
+    "ID-ACTIVE-CARD-001": ["tests/phase_a/test_kernel_acceptance.py::test_one_active_object_per_physical_card"],
+    "ID-OBJECT-SCHEMA-001": ["tests/phase_a/test_kernel_acceptance.py::test_spell_and_token_copies_are_synthetic_and_cease"],
+    "ID-NO-ID-PARSING-001": ["tests/phase_a/test_kernel_acceptance.py::test_retired_target_does_not_follow_successor"],
+    "ID-OBJECT-REINCARNATION-001": ["tests/phase_a/test_kernel_acceptance.py::test_zone_changes_and_same_zone_events_create_new_identity"],
+    "ID-CONTINUITY-SCOPE-001": ["tests/phase_a/test_kernel_acceptance.py::test_unsupported_continuity_fails_closed"],
+    "ID-REFERENCE-MODE-001": ["tests/phase_a/test_kernel_acceptance.py::test_retired_target_does_not_follow_successor"],
+    "ID-CONTROLLER-001": ["tests/phase_a/test_kernel_acceptance.py::test_dualcaster_etb_creates_real_trigger_and_uncast_spell_copy"],
+    "ID-COMMANDER-RETURN-001": ["tests/phase_a/test_kernel_acceptance.py::test_commander_return_is_optional_recorded_and_intermediate"],
+    "ID-SYNTHETIC-001": ["tests/phase_a/test_kernel_acceptance.py::test_spell_and_token_copies_are_synthetic_and_cease"],
+    "ID-ORACLE-AUTHORITY-001": ["tests/phase_a/test_kernel_acceptance.py::test_spec_oracle_completeness_and_named_pool"],
+    "MODEL-HIDDEN-IDENTITY-001": ["tests/phase_a/test_kernel_acceptance.py::test_hidden_observation_excludes_ids_order_and_revokes_handles"],
+    "ID-HASH-CONTRACT-001": ["tests/phase_a/test_kernel_acceptance.py::test_replay_state_hash_matches_fresh_process"]
+  }
+}

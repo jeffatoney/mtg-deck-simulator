@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCE_DIR = ROOT / "docs" / "source"
 INVENTORY_PATH = SOURCE_DIR / "source_inventory.json"
 ORACLE_SNAPSHOT = "docs/source/oracle/snapshot_v1.json"
+APPROVED_ORACLE_BULK_SHA256 = "6dc3ad46f5bbfaa77a556e73aafb0521cf33ccd5bfaba2590b95de2405739f71"
+APPROVED_DECK_SHA256 = "d620c125d5cbb422196a2037fb9dafaaa60ce4e4b449198a84473540fc265edd"
 BASELINE_CONFIG = "configs/baseline.toml"
 REQUIRED_SOURCE_FILES = (
     "docs/source/MagicCompRules_2026-06-19.txt",
@@ -212,6 +214,15 @@ def _validate_oracle_snapshot(errors: list[str]) -> None:
         return
     if snapshot.get("source", {}).get("live_fetching_allowed_during_runs") is not False:
         errors.append("live Oracle fetching must be disabled during tests and simulations")
+    source = snapshot.get("source", {})
+    if source.get("bulk_sha256") != APPROVED_ORACLE_BULK_SHA256:
+        errors.append("Oracle snapshot bulk hash does not match the approved source")
+    if source.get("deck_sha256") != APPROVED_DECK_SHA256:
+        errors.append("Oracle snapshot deck hash does not match the approved source")
+    if (source.get("exact_entries_resolved"), source.get("exact_entries_expected")) != (80, 80):
+        errors.append("Oracle snapshot must resolve exactly 80 of 80 entries")
+    if source.get("total_deck_cards") != 100:
+        errors.append("Oracle snapshot must bind exactly 100 deck cards")
     expected = _expected_card_entries(errors)
     if sum(cast("int", entry["quantity"]) for entry in expected) != 100:
         errors.append("exactly 100 expected cards must be represented")
@@ -248,6 +259,13 @@ def _validate_oracle_snapshot(errors: list[str]) -> None:
         ):
             if field not in card:
                 errors.append(f"Oracle card missing required field {field}: {card.get('name')}")
+        faces = card.get("card_faces") or [card]
+        if not card.get("oracle_id"):
+            errors.append(f"Oracle card missing identity: {card.get('name')}")
+        if any(not face.get("type_line") for face in faces):
+            errors.append(f"Oracle card face missing type line: {card.get('name')}")
+        if any(face.get("oracle_text") is None for face in faces):
+            errors.append(f"Oracle card face missing rules text: {card.get('name')}")
 
 
 def validate_sources() -> ValidationResult:

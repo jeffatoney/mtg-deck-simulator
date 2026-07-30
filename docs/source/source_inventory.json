@@ -37,8 +37,8 @@
     },
     {
       "path": "docs/source/oracle/snapshot_v1.json",
-      "sha256": "a385392ea05f543a1fa0a4c131be948003295c5f488bee09bd89ca5e98368216",
-      "size_bytes": 65406,
+      "sha256": "c84bfa504d0b66be490906d26a23c0ae98a8c52903078a5ae05f9c04a3e2b0d9",
+      "size_bytes": 70914,
       "source_category": "oracle_snapshot",
       "status": "frozen"
     },
@@ -57,6 +57,6 @@
       "status": "frozen"
     }
   ],
-  "generated_by": "uv run mtg-sim validate-sources --write-inventory",
+  "generated_by": "uv run mtg-sources validate-sources --write-inventory",
   "schema_version": 1
 }

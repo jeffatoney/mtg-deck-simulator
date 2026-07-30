@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -67,6 +69,22 @@ def test_oracle_snapshot_represents_exact_expected_cards() -> None:
     expected_names = {entry["name"] for entry in snapshot["expected_cards"]}
     assert {card["name"] for card in snapshot["cards"]} == expected_names
     assert snapshot["source"]["live_fetching_allowed_during_runs"] is False
+    assert snapshot["source"]["exact_entries_resolved"] == 80
+    assert all(card["oracle_id"] for card in snapshot["cards"])
+    assert all(
+        face["oracle_text"] is not None
+        for card in snapshot["cards"]
+        for face in (card["card_faces"] or [card])
+    )
+
+
+def test_offline_oracle_refresh_is_deterministic(tmp_path: Path) -> None:
+    first = tmp_path / "first.json"
+    second = tmp_path / "second.json"
+    command = [sys.executable, "scripts/refresh_oracle_snapshot.py", "--output"]
+    subprocess.run([*command, str(first)], cwd=ROOT, check=True)
+    subprocess.run([*command, str(second)], cwd=ROOT, check=True)
+    assert first.read_bytes() == second.read_bytes()
 
 
 def test_baseline_config_contains_resolved_assumptions() -> None:

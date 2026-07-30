@@ -27,6 +27,7 @@ dev = [
 # rules engine, the coverage counters, and the 500/200 pilot -- all classified
 # PROHIBITED_AS_PHASE_A_EVIDENCE. Source validation survives on its own command.
 mtg-sources = "mtg_sources.cli:app"
+mtg-engine = "mtg_kernel.cli:app"
 
 [build-system]
 requires = ["hatchling>=1.25"]

@@ -1,0 +1,18 @@
+{
+  "schema_version": "phase-a-source-blocker-v1",
+  "status": "BLOCKED_OWNER_DECISION_REQUIRED",
+  "starting_commit": "84010946f03dfa51bf7f5c6a8981d73e13b4c2a6",
+  "branch": "engine/phase-a-rules-kernel",
+  "repository_clean_before_checks": true,
+  "snapshot_path": "docs/source/oracle/snapshot_v1.json",
+  "snapshot_sha256": "a385392ea05f543a1fa0a4c131be948003295c5f488bee09bd89ca5e98368216",
+  "record_count": 80,
+  "records_with_nonempty_oracle_text": 0,
+  "faces_with_nonempty_oracle_text": 0,
+  "conflict": "The active contract requires complete frozen Oracle records, while the committed frozen snapshot contains no Oracle rules text.",
+  "decision_required": "Provide and approve a corrected versioned frozen Oracle snapshot and determine the required update to the frozen identity source binding.",
+  "identity_files_modified": false,
+  "legacy_evidence_used": false,
+  "pilot_run": false,
+  "full_study_run": false
+}
