@@ -1,6 +1,5 @@
-"""Frozen-Oracle-backed card specifications for the clean rules kernel.
+"""Oracle-backed production card specifications for the clean engine."""
 
-Card behavior in this package is expressed through structured data and universal
-``mtg_kernel`` primitives. It must not import or delegate to legacy ``mtg_sim``
-execution code.
-"""
+from mtg_cards.oracle import PHASE_A_NAMES, load_phase_a_specs
+
+__all__ = ["PHASE_A_NAMES", "load_phase_a_specs"]

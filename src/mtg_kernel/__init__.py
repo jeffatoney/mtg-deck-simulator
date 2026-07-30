@@ -1,5 +1,6 @@
-"""Card-agnostic Magic rules kernel.
+"""Clean, card-agnostic Magic rules kernel."""
 
-Phase A implementation belongs in this package. It must remain independent of
-``mtg_sim``, which is quarantined legacy reference code during the transition.
-"""
+from mtg_kernel.engine import GameExecutor
+from mtg_kernel.factory import add_card, new_game
+
+__all__ = ["GameExecutor", "add_card", "new_game"]

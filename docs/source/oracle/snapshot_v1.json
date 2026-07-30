@@ -1,2366 +1,2469 @@
 {
   "cards": [
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Abrade",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{R}",
+      "mana_value": 2.0,
       "name": "Abrade",
-      "oracle_id": "3c99ef4c-0000-4000-8000-32fcfa8bf903",
-      "oracle_text": "",
+      "oracle_id": "f9db72dc-9a5b-48a4-a86e-7464d9a2166a",
+      "oracle_text": "Choose one —\n• Abrade deals 3 damage to target creature.\n• Destroy target artifact.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Aetherize",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{3}{U}",
+      "mana_value": 4.0,
       "name": "Aetherize",
-      "oracle_id": "d67d32c2-0000-4000-8000-433812c8cdc0",
-      "oracle_text": "",
+      "oracle_id": "7c779721-cd1b-4696-9ae9-68ccc284ed2a",
+      "oracle_text": "Return all attacking creatures to their owner's hand.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Arcane Denial",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Arcane Denial",
-      "oracle_id": "cf1efec6-0000-4000-8000-e65b04879a77",
-      "oracle_text": "",
+      "oracle_id": "ab1cc360-b9de-48d9-9983-4dfe4a7d2a37",
+      "oracle_text": "Counter target spell. Its controller may draw up to two cards at the beginning of the next turn's upkeep.\nYou draw a card at the beginning of the next turn's upkeep.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Arcane Signet",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}",
+      "mana_value": 2.0,
       "name": "Arcane Signet",
-      "oracle_id": "ac161f60-0000-4000-8000-dff3a657847f",
-      "oracle_text": "",
+      "oracle_id": "0bc7f093-bef0-4f1a-852c-4b75ebf54838",
+      "oracle_text": "{T}: Add one mana of any color in your commander's color identity.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Artifact",
+      "types": [
+        "Artifact"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Ash Barrens",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
-      "keywords": [],
+      "defense": null,
+      "keywords": [
+        "Landcycling",
+        "Basic landcycling",
+        "Typecycling",
+        "Cycling"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Ash Barrens",
-      "oracle_id": "b8a3c2ac-0000-4000-8000-3ae1b075b212",
-      "oracle_text": "",
+      "oracle_id": "58257464-278e-45fa-8e0b-bcd9a7500bc1",
+      "oracle_text": "{T}: Add {C}.\nBasic landcycling {1} ({1}, Discard this card: Search your library for a basic land card, reveal it, put it into your hand, then shuffle.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Breeches, Brazen Plunderer",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Legendary Creature"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
+      "keywords": [
+        "Partner",
+        "Menace"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{3}{R}",
+      "mana_value": 4.0,
       "name": "Breeches, Brazen Plunderer",
-      "oracle_id": "c35bda49-0000-4000-8000-fb1b6c460ac0",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Legendary Creature"
+      "oracle_id": "eb77f7dc-e9e4-44ef-8616-9f4e737e8ca5",
+      "oracle_text": "Menace\nWhenever one or more Pirates you control deal damage to your opponents, exile the top card of each of those opponents' libraries. You may play those cards this turn, and you may spend mana as though it were mana of any color to cast those spells.\nPartner (You can have two commanders if both have partner.)",
+      "power": "3",
+      "subtypes": [
+        "Goblin",
+        "Pirate"
+      ],
+      "supertypes": [
+        "Legendary"
+      ],
+      "toughness": "3",
+      "type_line": "Legendary Creature — Goblin Pirate",
+      "types": [
+        "Creature"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Brotherhood's End",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{R}{R}",
+      "mana_value": 3.0,
       "name": "Brotherhood's End",
-      "oracle_id": "2e89616f-0000-4000-8000-3e7943ca37f6",
-      "oracle_text": "",
+      "oracle_id": "fe7bf8ca-88ae-4c6d-8d71-ef170a87c0d0",
+      "oracle_text": "Choose one —\n• Brotherhood's End deals 3 damage to each creature and each planeswalker.\n• Destroy all artifacts with mana value 3 or less.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "By Force",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{X}{R}",
+      "mana_value": 1.0,
       "name": "By Force",
-      "oracle_id": "8d1b426f-0000-4000-8000-9cb87062dd90",
-      "oracle_text": "",
+      "oracle_id": "7ce950fb-e065-45d3-aeff-f8c475460754",
+      "oracle_text": "Destroy X target artifacts.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Cascade Bluffs",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R",
+        "U"
       ],
-      "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Cascade Bluffs",
-      "oracle_id": "894fa1a4-0000-4000-8000-9e63dd3ffbb5",
-      "oracle_text": "",
+      "oracle_id": "f1603384-4361-49c9-98aa-7785fc3504c4",
+      "oracle_text": "{T}: Add {C}.\n{U/R}, {T}: Add {U}{U}, {U}{R}, or {R}{R}.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Change the Equation",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Change the Equation",
-      "oracle_id": "116efed4-0000-4000-8000-3d09e157226b",
-      "oracle_text": "",
+      "oracle_id": "aba7e9e2-8df8-454e-a332-9abae1d95b6f",
+      "oracle_text": "Choose one —\n• Counter target spell with mana value 2 or less.\n• Counter target red or green spell with mana value 6 or less.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Chart a Course",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Chart a Course",
-      "oracle_id": "db028b0c-0000-4000-8000-ea71aae96a84",
-      "oracle_text": "",
+      "oracle_id": "05878e49-93ad-4144-9c50-a0bb86126c2e",
+      "oracle_text": "Draw two cards. Then discard a card unless you attacked this turn.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Command Tower",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Command Tower",
-      "oracle_id": "eed9242c-0000-4000-8000-601af98a33b6",
-      "oracle_text": "",
+      "oracle_id": "0895c9b7-ae7d-4bb3-af17-3b75deb50a25",
+      "oracle_text": "{T}: Add one mana of any color in your commander's color identity.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
       "card_faces": [
         {
-          "color_identity": [],
           "colors": [],
           "keywords": [],
           "loyalty": null,
-          "mana_cost": "",
+          "mana_cost": "{3}{U}",
           "mana_value": null,
           "name": "Commit",
-          "oracle_text": "",
+          "oracle_text": "Put target spell or nonland permanent into its owner's library second from the top.",
           "power": null,
+          "subtypes": [],
+          "supertypes": [],
           "toughness": null,
-          "type_line": "Card"
+          "type_line": "Instant",
+          "types": [
+            "Instant"
+          ]
         },
         {
-          "color_identity": [],
           "colors": [],
           "keywords": [],
           "loyalty": null,
-          "mana_cost": "",
+          "mana_cost": "{4}{U}{U}",
           "mana_value": null,
           "name": "Memory",
-          "oracle_text": "",
+          "oracle_text": "Aftermath (Cast this spell only from your graveyard. Then exile it.)\nEach player shuffles their hand and graveyard into their library, then draws seven cards.",
           "power": null,
+          "subtypes": [],
+          "supertypes": [],
           "toughness": null,
-          "type_line": "Card"
+          "type_line": "Sorcery",
+          "types": [
+            "Sorcery"
+          ]
         }
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "color_identity": [
+        "U"
+      ],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Aftermath"
+      ],
+      "layout": "split",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{3}{U} // {4}{U}{U}",
+      "mana_value": 10.0,
       "name": "Commit // Memory",
-      "oracle_id": "a1e3af23-0000-4000-8000-998b24f1c31d",
-      "oracle_text": "",
+      "oracle_id": "56fd8895-3be2-4591-86fa-87567d9cdc14",
+      "oracle_text": null,
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant // Sorcery",
+      "types": [
+        "Instant",
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Crab Umbra",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Umbra armor",
+        "Enchant"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Crab Umbra",
-      "oracle_id": "0e0f66ea-0000-4000-8000-c0a982e23feb",
-      "oracle_text": "",
+      "oracle_id": "7d3d1c90-a5fb-44ff-a85b-27c037ca6753",
+      "oracle_text": "Enchant creature\n{2}{U}: Untap enchanted creature.\nUmbra armor (If enchanted creature would be destroyed, instead remove all damage from it and destroy this Aura.)",
       "power": null,
+      "subtypes": [
+        "Aura"
+      ],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Enchantment — Aura",
+      "types": [
+        "Enchantment"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Curiosity",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Enchant"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Curiosity",
-      "oracle_id": "e937b1e1-0000-4000-8000-c0a70c188a99",
-      "oracle_text": "",
+      "oracle_id": "223fa044-d387-4884-bf4e-75f1b61c6a46",
+      "oracle_text": "Enchant creature\nWhenever enchanted creature deals damage to an opponent, you may draw a card.",
       "power": null,
+      "subtypes": [
+        "Aura"
+      ],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Enchantment — Aura",
+      "types": [
+        "Enchantment"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Curse of the Swine",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{X}{U}{U}",
+      "mana_value": 2.0,
       "name": "Curse of the Swine",
-      "oracle_id": "de800b33-0000-4000-8000-a7ae19730c88",
-      "oracle_text": "",
+      "oracle_id": "5669ea7c-c4fc-494c-896b-4bce9b494817",
+      "oracle_text": "Exile X target creatures. For each creature exiled this way, its controller creates a 2/2 green Boar creature token.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Demolition Field",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Demolition Field",
-      "oracle_id": "5ac6ed8d-0000-4000-8000-5e7377c09a4a",
-      "oracle_text": "",
+      "oracle_id": "93953926-a644-49bb-9b5a-4c8f19114c7e",
+      "oracle_text": "{T}: Add {C}.\n{2}, {T}, Sacrifice this land: Destroy target nonbasic land an opponent controls. That land's controller may search their library for a basic land card, put it onto the battlefield, then shuffle. You may search your library for a basic land card, put it onto the battlefield, then shuffle.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Dispel",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Dispel",
-      "oracle_id": "c350bc73-0000-4000-8000-4db6659cf5cf",
-      "oracle_text": "",
+      "oracle_id": "6d7be242-a072-40ce-b540-95880506cccd",
+      "oracle_text": "Counter target instant spell.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Dizzy Spell",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Transmute"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Dizzy Spell",
-      "oracle_id": "2ebaa489-0000-4000-8000-c565afdcf260",
-      "oracle_text": "",
+      "oracle_id": "7de04284-dcaa-4b63-a734-fcfe2698f83c",
+      "oracle_text": "Target creature gets -3/-0 until end of turn.\nTransmute {1}{U}{U} ({1}{U}{U}, Discard this card: Search your library for a card with the same mana value as this card, reveal it, put it into your hand, then shuffle. Transmute only as a sorcery.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Drift of Phantasms",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Flying",
+        "Defender",
+        "Transmute"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}{U}",
+      "mana_value": 3.0,
       "name": "Drift of Phantasms",
-      "oracle_id": "6c62bfb8-0000-4000-8000-60c4f206a305",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
+      "oracle_id": "6ee51134-c4ad-4101-8ce2-23dde9359cd4",
+      "oracle_text": "Defender (This creature can't attack.)\nFlying\nTransmute {1}{U}{U} ({1}{U}{U}, Discard this card: Search your library for a card with the same mana value as this card, reveal it, put it into your hand, then shuffle. Transmute only as a sorcery.)",
+      "power": "0",
+      "subtypes": [
+        "Spirit"
+      ],
+      "supertypes": [],
+      "toughness": "5",
+      "type_line": "Creature — Spirit",
+      "types": [
+        "Creature"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Dualcaster Mage",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
+      "keywords": [
+        "Flash"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{R}{R}",
+      "mana_value": 3.0,
       "name": "Dualcaster Mage",
-      "oracle_id": "f81bd192-0000-4000-8000-e62059a6c336",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
+      "oracle_id": "8eb7c0a5-6190-40de-b473-2d1daa3bbe28",
+      "oracle_text": "Flash\nWhen this creature enters, copy target instant or sorcery spell. You may choose new targets for the copy.",
+      "power": "2",
+      "subtypes": [
+        "Human",
+        "Wizard"
+      ],
+      "supertypes": [],
+      "toughness": "2",
+      "type_line": "Creature — Human Wizard",
+      "types": [
+        "Creature"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Echoing Truth",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Echoing Truth",
-      "oracle_id": "a0b9f765-0000-4000-8000-23f688bb3653",
-      "oracle_text": "",
+      "oracle_id": "ef100544-3e6d-4661-a1d1-8b02e58c059c",
+      "oracle_text": "Return target nonland permanent and all other permanents with the same name as that permanent to their owners' hands.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Electroduplicate",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
+      "keywords": [
+        "Flashback"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}{R}",
+      "mana_value": 3.0,
       "name": "Electroduplicate",
-      "oracle_id": "fa39b256-0000-4000-8000-c8ae94f5f65d",
-      "oracle_text": "",
+      "oracle_id": "112f2b3f-32e7-40b1-b80e-0b99184a840c",
+      "oracle_text": "Create a token that's a copy of target creature you control, except it has haste and \"At the beginning of the end step, sacrifice this token.\"\nFlashback {2}{R}{R} (You may cast this card from your graveyard for its flashback cost. Then exile it.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Evolving Wilds",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Evolving Wilds",
-      "oracle_id": "bf73d48f-0000-4000-8000-49c1e20252b0",
-      "oracle_text": "",
+      "oracle_id": "a75445d3-1303-4bb5-89ad-26ea93fecd48",
+      "oracle_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Exotic Orchard",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Exotic Orchard",
-      "oracle_id": "22323de6-0000-4000-8000-befc0f08eac4",
-      "oracle_text": "",
+      "oracle_id": "27b047e3-0d41-45e2-98e9-9391d7923a1e",
+      "oracle_text": "{T}: Add one mana of any color that a land an opponent controls could produce.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Expedite",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{R}",
+      "mana_value": 1.0,
       "name": "Expedite",
-      "oracle_id": "0989d328-0000-4000-8000-446fa7fc80ba",
-      "oracle_text": "",
+      "oracle_id": "3501a839-eef5-44e4-8637-b5754780454e",
+      "oracle_text": "Target creature gains haste until end of turn.\nDraw a card.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Fact or Fiction",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{3}{U}",
+      "mana_value": 4.0,
       "name": "Fact or Fiction",
-      "oracle_id": "aa8b6ff6-0000-4000-8000-c4f9088fb160",
-      "oracle_text": "",
+      "oracle_id": "437b2dab-15e0-4b9a-a204-58622d37a3b3",
+      "oracle_text": "Reveal the top five cards of your library. An opponent separates those cards into two piles. Put one pile into your hand and the other into your graveyard.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Fading Hope",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Scry"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Fading Hope",
-      "oracle_id": "ab16dcfb-0000-4000-8000-fab8208b26a5",
-      "oracle_text": "",
+      "oracle_id": "64883ef2-c536-42e2-b52f-cfd1984fcdfd",
+      "oracle_text": "Return target creature to its owner's hand. If its mana value was 3 or less, scry 1. (Look at the top card of your library. You may put that card on the bottom.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Faithless Looting",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
+      "keywords": [
+        "Flashback"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{R}",
+      "mana_value": 1.0,
       "name": "Faithless Looting",
-      "oracle_id": "4bc514e8-0000-4000-8000-510223aaf4f3",
-      "oracle_text": "",
+      "oracle_id": "3d6fa57a-aa53-4b5c-b8af-a7612c823117",
+      "oracle_text": "Draw two cards, then discard two cards.\nFlashback {2}{R} (You may cast this card from your graveyard for its flashback cost. Then exile it.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Fellwar Stone",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}",
+      "mana_value": 2.0,
       "name": "Fellwar Stone",
-      "oracle_id": "15353c4a-0000-4000-8000-908e97702a9a",
-      "oracle_text": "",
+      "oracle_id": "95560508-7ac9-4be9-8a3f-3c7d5b52807b",
+      "oracle_text": "{T}: Add one mana of any color that a land an opponent controls could produce.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Artifact",
+      "types": [
+        "Artifact"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Fiery Cannonade",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}{R}",
+      "mana_value": 3.0,
       "name": "Fiery Cannonade",
-      "oracle_id": "9eda2e30-0000-4000-8000-4e766aa26643",
-      "oracle_text": "",
+      "oracle_id": "7e108b31-2ea3-4129-b324-a2d31c78bbe6",
+      "oracle_text": "Fiery Cannonade deals 2 damage to each non-Pirate creature.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Frantic Search",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}{U}",
+      "mana_value": 3.0,
       "name": "Frantic Search",
-      "oracle_id": "106b713c-0000-4000-8000-763a2891207d",
-      "oracle_text": "",
+      "oracle_id": "16e015b2-f8a3-4b1a-80be-58a8f5fb5e8c",
+      "oracle_text": "Draw two cards, then discard two cards. Untap up to three lands.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Frostboil Snarl",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R",
+        "U"
       ],
-      "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Frostboil Snarl",
-      "oracle_id": "9a08a3b3-0000-4000-8000-2b5861067201",
-      "oracle_text": "",
+      "oracle_id": "7137aae6-260d-41de-8b4e-42a8cf752697",
+      "oracle_text": "As this land enters, you may reveal an Island or Mountain card from your hand. If you don't, this land enters tapped.\n{T}: Add {U} or {R}.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Glint-Horn Buccaneer",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
+      "keywords": [
+        "Haste"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{R}{R}",
+      "mana_value": 3.0,
       "name": "Glint-Horn Buccaneer",
-      "oracle_id": "1c518ac4-0000-4000-8000-f7cdc610a3e0",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
+      "oracle_id": "64ad5657-78e9-4f34-8877-18c4f51fff9a",
+      "oracle_text": "Haste\nWhenever you discard a card, this creature deals 1 damage to each opponent.\n{1}{R}, Discard a card: Draw a card. Activate only if this creature is attacking.",
+      "power": "2",
+      "subtypes": [
+        "Minotaur",
+        "Pirate"
+      ],
+      "supertypes": [],
+      "toughness": "4",
+      "type_line": "Creature — Minotaur Pirate",
+      "types": [
+        "Creature"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Impulse",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Impulse",
-      "oracle_id": "2ba5594d-0000-4000-8000-e8e4d4d8c81d",
-      "oracle_text": "",
+      "oracle_id": "f6bd2902-7f8b-419e-bbc7-bcab0c1b7e01",
+      "oracle_text": "Look at the top four cards of your library. Put one of them into your hand and the rest on the bottom of your library in any order.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Into the Roil",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Kicker"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Into the Roil",
-      "oracle_id": "a34094b6-0000-4000-8000-0ffbbac524b9",
-      "oracle_text": "",
+      "oracle_id": "c2898bbd-82a4-4d26-b6ee-169b0ebe71b4",
+      "oracle_text": "Kicker {1}{U} (You may pay an additional {1}{U} as you cast this spell.)\nReturn target nonland permanent to its owner's hand. If this spell was kicked, draw a card.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Introduction to Annihilation",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{5}",
+      "mana_value": 5.0,
       "name": "Introduction to Annihilation",
-      "oracle_id": "3d915a4d-0000-4000-8000-008fae2184e4",
-      "oracle_text": "",
+      "oracle_id": "60e36f86-e284-468e-8073-07f19a3ed65e",
+      "oracle_text": "Exile target nonland permanent. Its controller draws a card.",
       "power": null,
+      "subtypes": [
+        "Lesson"
+      ],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery — Lesson",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
       "card_faces": [
         {
-          "color_identity": [],
           "colors": [],
           "keywords": [],
           "loyalty": null,
-          "mana_cost": "",
+          "mana_cost": "{U/R}",
           "mana_value": null,
           "name": "Invert",
-          "oracle_text": "",
+          "oracle_text": "Switch the power and toughness of each of up to two target creatures until end of turn.",
           "power": null,
+          "subtypes": [],
+          "supertypes": [],
           "toughness": null,
-          "type_line": "Card"
+          "type_line": "Instant",
+          "types": [
+            "Instant"
+          ]
         },
         {
-          "color_identity": [],
           "colors": [],
           "keywords": [],
           "loyalty": null,
-          "mana_cost": "",
+          "mana_cost": "{4}{U}{R}",
           "mana_value": null,
           "name": "Invent",
-          "oracle_text": "",
+          "oracle_text": "Search your library for an instant card and/or a sorcery card, reveal them, put them into your hand, then shuffle.",
           "power": null,
+          "subtypes": [],
+          "supertypes": [],
           "toughness": null,
-          "type_line": "Card"
+          "type_line": "Instant",
+          "types": [
+            "Instant"
+          ]
         }
       ],
-      "color_identity": [],
-      "colors": [],
+      "color_identity": [
+        "R",
+        "U"
+      ],
+      "colors": [
+        "R",
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "split",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U/R} // {4}{U}{R}",
+      "mana_value": 7.0,
       "name": "Invert // Invent",
-      "oracle_id": "91dbdbb2-0000-4000-8000-77516f79cdbc",
-      "oracle_text": "",
+      "oracle_id": "9a378964-2c04-4d60-a905-c819d37ed4c3",
+      "oracle_text": null,
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant // Instant",
+      "types": [
+        "Instant",
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [
-            "U"
-          ],
-          "colors": [
-            "U"
-          ],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Island",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Basic Land \u2014 Island"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [
         "U"
       ],
-      "colors": [
-        "U"
-      ],
+      "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": 0,
+      "mana_value": 0.0,
       "name": "Island",
-      "oracle_id": "551884ee-0000-4000-8000-730f5017a47f",
-      "oracle_text": "",
+      "oracle_id": "b2c6aa39-2d2a-459c-a555-fb48ba993373",
+      "oracle_text": "({T}: Add {U}.)",
       "power": null,
+      "subtypes": [
+        "Island"
+      ],
+      "supertypes": [
+        "Basic"
+      ],
       "toughness": null,
-      "type_line": "Basic Land \u2014 Island"
+      "type_line": "Basic Land — Island",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Izzet Boilerworks",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R",
+        "U"
       ],
-      "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Izzet Boilerworks",
-      "oracle_id": "a79f83ca-0000-4000-8000-e2875c78bab3",
-      "oracle_text": "",
+      "oracle_id": "1cb9d94a-3039-4f2e-8fcc-6996f9a45f74",
+      "oracle_text": "This land enters tapped.\nWhen this land enters, return a land you control to its owner's hand.\n{T}: Add {U}{R}.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Izzet Signet",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R",
+        "U"
       ],
-      "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}",
+      "mana_value": 2.0,
       "name": "Izzet Signet",
-      "oracle_id": "ea093b69-0000-4000-8000-f2405b3e60de",
-      "oracle_text": "",
+      "oracle_id": "2fda4fe7-8b0c-489c-a000-6d358e614e34",
+      "oracle_text": "{1}, {T}: Add {U}{R}.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Artifact",
+      "types": [
+        "Artifact"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Lazotep Plating",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Amass"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Lazotep Plating",
-      "oracle_id": "14279839-0000-4000-8000-f3a73bcb9972",
-      "oracle_text": "",
+      "oracle_id": "ba0082fb-2d4c-489e-8140-93a6fa693fd0",
+      "oracle_text": "Amass Zombies 1. (Put a +1/+1 counter on an Army you control. It's also a Zombie. If you don't control an Army, create a 0/0 black Zombie Army creature token first.)\nYou and permanents you control gain hexproof until end of turn. (You and they can't be the targets of spells or abilities your opponents control.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Lightning-Rig Crew",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
-      "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
-      "name": "Lightning-Rig Crew",
-      "oracle_id": "d0a5cddc-0000-4000-8000-e80ea16795b2",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
-    },
-    {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Long-Term Plans",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
-      "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
-      "name": "Long-Term Plans",
-      "oracle_id": "b94249c3-0000-4000-8000-a0fde9ce6a45",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
-    },
-    {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Malcolm, Keen-Eyed Navigator",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Legendary Creature"
-        }
-      ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
-      "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
-      "name": "Malcolm, Keen-Eyed Navigator",
-      "oracle_id": "78e6abd9-0000-4000-8000-4ddcafe25a8a",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Legendary Creature"
-    },
-    {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Mind Stone",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
-      "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
-      "name": "Mind Stone",
-      "oracle_id": "9bf0ee90-0000-4000-8000-64dacd443316",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
-    },
-    {
-      "card_faces": [
-        {
-          "color_identity": [
-            "R"
-          ],
-          "colors": [
-            "R"
-          ],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Mountain",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Basic Land \u2014 Mountain"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [
         "R"
       ],
       "colors": [
         "R"
       ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
+      "loyalty": null,
+      "mana_cost": "{2}{R}",
+      "mana_value": 3.0,
+      "name": "Lightning-Rig Crew",
+      "oracle_id": "8e0f93d7-7208-4902-bd92-e7bf66d35fef",
+      "oracle_text": "{T}: This creature deals 1 damage to each opponent.\nWhenever you cast a Pirate spell, untap this creature.",
+      "power": "0",
+      "subtypes": [
+        "Goblin",
+        "Pirate"
+      ],
+      "supertypes": [],
+      "toughness": "5",
+      "type_line": "Creature — Goblin Pirate",
+      "types": [
+        "Creature"
+      ]
+    },
+    {
+      "card_faces": [],
+      "color_identity": [
+        "U"
+      ],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
+      "loyalty": null,
+      "mana_cost": "{2}{U}",
+      "mana_value": 3.0,
+      "name": "Long-Term Plans",
+      "oracle_id": "d1dfb359-d8f9-491e-88f7-95193b220200",
+      "oracle_text": "Search your library for a card, then shuffle and put that card third from the top.",
+      "power": null,
+      "subtypes": [],
+      "supertypes": [],
+      "toughness": null,
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
+    },
+    {
+      "card_faces": [],
+      "color_identity": [
+        "U"
+      ],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Flying",
+        "Treasure",
+        "Partner"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
+      "loyalty": null,
+      "mana_cost": "{2}{U}",
+      "mana_value": 3.0,
+      "name": "Malcolm, Keen-Eyed Navigator",
+      "oracle_id": "a66f8b44-0163-4456-b152-4acefab896a4",
+      "oracle_text": "Flying\nWhenever one or more Pirates you control deal damage to your opponents, you create a Treasure token for each opponent dealt damage. (It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")\nPartner (You can have two commanders if both have partner.)",
+      "power": "2",
+      "subtypes": [
+        "Siren",
+        "Pirate"
+      ],
+      "supertypes": [
+        "Legendary"
+      ],
+      "toughness": "2",
+      "type_line": "Legendary Creature — Siren Pirate",
+      "types": [
+        "Creature"
+      ]
+    },
+    {
+      "card_faces": [],
+      "color_identity": [],
+      "colors": [],
+      "defense": null,
+      "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
+      "loyalty": null,
+      "mana_cost": "{2}",
+      "mana_value": 2.0,
+      "name": "Mind Stone",
+      "oracle_id": "c97361b5-af16-4a7b-af85-a429dbaf4ad2",
+      "oracle_text": "{T}: Add {C}.\n{1}, {T}, Sacrifice this artifact: Draw a card.",
+      "power": null,
+      "subtypes": [],
+      "supertypes": [],
+      "toughness": null,
+      "type_line": "Artifact",
+      "types": [
+        "Artifact"
+      ]
+    },
+    {
+      "card_faces": [],
+      "color_identity": [
+        "R"
+      ],
+      "colors": [],
+      "defense": null,
+      "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": 0,
+      "mana_value": 0.0,
       "name": "Mountain",
-      "oracle_id": "db1024a7-0000-4000-8000-156193387bc7",
-      "oracle_text": "",
+      "oracle_id": "a3fb7228-e76b-4e96-a40e-20b5fed75685",
+      "oracle_text": "({T}: Add {R}.)",
       "power": null,
+      "subtypes": [
+        "Mountain"
+      ],
+      "supertypes": [
+        "Basic"
+      ],
       "toughness": null,
-      "type_line": "Basic Land \u2014 Mountain"
+      "type_line": "Basic Land — Mountain",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Muddle the Mixture",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Transmute"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}{U}",
+      "mana_value": 2.0,
       "name": "Muddle the Mixture",
-      "oracle_id": "82088750-0000-4000-8000-0419cc5cd262",
-      "oracle_text": "",
+      "oracle_id": "0826cf7d-7ccc-459b-a92f-29dc169628f8",
+      "oracle_text": "Counter target instant or sorcery spell.\nTransmute {1}{U}{U} ({1}{U}{U}, Discard this card: Search your library for a card with the same mana value as this card, reveal it, put it into your hand, then shuffle. Transmute only as a sorcery.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Negate",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Negate",
-      "oracle_id": "196e6442-0000-4000-8000-70f9aeef9aaa",
-      "oracle_text": "",
+      "oracle_id": "3407fe41-fdd3-4119-8f70-4bc4590a379f",
+      "oracle_text": "Counter target noncreature spell.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Niv-Mizzet, the Firemind",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R",
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R",
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Flying"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}{U}{U}{R}{R}",
+      "mana_value": 6.0,
       "name": "Niv-Mizzet, the Firemind",
-      "oracle_id": "ecc31cb0-0000-4000-8000-0deebd5d86e8",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
+      "oracle_id": "959acb66-84ca-4535-bca2-ad591895735e",
+      "oracle_text": "Flying\nWhenever you draw a card, Niv-Mizzet deals 1 damage to any target.\n{T}: Draw a card.",
+      "power": "4",
+      "subtypes": [
+        "Dragon",
+        "Wizard"
+      ],
+      "supertypes": [
+        "Legendary"
+      ],
+      "toughness": "4",
+      "type_line": "Legendary Creature — Dragon Wizard",
+      "types": [
+        "Creature"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Opt",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Scry"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Opt",
-      "oracle_id": "0260132a-0000-4000-8000-6eac498e46d6",
-      "oracle_text": "",
+      "oracle_id": "713332c1-5bd8-400f-bfff-c1ca0697a043",
+      "oracle_text": "Scry 1. (Look at the top card of your library. You may put that card on the bottom.)\nDraw a card.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Path of Ancestry",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
-      "keywords": [],
+      "defense": null,
+      "keywords": [
+        "Scry"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Path of Ancestry",
-      "oracle_id": "5322f191-0000-4000-8000-3fdf74239765",
-      "oracle_text": "",
+      "oracle_id": "b473e293-59e3-4e04-acf2-622604aeb25f",
+      "oracle_text": "This land enters tapped.\n{T}: Add one mana of any color in your commander's color identity. When that mana is spent to cast a creature spell that shares a creature type with your commander, scry 1. (Look at the top card of your library. You may put that card on the bottom.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Prismari Command",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R",
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R",
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Treasure"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}{R}",
+      "mana_value": 3.0,
       "name": "Prismari Command",
-      "oracle_id": "1bdf1d52-0000-4000-8000-ccf8cafa9565",
-      "oracle_text": "",
+      "oracle_id": "fa3e28b1-131c-4223-81e0-18dfbab22c26",
+      "oracle_text": "Choose two —\n• Prismari Command deals 2 damage to any target.\n• Target player draws two cards, then discards two cards.\n• Target player creates a Treasure token.\n• Destroy target artifact.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Prismatic Lens",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}",
+      "mana_value": 2.0,
       "name": "Prismatic Lens",
-      "oracle_id": "fe24e26b-0000-4000-8000-abd397a46ca4",
-      "oracle_text": "",
+      "oracle_id": "e3056f28-868b-401a-a528-7528d639bdeb",
+      "oracle_text": "{T}: Add {C}.\n{1}, {T}: Add one mana of any color.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Artifact",
+      "types": [
+        "Artifact"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Psychosis Crawler",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{5}",
+      "mana_value": 5.0,
       "name": "Psychosis Crawler",
-      "oracle_id": "af3224c7-0000-4000-8000-9add85e2b98f",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
+      "oracle_id": "2876e74f-a242-4995-9702-0b737a1ab67a",
+      "oracle_text": "Psychosis Crawler's power and toughness are each equal to the number of cards in your hand.\nWhenever you draw a card, each opponent loses 1 life.",
+      "power": "*",
+      "subtypes": [
+        "Phyrexian",
+        "Horror"
+      ],
+      "supertypes": [],
+      "toughness": "*",
+      "type_line": "Artifact Creature — Phyrexian Horror",
+      "types": [
+        "Artifact",
+        "Creature"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Ravenform",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Foretell"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}{U}",
+      "mana_value": 3.0,
       "name": "Ravenform",
-      "oracle_id": "3fe49c43-0000-4000-8000-46ba8fd92552",
-      "oracle_text": "",
+      "oracle_id": "d3d61a6a-7870-44df-92e5-513dac2c2c3e",
+      "oracle_text": "Exile target artifact or creature. Its controller creates a 1/1 blue Bird creature token with flying.\nForetell {U} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Reality Ripple",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Reality Ripple",
-      "oracle_id": "53cb30f8-0000-4000-8000-4ae4aa279a83",
-      "oracle_text": "",
+      "oracle_id": "504d5c29-7c37-4c31-8549-2a49eeef74c8",
+      "oracle_text": "Target artifact, creature, or land phases out. (While it's phased out, it's treated as though it doesn't exist. It phases in before its controller untaps during their next untap step.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Reality Shift",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Manifest"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Reality Shift",
-      "oracle_id": "c018538b-0000-4000-8000-3a26cd180398",
-      "oracle_text": "",
+      "oracle_id": "70dc830e-d05b-4fc7-88dd-879e140b3fbf",
+      "oracle_text": "Exile target creature. Its controller manifests the top card of their library. (That player puts the top card of their library onto the battlefield face down as a 2/2 creature. If it's a creature card, it can be turned face up any time for its mana cost.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Rebuild",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Cycling"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{2}{U}",
+      "mana_value": 3.0,
       "name": "Rebuild",
-      "oracle_id": "f16caa77-0000-4000-8000-95aefb081ece",
-      "oracle_text": "",
+      "oracle_id": "496999a7-a82a-45ea-9c4e-1b6aabc781cd",
+      "oracle_text": "Return all artifacts to their owners' hands.\nCycling {2} ({2}, Discard this card: Draw a card.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Resculpt",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Resculpt",
-      "oracle_id": "7a9e5df6-0000-4000-8000-b6e679a037a5",
-      "oracle_text": "",
+      "oracle_id": "814e321d-16fd-4f7b-a8d8-2b089be76f2c",
+      "oracle_text": "Exile target artifact or creature. Its controller creates a 4/4 blue and red Elemental creature token.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Scavenger Grounds",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Scavenger Grounds",
-      "oracle_id": "37e8b055-0000-4000-8000-c44bf6c31cc1",
-      "oracle_text": "",
+      "oracle_id": "5ece7d03-9ee7-4953-a06e-9d8e41874903",
+      "oracle_text": "{T}: Add {C}.\n{2}, {T}, Sacrifice a Desert: Exile all graveyards.",
       "power": null,
+      "subtypes": [
+        "Desert"
+      ],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land — Desert",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Sentinel Totem",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
-      "keywords": [],
+      "defense": null,
+      "keywords": [
+        "Scry"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}",
+      "mana_value": 1.0,
       "name": "Sentinel Totem",
-      "oracle_id": "40229447-0000-4000-8000-7f0aa1699ca4",
-      "oracle_text": "",
+      "oracle_id": "5432bd43-e92c-464b-9ad2-3515f3042799",
+      "oracle_text": "When this artifact enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)\n{T}, Exile this artifact: Exile all graveyards.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Artifact",
+      "types": [
+        "Artifact"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Shivan Reef",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R",
+        "U"
       ],
-      "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Shivan Reef",
-      "oracle_id": "da1af6f5-0000-4000-8000-170b1c90274e",
-      "oracle_text": "",
+      "oracle_id": "0fe16212-66c3-4e45-a641-7391e9b2e304",
+      "oracle_text": "{T}: Add {C}.\n{T}: Add {U} or {R}. This land deals 1 damage to you.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Siren Stormtamer",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Flying"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Siren Stormtamer",
-      "oracle_id": "c70e2f22-0000-4000-8000-dba1c14786da",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
+      "oracle_id": "59c7496b-19a2-478b-b28f-6f153c2458ae",
+      "oracle_text": "Flying\n{U}, Sacrifice this creature: Counter target spell or ability that targets you or a creature you control.",
+      "power": "1",
+      "subtypes": [
+        "Siren",
+        "Pirate",
+        "Wizard"
+      ],
+      "supertypes": [],
+      "toughness": "1",
+      "type_line": "Creature — Siren Pirate Wizard",
+      "types": [
+        "Creature"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Sleight of Hand",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Sleight of Hand",
-      "oracle_id": "a1f7b739-0000-4000-8000-8bdc74c80c9e",
-      "oracle_text": "",
+      "oracle_id": "05a039ad-1689-4d13-b393-6c1219583b5d",
+      "oracle_text": "Look at the top two cards of your library. Put one of them into your hand and the other on the bottom of your library.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Sol Ring",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}",
+      "mana_value": 1.0,
       "name": "Sol Ring",
-      "oracle_id": "6c489da8-0000-4000-8000-100ad5eeb3f4",
-      "oracle_text": "",
+      "oracle_id": "6ad8011d-3471-4369-9d68-b264cc027487",
+      "oracle_text": "{T}: Add {C}{C}.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Artifact",
+      "types": [
+        "Artifact"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Soul-Guide Lantern",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}",
+      "mana_value": 1.0,
       "name": "Soul-Guide Lantern",
-      "oracle_id": "ed026a32-0000-4000-8000-aae6f944e86d",
-      "oracle_text": "",
+      "oracle_id": "1b5e6560-ff2e-4475-96cb-63f64c8a86db",
+      "oracle_text": "When this artifact enters, exile target card from a graveyard.\n{T}, Sacrifice this artifact: Exile each opponent's graveyard.\n{1}, {T}, Sacrifice this artifact: Draw a card.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Artifact",
+      "types": [
+        "Artifact"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Spectral Sailor",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Flying",
+        "Flash"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Spectral Sailor",
-      "oracle_id": "609511b6-0000-4000-8000-2932ca7a3615",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
+      "oracle_id": "a8fdbcdf-479d-4582-9ad5-9fbd4c740c29",
+      "oracle_text": "Flash (You may cast this spell any time you could cast an instant.)\nFlying\n{3}{U}: Draw a card.",
+      "power": "1",
+      "subtypes": [
+        "Spirit",
+        "Pirate"
+      ],
+      "supertypes": [],
+      "toughness": "1",
+      "type_line": "Creature — Spirit Pirate",
+      "types": [
+        "Creature"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Spell Pierce",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Spell Pierce",
-      "oracle_id": "16689736-0000-4000-8000-bb176fa576c2",
-      "oracle_text": "",
+      "oracle_id": "d64b0848-0193-4025-ba62-63ecd8fb9f50",
+      "oracle_text": "Counter target noncreature spell unless its controller pays {2}.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Step Through",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Wizardcycling",
+        "Typecycling",
+        "Cycling"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{3}{U}{U}",
+      "mana_value": 5.0,
       "name": "Step Through",
-      "oracle_id": "0becd771-0000-4000-8000-b1ed141aa944",
-      "oracle_text": "",
+      "oracle_id": "c4fa89c7-f00d-42ef-bd67-407a288cd054",
+      "oracle_text": "Return two target creatures to their owners' hands.\nWizardcycling {2} ({2}, Discard this card: Search your library for a Wizard card, reveal it, put it into your hand, then shuffle.)",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Storm Fleet Sprinter",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R",
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R",
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Haste"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}{R}",
+      "mana_value": 3.0,
       "name": "Storm Fleet Sprinter",
-      "oracle_id": "d41bbbde-0000-4000-8000-b9ae204599e1",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
+      "oracle_id": "8d244f4a-1d62-4697-81c7-fbc4de874add",
+      "oracle_text": "Haste\nThis creature can't be blocked.",
+      "power": "2",
+      "subtypes": [
+        "Human",
+        "Pirate"
+      ],
+      "supertypes": [],
+      "toughness": "2",
+      "type_line": "Creature — Human Pirate",
+      "types": [
+        "Creature"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Syncopate",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{X}{U}",
+      "mana_value": 1.0,
       "name": "Syncopate",
-      "oracle_id": "f14bd57e-0000-4000-8000-4f8bc2a62240",
-      "oracle_text": "",
+      "oracle_id": "318f7f70-e374-40ef-8afb-3389c10461d8",
+      "oracle_text": "Counter target spell unless its controller pays {X}. If that spell is countered this way, exile it instead of putting it into its owner's graveyard.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Temple of Epiphany",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R",
+        "U"
       ],
-      "color_identity": [],
       "colors": [],
-      "keywords": [],
+      "defense": null,
+      "keywords": [
+        "Scry"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Temple of Epiphany",
-      "oracle_id": "0bcc222c-0000-4000-8000-ef2f8698a8f3",
-      "oracle_text": "",
+      "oracle_id": "79f94050-d850-41ca-b1db-5ae0cf743f0a",
+      "oracle_text": "This land enters tapped.\nWhen this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)\n{T}: Add {U} or {R}.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Terramorphic Expanse",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
-      ],
+      "card_faces": [],
       "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Terramorphic Expanse",
-      "oracle_id": "5e5553fc-0000-4000-8000-388053997c1c",
-      "oracle_text": "",
+      "oracle_id": "1bd3e453-aa21-4ee6-95c2-d6d920ee8e7a",
+      "oracle_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Thriving Isle",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
       "colors": [],
+      "defense": null,
       "keywords": [],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
       "mana_cost": "",
-      "mana_value": null,
+      "mana_value": 0.0,
       "name": "Thriving Isle",
-      "oracle_id": "de5da80c-0000-4000-8000-e4225d254526",
-      "oracle_text": "",
+      "oracle_id": "69fc70b8-b143-4662-ac95-e2743037239d",
+      "oracle_text": "This land enters tapped. As it enters, choose a color other than blue.\n{T}: Add {U} or one mana of the chosen color.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Land",
+      "types": [
+        "Land"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Twinflame",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
+      "keywords": [
+        "Strive"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{R}",
+      "mana_value": 2.0,
       "name": "Twinflame",
-      "oracle_id": "0e9c5297-0000-4000-8000-090523ade1ec",
-      "oracle_text": "",
+      "oracle_id": "83cf1169-5853-4332-b897-7b17d72d76ab",
+      "oracle_text": "Strive — This spell costs {2}{R} more to cast for each target beyond the first.\nChoose any number of target creatures you control. For each of them, create a token that's a copy of that creature, except it has haste. Exile those tokens at the beginning of the next end step.",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Vandalblast",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
+      "keywords": [
+        "Overload"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{R}",
+      "mana_value": 1.0,
       "name": "Vandalblast",
-      "oracle_id": "5980eb69-0000-4000-8000-14fb04bcad4b",
-      "oracle_text": "",
+      "oracle_id": "3567c3c8-b3c7-45b7-935b-b1fdbc973720",
+      "oracle_text": "Destroy target artifact you don't control.\nOverload {4}{R} (You may cast this spell for its overload cost. If you do, change \"target\" in its text to \"each.\")",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Sorcery",
+      "types": [
+        "Sorcery"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Vedalken Aethermage",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Wizardcycling",
+        "Typecycling",
+        "Flash",
+        "Cycling"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{1}{U}",
+      "mana_value": 2.0,
       "name": "Vedalken Aethermage",
-      "oracle_id": "66d99f46-0000-4000-8000-d09a500d82c5",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
+      "oracle_id": "271b37b6-b60b-4687-bd82-ecacf3b66cb3",
+      "oracle_text": "Flash (You may cast this spell any time you could cast an instant.)\nWhen this creature enters, return target Sliver to its owner's hand.\nWizardcycling {3} ({3}, Discard this card: Search your library for a Wizard card, reveal it, put it into your hand, then shuffle.)",
+      "power": "1",
+      "subtypes": [
+        "Vedalken",
+        "Wizard"
+      ],
+      "supertypes": [],
+      "toughness": "2",
+      "type_line": "Creature — Vedalken Wizard",
+      "types": [
+        "Creature"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Wash Away",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "U"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "U"
+      ],
+      "defense": null,
+      "keywords": [
+        "Cleave"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{U}",
+      "mana_value": 1.0,
       "name": "Wash Away",
-      "oracle_id": "6786c5e3-0000-4000-8000-78d0d6e370cf",
-      "oracle_text": "",
+      "oracle_id": "a4630da0-fe9b-4ead-9621-eac4b7825c35",
+      "oracle_text": "Cleave {1}{U}{U} (You may cast this spell for its cleave cost. If you do, remove the words in square brackets.)\nCounter target spell [that wasn't cast from its owner's hand].",
       "power": null,
+      "subtypes": [],
+      "supertypes": [],
       "toughness": null,
-      "type_line": "Card"
+      "type_line": "Instant",
+      "types": [
+        "Instant"
+      ]
     },
     {
-      "card_faces": [
-        {
-          "color_identity": [],
-          "colors": [],
-          "keywords": [],
-          "loyalty": null,
-          "mana_cost": "",
-          "mana_value": null,
-          "name": "Wily Goblin",
-          "oracle_text": "",
-          "power": null,
-          "toughness": null,
-          "type_line": "Card"
-        }
+      "card_faces": [],
+      "color_identity": [
+        "R"
       ],
-      "color_identity": [],
-      "colors": [],
-      "keywords": [],
+      "colors": [
+        "R"
+      ],
+      "defense": null,
+      "keywords": [
+        "Treasure"
+      ],
+      "layout": "normal",
+      "legalities": {
+        "commander": "legal"
+      },
       "loyalty": null,
-      "mana_cost": "",
-      "mana_value": null,
+      "mana_cost": "{R}{R}",
+      "mana_value": 2.0,
       "name": "Wily Goblin",
-      "oracle_id": "9c01fbfe-0000-4000-8000-cdfa2a5d94da",
-      "oracle_text": "",
-      "power": null,
-      "toughness": null,
-      "type_line": "Card"
+      "oracle_id": "d27ffb4c-3a34-41aa-b464-6b897132c4ea",
+      "oracle_text": "When this creature enters, create a Treasure token. (It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")",
+      "power": "1",
+      "subtypes": [
+        "Goblin",
+        "Pirate"
+      ],
+      "supertypes": [],
+      "toughness": "1",
+      "type_line": "Creature — Goblin Pirate",
+      "types": [
+        "Creature"
+      ]
     }
   ],
   "expected_cards": [
@@ -2765,15 +2868,19 @@
       "zone": "command"
     }
   ],
-  "schema_version": 1,
+  "schema_version": 2,
   "source": {
-    "bulk_api": "https://api.scryfall.com/bulk-data/oracle-cards",
-    "bulk_download_uri": "https://api.scryfall.com/bulk-data/oracle-cards",
-    "bulk_updated_at": "2026-07-22",
+    "bulk_file": "default-cards-20260721211623.jsonl (1).gz",
+    "bulk_record_count": 116138,
+    "bulk_sha256": "6dc3ad46f5bbfaa77a556e73aafb0521cf33ccd5bfaba2590b95de2405739f71",
+    "deck_sha256": "d620c125d5cbb422196a2037fb9dafaaa60ce4e4b449198a84473540fc265edd",
+    "exact_entries_expected": 80,
+    "exact_entries_resolved": 80,
     "live_fetching_allowed_during_runs": false,
-    "provider": "Scryfall Oracle Cards bulk data",
-    "refresh_policy": "A later Oracle refresh must create a new snapshot version and new hash.",
-    "retrieval_command": "uv run python scripts/refresh_oracle_snapshot.py",
-    "retrieved_at": "2026-07-22T00:00:00Z"
+    "offline_input": "offline_snapshot/normalized/cards_snapshot.json",
+    "offline_input_sha256": "c72a2614a818b96b6bbd302233bdde5d56b96c3199a82b30e1eb999963879c61",
+    "provider": "Scryfall default-cards JSONL gzip supplied by user",
+    "retrieved_at": "2026-07-22T07:38:33.590228+00:00",
+    "total_deck_cards": 100
   }
 }
