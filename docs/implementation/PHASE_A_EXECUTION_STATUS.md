@@ -52,19 +52,13 @@ Island, Mountain, Sol Ring, Opt, Abrade, Soul-Guide Lantern, Commit // Memory, M
 
 Only `CLEAN_ENGINE_PRODUCTION_PATH` evidence satisfies Phase A. Source-validation results and archival legacy results do not substitute for clean-engine execution.
 
-The authoritative result is the GitHub Actions `phase-a-result-<commit>` artifact produced by the required CI run on the final pull-request head. The artifact records the exact commit, clean-tree state, command outputs, test mapping and counts, source hashes, evidence classification, replay/hash status, and pilot lock.
+The authoritative result is the GitHub Actions `phase-a-result-<commit>` artifact produced by the required CI run on the final pull-request head. The artifact records the exact commit, clean-tree state, command outputs, test mapping and counts, source hashes, evidence classification, replay/hash status, and pilot lock. Exact commit and artifact identifiers belong in the pull-request evidence record, not this tracked file, so recording them does not change the commit being certified.
 
 ## Phase A final verdict
 
 **GO — PHASE A COMPLETE.**
 
-Final reviewed head before merge: `937937f8f68c2f29903da936f0411e1886a131da`.
-
-Required CI run: `30529797824`.
-
-Final artifact: `phase-a-result-937937f8f68c2f29903da936f0411e1886a131da`, digest `sha256:aef4e3230ee0f046cb9a84d340f173b8419e50570333c113a73f2b8e5c4f2451`.
-
-Acceptance result: 22 passed, 0 failed, 0 skipped, 0 xfailed; all 13 blocking identity requirements mapped; `CLEAN_ENGINE_PRODUCTION_PATH`; legacy evidence false; replay/hash PASS; pilot lock PASS.
+Acceptance requires 22 passed, 0 failed, 0 skipped, 0 xfailed; all 13 blocking identity requirements mapped; `CLEAN_ENGINE_PRODUCTION_PATH`; legacy evidence false; replay/hash PASS; and pilot lock PASS on the final pull-request head.
 
 This verdict authorizes transition to Phase B only. It does not authorize the 500/200 pilot or the 20,000/5,000 study.
 
