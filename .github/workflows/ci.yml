@@ -48,10 +48,6 @@ jobs:
         run: uv run ruff check .
       - name: Type check
         run: uv run mypy src
-      - name: Tests
-        run: uv run pytest -q
-      - name: Manifest integrity
-        run: uv run python scripts/check_manifest.py
 
       # Phase A is a standing regression contract. Every later branch and every push to
       # main must continue to pass it; it is not restricted to the original Phase A branch.
@@ -66,6 +62,16 @@ jobs:
           uv run python scripts/record_phase_a_certification.py \
             --verifier-result "${RESULT}" \
             --output "${RUNNER_TEMP}/phase-a-certification-candidate/CERTIFICATION.json"
+
+      # Certification-negative tests need to validate the newly generated candidate when
+      # covered content changed. The committed record still must pass the separate durable
+      # gate below before the pull request can merge.
+      - name: Tests
+        env:
+          PHASE_A_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-a-certification-candidate/CERTIFICATION.json
+        run: uv run pytest -q
+      - name: Manifest integrity
+        run: uv run python scripts/check_manifest.py
       - name: Durable Phase A certification is current
         run: uv run python scripts/check_phase_a_certification.py
       - name: Upload Phase A verification artifact
