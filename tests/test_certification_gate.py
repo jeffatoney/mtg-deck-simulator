@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -42,12 +43,21 @@ def _run(cwd: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+def _record_source() -> Path:
+    candidate = os.environ.get("PHASE_A_CERTIFICATION_RECORD", "").strip()
+    return Path(candidate) if candidate else ROOT / RECORD
+
+
 @pytest.fixture
 def sandbox(tmp_path: Path) -> Path:
-    if not (ROOT / RECORD).is_file():
-        pytest.skip("durable certification candidate has not been committed yet")
-    for relative in (*COVERED_PATHS, *EXTRA_PATHS, RECORD):
+    record_source = _record_source()
+    if not record_source.is_file():
+        pytest.skip("no durable certification or CI candidate is available")
+    for relative in (*COVERED_PATHS, *EXTRA_PATHS):
         _copy(relative, tmp_path)
+    record_target = tmp_path / RECORD
+    record_target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(record_source, record_target)
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True)
     subprocess.run(
@@ -56,11 +66,12 @@ def sandbox(tmp_path: Path) -> Path:
         check=True,
     )
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=tmp_path, text=True).strip()
-    record_path = tmp_path / RECORD
-    record = json.loads(record_path.read_text(encoding="utf-8"))
+    record = json.loads(record_target.read_text(encoding="utf-8"))
     record["certified_content_commit"] = head
     record["ci_artifact_name"] = f"phase-a-result-{head}"
-    record_path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    record_target.write_text(
+        json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return tmp_path
 
 
@@ -91,7 +102,9 @@ def test_covered_change_is_rejected(sandbox: Path, relative: str) -> None:
     if target.suffix == ".json":
         payload = json.loads(target.read_text(encoding="utf-8"))
         payload["certification_test_drift"] = True
-        target.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        target.write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
     else:
         target.write_text(target.read_text(encoding="utf-8") + "\n# drift\n", encoding="utf-8")
     result = _run(sandbox)
