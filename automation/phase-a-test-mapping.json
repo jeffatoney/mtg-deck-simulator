@@ -1,18 +1,49 @@
 {
-  "schema_version": "phase-a-test-mapping-v1",
+  "schema_version": "phase-a-test-mapping-v2",
   "requirements": {
-    "ID-SPEC-NAMESPACE-001": ["tests/phase_a/test_kernel_acceptance.py::test_spec_oracle_completeness_and_named_pool"],
-    "ID-ACTIVE-CARD-001": ["tests/phase_a/test_kernel_acceptance.py::test_one_active_object_per_physical_card"],
-    "ID-OBJECT-SCHEMA-001": ["tests/phase_a/test_kernel_acceptance.py::test_spell_and_token_copies_are_synthetic_and_cease"],
-    "ID-NO-ID-PARSING-001": ["tests/phase_a/test_kernel_acceptance.py::test_retired_target_does_not_follow_successor"],
-    "ID-OBJECT-REINCARNATION-001": ["tests/phase_a/test_kernel_acceptance.py::test_zone_changes_and_same_zone_events_create_new_identity"],
-    "ID-CONTINUITY-SCOPE-001": ["tests/phase_a/test_kernel_acceptance.py::test_unsupported_continuity_fails_closed"],
-    "ID-REFERENCE-MODE-001": ["tests/phase_a/test_kernel_acceptance.py::test_retired_target_does_not_follow_successor"],
-    "ID-CONTROLLER-001": ["tests/phase_a/test_kernel_acceptance.py::test_dualcaster_etb_creates_real_trigger_and_uncast_spell_copy"],
-    "ID-COMMANDER-RETURN-001": ["tests/phase_a/test_kernel_acceptance.py::test_commander_return_is_optional_recorded_and_intermediate"],
-    "ID-SYNTHETIC-001": ["tests/phase_a/test_kernel_acceptance.py::test_spell_and_token_copies_are_synthetic_and_cease"],
-    "ID-ORACLE-AUTHORITY-001": ["tests/phase_a/test_kernel_acceptance.py::test_spec_oracle_completeness_and_named_pool"],
-    "MODEL-HIDDEN-IDENTITY-001": ["tests/phase_a/test_kernel_acceptance.py::test_hidden_observation_excludes_ids_order_and_revokes_handles"],
-    "ID-HASH-CONTRACT-001": ["tests/phase_a/test_kernel_acceptance.py::test_replay_state_hash_matches_fresh_process"]
+    "ID-SPEC-NAMESPACE-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_oracle_pool_namespace_and_complete_behavior_compositions"
+    ],
+    "ID-ACTIVE-CARD-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_identity_component_copy_and_controller_invariants"
+    ],
+    "ID-OBJECT-SCHEMA-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_identity_component_copy_and_controller_invariants",
+      "tests/phase_a/test_kernel_acceptance.py::test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects"
+    ],
+    "ID-NO-ID-PARSING-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_identity_component_copy_and_controller_invariants"
+    ],
+    "ID-OBJECT-REINCARNATION-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_zone_successors_are_fresh_and_same_zone_reincarnation_is_new_identity"
+    ],
+    "ID-CONTINUITY-SCOPE-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_reference_modes_lki_and_continuity_fail_closed"
+    ],
+    "ID-REFERENCE-MODE-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_reference_modes_lki_and_continuity_fail_closed"
+    ],
+    "ID-CONTROLLER-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_identity_component_copy_and_controller_invariants",
+      "tests/phase_a/test_kernel_acceptance.py::test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects"
+    ],
+    "ID-COMMANDER-RETURN-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_commander_optional_return_and_commander_damage_terminal",
+      "tests/phase_a/test_kernel_acceptance.py::test_commit_handles_physical_copy_commander_and_external_objects",
+      "tests/phase_a/test_kernel_acceptance.py::test_memory_aftermath_shuffle_draw_and_commander_replacement"
+    ],
+    "ID-SYNTHETIC-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects"
+    ],
+    "ID-ORACLE-AUTHORITY-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_oracle_pool_namespace_and_complete_behavior_compositions"
+    ],
+    "MODEL-HIDDEN-IDENTITY-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_hidden_observation_masks_library_opponent_hand_and_face_down_identity"
+    ],
+    "ID-HASH-CONTRACT-001": [
+      "tests/phase_a/test_kernel_acceptance.py::test_hash_allowlist_schema_and_float_rejection",
+      "tests/phase_a/test_kernel_acceptance.py::test_replay_executes_recorded_actions_and_rejects_tampering_in_fresh_process"
+    ]
   }
 }

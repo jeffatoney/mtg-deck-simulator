@@ -15,14 +15,26 @@ from mtg_kernel.serialization import state_from_data
 TRANSCRIPT_SCHEMA = "phase-a-replay-v2"
 
 
+def _json_safe(value: Any) -> Any:
+    return json.loads(
+        json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+            default=str,
+        )
+    )
+
+
 def _digest(body: dict[str, Any]) -> str:
     encoded = json.dumps(
-        body,
+        _json_safe(body),
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
         allow_nan=False,
-        default=str,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
@@ -43,6 +55,7 @@ def transcript(state: GameState, *, seed: str = "phase-a") -> dict[str, Any]:
         "rng_streams": {name: asdict(stream) for name, stream in sorted(state.rng_streams.items())},
         "final_state_hash": state_hash(state),
     }
+    body = _json_safe(body)
     body["digest"] = _digest(body)
     return body
 

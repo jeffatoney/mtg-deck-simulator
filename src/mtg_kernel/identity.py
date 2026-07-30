@@ -102,6 +102,7 @@ class IdentityService:
             battlefield_permanent = obj.zone is Zone.BATTLEFIELD and obj.object_kind in {
                 ObjectKind.PERMANENT,
                 ObjectKind.TOKEN_OBJECT,
+                ObjectKind.EXTERNAL_PUBLIC_OBJECT,
             }
             if battlefield_permanent != (obj.permanent_status is not None):
                 raise IllegalAction("permanent status is valid only on battlefield permanents")
@@ -130,9 +131,17 @@ class IdentityService:
                 raise IllegalAction("every stack object must have a controller")
             if obj.object_kind in ABILITY_KINDS and obj.owner is not None:
                 raise IllegalAction("ability objects do not receive a fabricated rules owner")
-            if obj.object_kind is ObjectKind.SPELL_COPY and obj.owner != obj.controller:
+            if (
+                obj.object_kind is ObjectKind.SPELL_COPY
+                and obj.zone is Zone.STACK
+                and obj.owner != obj.controller
+            ):
                 raise IllegalAction("spell-copy owner must be its copy-placement controller")
-            if obj.copy_kind is not CopyKind.NONE and obj.predecessor_object_id is not None:
+            if (
+                obj.copy_kind is not CopyKind.NONE
+                and obj.predecessor_object_id is not None
+                and obj.created_by_event_id == obj.copy_creation_event_id
+            ):
                 raise IllegalAction("copy ancestry may not use predecessor identity")
         self.validate_active_components()
 

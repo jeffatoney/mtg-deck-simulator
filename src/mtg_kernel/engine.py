@@ -558,7 +558,7 @@ class GameExecutor:
                 if _record:
                     self._record_command("resolve_top")
                 return
-            if obj.object_kind is ObjectKind.SPELL:
+            if obj.object_kind in {ObjectKind.SPELL, ObjectKind.SPELL_COPY}:
                 face = int(action.metadata.get("face", 0))
                 abilities = obj.current_characteristics.get("abilities", [])
                 selected = next(
@@ -663,6 +663,14 @@ class GameExecutor:
             add_mana(self.state.players[action.actor_id].mana_pool, effect.get("mana", {}))
             self._event("MANA_ADDED", action, mana=effect.get("mana", {}))
             return
+        if kind == "ADD_CHOSEN_MANA":
+            allowed = tuple(str(value) for value in effect.get("choices", ()))
+            selected = str(choices.get("mana_color", ""))
+            if selected not in allowed:
+                raise IllegalAction("mana ability requires an explicit legal color choice")
+            add_mana(self.state.players[action.actor_id].mana_pool, {selected: 1})
+            self._event("MANA_ADDED", action, mana={selected: 1})
+            return
         if kind == "DRAW":
             for _ in range(int(effect.get("count", 1))):
                 self.draw_card(action.actor_id, action=action)
@@ -696,13 +704,38 @@ class GameExecutor:
             return
         if kind == "LIBRARY_SECOND" and targets:
             target = targets[0]
+            destination = Zone.LIBRARY
+            commander_choice_id: str | None = None
+            if target.component_card_instance_ids:
+                instance = self.state.card_instances[target.component_card_instance_ids[0]]
+                if instance.commander_designation:
+                    if "commander_to_command" not in choices:
+                        raise IllegalAction(
+                            "Commit requires an explicit commander replacement choice"
+                        )
+                    commander_to_command = bool(choices["commander_to_command"])
+                    choice_event = self._event("COMMANDER_LIBRARY_REPLACEMENT_CHOICE", action)
+                    choice = Choice(
+                        self.identity.new_id("choice"),
+                        instance.owner_id,
+                        "COMMANDER_LIBRARY_REPLACEMENT",
+                        "COMMAND" if commander_to_command else "LIBRARY",
+                        choice_event.event_id,
+                    )
+                    self.state.choices.append(choice)
+                    commander_choice_id = choice.choice_id
+                    if commander_to_command:
+                        destination = Zone.COMMAND
             moved = self.zones.move(
                 target.object_id,
-                Zone.LIBRARY,
-                "COMMIT",
-                self._event("PUT_IN_LIBRARY", action),
+                destination,
+                "COMMANDER_REPLACEMENT" if destination is Zone.COMMAND else "COMMIT",
+                self._event(
+                    "PUT_IN_LIBRARY" if destination is Zone.LIBRARY else "PUT_IN_COMMAND", action
+                ),
+                commander_choice_id=commander_choice_id,
             )
-            if moved is not None:
+            if moved is not None and destination is Zone.LIBRARY:
                 key = self.zones.zone_key(Zone.LIBRARY, moved.owner)
                 zone = self.state.zones[key]
                 zone.remove(moved.object_id)
@@ -898,7 +931,10 @@ class GameExecutor:
                         "kind": "ACTIVATED",
                         "mana_ability": True,
                         "cost": {"tap": True, "sacrifice_source": True},
-                        "effect": {"kind": "ADD_MANA", "mana": {"C": 1}},
+                        "effect": {
+                            "kind": "ADD_CHOSEN_MANA",
+                            "choices": ["W", "U", "B", "R", "G"],
+                        },
                     }
                 ],
             },
