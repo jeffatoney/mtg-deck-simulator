@@ -88,7 +88,12 @@ def test_current_certification_passes(sandbox: Path) -> None:
 )
 def test_covered_change_is_rejected(sandbox: Path, relative: str) -> None:
     target = sandbox / relative
-    target.write_text(target.read_text(encoding="utf-8") + "\n# drift\n", encoding="utf-8")
+    if target.suffix == ".json":
+        payload = json.loads(target.read_text(encoding="utf-8"))
+        payload["certification_test_drift"] = True
+        target.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    else:
+        target.write_text(target.read_text(encoding="utf-8") + "\n# drift\n", encoding="utf-8")
     result = _run(sandbox)
     assert result.returncode == 1
     assert "STALE" in result.stdout
