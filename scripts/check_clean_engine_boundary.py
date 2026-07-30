@@ -174,7 +174,8 @@ def main() -> int:
 
     if (ROOT / "src" / FORBIDDEN_ROOT).exists():
         findings.append(
-            f"src/{FORBIDDEN_ROOT} exists: quarantined code is back on the installable path"
+            f"src/{FORBIDDEN_ROOT} exists: the quarantined package is back on the "
+            "installable import path"
         )
 
     payload = {
