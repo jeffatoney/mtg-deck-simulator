@@ -1,0 +1,47 @@
+{
+  "schema_version": "phase-b-test-mapping-v1",
+  "requirements": {
+    "B-SOURCE-001": [
+      "tests/phase_b/test_full_deck.py::test_all_frozen_oracle_records_and_physical_cards_resolve"
+    ],
+    "B-COVERAGE-001": [
+      "tests/phase_b/test_full_deck.py::test_complete_reviewed_coverage_has_no_fallback"
+    ],
+    "B-DECK-001": [
+      "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
+    ],
+    "B-RULES-001": [
+      "tests/phase_b/test_competency.py"
+    ],
+    "B-LEGALITY-001": [
+      "tests/phase_b/test_legality_policy_search.py::test_standard_search_replay_and_scenarios_share_legal_actions"
+    ],
+    "B-HIDDEN-001": [
+      "tests/phase_b/test_legality_policy_search.py::test_policy_and_search_cannot_access_actual_hidden_future"
+    ],
+    "B-OPPONENT-001": [
+      "tests/phase_b/test_opponent_choices.py"
+    ],
+    "B-POLICY-001": [
+      "tests/phase_b/test_policies.py"
+    ],
+    "B-SEARCH-001": [
+      "tests/phase_b/test_exploratory_search.py"
+    ],
+    "B-MEASURE-001": [
+      "tests/phase_b/test_measurements.py"
+    ],
+    "B-REPLAY-001": [
+      "tests/phase_b/test_replay_aggregation.py"
+    ],
+    "B-MANIFEST-001": [
+      "tests/phase_b/test_manifests.py"
+    ],
+    "B-PHASE-A-001": [
+      "tests/phase_b/test_phase_a_regression.py"
+    ],
+    "B-PILOT-LOCK-001": [
+      "tests/phase_b/test_pilot_lock.py"
+    ]
+  }
+}
