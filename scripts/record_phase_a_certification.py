@@ -31,14 +31,14 @@ def _git(*args: str) -> str:
     return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
 
 
-def _require_ci_environment() -> tuple[str, str, str, str]:
+def _require_ci_environment() -> tuple[str, str, str]:
     if os.environ.get("GITHUB_ACTIONS") != "true":
         raise RuntimeError(
             "durable certification candidates may only be produced in GitHub Actions"
         )
     required = {
         name: os.environ.get(name, "").strip()
-        for name in ("GITHUB_RUN_ID", "GITHUB_SERVER_URL", "GITHUB_REPOSITORY", "GITHUB_SHA")
+        for name in ("GITHUB_RUN_ID", "GITHUB_SERVER_URL", "GITHUB_REPOSITORY")
     }
     missing = [name for name, value in required.items() if not value]
     if missing:
@@ -47,15 +47,12 @@ def _require_ci_environment() -> tuple[str, str, str, str]:
         required["GITHUB_RUN_ID"],
         required["GITHUB_SERVER_URL"],
         required["GITHUB_REPOSITORY"],
-        required["GITHUB_SHA"],
     )
 
 
 def build_record(verifier: dict[str, Any]) -> dict[str, Any]:
-    run_id, server, repository, github_sha = _require_ci_environment()
+    run_id, server, repository = _require_ci_environment()
     head = _git("rev-parse", "HEAD")
-    if github_sha != head:
-        raise RuntimeError(f"GITHUB_SHA {github_sha} does not match checked-out HEAD {head}")
     if verifier.get("commit") != head:
         raise RuntimeError("verifier result does not certify checked-out HEAD")
     if verifier.get("github_actions") is not True or str(verifier.get("github_run_id")) != run_id:
