@@ -33,13 +33,14 @@ jobs:
         run: uv run mypy src
       - name: Tests on formatted tree
         run: uv run pytest -q -ra
-      - name: Package formatted sources
+      - name: Package reproducible worktree
         if: always()
         run: |
-          tar -czf /tmp/phase-a-formatted.tar.gz src scripts tests automation
+          tar -czf /tmp/phase-a-worktree.tar.gz \
+            src scripts tests automation docs/source docs/spec pyproject.toml .python-version uv.lock
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: phase-a-formatted-${{ github.event.pull_request.head.sha || github.sha }}
-          path: /tmp/phase-a-formatted.tar.gz
+          name: phase-a-worktree-${{ github.event.pull_request.head.sha || github.sha }}
+          path: /tmp/phase-a-worktree.tar.gz
           retention-days: 7
