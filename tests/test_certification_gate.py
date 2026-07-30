@@ -69,9 +69,7 @@ def sandbox(tmp_path: Path) -> Path:
     record = json.loads(record_target.read_text(encoding="utf-8"))
     record["certified_content_commit"] = head
     record["ci_artifact_name"] = f"phase-a-result-{head}"
-    record_target.write_text(
-        json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    record_target.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return tmp_path
 
 
@@ -102,9 +100,7 @@ def test_covered_change_is_rejected(sandbox: Path, relative: str) -> None:
     if target.suffix == ".json":
         payload = json.loads(target.read_text(encoding="utf-8"))
         payload["certification_test_drift"] = True
-        target.write_text(
-            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-        )
+        target.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     else:
         target.write_text(target.read_text(encoding="utf-8") + "\n# drift\n", encoding="utf-8")
     result = _run(sandbox)
