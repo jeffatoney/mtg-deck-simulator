@@ -137,11 +137,21 @@ def _scan_file(path: Path, tier: str) -> list[str]:
         return [f"{relative}:{error.lineno}: syntax error: {error.msg}"]
     visitor = _BoundaryVisitor(relative, tier)
     visitor.visit(tree)
+    docstrings: set[ast.Constant] = set()
+    for parent in ast.walk(tree):
+        if isinstance(parent, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            body = parent.body
+            if body and isinstance(body[0], ast.Expr):
+                value = body[0].value
+                if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                    docstrings.add(value)
     for node in ast.walk(tree):
+        if node in docstrings:
+            continue
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             if _contains_forbidden_reference(node.value):
                 visitor.findings.append(
-                    f"{relative}:{node.lineno}: literal reference to quarantined package"
+                    f"{relative}:{node.lineno}: executable literal references quarantined package"
                 )
     return sorted(set(visitor.findings))
 
