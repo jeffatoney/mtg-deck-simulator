@@ -58,6 +58,14 @@ The authoritative result is the GitHub Actions `phase-a-result-<commit>` artifac
 
 **GO — PHASE A COMPLETE.**
 
+Final reviewed head before merge: `937937f8f68c2f29903da936f0411e1886a131da`.
+
+Required CI run: `30529797824`.
+
+Final artifact: `phase-a-result-937937f8f68c2f29903da936f0411e1886a131da`, digest `sha256:aef4e3230ee0f046cb9a84d340f173b8419e50570333c113a73f2b8e5c4f2451`.
+
+Acceptance result: 22 passed, 0 failed, 0 skipped, 0 xfailed; all 13 blocking identity requirements mapped; `CLEAN_ENGINE_PRODUCTION_PATH`; legacy evidence false; replay/hash PASS; pilot lock PASS.
+
 This verdict authorizes transition to Phase B only. It does not authorize the 500/200 pilot or the 20,000/5,000 study.
 
 ## Still locked after Phase A
