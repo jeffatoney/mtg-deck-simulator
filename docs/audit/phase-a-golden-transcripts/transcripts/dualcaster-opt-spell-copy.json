@@ -1,0 +1,33 @@
+{
+  "schema_version": "phase-a-golden-transcript-v1",
+  "transcript_id": "dualcaster-opt-spell-copy",
+  "title": "Dualcaster Mage creates a real Opt spell copy without casting it",
+  "plain_english": [
+    "P0 casts the real frozen-Oracle Opt and leaves it on the stack.",
+    "P0 casts the real frozen-Oracle Dualcaster Mage while Opt remains a legal instant target.",
+    "After Dualcaster Mage resolves, its enters-the-battlefield trigger is put on the stack with Opt as the recorded target.",
+    "The trigger resolves and creates a synthetic spell-copy object with no physical-card component and was_cast set to false.",
+    "The copied Opt resolves through the same production stack path and then ceases to exist after its recorded zone arrival."
+  ],
+  "machine": {
+    "test_node": "tests/phase_a/test_kernel_acceptance.py::test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects",
+    "preconditions": [
+      "Opt is a spell object on the stack",
+      "Dualcaster Mage is a physical card in P0 hand",
+      "the trigger target choice records the current Opt object ID"
+    ],
+    "ordered_operations": [
+      "cast Opt",
+      "cast Dualcaster Mage",
+      "all players pass to resolve Dualcaster Mage",
+      "all players pass to resolve Dualcaster Mage ETB trigger",
+      "all players pass to resolve copied Opt"
+    ],
+    "required_assertions": [
+      "copy_kind is SPELL_COPY",
+      "component_card_instance_ids is empty",
+      "was_cast is false",
+      "the spell copy is retired and ceased_to_exist after resolution"
+    ]
+  }
+}
