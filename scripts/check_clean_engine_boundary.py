@@ -14,7 +14,11 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STRICT_ROOTS = (ROOT / "src/mtg_kernel", ROOT / "src/mtg_cards")
+STRICT_ROOTS = (
+    ROOT / "src/mtg_kernel",
+    ROOT / "src/mtg_cards",
+    ROOT / "src/mtg_deck",
+)
 SUPPORT_ROOTS = (ROOT / "src/mtg_verify", ROOT / "src/mtg_sources")
 FORBIDDEN_ROOT = "mtg_sim"
 
