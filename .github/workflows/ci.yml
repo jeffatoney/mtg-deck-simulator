@@ -43,7 +43,26 @@ jobs:
           fi
           echo "PASS: mtg_sim is not importable"
       - name: Format
+        id: format
+        continue-on-error: true
         run: uv run ruff format --check --diff .
+      - name: Prepare formatted-source suggestion
+        if: steps.format.outcome == 'failure'
+        run: |
+          uv run ruff format .
+          mkdir -p "${RUNNER_TEMP}/ruff-formatted"
+          git diff --name-only -z -- '*.py' | xargs -0 -r cp --parents -t "${RUNNER_TEMP}/ruff-formatted"
+      - name: Upload formatted-source suggestion
+        if: steps.format.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruff-formatted-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/ruff-formatted
+          if-no-files-found: error
+          retention-days: 7
+      - name: Enforce formatting
+        if: steps.format.outcome == 'failure'
+        run: exit 1
       - name: Lint
         run: uv run ruff check .
       - name: Type check
