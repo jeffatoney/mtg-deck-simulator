@@ -1,0 +1,183 @@
+elf._resolution_depth:
++            return
+         if not self.state.waiting_triggers:
+             return
+         player_order = list(self.state.players)
+@@ -1360,6 +1400,8 @@ class GameExecutor:
+             raise
+ 
+     def check_state_based_actions(self) -> None:
++        if self._resolution_depth:
++            return
+         while True:
+             changed = False
+             for obj in list(self.state.objects.values()):
+diff --git a/src/mtg_verify/phase_a.py b/src/mtg_verify/phase_a.py
+index 4809f2a..bb9421d 100644
+--- a/src/mtg_verify/phase_a.py
++++ b/src/mtg_verify/phase_a.py
+@@ -66,6 +66,7 @@ def verify_phase_a_run() -> int:
+         "uv run --no-sync python scripts/check_clean_engine_boundary.py",
+         "uv run --no-sync python scripts/check_identity_lock.py",
+         "uv run --no-sync python scripts/check_phase_a_authority.py",
++        "uv run --no-sync python scripts/check_phase_a_golden_transcripts.py",
+         "uv run --no-sync pytest -q -ra tests/phase_a",
+     ]
+     results = [_run(command) for command in commands]
+@@ -105,7 +106,7 @@ def verify_phase_a_run() -> int:
+     artifact.parent.mkdir(parents=True, exist_ok=False)
+     artifact_location = _display_path(artifact)
+     result = {
+-        "schema_version": "phase-a-result-v1",
++        "schema_version": "phase-a-result-v2",
+         "run_id": run_id,
+         "commit": commit,
+         "branch": branch,
+@@ -125,6 +126,7 @@ def verify_phase_a_run() -> int:
+         "oracle_source_sha256": _sha(ROOT / "docs/source/oracle/snapshot_v1.json"),
+         "architecture_boundary": "PASS" if results[0]["exit_code"] == 0 else "FAIL",
+         "authority_map": "PASS" if results[2]["exit_code"] == 0 else "FAIL",
++        "golden_transcripts": "PASS" if results[3]["exit_code"] == 0 else "FAIL",
+         "evidence_classification": "CLEAN_ENGINE_PRODUCTION_PATH",
+         "replay_and_hash": "PASS" if results[-1]["exit_code"] == 0 else "FAIL",
+         "pilot_lock": "PASS" if pilot_locked else "FAIL",
+diff --git a/tests/phase_a/test_kernel_acceptance.py b/tests/phase_a/test_kernel_acceptance.py
+index 770c51f..cab4ea5 100644
+--- a/tests/phase_a/test_kernel_acceptance.py
++++ b/tests/phase_a/test_kernel_acceptance.py
+@@ -50,8 +50,11 @@ def add_library(executor: GameExecutor, player_id: str, count: int) -> None:
+ 
+ 
+ def pass_all(executor: GameExecutor) -> None:
+-    executor.pass_priority("P0")
+-    executor.pass_priority("P1")
++    players = [player.player_id for player in executor.state.players.values() if player.in_game]
++    for _ in players:
++        holder = executor.state.turn.priority_holder_id
++        assert holder is not None
++        executor.pass_priority(holder)
+ 
+ 
+ def active_objects(state, *, name: str | None = None, kind: ObjectKind | None = None):
+@@ -163,7 +166,7 @@ def test_abrade_modes_targets_and_target_revalidation() -> None:
+     )
+     abrade = add_card(executor, specs["Abrade"], Zone.HAND)
+     executor.cast("P0", abrade.object_id, (TargetRef(creature.object_id),), mode="damage")
+-    executor.resolve_top()
++    pass_all(executor)
+     assert not any(
+         obj.zone is Zone.BATTLEFIELD
+         for obj in active_objects(state, name="Malcolm, Keen-Eyed Navigator")
+@@ -172,14 +175,14 @@ def test_abrade_modes_targets_and_target_revalidation() -> None:
+     artifact = add_card(executor, specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
+     abrade2 = add_card(executor, specs["Abrade"], Zone.HAND)
+     executor.cast("P0", abrade2.object_id, (TargetRef(artifact.object_id),), mode="destroy")
+-    executor.resolve_top()
++    pass_all(executor)
+     assert not any(obj.zone is Zone.BATTLEFIELD for obj in active_objects(state, name="Sol Ring"))
+ 
+     creature2 = add_card(executor, specs["Glint-Horn Buccaneer"], Zone.BATTLEFIELD, owner="P1")
+     abrade3 = add_card(executor, specs["Abrade"], Zone.HAND)
+     spell = executor.cast("P0", abrade3.object_id, (TargetRef(creature2.object_id),), mode="damage")
+     executor.zones.move(creature2.object_id, Zone.GRAVEYARD, "TEST", executor._event("TEST"))
+-    executor.resolve_top()
++    pass_all(executor)
+     assert spell.retired
+     assert any(event.kind == "STACK_OBJECT_COUNTERED" for event in state.events)
+ 
+@@ -194,23 +197,23 @@ def test_lantern_etb_and_both_activated_abilities() -> None:
+         lantern.object_id,
+         choices={"trigger_targets": {"lantern:etb": target.object_id}},
+     )
+-    executor.resolve_top()
++    pass_all(executor)
+     trigger_action = executor._created_action(state.objects[state.stack[-1]])
+     assert trigger_action.targets == (TargetRef(target.object_id),)
+-    executor.resolve_top()
++    pass_all(executor)
+     assert any(obj.zone is Zone.EXILE for obj in active_objects(state, name="Opt"))
+ 
+     state2, executor2 = funded_game()
+     lantern2 = add_card(executor2, specs["Soul-Guide Lantern"], Zone.HAND)
+     executor2.cast("P0", lantern2.object_id)
+-    executor2.resolve_top()
++    pass_all(executor2)
+     assert not state2.stack
+ 
+     state3, executor3 = funded_game()
+     add_library(executor3, "P0", 1)
+     lantern3 = add_card(executor3, specs["Soul-Guide Lantern"], Zone.BATTLEFIELD)
+     executor3.activate("P0", lantern3.object_id, "lantern:draw")
+-    executor3.resolve_top()
++    pass_all(executor3)
+     assert len(state3.zones["HAND:P0"]) == 1
+     assert not any(
+         obj.zone is Zone.BATTLEFIELD for obj in active_objects(state3, name="Soul-Guide Lantern")
+@@ -220,7 +223,7 @@ def test_lantern_etb_and_both_activated_abilities() -> None:
+     add_card(executor4, specs["Opt"], Zone.GRAVEYARD, owner="P1")
+     lantern4 = add_card(executor4, specs["Soul-Guide Lantern"], Zone.BATTLEFIELD)
+     executor4.activate("P0", lantern4.object_id, "lantern:exile-opponents")
+-    executor4.resolve_top()
++    pass_all(executor4)
+     assert not state4.zones.get("GRAVEYARD:P1", [])
+ 
+ 
+@@ -231,7 +234,7 @@ def test_opt_scry_and_draw_changes_real_library_order() -> None:
+     top = add_card(executor, specs["Mountain"], Zone.LIBRARY)
+     opt = add_card(executor, specs["Opt"], Zone.HAND)
+     executor.cast("P0", opt.object_id, choices={"scry_to_bottom": True})
+-    executor.resolve_top()
++    pass_all(executor)
+     hand_names = [
+         state.objects[obj].current_characteristics["name"] for obj in state.zones["HAND:P0"]
+     ]
+@@ -246,7 +249,7 @@ def test_commit_handles_physical_copy_commander_and_external_objects() -> None:
+     target = add_card(executor, specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
+     commit = add_card(executor, specs["Commit // Memory"], Zone.HAND)
+     executor.cast("P0", commit.object_id, (TargetRef(target.object_id),), face=0)
+-    executor.resolve_top()
++    pass_all(executor)
+     assert any(
+         change.cause == "COMMIT" and change.from_object_id == target.object_id
+         for change in state.zone_changes
+@@ -261,7 +264,7 @@ def test_commit_handles_physical_copy_commander_and_external_objects() -> None:
+     copy = executor2.copy_spell(original, "P0", None, cause)
+     commit2 = add_card(executor2, specs["Commit // Memory"], Zone.HAND)
+     executor2.cast("P0", commit2.object_id, (TargetRef(copy.object_id),), face=0)
+-    executor2.resolve_top()
++    pass_all(executor2)
+     assert copy.retired
+     assert any(
+         obj.copy_kind is CopyKind.SPELL_COPY and obj.ceased_to_exist
+@@ -284,7 +287,7 @@ def test_commit_handles_physical_copy_commander_and_external_objects() -> None:
+         face=0,
+         choices={"commander_to_command": True},
+     )
+-    executor3.resolve_top()
++    pass_all(executor3)
+     assert active_objects(state3, name="Malcolm, Keen-Eyed Navigator")[0].zone is Zone.COMMAND
+     assert state3.choices[-1].selected == "COMMAND"
+ 
+@@ -299,7 +302,7 @@ def test_commit_handles_physical_copy_commander_and_external_objects() -> None:
+     )
+     commit4 = add_card(executor4, specs["Commit // Memory"], Zone.HAND)
+     executor4.cast("P0", commit4.object_id, (TargetRef(external.object_id),), face=0)
+-    executor4.resolve_top()
++    pass_all(executor4)
+     assert state4.external_object_ledger[-1]["destination"] == "LIBRARY"
+     assert state4.external_object_ledger[-1]["position"] == "SECOND_FROM_TOP"
+ 
+@@ -323,7 +326,7 @@ def test_memory_aftermath_shuffle_draw_and_commander_replacement() -> None:
+         face=1,
+         choices={"commander_replacements": {commander.object_id: True}},
+     )
+-    executor.resolve_top()
++    pass_all(executor)
+     assert active_objects(state, name="Malcolm, Keen-Eyed Navigator")[0].zone is Zone.COMMAND
+     assert active_objects(state, name="Commit // Memory")[0].zone is Zone.EXILE
+     assert len(state.zones["HAND:P0"]) == 7
+@@ -341,7 +344,7 @@ def test_malcolm_and_glint_horn_use_real_trigger_and_stack_order() -> None:
+     malcolm = add_card(executor, specs["Malcolm, Keen-Eyed Navigator"], Zone.BATTLEFIELD)
+     executor.deal_damage_to_player(malcolm.object_id, "P1", 2, combat=True)
+     assert state.objects[state.stack[-1]].object_kind is ObjectKind.TRIGGERED_ABILITY
+-    executo
