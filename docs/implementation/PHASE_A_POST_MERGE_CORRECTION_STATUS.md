@@ -1,6 +1,6 @@
 # Phase A Post-Merge Correction Status
 
-**Status:** FINAL REVIEW CORRECTIONS IN PROGRESS
+**Status:** EXACT SOL RING TRANSCRIPT CORRECTION IN PROGRESS
 
 **Branch:** `agent/phase-a-post-merge-corrections`
 
@@ -11,17 +11,17 @@
 3. State-based actions and waiting-trigger placement are deferred until the current spell or ability finishes resolving.
 4. Phase A PASS depends on five exact, digest-bound, owner-approved golden transcripts.
 5. Commit removes the pending action associated with a spell or spell copy that it removes from the stack.
+6. Waiting triggers are not put on the stack after a direct-damage terminal event.
+7. The golden-transcript approval document is anchored to the exact repository-owner-approved canonical digest and owner identity.
 
-## Final review corrections
+## Final review correction
 
-- Prevent waiting triggers from being put on the stack after a direct-damage terminal event.
-- Anchor the golden-transcript approval document to the exact repository-owner-approved canonical digest and exact owner identity.
+The approved `priority-gated-sol-ring-resolution` transcript must execute the exact Sol Ring scenario rather than an analogous Opt scenario. Its named Phase A test is being corrected to cast Sol Ring, reject direct and replay resolution bypasses, resolve only after all players pass, create a fresh Sol Ring permanent, retire the spell object, and clear the cast action from `pending_actions`.
 
 ## Evidence status
 
-- Earlier focused behavioral and golden-transcript tests passed.
-- The five exact golden transcripts and their owner approval record are committed.
-- Complete exact-head CI, renewed immutable Phase A verification, durable certification, and final Codex review remain required after the final review corrections land.
+- Earlier behavioral, governance, exact-head CI, artifact, and durable-certification gates passed before this final transcript correction.
+- Complete exact-head CI, renewed immutable Phase A verification, durable certification, and another exact-head Codex review remain required after the Sol Ring test lands.
 - Explicit owner merge authorization remains required after all automated and review gates pass.
 
 ## Locks
