@@ -43,7 +43,7 @@ jobs:
           fi
           echo "PASS: mtg_sim is not importable"
       - name: Format
-        run: uv run ruff format --check .
+        run: uv run ruff format --check --diff .
       - name: Lint
         run: uv run ruff check .
       - name: Type check
