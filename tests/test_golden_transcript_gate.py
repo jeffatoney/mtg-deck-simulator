@@ -38,7 +38,8 @@ def _sandbox(tmp_path: Path, *, approve: bool) -> tuple[Path, Path, set[str]]:
             entry["approved_by"] = "Phase A test approver"
             entry["approved_at"] = "2026-07-31T05:00:00-07:00"
             entry["approval_statement"] = (
-                "Approved — all five exact transcript IDs and digests listed above."
+                f"I approve {entry['transcript_id']} at exact SHA-256 {entry['sha256']} "
+                "as a Phase A golden transcript."
             )
     approvals_path.write_text(
         json.dumps(approvals, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -65,6 +66,22 @@ def test_pending_owner_approval_fails_closed(tmp_path: Path) -> None:
         validate_golden_transcripts(
             root / "docs/audit/phase-a-golden-transcripts/transcripts",
             approvals,
+            collected_nodes=nodes,
+            root=root,
+        )
+
+
+def test_unbound_approval_statement_fails_closed(tmp_path: Path) -> None:
+    root, approvals_path, nodes = _sandbox(tmp_path, approve=True)
+    approvals = json.loads(approvals_path.read_text(encoding="utf-8"))
+    approvals["approvals"][0]["approval_statement"] = "Approved."
+    approvals_path.write_text(
+        json.dumps(approvals, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="approval statement is not bound"):
+        validate_golden_transcripts(
+            root / "docs/audit/phase-a-golden-transcripts/transcripts",
+            approvals_path,
             collected_nodes=nodes,
             root=root,
         )
