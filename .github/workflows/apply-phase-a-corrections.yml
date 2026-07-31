@@ -41,8 +41,10 @@ jobs:
           head -c -1 .phase-a-corrections.patch.part-00 > .phase-a-corrections.patch
           cat .phase-a-corrections.patch.part-0[1-6] >> .phase-a-corrections.patch
           sha256sum --check .phase-a-corrections.patch.sha256
-          git apply --check .phase-a-corrections.patch
-          git apply .phase-a-corrections.patch
+          # Transcript artifacts were committed separately for owner approval.
+          # Exclude only those already-present files while applying the same reviewed source patch.
+          git apply --check --exclude='docs/audit/phase-a-golden-transcripts/**' .phase-a-corrections.patch
+          git apply --exclude='docs/audit/phase-a-golden-transcripts/**' .phase-a-corrections.patch
           rm .phase-a-corrections.patch .phase-a-corrections.patch.part-* .phase-a-corrections.patch.sha256
           rm .github/workflows/apply-phase-a-corrections.yml
           rm .github/workflows/export-agent-worktree.yml
