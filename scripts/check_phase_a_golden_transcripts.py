@@ -130,8 +130,8 @@ def validate_golden_transcripts(
         statement = str(approval.get("approval_statement", "")).strip()
         if not approved_by or not _iso_timestamp(approved_at):
             raise ValueError(f"owner approval identity or timestamp is invalid: {transcript_id}")
-        if not statement:
-            raise ValueError(f"owner approval statement is missing: {transcript_id}")
+        if transcript_id not in statement or digest not in statement:
+            raise ValueError(f"approval statement is not bound to ID and digest: {transcript_id}")
         validated.append(
             {
                 "transcript_id": transcript_id,
