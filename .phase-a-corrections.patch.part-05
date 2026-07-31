@@ -1,0 +1,202 @@
+after casting and cannot be resolved by a direct resolve command.",
++    "P0 passes priority, then P1 passes priority without adding an object to the stack.",
++    "Only the completed all-player pass transition resolves Sol Ring and creates a new battlefield permanent object.",
++    "The cast action is no longer pending after resolution."
++  ],
++  "machine": {
++    "test_node": "tests/phase_a/test_kernel_acceptance.py::test_stack_resolution_requires_completed_priority_pass_transition",
++    "preconditions": [
++      "two active players",
++      "P0 holds priority",
++      "Sol Ring is a physical card object in P0 hand"
++    ],
++    "ordered_operations": [
++      "cast Sol Ring",
++      "reject direct resolve_top",
++      "reject replay resolve_top command",
++      "P0 pass_priority",
++      "P1 pass_priority"
++    ],
++    "required_assertions": [
++      "the stack object remains unchanged after each rejected direct-resolution attempt",
++      "the spell resolves only from the second consecutive priority pass",
++      "the original spell object is retired",
++      "a fresh Sol Ring permanent object is on the battlefield"
++    ]
++  }
++}
+diff --git a/docs/audit/phase-a-golden-transcripts/transcripts/twinflame-delayed-token-exile.json b/docs/audit/phase-a-golden-transcripts/transcripts/twinflame-delayed-token-exile.json
+new file mode 100644
+index 0000000..c149f26
+--- /dev/null
++++ b/docs/audit/phase-a-golden-transcripts/transcripts/twinflame-delayed-token-exile.json
+@@ -0,0 +1,33 @@
++{
++  "schema_version": "phase-a-golden-transcript-v1",
++  "transcript_id": "twinflame-delayed-token-exile",
++  "title": "Twinflame creates hasty token copies and exiles them at the next end step",
++  "plain_english": [
++    "P0 casts the real frozen-Oracle Twinflame with two distinct controlled creature targets and pays the declared additional target cost.",
++    "After all players pass, Twinflame resolves and creates two synthetic token-copy permanents with haste and no physical-card components.",
++    "Each token-copy creation records a delayed exile trigger for the next end step.",
++    "At the next end step the delayed triggers are put on the stack in deterministic order.",
++    "Each delayed trigger resolves through the production stack path, moves its referenced token to exile, and state-based actions then make that synthetic object cease to exist."
++  ],
++  "machine": {
++    "test_node": "tests/phase_a/test_kernel_acceptance.py::test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects",
++    "preconditions": [
++      "two distinct P0-controlled creatures are on the battlefield",
++      "Twinflame is in P0 hand",
++      "P0 can pay the base and per-target-beyond-first mana costs"
++    ],
++    "ordered_operations": [
++      "cast Twinflame with two targets",
++      "all players pass to resolve Twinflame",
++      "begin END step",
++      "all players pass for delayed trigger one",
++      "all players pass for delayed trigger two"
++    ],
++    "required_assertions": [
++      "exactly two TOKEN_COPY permanents are created",
++      "both copies have Haste",
++      "exactly two delayed triggers are created",
++      "both token copies are retired and ceased_to_exist after delayed exile"
++    ]
++  }
++}
+diff --git a/scripts/check_phase_a_golden_transcripts.py b/scripts/check_phase_a_golden_transcripts.py
+new file mode 100644
+index 0000000..c0e801c
+--- /dev/null
++++ b/scripts/check_phase_a_golden_transcripts.py
+@@ -0,0 +1,167 @@
++"""Validate the five exact, digest-bound, owner-approved Phase A transcripts."""
++
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import subprocess
++import sys
++from datetime import datetime
++from pathlib import Path
++from typing import Any
++
++ROOT = Path(__file__).resolve().parents[1]
++DEFAULT_TRANSCRIPT_DIR = ROOT / "docs/audit/phase-a-golden-transcripts/transcripts"
++DEFAULT_APPROVALS = ROOT / "docs/audit/phase-a-golden-transcripts/APPROVALS.json"
++TRANSCRIPT_SCHEMA = "phase-a-golden-transcript-v1"
++APPROVAL_SCHEMA = "phase-a-golden-transcript-approvals-v1"
++REQUIRED_COUNT = 5
++
++
++def canonical_bytes(value: Any) -> bytes:
++    """Return the project's integer-only canonical JSON representation."""
++    return json.dumps(
++        value,
++        sort_keys=True,
++        separators=(",", ":"),
++        ensure_ascii=False,
++        allow_nan=False,
++    ).encode("utf-8")
++
++
++def transcript_digest(value: dict[str, Any]) -> str:
++    return hashlib.sha256(canonical_bytes(value)).hexdigest()
++
++
++def _iso_timestamp(value: str) -> bool:
++    try:
++        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
++    except ValueError:
++        return False
++    return parsed.tzinfo is not None
++
++
++def _collected_phase_a_nodes(root: Path) -> set[str]:
++    completed = subprocess.run(
++        [sys.executable, "-m", "pytest", "--collect-only", "-q", "tests/phase_a"],
++        cwd=root,
++        text=True,
++        capture_output=True,
++        check=False,
++    )
++    if completed.returncode != 0:
++        raise ValueError(
++            "Phase A test collection failed while validating golden transcripts: "
++            f"{completed.stdout}{completed.stderr}"
++        )
++    return {
++        line.strip()
++        for line in completed.stdout.splitlines()
++        if line.strip().startswith("tests/phase_a/") and "::" in line
++    }
++
++
++def validate_golden_transcripts(
++    transcript_dir: Path = DEFAULT_TRANSCRIPT_DIR,
++    approvals_path: Path = DEFAULT_APPROVALS,
++    *,
++    collected_nodes: set[str] | None = None,
++    root: Path = ROOT,
++) -> dict[str, Any]:
++    if not approvals_path.is_file():
++        raise ValueError(f"approval record is missing: {approvals_path}")
++    approval_document = json.loads(approvals_path.read_text(encoding="utf-8"))
++    if approval_document.get("schema_version") != APPROVAL_SCHEMA:
++        raise ValueError("golden transcript approval schema is unsupported")
++    if approval_document.get("required_count") != REQUIRED_COUNT:
++        raise ValueError("golden transcript approval record must require exactly five transcripts")
++
++    paths = sorted(transcript_dir.glob("*.json"))
++    if len(paths) != REQUIRED_COUNT:
++        raise ValueError(f"expected exactly five transcript files, found {len(paths)}")
++    approvals = approval_document.get("approvals")
++    if not isinstance(approvals, list) or len(approvals) != REQUIRED_COUNT:
++        raise ValueError("approval record must contain exactly five approval entries")
++    approval_by_id = {
++        str(entry.get("transcript_id")): entry for entry in approvals if isinstance(entry, dict)
++    }
++    if len(approval_by_id) != REQUIRED_COUNT:
++        raise ValueError("approval transcript IDs must be unique")
++
++    nodes = collected_nodes if collected_nodes is not None else _collected_phase_a_nodes(root)
++    validated: list[dict[str, str]] = []
++    seen_ids: set[str] = set()
++    for path in paths:
++        document = json.loads(path.read_text(encoding="utf-8"))
++        if document.get("schema_version") != TRANSCRIPT_SCHEMA:
++            raise ValueError(f"unsupported transcript schema: {path}")
++        transcript_id = str(document.get("transcript_id", ""))
++        if not transcript_id or transcript_id in seen_ids:
++            raise ValueError("transcript IDs must be nonempty and unique")
++        seen_ids.add(transcript_id)
++        plain = document.get("plain_english")
++        machine = document.get("machine")
++        if not isinstance(plain, list) or not plain or not all(
++            isinstance(item, str) and item.strip() for item in plain
++        ):
++            raise ValueError(f"plain-English representation is incomplete: {transcript_id}")
++        if not isinstance(machine, dict):
++            raise ValueError(f"machine representation is missing: {transcript_id}")
++        test_node = str(machine.get("test_node", ""))
++        if test_node not in nodes:
++            raise ValueError(f"machine test node is not collected: {test_node}")
++
++        digest = transcript_digest(document)
++        approval = approval_by_id.get(transcript_id)
++        if approval is None:
++            raise ValueError(f"approval entry is missing: {transcript_id}")
++        expected_path = str(path.relative_to(root))
++        if approval.get("path") != expected_path:
++            raise ValueError(f"approval path mismatch: {transcript_id}")
++        if approval.get("sha256") != digest:
++            raise ValueError(f"approval digest mismatch: {transcript_id}")
++        if approval.get("status") != "APPROVED":
++            raise ValueError(f"owner approval is pending: {transcript_id}")
++        approved_by = str(approval.get("approved_by", "")).strip()
++        approved_at = str(approval.get("approved_at", "")).strip()
++        statement = str(approval.get("approval_statement", "")).strip()
++        if not approved_by or not _iso_timestamp(approved_at):
++            raise ValueError(f"owner approval identity or tim
