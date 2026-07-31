@@ -389,9 +389,9 @@ class GameExecutor:
                 raise IllegalAction("a player may activate only an ability they control")
             ability_id = str(ability.get("ability_id")) if isinstance(ability, dict) else ability
             selected = self._ability_by_id(source, ability_id)
-            mana_ability = bool(selected.get("mana_ability"))
-            if not mana_ability and self.state.turn.priority_holder_id != actor:
+            if self.state.turn.priority_holder_id != actor:
                 raise IllegalAction("the activating player does not have priority")
+            mana_ability = bool(selected.get("mana_ability"))
             if selected.get(
                 "restriction"
             ) == "SOURCE_ATTACKING" and not source.current_characteristics.get("attacking", False):
@@ -492,7 +492,7 @@ class GameExecutor:
             if self.state.turn.consecutive_priority_passes == len(players):
                 self.state.turn.consecutive_priority_passes = 0
                 if self.state.stack:
-                    self.resolve_top(_record=False, _all_players_passed=True)
+                    self._resolve_top_after_priority_passes()
                 elif self.state.turn.cleanup_repeat_pending:
                     self._cleanup_iteration(())
                 else:
@@ -547,17 +547,15 @@ class GameExecutor:
                 legal.append(value)
         return legal
 
-    def resolve_top(
-        self,
-        *,
-        _record: bool = True,
-        _all_players_passed: bool = False,
-    ) -> None:
+    def resolve_top(self, *, _record: bool = True) -> None:
+        del _record
+        self._ensure_active()
+        raise IllegalAction("the stack resolves only after all players pass priority")
+
+    def _resolve_top_after_priority_passes(self) -> None:
         self._ensure_active()
         before = self._begin_atomic()
         try:
-            if not _all_players_passed:
-                raise IllegalAction("the stack resolves only after all players pass priority")
             if not self.state.stack:
                 raise IllegalAction("stack is empty")
             obj = self.state.objects[self.state.stack[-1]]
@@ -662,8 +660,6 @@ class GameExecutor:
                 self.put_waiting_triggers_on_stack()
                 self.state.turn.priority_holder_id = self.state.turn.active_player_id
                 self.state.turn.consecutive_priority_passes = 0
-            if _record:
-                self._record_command("resolve_top")
         except Exception:
             self._rollback(before)
             raise

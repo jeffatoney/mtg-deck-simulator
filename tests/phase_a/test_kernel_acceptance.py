@@ -729,22 +729,27 @@ def test_terminal_state_stops_further_actions_and_external_objects_never_enter_p
         executor.begin_step("UPKEEP")
 
 
-def test_nonmana_activation_requires_priority_but_mana_ability_keeps_exception() -> None:
+def test_activated_abilities_require_priority_including_standalone_mana_abilities() -> None:
     state, executor = funded_game()
     specs = specs_by_name()
     lantern = add_card(executor, specs["Soul-Guide Lantern"], Zone.BATTLEFIELD)
     island = add_card(executor, specs["Island"], Zone.BATTLEFIELD)
     state.turn.priority_holder_id = "P1"
+    state.players["P0"].mana_pool["U"] = 0
 
     before = state_hash(state)
     with pytest.raises(IllegalAction, match="does not have priority"):
         executor.activate("P0", lantern.object_id, "lantern:exile-opponents")
     assert state_hash(state) == before
 
-    state.players["P0"].mana_pool["U"] = 0
+    with pytest.raises(IllegalAction, match="does not have priority"):
+        executor.activate("P0", island.object_id, "island:mana-u")
+    assert state_hash(state) == before
+
+    state.turn.priority_holder_id = "P0"
     executor.activate("P0", island.object_id, "island:mana-u")
     assert state.players["P0"].mana_pool["U"] == 1
-    assert state.turn.priority_holder_id == "P1"
+    assert state.turn.priority_holder_id == "P0"
 
 
 def test_stack_resolution_requires_completed_priority_pass_transition() -> None:
@@ -756,6 +761,11 @@ def test_stack_resolution_requires_completed_priority_pass_transition() -> None:
 
     with pytest.raises(IllegalAction, match="only after all players pass"):
         executor.resolve_top()
+    assert state_hash(state) == before
+    assert state.stack[-1] == spell.object_id
+
+    with pytest.raises(TypeError):
+        executor.resolve_top(_all_players_passed=True)  # type: ignore[call-arg]
     assert state_hash(state) == before
     assert state.stack[-1] == spell.object_id
 
