@@ -24,6 +24,7 @@ jobs:
       - name: Execute the reviewed source transformation with the contract correction
         run: |
           python - <<'PY'
+          import textwrap
           from pathlib import Path
 
           workflow = Path('.github/workflows/apply-golden-transcript-exactness.yml')
@@ -42,6 +43,7 @@ jobs:
               '',
               1,
           )
+          script = textwrap.dedent(script)
           exec(compile(script, str(workflow), 'exec'))
           PY
       - name: Validate all approved transcript scenarios
