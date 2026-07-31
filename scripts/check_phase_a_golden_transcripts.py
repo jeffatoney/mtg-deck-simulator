@@ -17,6 +17,10 @@ DEFAULT_APPROVALS = ROOT / "docs/audit/phase-a-golden-transcripts/APPROVALS.json
 TRANSCRIPT_SCHEMA = "phase-a-golden-transcript-v1"
 APPROVAL_SCHEMA = "phase-a-golden-transcript-approvals-v1"
 REQUIRED_COUNT = 5
+EXPECTED_OWNER_NAME = "Jeff Toney"
+EXPECTED_APPROVAL_DOCUMENT_SHA256 = (
+    "d78be11d330df0bccbee4439556da6ae000683d4ccacce83d90ad8ed5de8174b"
+)
 
 
 def canonical_bytes(value: Any) -> bytes:
@@ -68,10 +72,15 @@ def validate_golden_transcripts(
     *,
     collected_nodes: set[str] | None = None,
     root: Path = ROOT,
+    expected_approval_document_sha256: str = EXPECTED_APPROVAL_DOCUMENT_SHA256,
+    expected_owner_name: str = EXPECTED_OWNER_NAME,
 ) -> dict[str, Any]:
     if not approvals_path.is_file():
         raise ValueError(f"approval record is missing: {approvals_path}")
     approval_document = json.loads(approvals_path.read_text(encoding="utf-8"))
+    approval_document_sha256 = hashlib.sha256(canonical_bytes(approval_document)).hexdigest()
+    if approval_document_sha256 != expected_approval_document_sha256:
+        raise ValueError("golden transcript approval record is not owner-anchored")
     if approval_document.get("schema_version") != APPROVAL_SCHEMA:
         raise ValueError("golden transcript approval schema is unsupported")
     if approval_document.get("required_count") != REQUIRED_COUNT:
@@ -128,7 +137,7 @@ def validate_golden_transcripts(
         approved_by = str(approval.get("approved_by", "")).strip()
         approved_at = str(approval.get("approved_at", "")).strip()
         statement = str(approval.get("approval_statement", "")).strip()
-        if not approved_by or not _iso_timestamp(approved_at):
+        if approved_by != expected_owner_name or not _iso_timestamp(approved_at):
             raise ValueError(f"owner approval identity or timestamp is invalid: {transcript_id}")
         if transcript_id not in statement or digest not in statement:
             raise ValueError(f"approval statement is not bound to ID and digest: {transcript_id}")
@@ -147,6 +156,10 @@ def validate_golden_transcripts(
         "schema_version": "phase-a-golden-transcript-validation-v1",
         "status": "PASS",
         "count": len(validated),
+        "owner_approval_anchor": {
+            "approved_by": expected_owner_name,
+            "approval_document_sha256": approval_document_sha256,
+        },
         "transcripts": validated,
     }
 

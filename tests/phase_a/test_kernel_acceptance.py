@@ -829,3 +829,25 @@ def test_commit_clears_pending_action_for_removed_spell_copy() -> None:
     assert copy_action.action_id not in state.pending_actions
     assert original_action.action_id in state.pending_actions
     assert all(state.objects[object_id].object_id != copy.object_id for object_id in state.stack)
+
+
+def test_terminal_damage_does_not_put_waiting_triggers_on_stack() -> None:
+    state, executor = funded_game()
+    malcolm = add_card(
+        executor,
+        specs_by_name()["Malcolm, Keen-Eyed Navigator"],
+        Zone.BATTLEFIELD,
+    )
+    state.players["P1"].life = 1
+
+    executor.deal_damage_to_player(malcolm.object_id, "P1", 1, combat=True)
+
+    assert state.terminal.status == "TERMINAL"
+    assert not state.stack
+    assert state.events[-1].kind == "GAME_TERMINATED"
+    terminal_index = next(
+        index for index, event in enumerate(state.events) if event.kind == "GAME_TERMINATED"
+    )
+    assert not any(
+        event.kind == "TRIGGER_PUT_ON_STACK" for event in state.events[terminal_index + 1 :]
+    )

@@ -1072,7 +1072,7 @@ class GameExecutor:
         return refs
 
     def put_waiting_triggers_on_stack(self) -> None:
-        if self._resolution_depth:
+        if self.state.terminal.status != "ACTIVE" or self._resolution_depth:
             return
         if not self.state.waiting_triggers:
             return
