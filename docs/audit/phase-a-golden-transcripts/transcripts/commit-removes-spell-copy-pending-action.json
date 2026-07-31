@@ -1,0 +1,32 @@
+{
+  "schema_version": "phase-a-golden-transcript-v1",
+  "transcript_id": "commit-removes-spell-copy-pending-action",
+  "title": "Commit removes a spell copy and its pending action consistently",
+  "plain_english": [
+    "A real frozen-Oracle Opt spell and a synthetic copy of that spell are on the stack with separate action identities.",
+    "P0 casts the Commit face of the real frozen-Oracle Commit // Memory targeting the current spell-copy object.",
+    "After all players pass, Commit resolves and puts the targeted spell copy second from the top of the modeled library path before synthetic cessation processing.",
+    "The action that created the removed spell copy is removed from pending_actions at the same transition.",
+    "The original Opt spell and its action remain on the stack and pending until their own legal resolution or countering."
+  ],
+  "machine": {
+    "test_node": "tests/phase_a/test_kernel_acceptance.py::test_commit_clears_pending_action_for_removed_spell_copy",
+    "preconditions": [
+      "an Opt spell object is on the stack",
+      "a synthetic spell copy of Opt is above it on the stack",
+      "both stack objects have distinct pending action IDs",
+      "Commit // Memory is in P0 hand"
+    ],
+    "ordered_operations": [
+      "cast Commit targeting the spell-copy object",
+      "P0 pass_priority",
+      "P1 pass_priority"
+    ],
+    "required_assertions": [
+      "the targeted spell-copy action is absent from pending_actions",
+      "Commit's action is absent from pending_actions after resolution",
+      "the original Opt action remains pending",
+      "the targeted spell-copy object is no longer on the stack"
+    ]
+  }
+}
