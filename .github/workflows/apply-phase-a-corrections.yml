@@ -1,0 +1,58 @@
+name: Apply Phase A corrective source patch
+
+on:
+  push:
+    branches:
+      - agent/phase-a-post-merge-corrections
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Stop when no reviewed patch is present
+        id: patch
+        run: |
+          if [[ -f .phase-a-corrections.patch ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.patch.outputs.present == 'true'
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v5
+        if: steps.patch.outputs.present == 'true'
+        with:
+          version: latest
+      - name: Apply transparent corrective patch
+        if: steps.patch.outputs.present == 'true'
+        run: |
+          git apply --check .phase-a-corrections.patch
+          git apply .phase-a-corrections.patch
+          rm .phase-a-corrections.patch
+          rm .github/workflows/apply-phase-a-corrections.yml
+          rm .github/workflows/export-agent-worktree.yml
+      - name: Format and validate corrective source
+        if: steps.patch.outputs.present == 'true'
+        run: |
+          uv sync --frozen --all-extras
+          uv run ruff format src/mtg_kernel/engine.py src/mtg_verify/phase_a.py scripts/_phase_a_paths.py scripts/check_phase_a_certification.py scripts/check_phase_a_golden_transcripts.py scripts/record_phase_a_certification.py tests/phase_a/test_kernel_acceptance.py tests/test_certification_gate.py tests/test_golden_transcript_gate.py
+          uv run ruff check src/mtg_kernel/engine.py src/mtg_verify/phase_a.py scripts/_phase_a_paths.py scripts/check_phase_a_certification.py scripts/check_phase_a_golden_transcripts.py scripts/record_phase_a_certification.py tests/phase_a/test_kernel_acceptance.py tests/test_certification_gate.py tests/test_golden_transcript_gate.py
+          uv run pytest -q tests/phase_a tests/test_golden_transcript_gate.py
+      - name: Commit ordinary source changes
+        if: steps.patch.outputs.present == 'true'
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --check
+          git commit -m "Repair Phase A post-merge correctness findings"
+          git push origin HEAD:agent/phase-a-post-merge-corrections
