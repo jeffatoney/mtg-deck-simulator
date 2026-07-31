@@ -30,76 +30,81 @@ jobs:
 
           engine = Path("src/mtg_kernel/engine.py")
           text = engine.read_text(encoding="utf-8")
-          text = text.replace(
-              "self.resolve_top(_record=False, _all_players_passed=True)",
-              "self._resolve_top_after_all_players_pass()",
-          )
-          old = '''    def resolve_top(
-              self,
-              *,
-              _record: bool = True,
-              _all_players_passed: bool = False,
-          ) -> None:
-              self._ensure_active()
-              before = self._begin_atomic()
-              try:
-                  if not _all_players_passed:
-                      raise IllegalAction("the stack resolves only after all players pass priority")
-                  if not self.state.stack:
-          '''
-          new = '''    def resolve_top(
-              self,
-              *,
-              _record: bool = True,
-              _all_players_passed: bool = False,
-          ) -> None:
-              """Reject direct resolution; only pass_priority may enter the resolver."""
-              del _record, _all_players_passed
-              self._ensure_active()
-              raise IllegalAction("the stack resolves only after all players pass priority")
+          call = "self.resolve_top(_record=False, _all_players_passed=True)"
+          if text.count(call) != 1:
+              raise SystemExit("priority resolution call shape changed; refusing to edit")
+          text = text.replace(call, "self._resolve_top_after_all_players_pass()", 1)
 
-          def _resolve_top_after_all_players_pass(self) -> None:
-              self._ensure_active()
-              before = self._begin_atomic()
-              try:
-                  if not self.state.stack:
-          '''
-          if old not in text:
-              raise SystemExit("resolve_top source shape changed; refusing to edit")
-          text = text.replace(old, new, 1)
-          text = text.replace(
-              '''            if _record:
-                  self._record_command("resolve_top")
-              except Exception:
-          ''',
-              '''        except Exception:
-          ''',
-              1,
+          start_marker = "    def resolve_top(\n"
+          body_marker = (
+              "        self._ensure_active()\n"
+              "        before = self._begin_atomic()\n"
+              "        try:\n"
           )
-          engine.write_text(text, encoding="utf-8")
+          start = text.find(start_marker)
+          body = text.find(body_marker, start)
+          if start < 0 or body < 0:
+              raise SystemExit("resolve_top anchors changed; refusing to edit")
+          header = text[start:body]
+          required_header_parts = (
+              "_record: bool = True",
+              "_all_players_passed: bool = False",
+          )
+          if not all(part in header for part in required_header_parts):
+              raise SystemExit("resolve_top signature changed; refusing to edit")
+
+          public_method = (
+              "    def resolve_top(\n"
+              "        self,\n"
+              "        *,\n"
+              "        _record: bool = True,\n"
+              "        _all_players_passed: bool = False,\n"
+              "    ) -> None:\n"
+              "        \"\"\"Reject direct resolution; only pass_priority may enter the resolver.\"\"\"\n"
+              "        del _record, _all_players_passed\n"
+              "        self._ensure_active()\n"
+              "        raise IllegalAction(\"the stack resolves only after all players pass priority\")\n\n"
+          )
+          private_header = "    def _resolve_top_after_all_players_pass(self) -> None:\n"
+          remainder = text[body:]
+          authorization_check = (
+              "            if not _all_players_passed:\n"
+              "                raise IllegalAction(\n"
+              "                    \"the stack resolves only after all players pass priority\"\n"
+              "                )\n"
+          )
+          if remainder.count(authorization_check) != 1:
+              raise SystemExit("resolution authorization block changed; refusing to edit")
+          remainder = remainder.replace(authorization_check, "", 1)
+          record_block = (
+              "            if _record:\n"
+              "                self._record_command(\"resolve_top\")\n"
+          )
+          if remainder.count(record_block) != 1:
+              raise SystemExit("resolution record block changed; refusing to edit")
+          remainder = remainder.replace(record_block, "", 1)
+          engine.write_text(
+              text[:start] + public_method + private_header + remainder,
+              encoding="utf-8",
+          )
 
           tests = Path("tests/phase_a/test_kernel_acceptance.py")
           text = tests.read_text(encoding="utf-8")
-          old = '''    with pytest.raises(IllegalAction, match="only after all players pass"):
-              executor.resolve_top()
-          assert state_hash(state) == before
-          assert state.stack[-1] == spell.object_id
-
-          '''
-          new = '''    with pytest.raises(IllegalAction, match="only after all players pass"):
-              executor.resolve_top()
-          assert state_hash(state) == before
-          assert state.stack[-1] == spell.object_id
-
-          with pytest.raises(IllegalAction, match="only after all players pass"):
-              executor.resolve_top(_all_players_passed=True)
-          assert state_hash(state) == before
-          assert state.stack[-1] == spell.object_id
-
-          '''
-          if old not in text:
-              raise SystemExit("resolution regression test shape changed; refusing to edit")
-          tests.write_text(text.replace(old, new, 1), encoding="utf-8")
+          anchor = (
+              "    with pytest.raises(IllegalAction, match=\"only after all players pass\"):\n"
+              "        executor.resolve_top()\n"
+              "    assert state_hash(state) == before\n"
+              "    assert state.stack[-1] == spell.object_id\n\n"
+          )
+          if text.count(anchor) != 1:
+              raise SystemExit("resolution regression anchor changed; refusing to edit")
+          addition = anchor + (
+              "    with pytest.raises(IllegalAction, match=\"only after all players pass\"):\n"
+              "        executor.resolve_top(_all_players_passed=True)\n"
+              "    assert state_hash(state) == before\n"
+              "    assert state.stack[-1] == spell.object_id\n\n"
+          )
+          tests.write_text(text.replace(anchor, addition, 1), encoding="utf-8")
           PY
       - name: Validate hardening
         run: |
