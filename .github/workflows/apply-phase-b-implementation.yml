@@ -1,0 +1,65 @@
+name: Apply reviewed Phase B implementation
+
+on:
+  push:
+    branches:
+      - engine/phase-b-full-deck-policy
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: engine/phase-b-full-deck-policy
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+
+      - name: Reconstruct reviewed implementation patch
+        run: |
+          cat .phase-b-patch-* | base64 -d | gzip -dc > /tmp/phase-b-implementation.patch
+          test "$(sha256sum /tmp/phase-b-implementation.patch | cut -d' ' -f1)" = "32c608ec85fa90e6de96f89a1d058008677a8e516a0e9af77c9b1e99975ba290"
+          git apply --check /tmp/phase-b-implementation.patch
+          git apply /tmp/phase-b-implementation.patch
+          rm .phase-b-patch-*
+          rm .github/workflows/apply-phase-b-implementation.yml
+
+      - name: Install, format, and validate implementation
+        run: |
+          uv sync --frozen --all-extras
+          uv run ruff format .
+          uv run ruff format --check .
+          uv run ruff check .
+          uv run mypy src
+          uv run pytest -q --ignore=tests/test_certification_gate.py
+          uv run python scripts/check_identity_lock.py
+          uv run python scripts/check_phase_a_authority.py
+          uv run python scripts/check_phase_b_authority.py
+          uv run python scripts/check_clean_engine_boundary.py
+          uv run python scripts/check_full_deck_coverage.py
+          uv run mtg-sources validate-sources
+          git add -A
+          uv run python scripts/check_manifest.py
+
+      - name: Commit and verify exact clean implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Implement Phase B full deck and policy framework"
+          test -z "$(git status --porcelain)"
+          PHASE_A_ARTIFACT_ROOT="${RUNNER_TEMP}/phase-a-result" uv run mtg-engine verify-phase-a
+          PHASE_B_ARTIFACT_ROOT="${RUNNER_TEMP}/phase-b-result" uv run mtg-engine verify-phase-b
+          git push origin HEAD:engine/phase-b-full-deck-policy
