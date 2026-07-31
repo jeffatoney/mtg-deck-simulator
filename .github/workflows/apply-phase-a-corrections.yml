@@ -36,7 +36,10 @@ jobs:
       - name: Reassemble and validate transparent corrective patch
         if: steps.patch.outputs.present == 'true'
         run: |
-          cat .phase-a-corrections.patch.part-* > .phase-a-corrections.patch
+          # The contents API added one trailing space to chunk 00. Remove that
+          # transport-only byte, then reconstruct the exact reviewed patch.
+          head -c -1 .phase-a-corrections.patch.part-00 > .phase-a-corrections.patch
+          cat .phase-a-corrections.patch.part-0[1-6] >> .phase-a-corrections.patch
           sha256sum --check .phase-a-corrections.patch.sha256
           git apply --check .phase-a-corrections.patch
           git apply .phase-a-corrections.patch
