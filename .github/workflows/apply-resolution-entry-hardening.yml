@@ -1,0 +1,118 @@
+name: Apply resolution entry hardening
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Replace caller-supplied resolution authorization with private entry point
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          engine = Path("src/mtg_kernel/engine.py")
+          text = engine.read_text(encoding="utf-8")
+          text = text.replace(
+              "self.resolve_top(_record=False, _all_players_passed=True)",
+              "self._resolve_top_after_all_players_pass()",
+          )
+          old = '''    def resolve_top(
+              self,
+              *,
+              _record: bool = True,
+              _all_players_passed: bool = False,
+          ) -> None:
+              self._ensure_active()
+              before = self._begin_atomic()
+              try:
+                  if not _all_players_passed:
+                      raise IllegalAction("the stack resolves only after all players pass priority")
+                  if not self.state.stack:
+          '''
+          new = '''    def resolve_top(
+              self,
+              *,
+              _record: bool = True,
+              _all_players_passed: bool = False,
+          ) -> None:
+              """Reject direct resolution; only pass_priority may enter the resolver."""
+              del _record, _all_players_passed
+              self._ensure_active()
+              raise IllegalAction("the stack resolves only after all players pass priority")
+
+          def _resolve_top_after_all_players_pass(self) -> None:
+              self._ensure_active()
+              before = self._begin_atomic()
+              try:
+                  if not self.state.stack:
+          '''
+          if old not in text:
+              raise SystemExit("resolve_top source shape changed; refusing to edit")
+          text = text.replace(old, new, 1)
+          text = text.replace(
+              '''            if _record:
+                  self._record_command("resolve_top")
+              except Exception:
+          ''',
+              '''        except Exception:
+          ''',
+              1,
+          )
+          engine.write_text(text, encoding="utf-8")
+
+          tests = Path("tests/phase_a/test_kernel_acceptance.py")
+          text = tests.read_text(encoding="utf-8")
+          old = '''    with pytest.raises(IllegalAction, match="only after all players pass"):
+              executor.resolve_top()
+          assert state_hash(state) == before
+          assert state.stack[-1] == spell.object_id
+
+          '''
+          new = '''    with pytest.raises(IllegalAction, match="only after all players pass"):
+              executor.resolve_top()
+          assert state_hash(state) == before
+          assert state.stack[-1] == spell.object_id
+
+          with pytest.raises(IllegalAction, match="only after all players pass"):
+              executor.resolve_top(_all_players_passed=True)
+          assert state_hash(state) == before
+          assert state.stack[-1] == spell.object_id
+
+          '''
+          if old not in text:
+              raise SystemExit("resolution regression test shape changed; refusing to edit")
+          tests.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+      - name: Validate hardening
+        run: |
+          uv sync --frozen --all-extras
+          uv run ruff format src/mtg_kernel/engine.py tests/phase_a/test_kernel_acceptance.py
+          uv run ruff check src/mtg_kernel/engine.py tests/phase_a/test_kernel_acceptance.py
+          uv run pytest -q tests/phase_a
+      - name: Commit ordinary source changes and remove helper
+        run: |
+          rm .github/workflows/apply-resolution-entry-hardening.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --check
+          git commit -m "Harden stack resolution entry point"
+          git push origin HEAD:agent/phase-a-post-merge-corrections
