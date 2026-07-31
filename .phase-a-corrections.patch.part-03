@@ -1,0 +1,213 @@
+r.resolve_top()
++    pass_all(executor)
+     assert active_objects(state, name="Treasure")
+ 
+     state2, executor2 = funded_game()
+@@ -356,9 +359,9 @@ def test_malcolm_and_glint_horn_use_real_trigger_and_stack_order() -> None:
+         choices={"discard_ids": [discarded.object_id]},
+     )
+     assert state2.objects[state2.stack[-1]].object_kind is ObjectKind.TRIGGERED_ABILITY
+-    executor2.resolve_top()
++    pass_all(executor2)
+     assert state2.players["P1"].life == 39
+-    executor2.resolve_top()
++    pass_all(executor2)
+     assert len(state2.zones["HAND:P0"]) == 1
+ 
+ 
+@@ -374,13 +377,13 @@ def test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects() -> None:
+         dualcaster.object_id,
+         choices={"trigger_targets": {"dualcaster:etb": original.object_id}},
+     )
+-    executor.resolve_top()
++    pass_all(executor)
+     assert state.objects[state.stack[-1]].object_kind is ObjectKind.TRIGGERED_ABILITY
+-    executor.resolve_top()
++    pass_all(executor)
+     copy = state.objects[state.stack[-1]]
+     assert copy.copy_kind is CopyKind.SPELL_COPY
+     assert copy.was_cast is False and not copy.component_card_instance_ids
+-    executor.resolve_top()
++    pass_all(executor)
+     assert copy.retired
+     assert any(
+         obj.copy_kind is CopyKind.SPELL_COPY and obj.ceased_to_exist
+@@ -396,15 +399,15 @@ def test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects() -> None:
+         twin.object_id,
+         (TargetRef(first.object_id), TargetRef(second.object_id)),
+     )
+-    executor2.resolve_top()
++    pass_all(executor2)
+     tokens = [obj for obj in active_objects(state2) if obj.copy_kind is CopyKind.TOKEN_COPY]
+     assert len(tokens) == 2 and all(
+         "Haste" in obj.current_characteristics["keywords"] for obj in tokens
+     )
+     assert len(state2.delayed_triggers) == 2
+     executor2.begin_step("END")
+-    executor2.resolve_top()
+-    executor2.resolve_top()
++    pass_all(executor2)
++    pass_all(executor2)
+     assert not [obj for obj in active_objects(state2) if obj.copy_kind is CopyKind.TOKEN_COPY]
+     assert (
+         sum(
+@@ -422,7 +425,7 @@ def test_curiosity_attachment_optional_trigger_and_aura_sba() -> None:
+     creature = add_card(executor, specs["Glint-Horn Buccaneer"], Zone.BATTLEFIELD)
+     curiosity = add_card(executor, specs["Curiosity"], Zone.HAND)
+     executor.cast("P0", curiosity.object_id, (TargetRef(creature.object_id),))
+-    executor.resolve_top()
++    pass_all(executor)
+     aura = active_objects(state, name="Curiosity")[0]
+     assert aura.attached_to_ref == TargetRef(creature.object_id)
+     executor.deal_damage_to_player(
+@@ -431,7 +434,7 @@ def test_curiosity_attachment_optional_trigger_and_aura_sba() -> None:
+         2,
+         choices={"optional": {"curiosity:damage-trigger": True}},
+     )
+-    executor.resolve_top()
++    pass_all(executor)
+     assert len(state.zones["HAND:P0"]) == 1
+     executor.zones.move(creature.object_id, Zone.GRAVEYARD, "TEST", executor._event("TEST"))
+     executor.check_state_based_actions()
+@@ -596,7 +599,7 @@ def test_cleanup_discard_trigger_priority_and_repeated_cleanup() -> None:
+     assert state.turn.cleanup_iteration == 1
+     assert state.turn.cleanup_repeat_pending
+     assert state.objects[state.stack[-1]].object_kind is ObjectKind.TRIGGERED_ABILITY
+-    executor.resolve_top()
++    pass_all(executor)
+     pass_all(executor)
+     assert state.turn.cleanup_iteration == 2
+     assert not state.turn.cleanup_repeat_pending
+@@ -724,3 +727,98 @@ def test_terminal_state_stops_further_actions_and_external_objects_never_enter_p
+     executor.check_state_based_actions()
+     with pytest.raises(IllegalAction):
+         executor.begin_step("UPKEEP")
++
++
++def test_nonmana_activation_requires_priority_but_mana_ability_keeps_exception() -> None:
++    state, executor = funded_game()
++    specs = specs_by_name()
++    lantern = add_card(executor, specs["Soul-Guide Lantern"], Zone.BATTLEFIELD)
++    island = add_card(executor, specs["Island"], Zone.BATTLEFIELD)
++    state.turn.priority_holder_id = "P1"
++
++    before = state_hash(state)
++    with pytest.raises(IllegalAction, match="does not have priority"):
++        executor.activate("P0", lantern.object_id, "lantern:exile-opponents")
++    assert state_hash(state) == before
++
++    state.players["P0"].mana_pool["U"] = 0
++    executor.activate("P0", island.object_id, "island:mana-u")
++    assert state.players["P0"].mana_pool["U"] == 1
++    assert state.turn.priority_holder_id == "P1"
++
++
++def test_stack_resolution_requires_completed_priority_pass_transition() -> None:
++    state, executor = funded_game()
++    add_library(executor, "P0", 1)
++    opt = add_card(executor, specs_by_name()["Opt"], Zone.HAND)
++    spell = executor.cast("P0", opt.object_id)
++    before = state_hash(state)
++
++    with pytest.raises(IllegalAction, match="only after all players pass"):
++        executor.resolve_top()
++    assert state_hash(state) == before
++    assert state.stack[-1] == spell.object_id
++
++    with pytest.raises(IllegalAction, match="only after all players pass"):
++        executor.execute_replay_command({"operation": "resolve_top", "arguments": {}})
++    assert state_hash(state) == before
++    assert state.stack[-1] == spell.object_id
++
++    pass_all(executor)
++    assert state.objects[spell.object_id].retired
++
++
++def test_lethal_damage_defers_state_based_actions_until_resolution_finishes() -> None:
++    state, executor = funded_game()
++    specs = specs_by_name()
++    state.players["P1"].life = 1
++    add_library(executor, "P0", 1)
++    glint = add_card(executor, specs["Glint-Horn Buccaneer"], Zone.BATTLEFIELD)
++    glint.current_characteristics["attacking"] = True
++    discarded = add_card(executor, specs["Opt"], Zone.HAND)
++    executor.activate(
++        "P0",
++        glint.object_id,
++        "glint-horn:attack-loot",
++        choices={"discard_ids": [discarded.object_id]},
++    )
++
++    trigger_id = state.stack[-1]
++    pass_all(executor)
++
++    event_kinds = [event.kind for event in state.events]
++    resolved_index = next(
++        index
++        for index, event in enumerate(state.events)
++        if event.kind == "STACK_OBJECT_RESOLVED"
++        and event.payload.get("object_id") == trigger_id
++    )
++    terminal_index = event_kinds.index("GAME_TERMINATED")
++    assert resolved_index < terminal_index
++    assert terminal_index == len(state.events) - 1
++    assert state.terminal.status == "TERMINAL"
++    assert state.players["P1"].loss_reasons == ["LIFE_TOTAL"]
++
++
++def test_commit_clears_pending_action_for_removed_spell_copy() -> None:
++    state, executor = funded_game()
++    specs = specs_by_name()
++    add_library(executor, "P0", 1)
++    opt = add_card(executor, specs["Opt"], Zone.HAND)
++    original = executor.cast("P0", opt.object_id)
++    cause = Action(executor.identity.new_id("action"), "COPY_EFFECT", "P0")
++    state.actions.append(cause)
++    copy = executor.copy_spell(original, "P0", None, cause)
++    copy_action = executor._created_action(copy)
++    original_action = executor._created_action(original)
++    assert copy_action.action_id in state.pending_actions
++
++    commit = add_card(executor, specs["Commit // Memory"], Zone.HAND)
++    executor.cast("P0", commit.object_id, (TargetRef(copy.object_id),), face=0)
++    pass_all(executor)
++
++    assert copy_action.action_id not in state.pending_actions
++    assert original_action.action_id in state.pending_actions
++    assert all(
++        state.objects[object_id].object_id != copy.object_id for object_id in state.stack
++    )
+diff --git a/tests/test_certification_gate.py b/tests/test_certification_gate.py
+index e873d94..1c2db70 100644
+--- a/tests/test_certification_gate.py
++++ b/tests/test_certification_gate.py
+@@ -93,6 +93,8 @@ def test_current_certification_passes(sandbox: Path) -> None:
+         "scripts/check_phase_a_certification.py",
+         ".github/workflows/ci.yml",
+         "automation/phase-a-test-mapping.json",
++        "docs/audit/phase-a-golden-transcripts/APPROVALS.json",
++        "scripts/check_phase_a_golden_transcripts.py",
+     ],
+ )
+ def test_covered_change_is_rejected(sandbox: Path, relative: str) -> None:
+@@ -134,6 +136,7 @@ def test_missing_record_is_rejected(sandbox: Path) -> None:
+         ({"github_run_id": None}, "github_run_id"),
+         ({"ci_artifact_name": "forged"}, "ci_artifact_name"),
+         ({"pilot_lock": "FAIL"}, "pilot lock"),
++        ({"golden_transcripts": "FAIL"}, "golden transcripts"),
+     ],
+ )
+ def test_forged_record_is_rejected(sandbox: Path, changes: dict[str, object], message: str) -> None:
+diff --git a/docs/audit/phase-a-golden-transcripts/APPROVALS.json b/docs/audit/phase-a-golden-transcripts/APPROVALS.json
+new file mode 100644
+index 0000000..1721daf
+--- /dev/null
++++ b/docs/audit/phase-a-golden-transcripts/APPROVALS.json
+@@ -0,0 +1,51 @@
++{
++  "approvals": [
++    {
++      "approval_statement": null,
++      "approved_at": null,
++      "approved_by": null,
++      "path": "
