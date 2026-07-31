@@ -14,17 +14,17 @@
     "ID-SYNTHETIC-001",
     "MODEL-HIDDEN-IDENTITY-001"
   ],
-  "certified_content_commit": "c17393359d3169f78e20956809a385e7a1d8aa9e",
-  "certified_repository_tree_sha": "802b177bb46638d169e747deac4cab6bad3b5988",
-  "ci_artifact_name": "phase-a-result-c17393359d3169f78e20956809a385e7a1d8aa9e",
+  "certified_content_commit": "6e19b069bd3d9caa867e8c3a95aa95ee7869a864",
+  "certified_repository_tree_sha": "415601324eff91e3f83d32d77270eb4f8f6589bb",
+  "ci_artifact_name": "phase-a-result-6e19b069bd3d9caa867e8c3a95aa95ee7869a864",
   "clean_tree_before_run": true,
   "counts": {
     "fail": 0,
-    "pass": 26,
+    "pass": 27,
     "skip": 0,
     "xfail": 0
   },
-  "covered_content_sha256": "sha256:6b45d2599d65e432aeab87487286a94010a0bdbc657ffe40c3d3adc710913a5e",
+  "covered_content_sha256": "sha256:0c40c32395f3f37fdee1a3c0ffab3a695b7c3c7dda15cc9abec742cf4f29856b",
   "covered_paths": {
     ".github/workflows/ci.yml": "sha256:056a4370900eebf037472e1abf1ff3474db7a3f5da68ed3780bc86c3ef2f0515",
     "automation/phase-a-test-mapping.json": "sha256:f327a967b5fb384f547d7bb71afbc401111ad5bb93c07337842d7c119a378c98",
@@ -37,24 +37,24 @@
     "scripts/check_identity_lock.py": "sha256:5cf71c02fd09656a5ede106a1d775030b87d3a4aeaa2a6ddf8eeadbb319dd5ce",
     "scripts/check_phase_a_authority.py": "sha256:b39a9db32c1c80b563e9dd2ee8574f3024ded5cf89c0f457b0014e2fcca600f8",
     "scripts/check_phase_a_certification.py": "sha256:0ae73eeb0b8afb6ea04b1ca5f9983da34c77a7d53c60f1b4e94e81277290c390",
-    "scripts/check_phase_a_golden_transcripts.py": "sha256:f35bbefe95a2cf880816461c2bc8aa0d395ee6fe088a339afe54ef79b82fe3c7",
+    "scripts/check_phase_a_golden_transcripts.py": "sha256:e725911db29e0ae9e2d5962bf5b49e509868ede5b76a3a93f74cf210084de20e",
     "scripts/phase_a_verify_runner.py": "sha256:ea7f8f0b3e04a468310666a3ff1bd30dad556aedfacc1702035ea4b39d9aad61",
     "scripts/record_phase_a_certification.py": "sha256:b03949440257e09a458e995b98393465f360c517c537e1d7a1558dc16684bc16",
     "src/mtg_cards": "sha256:4d27bfc2f827607b6a841e3780c1638327cb8436cbd009b3ee1ff21e0a2c0b2d",
-    "src/mtg_kernel": "sha256:c5198103b6d43a860a366f0c6d8585055605564793f9dcc78d73d86e36e1e021",
+    "src/mtg_kernel": "sha256:d874da181ef3aec3c68670eefd6b571917897048fd5e1fdfbfb96f5d355ab06e",
     "src/mtg_sources": "sha256:f793d7e84cafe333a6ee530c9986fc89d043d3107c82d35d7ca0b73fc80394d9",
     "src/mtg_verify": "sha256:21cab38850f6c66aae1659c7a086ccdefd58979326371b59f8c95100dafb4167",
     "tests/conftest.py": "sha256:792e475fea08dca3ddd4058f4b36aba31d5de32db8c529b64a80db55550fa4d4",
-    "tests/phase_a": "sha256:f3a07370012895ef33e23e2d2fa56461aaa743d5e3ad557ce316257a32ff0e11",
+    "tests/phase_a": "sha256:1bf30de30ff95c3ace5efce58bbbbbfae56408a30b13ea6ca5b58d5ff451bae5",
     "tests/test_boundary_support_tier.py": "sha256:8327fffe612b673f57459ef066bd49edb605896380d79aeb4e4a3952ec5dd195",
     "tests/test_certification_gate.py": "sha256:58d6eb44d3da8e792581b154b15810ac14377df10430df3e6cebb7f686aa5da5",
     "tests/test_gate_negatives.py": "sha256:78cfeea86989adb976368f20bdb462b0dfacdbb7a6d024a3981d92124504f629",
-    "tests/test_golden_transcript_gate.py": "sha256:32382bc3d48fa12aabf3063d4260576dbc79e4b8333096e4dccc36a77f4af21e",
+    "tests/test_golden_transcript_gate.py": "sha256:3498a0adc266b6abe60e0ac38be9cbbf15a4b0f2d487d353b03683a7d44d5e4c",
     "tests/test_source_validation.py": "sha256:68e017c9d517e67ea37abc52eed2de6ac5694272be5a7e302f122cdd256392db"
   },
   "evidence_classification": "CLEAN_ENGINE_PRODUCTION_PATH",
-  "github_run_id": "30632794538",
-  "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/30632794538",
+  "github_run_id": "30633299956",
+  "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/30633299956",
   "golden_transcripts": "PASS",
   "identity_document_sha256": "c839c16aa08ed6053233745fd2a35c38cbe4aadb16423ecac3d5390999af3ce6",
   "legacy_evidence_used": false,
@@ -76,5 +76,5 @@
     "STICKER_RETENTION"
   ],
   "verification_environment": "GITHUB_ACTIONS",
-  "verifier_run_id": "20260731T130127Z-c17393359d31"
+  "verifier_run_id": "20260731T130913Z-6e19b069bd3d"
 }
