@@ -757,6 +757,8 @@ def test_stack_resolution_requires_completed_priority_pass_transition() -> None:
     sol_ring_card = add_card(executor, specs_by_name()["Sol Ring"], Zone.HAND)
     spell = executor.cast("P0", sol_ring_card.object_id)
     cast_action = executor._created_action(spell)
+    assert state.stack[-1] == spell.object_id
+    assert cast_action.action_id in state.pending_actions
     before = state_hash(state)
 
     with pytest.raises(IllegalAction, match="only after all players pass"):
@@ -777,13 +779,10 @@ def test_stack_resolution_requires_completed_priority_pass_transition() -> None:
     pass_all(executor)
 
     assert state.objects[spell.object_id].retired
-    permanents = [
-        obj
-        for obj in active_objects(state, name="Sol Ring", kind=ObjectKind.PERMANENT)
-        if obj.zone is Zone.BATTLEFIELD
-    ]
+    permanents = active_objects(state, name="Sol Ring", kind=ObjectKind.PERMANENT)
     assert len(permanents) == 1
     assert permanents[0].object_id != spell.object_id
+    assert permanents[0].zone is Zone.BATTLEFIELD
     assert cast_action.action_id not in state.pending_actions
 
 
