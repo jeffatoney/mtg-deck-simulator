@@ -1,6 +1,6 @@
 # Phase A Post-Merge Correction Status
 
-**Status:** EXACT-HEAD VALIDATION AND RECERTIFICATION PENDING
+**Status:** ALL GOLDEN TRANSCRIPT EXACTNESS HARDENING IN PROGRESS
 
 **Branch:** `agent/phase-a-post-merge-corrections`
 
@@ -13,13 +13,20 @@
 5. Commit removes the pending action associated with a spell or spell copy that it removes from the stack.
 6. Waiting triggers are not put on the stack after a direct-damage terminal event.
 7. The golden-transcript approval document is anchored to the exact repository-owner-approved canonical digest and owner identity.
-8. The approved `priority-gated-sol-ring-resolution` transcript is bound to a test that executes the exact Sol Ring scenario: direct and replay resolution bypasses are rejected; resolution occurs only after all active players pass; the spell object retires; a fresh Sol Ring permanent enters the battlefield; and the cast action leaves `pending_actions`.
+8. The approved Sol Ring transcript executes its exact production-path scenario.
+
+## Current hardening
+
+The remaining approved transcript tests are being strengthened to assert their complete machine contracts:
+
+- Commit: both removed and resolving actions leave `pending_actions`, the original Opt remains pending, the copy leaves the stack, and the second-from-top library placement is recorded before synthetic cessation.
+- Glint-Horn Buccaneer: discard, trigger placement, damage, stack resolution, and game termination occur in the approved order.
+- Dualcaster Mage: the ETB trigger targets the exact Opt object and the resulting spell-copy successor follows its exact cessation lifecycle.
+- Twinflame: both hasty component-free token copies have matching delayed triggers and exact exile/cessation successors.
 
 ## Evidence status
 
-- The exact Sol Ring transcript test and golden-transcript checker passed in the publication workflow.
-- Complete exact-head CI, renewed immutable Phase A verification, durable certification, and another exact-head Codex review remain required on the current head.
-- Explicit owner merge authorization remains required after all automated and review gates pass.
+Complete exact-head CI, renewed immutable Phase A verification, durable certification, and another exact-head Codex review remain required after this hardening lands. Explicit owner merge authorization remains required after every automated and review gate passes.
 
 ## Locks
 
