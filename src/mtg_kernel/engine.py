@@ -751,13 +751,17 @@ class GameExecutor:
                     commander_choice_id = choice.choice_id
                     if commander_to_command:
                         destination = Zone.COMMAND
+            placement_event = self._event(
+                "PUT_IN_LIBRARY" if destination is Zone.LIBRARY else "PUT_IN_COMMAND",
+                action,
+                target_object_id=target.object_id,
+                position="SECOND_FROM_TOP" if destination is Zone.LIBRARY else "UNSPECIFIED",
+            )
             moved = self.zones.move(
                 target.object_id,
                 destination,
                 "COMMANDER_REPLACEMENT" if destination is Zone.COMMAND else "COMMIT",
-                self._event(
-                    "PUT_IN_LIBRARY" if destination is Zone.LIBRARY else "PUT_IN_COMMAND", action
-                ),
+                placement_event,
                 commander_choice_id=commander_choice_id,
             )
             if moved is not None and destination is Zone.LIBRARY:

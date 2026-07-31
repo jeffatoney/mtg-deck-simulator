@@ -378,17 +378,25 @@ def test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects() -> None:
         choices={"trigger_targets": {"dualcaster:etb": original.object_id}},
     )
     pass_all(executor)
-    assert state.objects[state.stack[-1]].object_kind is ObjectKind.TRIGGERED_ABILITY
+    trigger = state.objects[state.stack[-1]]
+    assert trigger.object_kind is ObjectKind.TRIGGERED_ABILITY
+    trigger_action = executor._created_action(trigger)
+    assert trigger_action.targets == (TargetRef(original.object_id),)
     pass_all(executor)
     copy = state.objects[state.stack[-1]]
     assert copy.copy_kind is CopyKind.SPELL_COPY
     assert copy.was_cast is False and not copy.component_card_instance_ids
     pass_all(executor)
     assert copy.retired
-    assert any(
-        obj.copy_kind is CopyKind.SPELL_COPY and obj.ceased_to_exist
-        for obj in state.objects.values()
-    )
+    copy_successors = [
+        obj for obj in state.objects.values() if obj.predecessor_object_id == copy.object_id
+    ]
+    assert len(copy_successors) == 1
+    copy_successor = copy_successors[0]
+    assert copy_successor.copy_kind is CopyKind.SPELL_COPY
+    assert copy_successor.zone is Zone.GRAVEYARD
+    assert copy_successor.retired and copy_successor.ceased_to_exist
+    assert original.object_id in state.stack
 
     state2, executor2 = funded_game()
     first = add_card(executor2, specs["Malcolm, Keen-Eyed Navigator"], Zone.BATTLEFIELD)
@@ -401,21 +409,30 @@ def test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects() -> None:
     )
     pass_all(executor2)
     tokens = [obj for obj in active_objects(state2) if obj.copy_kind is CopyKind.TOKEN_COPY]
-    assert len(tokens) == 2 and all(
-        "Haste" in obj.current_characteristics["keywords"] for obj in tokens
-    )
-    assert len(state2.delayed_triggers) == 2
+    assert len(tokens) == 2
+    token_ids = {token.object_id for token in tokens}
+    assert all("Haste" in token.current_characteristics["keywords"] for token in tokens)
+    assert all(not token.component_card_instance_ids for token in tokens)
+
+    delayed_ids = tuple(state2.delayed_triggers)
+    assert len(delayed_ids) == 2
+    assert {state2.objects[trigger_id].source_object_id for trigger_id in delayed_ids} == token_ids
+
     executor2.begin_step("END")
+    assert len(state2.stack) == 2
     pass_all(executor2)
     pass_all(executor2)
     assert not [obj for obj in active_objects(state2) if obj.copy_kind is CopyKind.TOKEN_COPY]
-    assert (
-        sum(
-            obj.copy_kind is CopyKind.TOKEN_COPY and obj.ceased_to_exist
-            for obj in state2.objects.values()
-        )
-        == 2
-    )
+    for token in tokens:
+        assert token.retired
+        successors = [
+            obj for obj in state2.objects.values() if obj.predecessor_object_id == token.object_id
+        ]
+        assert len(successors) == 1
+        successor = successors[0]
+        assert successor.copy_kind is CopyKind.TOKEN_COPY
+        assert successor.zone is Zone.EXILE
+        assert successor.retired and successor.ceased_to_exist
 
 
 def test_curiosity_attachment_optional_trigger_and_aura_sba() -> None:
@@ -801,18 +818,43 @@ def test_lethal_damage_defers_state_based_actions_until_resolution_finishes() ->
         choices={"discard_ids": [discarded.object_id]},
     )
 
-    trigger_id = state.stack[-1]
+    assert len(state.stack) == 2
+    activated_id, trigger_id = state.stack
+    assert state.objects[activated_id].object_kind is ObjectKind.ACTIVATED_ABILITY
+    assert state.objects[trigger_id].object_kind is ObjectKind.TRIGGERED_ABILITY
     pass_all(executor)
 
-    event_kinds = [event.kind for event in state.events]
+    discarded_index = next(
+        index for index, event in enumerate(state.events) if event.kind == "CARD_DISCARDED"
+    )
+    trigger_stack_index = next(
+        index
+        for index, event in enumerate(state.events)
+        if event.kind == "TRIGGER_PUT_ON_STACK"
+        and event.payload.get("object_id", trigger_id) == trigger_id
+    )
+    damage_index = next(
+        index for index, event in enumerate(state.events) if event.kind == "DAMAGE_DEALT"
+    )
     resolved_index = next(
         index
         for index, event in enumerate(state.events)
         if event.kind == "STACK_OBJECT_RESOLVED" and event.payload.get("object_id") == trigger_id
     )
-    terminal_index = event_kinds.index("GAME_TERMINATED")
-    assert resolved_index < terminal_index
+    terminal_index = next(
+        index for index, event in enumerate(state.events) if event.kind == "GAME_TERMINATED"
+    )
+    required_order = [
+        discarded_index,
+        trigger_stack_index,
+        damage_index,
+        resolved_index,
+        terminal_index,
+    ]
+    assert required_order == sorted(required_order)
+    assert len(set(required_order)) == len(required_order)
     assert terminal_index == len(state.events) - 1
+    assert state.stack == [activated_id]
     assert state.terminal.status == "TERMINAL"
     assert state.players["P1"].loss_reasons == ["LIFE_TOTAL"]
 
@@ -828,15 +870,42 @@ def test_commit_clears_pending_action_for_removed_spell_copy() -> None:
     copy = executor.copy_spell(original, "P0", None, cause)
     copy_action = executor._created_action(copy)
     original_action = executor._created_action(original)
+    assert copy_action.action_id != original_action.action_id
     assert copy_action.action_id in state.pending_actions
+    assert original_action.action_id in state.pending_actions
 
     commit = add_card(executor, specs["Commit // Memory"], Zone.HAND)
-    executor.cast("P0", commit.object_id, (TargetRef(copy.object_id),), face=0)
+    commit_spell = executor.cast("P0", commit.object_id, (TargetRef(copy.object_id),), face=0)
+    commit_action = executor._created_action(commit_spell)
+    assert commit_action.action_id in state.pending_actions
     pass_all(executor)
 
     assert copy_action.action_id not in state.pending_actions
+    assert commit_action.action_id not in state.pending_actions
     assert original_action.action_id in state.pending_actions
-    assert all(state.objects[object_id].object_id != copy.object_id for object_id in state.stack)
+    assert original.object_id in state.stack
+    assert copy.object_id not in state.stack
+    assert commit_spell.retired
+
+    placement_event = next(
+        event
+        for event in state.events
+        if event.kind == "PUT_IN_LIBRARY" and event.cause_action_id == commit_action.action_id
+    )
+    assert placement_event.payload["target_object_id"] == copy.object_id
+    assert placement_event.payload["position"] == "SECOND_FROM_TOP"
+
+    change = next(
+        change
+        for change in state.zone_changes
+        if change.from_object_id == copy.object_id and change.cause == "COMMIT"
+    )
+    assert change.to_zone is Zone.LIBRARY
+    assert change.to_object_id is not None
+    successor = state.objects[change.to_object_id]
+    assert successor.predecessor_object_id == copy.object_id
+    assert successor.zone is Zone.LIBRARY
+    assert successor.retired and successor.ceased_to_exist
 
 
 def test_terminal_damage_does_not_put_waiting_triggers_on_stack() -> None:
