@@ -754,9 +754,9 @@ def test_activated_abilities_require_priority_including_standalone_mana_abilitie
 
 def test_stack_resolution_requires_completed_priority_pass_transition() -> None:
     state, executor = funded_game()
-    add_library(executor, "P0", 1)
-    opt = add_card(executor, specs_by_name()["Opt"], Zone.HAND)
-    spell = executor.cast("P0", opt.object_id)
+    sol_ring_card = add_card(executor, specs_by_name()["Sol Ring"], Zone.HAND)
+    spell = executor.cast("P0", sol_ring_card.object_id)
+    cast_action = executor._created_action(spell)
     before = state_hash(state)
 
     with pytest.raises(IllegalAction, match="only after all players pass"):
@@ -775,7 +775,16 @@ def test_stack_resolution_requires_completed_priority_pass_transition() -> None:
     assert state.stack[-1] == spell.object_id
 
     pass_all(executor)
+
     assert state.objects[spell.object_id].retired
+    permanents = [
+        obj
+        for obj in active_objects(state, name="Sol Ring", kind=ObjectKind.PERMANENT)
+        if obj.zone is Zone.BATTLEFIELD
+    ]
+    assert len(permanents) == 1
+    assert permanents[0].object_id != spell.object_id
+    assert cast_action.action_id not in state.pending_actions
 
 
 def test_lethal_damage_defers_state_based_actions_until_resolution_finishes() -> None:
