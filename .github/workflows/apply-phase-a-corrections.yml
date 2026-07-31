@@ -16,10 +16,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Stop when no reviewed patch is present
+      - name: Stop until the complete reviewed patch is present
         id: patch
         run: |
-          if [[ -f .phase-a-corrections.patch ]]; then
+          if [[ -f .phase-a-corrections.patch.sha256 ]]; then
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
@@ -32,12 +32,14 @@ jobs:
         if: steps.patch.outputs.present == 'true'
         with:
           version: latest
-      - name: Apply transparent corrective patch
+      - name: Reassemble and validate transparent corrective patch
         if: steps.patch.outputs.present == 'true'
         run: |
+          cat .phase-a-corrections.patch.part-* > .phase-a-corrections.patch
+          sha256sum --check .phase-a-corrections.patch.sha256
           git apply --check .phase-a-corrections.patch
           git apply .phase-a-corrections.patch
-          rm .phase-a-corrections.patch
+          rm .phase-a-corrections.patch .phase-a-corrections.patch.part-* .phase-a-corrections.patch.sha256
           rm .github/workflows/apply-phase-a-corrections.yml
           rm .github/workflows/export-agent-worktree.yml
       - name: Format and validate corrective source
