@@ -1,0 +1,59 @@
+# One-time transparent correction for the approved Sol Ring golden transcript.
+name: Apply Sol Ring golden transcript test
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+      - name: Bind the approved transcript to its exact executable scenario
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/phase_a/test_kernel_acceptance.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''def test_stack_resolution_requires_completed_priority_pass_transition() -> None:\n    state, executor = funded_game()\n    add_library(executor, "P0", 1)\n    opt = add_card(executor, specs_by_name()["Opt"], Zone.HAND)\n    spell = executor.cast("P0", opt.object_id)\n    before = state_hash(state)\n\n    with pytest.raises(IllegalAction, match="only after all players pass"):\n        executor.resolve_top()\n    assert state_hash(state) == before\n    assert state.stack[-1] == spell.object_id\n\n    with pytest.raises(TypeError):\n        executor.resolve_top(_all_players_passed=True)  # type: ignore[call-arg]\n    assert state_hash(state) == before\n    assert state.stack[-1] == spell.object_id\n\n    with pytest.raises(IllegalAction, match="only after all players pass"):\n        executor.execute_replay_command({"operation": "resolve_top", "arguments": {}})\n    assert state_hash(state) == before\n    assert state.stack[-1] == spell.object_id\n\n    pass_all(executor)\n    assert state.objects[spell.object_id].retired\n'''
+          new = '''def test_stack_resolution_requires_completed_priority_pass_transition() -> None:\n    state, executor = funded_game()\n    sol_ring_card = add_card(executor, specs_by_name()["Sol Ring"], Zone.HAND)\n    spell = executor.cast("P0", sol_ring_card.object_id)\n    cast_action = executor._created_action(spell)\n    before = state_hash(state)\n\n    with pytest.raises(IllegalAction, match="only after all players pass"):\n        executor.resolve_top()\n    assert state_hash(state) == before\n    assert state.stack[-1] == spell.object_id\n\n    with pytest.raises(TypeError):\n        executor.resolve_top(_all_players_passed=True)  # type: ignore[call-arg]\n    assert state_hash(state) == before\n    assert state.stack[-1] == spell.object_id\n\n    with pytest.raises(IllegalAction, match="only after all players pass"):\n        executor.execute_replay_command({"operation": "resolve_top", "arguments": {}})\n    assert state_hash(state) == before\n    assert state.stack[-1] == spell.object_id\n\n    pass_all(executor)\n\n    assert state.objects[spell.object_id].retired\n    permanents = [\n        obj\n        for obj in active_objects(state, name="Sol Ring", kind=ObjectKind.PERMANENT)\n        if obj.zone is Zone.BATTLEFIELD\n    ]\n    assert len(permanents) == 1\n    assert permanents[0].object_id != spell.object_id\n    assert cast_action.action_id not in state.pending_actions\n'''
+          if text.count(old) != 1:
+              if new in text:
+                  pass
+              else:
+                  raise SystemExit('exact Sol Ring transcript test target missing')
+          else:
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          Path('.github/workflows/apply-sol-ring-transcript-test.yml').unlink()
+          PY
+      - name: Validate exact transcript execution
+        run: |
+          uv sync --frozen --all-extras
+          uv run ruff format tests/phase_a/test_kernel_acceptance.py
+          uv run ruff check tests/phase_a/test_kernel_acceptance.py
+          uv run pytest -q tests/phase_a/test_kernel_acceptance.py::test_stack_resolution_requires_completed_priority_pass_transition
+          uv run python scripts/check_phase_a_golden_transcripts.py
+      - name: Commit ordinary source changes
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --check
+          git commit -m "Execute approved Sol Ring golden transcript"
+          git push origin HEAD:agent/phase-a-post-merge-corrections
