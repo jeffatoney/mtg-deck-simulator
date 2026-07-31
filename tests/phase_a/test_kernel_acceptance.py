@@ -50,8 +50,11 @@ def add_library(executor: GameExecutor, player_id: str, count: int) -> None:
 
 
 def pass_all(executor: GameExecutor) -> None:
-    executor.pass_priority("P0")
-    executor.pass_priority("P1")
+    players = [player.player_id for player in executor.state.players.values() if player.in_game]
+    for _ in players:
+        holder = executor.state.turn.priority_holder_id
+        assert holder is not None
+        executor.pass_priority(holder)
 
 
 def active_objects(state, *, name: str | None = None, kind: ObjectKind | None = None):
@@ -163,7 +166,7 @@ def test_abrade_modes_targets_and_target_revalidation() -> None:
     )
     abrade = add_card(executor, specs["Abrade"], Zone.HAND)
     executor.cast("P0", abrade.object_id, (TargetRef(creature.object_id),), mode="damage")
-    executor.resolve_top()
+    pass_all(executor)
     assert not any(
         obj.zone is Zone.BATTLEFIELD
         for obj in active_objects(state, name="Malcolm, Keen-Eyed Navigator")
@@ -172,14 +175,14 @@ def test_abrade_modes_targets_and_target_revalidation() -> None:
     artifact = add_card(executor, specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
     abrade2 = add_card(executor, specs["Abrade"], Zone.HAND)
     executor.cast("P0", abrade2.object_id, (TargetRef(artifact.object_id),), mode="destroy")
-    executor.resolve_top()
+    pass_all(executor)
     assert not any(obj.zone is Zone.BATTLEFIELD for obj in active_objects(state, name="Sol Ring"))
 
     creature2 = add_card(executor, specs["Glint-Horn Buccaneer"], Zone.BATTLEFIELD, owner="P1")
     abrade3 = add_card(executor, specs["Abrade"], Zone.HAND)
     spell = executor.cast("P0", abrade3.object_id, (TargetRef(creature2.object_id),), mode="damage")
     executor.zones.move(creature2.object_id, Zone.GRAVEYARD, "TEST", executor._event("TEST"))
-    executor.resolve_top()
+    pass_all(executor)
     assert spell.retired
     assert any(event.kind == "STACK_OBJECT_COUNTERED" for event in state.events)
 
@@ -194,23 +197,23 @@ def test_lantern_etb_and_both_activated_abilities() -> None:
         lantern.object_id,
         choices={"trigger_targets": {"lantern:etb": target.object_id}},
     )
-    executor.resolve_top()
+    pass_all(executor)
     trigger_action = executor._created_action(state.objects[state.stack[-1]])
     assert trigger_action.targets == (TargetRef(target.object_id),)
-    executor.resolve_top()
+    pass_all(executor)
     assert any(obj.zone is Zone.EXILE for obj in active_objects(state, name="Opt"))
 
     state2, executor2 = funded_game()
     lantern2 = add_card(executor2, specs["Soul-Guide Lantern"], Zone.HAND)
     executor2.cast("P0", lantern2.object_id)
-    executor2.resolve_top()
+    pass_all(executor2)
     assert not state2.stack
 
     state3, executor3 = funded_game()
     add_library(executor3, "P0", 1)
     lantern3 = add_card(executor3, specs["Soul-Guide Lantern"], Zone.BATTLEFIELD)
     executor3.activate("P0", lantern3.object_id, "lantern:draw")
-    executor3.resolve_top()
+    pass_all(executor3)
     assert len(state3.zones["HAND:P0"]) == 1
     assert not any(
         obj.zone is Zone.BATTLEFIELD for obj in active_objects(state3, name="Soul-Guide Lantern")
@@ -220,7 +223,7 @@ def test_lantern_etb_and_both_activated_abilities() -> None:
     add_card(executor4, specs["Opt"], Zone.GRAVEYARD, owner="P1")
     lantern4 = add_card(executor4, specs["Soul-Guide Lantern"], Zone.BATTLEFIELD)
     executor4.activate("P0", lantern4.object_id, "lantern:exile-opponents")
-    executor4.resolve_top()
+    pass_all(executor4)
     assert not state4.zones.get("GRAVEYARD:P1", [])
 
 
@@ -231,7 +234,7 @@ def test_opt_scry_and_draw_changes_real_library_order() -> None:
     top = add_card(executor, specs["Mountain"], Zone.LIBRARY)
     opt = add_card(executor, specs["Opt"], Zone.HAND)
     executor.cast("P0", opt.object_id, choices={"scry_to_bottom": True})
-    executor.resolve_top()
+    pass_all(executor)
     hand_names = [
         state.objects[obj].current_characteristics["name"] for obj in state.zones["HAND:P0"]
     ]
@@ -246,7 +249,7 @@ def test_commit_handles_physical_copy_commander_and_external_objects() -> None:
     target = add_card(executor, specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
     commit = add_card(executor, specs["Commit // Memory"], Zone.HAND)
     executor.cast("P0", commit.object_id, (TargetRef(target.object_id),), face=0)
-    executor.resolve_top()
+    pass_all(executor)
     assert any(
         change.cause == "COMMIT" and change.from_object_id == target.object_id
         for change in state.zone_changes
@@ -261,7 +264,7 @@ def test_commit_handles_physical_copy_commander_and_external_objects() -> None:
     copy = executor2.copy_spell(original, "P0", None, cause)
     commit2 = add_card(executor2, specs["Commit // Memory"], Zone.HAND)
     executor2.cast("P0", commit2.object_id, (TargetRef(copy.object_id),), face=0)
-    executor2.resolve_top()
+    pass_all(executor2)
     assert copy.retired
     assert any(
         obj.copy_kind is CopyKind.SPELL_COPY and obj.ceased_to_exist
@@ -284,7 +287,7 @@ def test_commit_handles_physical_copy_commander_and_external_objects() -> None:
         face=0,
         choices={"commander_to_command": True},
     )
-    executor3.resolve_top()
+    pass_all(executor3)
     assert active_objects(state3, name="Malcolm, Keen-Eyed Navigator")[0].zone is Zone.COMMAND
     assert state3.choices[-1].selected == "COMMAND"
 
@@ -299,7 +302,7 @@ def test_commit_handles_physical_copy_commander_and_external_objects() -> None:
     )
     commit4 = add_card(executor4, specs["Commit // Memory"], Zone.HAND)
     executor4.cast("P0", commit4.object_id, (TargetRef(external.object_id),), face=0)
-    executor4.resolve_top()
+    pass_all(executor4)
     assert state4.external_object_ledger[-1]["destination"] == "LIBRARY"
     assert state4.external_object_ledger[-1]["position"] == "SECOND_FROM_TOP"
 
@@ -323,7 +326,7 @@ def test_memory_aftermath_shuffle_draw_and_commander_replacement() -> None:
         face=1,
         choices={"commander_replacements": {commander.object_id: True}},
     )
-    executor.resolve_top()
+    pass_all(executor)
     assert active_objects(state, name="Malcolm, Keen-Eyed Navigator")[0].zone is Zone.COMMAND
     assert active_objects(state, name="Commit // Memory")[0].zone is Zone.EXILE
     assert len(state.zones["HAND:P0"]) == 7
@@ -341,7 +344,7 @@ def test_malcolm_and_glint_horn_use_real_trigger_and_stack_order() -> None:
     malcolm = add_card(executor, specs["Malcolm, Keen-Eyed Navigator"], Zone.BATTLEFIELD)
     executor.deal_damage_to_player(malcolm.object_id, "P1", 2, combat=True)
     assert state.objects[state.stack[-1]].object_kind is ObjectKind.TRIGGERED_ABILITY
-    executor.resolve_top()
+    pass_all(executor)
     assert active_objects(state, name="Treasure")
 
     state2, executor2 = funded_game()
@@ -356,9 +359,9 @@ def test_malcolm_and_glint_horn_use_real_trigger_and_stack_order() -> None:
         choices={"discard_ids": [discarded.object_id]},
     )
     assert state2.objects[state2.stack[-1]].object_kind is ObjectKind.TRIGGERED_ABILITY
-    executor2.resolve_top()
+    pass_all(executor2)
     assert state2.players["P1"].life == 39
-    executor2.resolve_top()
+    pass_all(executor2)
     assert len(state2.zones["HAND:P0"]) == 1
 
 
@@ -374,13 +377,13 @@ def test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects() -> None:
         dualcaster.object_id,
         choices={"trigger_targets": {"dualcaster:etb": original.object_id}},
     )
-    executor.resolve_top()
+    pass_all(executor)
     assert state.objects[state.stack[-1]].object_kind is ObjectKind.TRIGGERED_ABILITY
-    executor.resolve_top()
+    pass_all(executor)
     copy = state.objects[state.stack[-1]]
     assert copy.copy_kind is CopyKind.SPELL_COPY
     assert copy.was_cast is False and not copy.component_card_instance_ids
-    executor.resolve_top()
+    pass_all(executor)
     assert copy.retired
     assert any(
         obj.copy_kind is CopyKind.SPELL_COPY and obj.ceased_to_exist
@@ -396,15 +399,15 @@ def test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects() -> None:
         twin.object_id,
         (TargetRef(first.object_id), TargetRef(second.object_id)),
     )
-    executor2.resolve_top()
+    pass_all(executor2)
     tokens = [obj for obj in active_objects(state2) if obj.copy_kind is CopyKind.TOKEN_COPY]
     assert len(tokens) == 2 and all(
         "Haste" in obj.current_characteristics["keywords"] for obj in tokens
     )
     assert len(state2.delayed_triggers) == 2
     executor2.begin_step("END")
-    executor2.resolve_top()
-    executor2.resolve_top()
+    pass_all(executor2)
+    pass_all(executor2)
     assert not [obj for obj in active_objects(state2) if obj.copy_kind is CopyKind.TOKEN_COPY]
     assert (
         sum(
@@ -422,7 +425,7 @@ def test_curiosity_attachment_optional_trigger_and_aura_sba() -> None:
     creature = add_card(executor, specs["Glint-Horn Buccaneer"], Zone.BATTLEFIELD)
     curiosity = add_card(executor, specs["Curiosity"], Zone.HAND)
     executor.cast("P0", curiosity.object_id, (TargetRef(creature.object_id),))
-    executor.resolve_top()
+    pass_all(executor)
     aura = active_objects(state, name="Curiosity")[0]
     assert aura.attached_to_ref == TargetRef(creature.object_id)
     executor.deal_damage_to_player(
@@ -431,7 +434,7 @@ def test_curiosity_attachment_optional_trigger_and_aura_sba() -> None:
         2,
         choices={"optional": {"curiosity:damage-trigger": True}},
     )
-    executor.resolve_top()
+    pass_all(executor)
     assert len(state.zones["HAND:P0"]) == 1
     executor.zones.move(creature.object_id, Zone.GRAVEYARD, "TEST", executor._event("TEST"))
     executor.check_state_based_actions()
@@ -596,7 +599,7 @@ def test_cleanup_discard_trigger_priority_and_repeated_cleanup() -> None:
     assert state.turn.cleanup_iteration == 1
     assert state.turn.cleanup_repeat_pending
     assert state.objects[state.stack[-1]].object_kind is ObjectKind.TRIGGERED_ABILITY
-    executor.resolve_top()
+    pass_all(executor)
     pass_all(executor)
     assert state.turn.cleanup_iteration == 2
     assert not state.turn.cleanup_repeat_pending
@@ -724,3 +727,95 @@ def test_terminal_state_stops_further_actions_and_external_objects_never_enter_p
     executor.check_state_based_actions()
     with pytest.raises(IllegalAction):
         executor.begin_step("UPKEEP")
+
+
+def test_nonmana_activation_requires_priority_but_mana_ability_keeps_exception() -> None:
+    state, executor = funded_game()
+    specs = specs_by_name()
+    lantern = add_card(executor, specs["Soul-Guide Lantern"], Zone.BATTLEFIELD)
+    island = add_card(executor, specs["Island"], Zone.BATTLEFIELD)
+    state.turn.priority_holder_id = "P1"
+
+    before = state_hash(state)
+    with pytest.raises(IllegalAction, match="does not have priority"):
+        executor.activate("P0", lantern.object_id, "lantern:exile-opponents")
+    assert state_hash(state) == before
+
+    state.players["P0"].mana_pool["U"] = 0
+    executor.activate("P0", island.object_id, "island:mana-u")
+    assert state.players["P0"].mana_pool["U"] == 1
+    assert state.turn.priority_holder_id == "P1"
+
+
+def test_stack_resolution_requires_completed_priority_pass_transition() -> None:
+    state, executor = funded_game()
+    add_library(executor, "P0", 1)
+    opt = add_card(executor, specs_by_name()["Opt"], Zone.HAND)
+    spell = executor.cast("P0", opt.object_id)
+    before = state_hash(state)
+
+    with pytest.raises(IllegalAction, match="only after all players pass"):
+        executor.resolve_top()
+    assert state_hash(state) == before
+    assert state.stack[-1] == spell.object_id
+
+    with pytest.raises(IllegalAction, match="only after all players pass"):
+        executor.execute_replay_command({"operation": "resolve_top", "arguments": {}})
+    assert state_hash(state) == before
+    assert state.stack[-1] == spell.object_id
+
+    pass_all(executor)
+    assert state.objects[spell.object_id].retired
+
+
+def test_lethal_damage_defers_state_based_actions_until_resolution_finishes() -> None:
+    state, executor = funded_game()
+    specs = specs_by_name()
+    state.players["P1"].life = 1
+    add_library(executor, "P0", 1)
+    glint = add_card(executor, specs["Glint-Horn Buccaneer"], Zone.BATTLEFIELD)
+    glint.current_characteristics["attacking"] = True
+    discarded = add_card(executor, specs["Opt"], Zone.HAND)
+    executor.activate(
+        "P0",
+        glint.object_id,
+        "glint-horn:attack-loot",
+        choices={"discard_ids": [discarded.object_id]},
+    )
+
+    trigger_id = state.stack[-1]
+    pass_all(executor)
+
+    event_kinds = [event.kind for event in state.events]
+    resolved_index = next(
+        index
+        for index, event in enumerate(state.events)
+        if event.kind == "STACK_OBJECT_RESOLVED" and event.payload.get("object_id") == trigger_id
+    )
+    terminal_index = event_kinds.index("GAME_TERMINATED")
+    assert resolved_index < terminal_index
+    assert terminal_index == len(state.events) - 1
+    assert state.terminal.status == "TERMINAL"
+    assert state.players["P1"].loss_reasons == ["LIFE_TOTAL"]
+
+
+def test_commit_clears_pending_action_for_removed_spell_copy() -> None:
+    state, executor = funded_game()
+    specs = specs_by_name()
+    add_library(executor, "P0", 1)
+    opt = add_card(executor, specs["Opt"], Zone.HAND)
+    original = executor.cast("P0", opt.object_id)
+    cause = Action(executor.identity.new_id("action"), "COPY_EFFECT", "P0")
+    state.actions.append(cause)
+    copy = executor.copy_spell(original, "P0", None, cause)
+    copy_action = executor._created_action(copy)
+    original_action = executor._created_action(original)
+    assert copy_action.action_id in state.pending_actions
+
+    commit = add_card(executor, specs["Commit // Memory"], Zone.HAND)
+    executor.cast("P0", commit.object_id, (TargetRef(copy.object_id),), face=0)
+    pass_all(executor)
+
+    assert copy_action.action_id not in state.pending_actions
+    assert original_action.action_id in state.pending_actions
+    assert all(state.objects[object_id].object_id != copy.object_id for object_id in state.stack)

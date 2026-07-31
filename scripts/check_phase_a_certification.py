@@ -20,7 +20,7 @@ APPROVAL_PATH = ROOT / "docs/spec/identity/IDENTITY_MODEL_V2.0.0_APPROVAL_RECORD
 MAPPING_PATH = ROOT / "automation/phase-a-test-mapping.json"
 RULES_PATH = ROOT / "docs/source/MagicCompRules_2026-06-19.txt"
 ORACLE_PATH = ROOT / "docs/source/oracle/snapshot_v1.json"
-EXPECTED_SCHEMA = "phase-a-certification-v2"
+EXPECTED_SCHEMA = "phase-a-certification-v3"
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _COMMIT = re.compile(r"^[0-9a-f]{40}$")
 
@@ -98,8 +98,8 @@ def main() -> int:
     if not isinstance(counts, dict):
         errors.append("counts are missing")
     else:
-        if counts.get("pass", 0) < 22:
-            errors.append("certification records fewer than 22 passing Phase A tests")
+        if counts.get("pass", 0) < 26:
+            errors.append("certification records fewer than 26 passing Phase A tests")
         for key in ("fail", "skip", "xfail"):
             if counts.get(key) != 0:
                 errors.append(f"certification count {key} is not zero")
@@ -127,6 +127,8 @@ def main() -> int:
         errors.append("pilot lock is not active")
     if record.get("unsupported_behavior") != "HARD_VALIDATION_FAILURE":
         errors.append("unsupported behavior is not fail-closed")
+    if record.get("golden_transcripts") != "PASS":
+        errors.append("five digest-bound owner-approved golden transcripts are not certified")
 
     try:
         actual_paths = all_digests()

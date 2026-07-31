@@ -42,6 +42,7 @@ class GameExecutor:
         self.replaying = replaying
         self.identity = IdentityService(state, seed)
         self.zones = ZoneService(state, self.identity)
+        self._resolution_depth = 0
 
     def _event(self, kind: str, action: Action | None = None, **payload: Any) -> Event:
         event = Event(
@@ -388,6 +389,9 @@ class GameExecutor:
                 raise IllegalAction("a player may activate only an ability they control")
             ability_id = str(ability.get("ability_id")) if isinstance(ability, dict) else ability
             selected = self._ability_by_id(source, ability_id)
+            mana_ability = bool(selected.get("mana_ability"))
+            if not mana_ability and self.state.turn.priority_holder_id != actor:
+                raise IllegalAction("the activating player does not have priority")
             if selected.get(
                 "restriction"
             ) == "SOURCE_ATTACKING" and not source.current_characteristics.get("attacking", False):
@@ -424,7 +428,6 @@ class GameExecutor:
                 }
             )
             activated_event = self._event("ABILITY_ACTIVATED", action, ability_id=ability_id)
-            mana_ability = bool(selected.get("mana_ability"))
             ability_object: GameObject | None = None
             if not mana_ability:
                 ability_object = GameObject(
@@ -489,7 +492,7 @@ class GameExecutor:
             if self.state.turn.consecutive_priority_passes == len(players):
                 self.state.turn.consecutive_priority_passes = 0
                 if self.state.stack:
-                    self.resolve_top(_record=False)
+                    self.resolve_top(_record=False, _all_players_passed=True)
                 elif self.state.turn.cleanup_repeat_pending:
                     self._cleanup_iteration(())
                 else:
@@ -544,100 +547,121 @@ class GameExecutor:
                 legal.append(value)
         return legal
 
-    def resolve_top(self, *, _record: bool = True) -> None:
+    def resolve_top(
+        self,
+        *,
+        _record: bool = True,
+        _all_players_passed: bool = False,
+    ) -> None:
         self._ensure_active()
         before = self._begin_atomic()
         try:
+            if not _all_players_passed:
+                raise IllegalAction("the stack resolves only after all players pass priority")
             if not self.state.stack:
                 raise IllegalAction("stack is empty")
             obj = self.state.objects[self.state.stack[-1]]
             action = self._created_action(obj)
             legal_targets = self._revalidate_targets(action)
-            if action.targets and not legal_targets:
-                self.counter(obj.object_id, _record=False)
-                if _record:
-                    self._record_command("resolve_top")
-                return
-            if obj.object_kind in {ObjectKind.SPELL, ObjectKind.SPELL_COPY}:
-                face = int(action.metadata.get("face", 0))
-                abilities = obj.current_characteristics.get("abilities", [])
-                selected = next(
-                    (
-                        ability
-                        for ability in abilities
-                        if ability.get("ability_id") == action.metadata.get("ability_id")
-                    ),
-                    {"effect": {"kind": "NONE"}},
-                )
-                effect = dict(selected.get("effect", {}))
-            else:
-                selected = dict(obj.current_characteristics.get("ability", {}))
-                effect = dict(selected.get("effect", {}))
-                face = int(action.metadata.get("face", 0))
-            choices = dict(action.metadata.get("choices", {}))
-            if selected.get("optional") and not bool(
-                action.metadata.get("optional_selected", False)
-            ):
-                effect = {"kind": "NONE"}
 
-            aura_effect = effect.get("kind") == "ATTACH_AURA"
-            if not aura_effect:
-                self._apply_effect(obj, action, effect, legal_targets, choices)
-            resolved_event = self._event("STACK_OBJECT_RESOLVED", action, object_id=obj.object_id)
-
-            if obj.object_kind in {
-                ObjectKind.ACTIVATED_ABILITY,
-                ObjectKind.TRIGGERED_ABILITY,
-                ObjectKind.ABILITY_COPY,
-            }:
-                self.zones.move(obj.object_id, Zone.NONE, "ABILITY_RESOLVED", resolved_event)
-            elif obj.object_kind is ObjectKind.SPELL_COPY:
-                self.zones.move(
-                    obj.object_id, Zone.GRAVEYARD, "SPELL_COPY_RESOLVED", resolved_event
-                )
-            else:
-                card_types = self._types(obj)
-                if card_types.intersection(PERMANENT_TYPES):
-                    permanent = self.zones.move(
-                        obj.object_id,
-                        Zone.BATTLEFIELD,
-                        "RESOLVED",
-                        resolved_event,
-                        object_kind=ObjectKind.PERMANENT,
-                        controller=obj.controller,
-                        face=face,
-                        explicit_characteristics={
-                            "selected_face_index": face,
-                            "cast_choices": choices,
-                            "cast_payment": action.payments,
-                            "modes": list(action.modes),
-                            "x_value": action.x_value,
-                        },
-                    )
-                    if permanent is None:
-                        raise IllegalAction("permanent spell did not create a permanent")
-                    if aura_effect:
-                        if len(legal_targets) != 1:
-                            raise IllegalAction("Aura resolution requires one legal target")
-                        permanent.attached_to_ref = TargetRef(legal_targets[0].object_id)
-                        self._event(
-                            "AURA_ATTACHED",
-                            action,
-                            aura_object_id=permanent.object_id,
-                            attached_to=legal_targets[0].object_id,
-                        )
-                    self._queue_etb(permanent)
+            self._resolution_depth += 1
+            try:
+                if action.targets and not legal_targets:
+                    self.counter(obj.object_id, _record=False)
                 else:
-                    permission = selected.get("cast_permission", "NORMAL")
-                    destination = (
-                        Zone.EXILE if permission in {"AFTERMATH", "FLASHBACK"} else Zone.GRAVEYARD
+                    if obj.object_kind in {ObjectKind.SPELL, ObjectKind.SPELL_COPY}:
+                        face = int(action.metadata.get("face", 0))
+                        abilities = obj.current_characteristics.get("abilities", [])
+                        selected = next(
+                            (
+                                ability
+                                for ability in abilities
+                                if ability.get("ability_id") == action.metadata.get("ability_id")
+                            ),
+                            {"effect": {"kind": "NONE"}},
+                        )
+                        effect = dict(selected.get("effect", {}))
+                    else:
+                        selected = dict(obj.current_characteristics.get("ability", {}))
+                        effect = dict(selected.get("effect", {}))
+                        face = int(action.metadata.get("face", 0))
+                    choices = dict(action.metadata.get("choices", {}))
+                    if selected.get("optional") and not bool(
+                        action.metadata.get("optional_selected", False)
+                    ):
+                        effect = {"kind": "NONE"}
+
+                    aura_effect = effect.get("kind") == "ATTACH_AURA"
+                    if not aura_effect:
+                        self._apply_effect(obj, action, effect, legal_targets, choices)
+                    resolved_event = self._event(
+                        "STACK_OBJECT_RESOLVED", action, object_id=obj.object_id
                     )
-                    self.zones.move(obj.object_id, destination, "RESOLVED", resolved_event)
-            self._remove_pending_action(action)
+
+                    if obj.object_kind in {
+                        ObjectKind.ACTIVATED_ABILITY,
+                        ObjectKind.TRIGGERED_ABILITY,
+                        ObjectKind.ABILITY_COPY,
+                    }:
+                        self.zones.move(
+                            obj.object_id, Zone.NONE, "ABILITY_RESOLVED", resolved_event
+                        )
+                    elif obj.object_kind is ObjectKind.SPELL_COPY:
+                        self.zones.move(
+                            obj.object_id,
+                            Zone.GRAVEYARD,
+                            "SPELL_COPY_RESOLVED",
+                            resolved_event,
+                        )
+                    else:
+                        card_types = self._types(obj)
+                        if card_types.intersection(PERMANENT_TYPES):
+                            permanent = self.zones.move(
+                                obj.object_id,
+                                Zone.BATTLEFIELD,
+                                "RESOLVED",
+                                resolved_event,
+                                object_kind=ObjectKind.PERMANENT,
+                                controller=obj.controller,
+                                face=face,
+                                explicit_characteristics={
+                                    "selected_face_index": face,
+                                    "cast_choices": choices,
+                                    "cast_payment": action.payments,
+                                    "modes": list(action.modes),
+                                    "x_value": action.x_value,
+                                },
+                            )
+                            if permanent is None:
+                                raise IllegalAction("permanent spell did not create a permanent")
+                            if aura_effect:
+                                if len(legal_targets) != 1:
+                                    raise IllegalAction("Aura resolution requires one legal target")
+                                permanent.attached_to_ref = TargetRef(legal_targets[0].object_id)
+                                self._event(
+                                    "AURA_ATTACHED",
+                                    action,
+                                    aura_object_id=permanent.object_id,
+                                    attached_to=legal_targets[0].object_id,
+                                )
+                            self._queue_etb(permanent)
+                        else:
+                            permission = selected.get("cast_permission", "NORMAL")
+                            destination = (
+                                Zone.EXILE
+                                if permission in {"AFTERMATH", "FLASHBACK"}
+                                else Zone.GRAVEYARD
+                            )
+                            self.zones.move(obj.object_id, destination, "RESOLVED", resolved_event)
+                    self._remove_pending_action(action)
+            finally:
+                self._resolution_depth -= 1
+
             self.check_state_based_actions()
-            self.put_waiting_triggers_on_stack()
-            self.state.turn.priority_holder_id = self.state.turn.active_player_id
-            self.state.turn.consecutive_priority_passes = 0
+            if self.state.terminal.status == "ACTIVE":
+                self.put_waiting_triggers_on_stack()
+                self.state.turn.priority_holder_id = self.state.turn.active_player_id
+                self.state.turn.consecutive_priority_passes = 0
             if _record:
                 self._record_command("resolve_top")
         except Exception:
@@ -704,6 +728,11 @@ class GameExecutor:
             return
         if kind == "LIBRARY_SECOND" and targets:
             target = targets[0]
+            if target.zone is Zone.STACK and target.object_kind in {
+                ObjectKind.SPELL,
+                ObjectKind.SPELL_COPY,
+            }:
+                self._remove_pending_action(self._created_action(target))
             destination = Zone.LIBRARY
             commander_choice_id: str | None = None
             if target.component_card_instance_ids:
@@ -1047,6 +1076,8 @@ class GameExecutor:
         return refs
 
     def put_waiting_triggers_on_stack(self) -> None:
+        if self._resolution_depth:
+            return
         if not self.state.waiting_triggers:
             return
         player_order = list(self.state.players)
@@ -1360,6 +1391,8 @@ class GameExecutor:
             raise
 
     def check_state_based_actions(self) -> None:
+        if self._resolution_depth:
+            return
         while True:
             changed = False
             for obj in list(self.state.objects.values()):
