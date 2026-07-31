@@ -1,9 +1,9 @@
 name: Apply Phase A corrective source patch
 
 on:
-  push:
-    branches:
-      - agent/phase-a-post-merge-corrections
+  pull_request:
+    branches: [main]
+    types: [synchronize]
 
 permissions:
   contents: write
@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Stop until the complete reviewed patch is present
         id: patch
         run: |
