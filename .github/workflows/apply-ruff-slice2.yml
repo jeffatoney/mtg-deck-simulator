@@ -60,3 +60,5 @@ jobs:
             tests/phase_b/test_broker_fail_closed.py
           git commit -m "Apply Ruff formatting to fail-closed Slice 2 repair"
           git push origin HEAD:${{ github.ref_name }}
+
+# Trigger exact artifact application.
