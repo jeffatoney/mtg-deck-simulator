@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from mtg_kernel.engine_core import MAIN_PHASES, PERMANENT_TYPES
 from mtg_kernel.engine_core import GameExecutor as _CoreGameExecutor
@@ -10,8 +10,8 @@ from mtg_kernel.errors import IllegalAction
 from mtg_kernel.models import GameObject, TargetRef
 
 
-class GameExecutor(_CoreGameExecutor):
-    """The single production executor exposed to policy, scenarios, and replay."""
+class HardenedGameExecutor(_CoreGameExecutor):
+    """Runtime executor adding Slice 3 atomicity and terminal protections."""
 
     def cast(
         self,
@@ -51,6 +51,15 @@ class GameExecutor(_CoreGameExecutor):
             trigger.retired = True
             trigger.ceased_to_exist = True
         self.state.waiting_triggers.clear()
+
+
+if TYPE_CHECKING:
+    # The public type is the shared core interface. Runtime construction below
+    # still returns the hardened subclass, so the core may call shared services
+    # without creating a false nominal-subclass requirement.
+    GameExecutor = _CoreGameExecutor
+else:
+    GameExecutor = HardenedGameExecutor
 
 
 __all__ = ["GameExecutor", "MAIN_PHASES", "PERMANENT_TYPES"]
