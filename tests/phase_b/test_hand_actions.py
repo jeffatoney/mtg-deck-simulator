@@ -86,8 +86,7 @@ def test_transmute_is_sorcery_speed_stack_action_with_discard_cost_and_search() 
     assert len(rings) == 1
     assert rings[0].component_card_instance_ids == first_ring.component_card_instance_ids
     assert any(
-        choice.kind == "TRANSMUTE" and choice.selected == "Sol Ring"
-        for choice in state.choices
+        choice.kind == "TRANSMUTE" and choice.selected == "Sol Ring" for choice in state.choices
     )
     assert any(event.kind == "LIBRARY_SHUFFLED" for event in state.events)
 
@@ -278,8 +277,7 @@ def test_broker_enumerates_mana_reveal_tutor_and_foretell_choices_without_raw_id
     lands = [
         action
         for action in actions
-        if action.kind == "PLAY_LAND"
-        and action.identity == snarl.current_characteristics["name"]
+        if action.kind == "PLAY_LAND" and action.identity == snarl.current_characteristics["name"]
     ]
     assert {action.metadata.get("reveal_identity") for action in lands} == {None, "Island"}
 
@@ -292,9 +290,7 @@ def test_broker_enumerates_mana_reveal_tutor_and_foretell_choices_without_raw_id
         "Sol Ring",
         "FAIL_TO_FIND",
     }
-    assert any(
-        action.kind == "FORETELL" and action.identity == "Ravenform" for action in actions
-    )
+    assert any(action.kind == "FORETELL" and action.identity == "Ravenform" for action in actions)
 
     encoded = json.dumps([action.__dict__ for action in actions])
     for obj in (temple, snarl, reveal, dizzy, hidden_ring, ravenform):
