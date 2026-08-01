@@ -45,3 +45,5 @@ jobs:
           git add docs/audit/phase-a-certification/CERTIFICATION.json
           git commit -m "Commit exact Slice 2 Phase A certification"
           git push origin HEAD:${{ github.ref_name }}
+
+# This update triggers the already-present one-shot transfer.
