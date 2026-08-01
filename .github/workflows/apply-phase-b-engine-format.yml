@@ -1,0 +1,36 @@
+name: Apply Phase B Engine Formatting
+
+on:
+  push:
+    branches:
+      - engine/phase-b-full-deck-policy
+    paths:
+      - .github/workflows/apply-phase-b-engine-format.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - name: Apply exact Ruff artifact diff
+        run: |
+          git apply --check automation/phase-b-engine-format.patch
+          git apply automation/phase-b-engine-format.patch
+      - name: Verify exact formatted source
+        run: |
+          python -m py_compile src/mtg_kernel/engine.py
+          git diff --check
+          test "$(git hash-object src/mtg_kernel/engine.py)" = "64aa30f3c8a065411272695bf31674dadbc2d90f"
+      - name: Commit ordinary formatting diff
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/mtg_kernel/engine.py
+          git commit -m "Format Phase B production executor hooks"
+          git push origin HEAD:${{ github.ref_name }}
