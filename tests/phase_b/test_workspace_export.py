@@ -22,6 +22,7 @@ def test_export_exact_head_workspace_into_existing_ci_artifact() -> None:
             ".ruff_cache",
             ".mypy_cache",
             "__pycache__",
+            "artifacts",
             "legacy",
         ),
     )
