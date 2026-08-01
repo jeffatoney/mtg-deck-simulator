@@ -46,6 +46,7 @@ packages = [
   "src/mtg_cards",
   "src/mtg_verify",
   "src/mtg_deck",
+  "src/mtg_policy",
 ]
 
 [tool.pytest.ini_options]

@@ -18,6 +18,7 @@ STRICT_ROOTS = (
     ROOT / "src/mtg_kernel",
     ROOT / "src/mtg_cards",
     ROOT / "src/mtg_deck",
+    ROOT / "src/mtg_policy",
 )
 SUPPORT_ROOTS = (ROOT / "src/mtg_verify", ROOT / "src/mtg_sources")
 FORBIDDEN_ROOT = "mtg_sim"
