@@ -20,9 +20,7 @@ def test_phase_b_mapping_has_no_slice_placeholders_and_covers_all_blockers() -> 
     mapping = json.loads((ROOT / "automation/phase-b-test-mapping.json").read_text())
     assert set(mapping["requirements"]) == set(authority["blocking_requirement_ids"])
     assert not any(
-        "PENDING_SLICE" in node
-        for nodes in mapping["requirements"].values()
-        for node in nodes
+        "PENDING_SLICE" in node for nodes in mapping["requirements"].values() for node in nodes
     )
 
 
