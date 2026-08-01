@@ -1,0 +1,33 @@
+{
+  "schema_version": "phase-a-golden-transcript-v1",
+  "transcript_id": "priority-gated-sol-ring-resolution",
+  "title": "Sol Ring resolves only after the complete priority-pass sequence",
+  "plain_english": [
+    "P0 casts the real frozen-Oracle Sol Ring from hand while holding priority.",
+    "The spell remains on the stack after casting and cannot be resolved by a direct resolve command.",
+    "P0 passes priority, then P1 passes priority without adding an object to the stack.",
+    "Only the completed all-player pass transition resolves Sol Ring and creates a new battlefield permanent object.",
+    "The cast action is no longer pending after resolution."
+  ],
+  "machine": {
+    "test_node": "tests/phase_a/test_kernel_acceptance.py::test_stack_resolution_requires_completed_priority_pass_transition",
+    "preconditions": [
+      "two active players",
+      "P0 holds priority",
+      "Sol Ring is a physical card object in P0 hand"
+    ],
+    "ordered_operations": [
+      "cast Sol Ring",
+      "reject direct resolve_top",
+      "reject replay resolve_top command",
+      "P0 pass_priority",
+      "P1 pass_priority"
+    ],
+    "required_assertions": [
+      "the stack object remains unchanged after each rejected direct-resolution attempt",
+      "the spell resolves only from the second consecutive priority pass",
+      "the original spell object is retired",
+      "a fresh Sol Ring permanent object is on the battlefield"
+    ]
+  }
+}

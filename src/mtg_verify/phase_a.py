@@ -66,6 +66,7 @@ def verify_phase_a_run() -> int:
         "uv run --no-sync python scripts/check_clean_engine_boundary.py",
         "uv run --no-sync python scripts/check_identity_lock.py",
         "uv run --no-sync python scripts/check_phase_a_authority.py",
+        "uv run --no-sync python scripts/check_phase_a_golden_transcripts.py",
         "uv run --no-sync pytest -q -ra tests/phase_a",
     ]
     results = [_run(command) for command in commands]
@@ -105,7 +106,7 @@ def verify_phase_a_run() -> int:
     artifact.parent.mkdir(parents=True, exist_ok=False)
     artifact_location = _display_path(artifact)
     result = {
-        "schema_version": "phase-a-result-v1",
+        "schema_version": "phase-a-result-v2",
         "run_id": run_id,
         "commit": commit,
         "branch": branch,
@@ -125,6 +126,7 @@ def verify_phase_a_run() -> int:
         "oracle_source_sha256": _sha(ROOT / "docs/source/oracle/snapshot_v1.json"),
         "architecture_boundary": "PASS" if results[0]["exit_code"] == 0 else "FAIL",
         "authority_map": "PASS" if results[2]["exit_code"] == 0 else "FAIL",
+        "golden_transcripts": "PASS" if results[3]["exit_code"] == 0 else "FAIL",
         "evidence_classification": "CLEAN_ENGINE_PRODUCTION_PATH",
         "replay_and_hash": "PASS" if results[-1]["exit_code"] == 0 else "FAIL",
         "pilot_lock": "PASS" if pilot_locked else "FAIL",

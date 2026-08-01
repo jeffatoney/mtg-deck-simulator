@@ -17,4 +17,5 @@ def test_phase_a_certification_and_verifier_are_standing() -> None:
     assert record["status"] == "PASS"
     assert record["verification_environment"] == "GITHUB_ACTIONS"
     assert record["legacy_evidence_used"] is False
-    assert record["counts"] == {"pass": 22, "fail": 0, "skip": 0, "xfail": 0}
+    assert record["golden_transcripts"] == "PASS"
+    assert record["counts"] == {"pass": 27, "fail": 0, "skip": 0, "xfail": 0}

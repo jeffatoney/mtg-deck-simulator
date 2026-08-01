@@ -1,0 +1,33 @@
+{
+  "schema_version": "phase-a-golden-transcript-v1",
+  "transcript_id": "twinflame-delayed-token-exile",
+  "title": "Twinflame creates hasty token copies and exiles them at the next end step",
+  "plain_english": [
+    "P0 casts the real frozen-Oracle Twinflame with two distinct controlled creature targets and pays the declared additional target cost.",
+    "After all players pass, Twinflame resolves and creates two synthetic token-copy permanents with haste and no physical-card components.",
+    "Each token-copy creation records a delayed exile trigger for the next end step.",
+    "At the next end step the delayed triggers are put on the stack in deterministic order.",
+    "Each delayed trigger resolves through the production stack path, moves its referenced token to exile, and state-based actions then make that synthetic object cease to exist."
+  ],
+  "machine": {
+    "test_node": "tests/phase_a/test_kernel_acceptance.py::test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects",
+    "preconditions": [
+      "two distinct P0-controlled creatures are on the battlefield",
+      "Twinflame is in P0 hand",
+      "P0 can pay the base and per-target-beyond-first mana costs"
+    ],
+    "ordered_operations": [
+      "cast Twinflame with two targets",
+      "all players pass to resolve Twinflame",
+      "begin END step",
+      "all players pass for delayed trigger one",
+      "all players pass for delayed trigger two"
+    ],
+    "required_assertions": [
+      "exactly two TOKEN_COPY permanents are created",
+      "both copies have Haste",
+      "exactly two delayed triggers are created",
+      "both token copies are retired and ceased_to_exist after delayed exile"
+    ]
+  }
+}

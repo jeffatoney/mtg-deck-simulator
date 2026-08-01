@@ -64,15 +64,17 @@ def build_record(verifier: dict[str, Any]) -> dict[str, Any]:
     if verifier.get("legacy_evidence_used") is not False:
         raise RuntimeError("verifier used legacy evidence")
     counts = verifier.get("counts")
-    if not isinstance(counts, dict) or counts.get("pass", 0) < 22:
-        raise RuntimeError("verifier did not record at least 22 passing Phase A tests")
+    if not isinstance(counts, dict) or counts.get("pass", 0) < 26:
+        raise RuntimeError("verifier did not record at least 26 passing Phase A tests")
     if any(counts.get(key) != 0 for key in ("fail", "skip", "xfail")):
         raise RuntimeError("verifier recorded a failure, skip, or xfail")
+    if verifier.get("golden_transcripts") != "PASS":
+        raise RuntimeError("verifier did not validate five approved golden transcripts")
 
     covered_paths = all_digests()
     approval = _json_object(APPROVAL_PATH)
     return {
-        "schema_version": "phase-a-certification-v2",
+        "schema_version": "phase-a-certification-v3",
         "status": "PASS",
         "certified_content_commit": head,
         "certified_repository_tree_sha": _git("rev-parse", "HEAD^{tree}"),
@@ -93,6 +95,7 @@ def build_record(verifier: dict[str, Any]) -> dict[str, Any]:
         "oracle_source_sha256": verifier["oracle_source_sha256"],
         "unsupported_capabilities": verifier["unsupported_capabilities"],
         "unsupported_behavior": verifier["unsupported_behavior"],
+        "golden_transcripts": verifier["golden_transcripts"],
         "pilot_lock": verifier["pilot_lock"],
         "note": (
             "Renew this CI-produced record whenever any covered path changes. "

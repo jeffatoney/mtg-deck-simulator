@@ -1,0 +1,42 @@
+{
+  "schema_version": "phase-a-golden-transcript-v1",
+  "transcript_id": "glint-horn-discard-trigger-order",
+  "title": "Glint-Horn Buccaneer discard trigger resolves above its draw ability",
+  "plain_english": [
+    "The real frozen-Oracle Glint-Horn Buccaneer is attacking under P0 control and P0 can legally pay one generic and one red mana.",
+    "P0 activates Glint-Horn Buccaneer's own attack-restricted ability and discards a card as an activation cost.",
+    "The discard-triggered damage ability is put on the stack above the activated draw ability.",
+    "After both players pass, the damage trigger resolves first and deals one damage to each opponent.",
+    "State-based actions occur only after the triggered ability has completely resolved; a lethal opponent loss is recorded after STACK_OBJECT_RESOLVED.",
+    "If the game remains active, a later all-player pass sequence resolves the activated draw ability."
+  ],
+  "machine": {
+    "test_node": "tests/phase_a/test_kernel_acceptance.py::test_lethal_damage_defers_state_based_actions_until_resolution_finishes",
+    "preconditions": [
+      "Glint-Horn Buccaneer is attacking",
+      "P0 has legal mana for {1}{R}",
+      "P0 has an explicit card to discard",
+      "P1 has one life for the lethal-ordering case"
+    ],
+    "ordered_operations": [
+      "activate glint-horn:attack-loot",
+      "pay {1}{R}",
+      "discard the selected card as a cost",
+      "put discard trigger above activated ability",
+      "P0 pass_priority",
+      "P1 pass_priority"
+    ],
+    "required_event_order": [
+      "CARD_DISCARDED",
+      "TRIGGER_PUT_ON_STACK",
+      "DAMAGE_DEALT",
+      "STACK_OBJECT_RESOLVED",
+      "GAME_TERMINATED"
+    ],
+    "required_assertions": [
+      "STACK_OBJECT_RESOLVED precedes GAME_TERMINATED",
+      "no resolution or cessation event occurs after GAME_TERMINATED",
+      "P1 loses for LIFE_TOTAL"
+    ]
+  }
+}
