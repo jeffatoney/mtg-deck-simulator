@@ -1,0 +1,34 @@
+{
+  "family_id": "malcolm-damaged-opponents-treasures",
+  "machine": {
+    "ordered_operations": [
+      "activate Glint-Horn while attacking",
+      "discard a card as cost",
+      "resolve damage-each-opponent trigger",
+      "resolve Malcolm trigger"
+    ],
+    "preconditions": [
+      "Glint-Horn damages all three active opponents in one resolving trigger."
+    ],
+    "required_assertions": [
+      "trigger context identifies P1, P2, and P3",
+      "exactly three Treasure tokens exist",
+      "no undamaged player contributes a Treasure"
+    ],
+    "required_event_order": [
+      "CARD_DISCARDED",
+      "DAMAGE_DEALT",
+      "ABILITY_TRIGGERED",
+      "TOKEN_CREATED"
+    ],
+    "test_node": "tests/phase_b/test_behavioral_scenarios.py::test_malcolm_treasure_count_uses_exact_damaged_opponent_set"
+  },
+  "plain_english": [
+    "Glint-Horn damages all three active opponents in one resolving trigger.",
+    "Malcolm records the exact damaged-opponent set.",
+    "Malcolm creates exactly three Treasures."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Malcolm creates one Treasure for each actually damaged opponent",
+  "transcript_id": "PB-T03-malcolm-opponents"
+}

@@ -11,7 +11,7 @@ from types import MappingProxyType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
-POLICIES = ROOT / "configs/policies.json"
+POLICIES = ROOT / "configs/policies.yaml"
 SEEDS = ROOT / "configs/policy_seeds.json"
 
 REQUIRED_AXES = {

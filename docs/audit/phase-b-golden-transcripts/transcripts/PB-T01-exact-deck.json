@@ -1,0 +1,33 @@
+{
+  "family_id": "exact-deck-two-commanders",
+  "machine": {
+    "ordered_operations": [
+      "load exact deck package",
+      "construct game objects",
+      "count library, command zone, deck slots, and card instances"
+    ],
+    "preconditions": [
+      "The exact frozen 100-card package is constructed."
+    ],
+    "required_assertions": [
+      "library count is 98",
+      "command zone count is 2",
+      "all 100 physical identities are unique",
+      "duplicate basics preserve exact multiplicity"
+    ],
+    "required_event_order": [
+      "DECK_PACKAGE_LOADED",
+      "CARD_INSTANCES_CREATED",
+      "COMMANDERS_PLACED"
+    ],
+    "test_node": "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
+  },
+  "plain_english": [
+    "The exact frozen 100-card package is constructed.",
+    "Twelve Islands and ten Mountains remain separate physical cards.",
+    "Malcolm and Breeches remain separate command-zone commanders."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Exact deck construction preserves duplicate basics and independent commanders",
+  "transcript_id": "PB-T01-exact-deck"
+}

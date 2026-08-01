@@ -1,0 +1,35 @@
+{
+  "family_id": "shared-broker-first-divergence",
+  "machine": {
+    "ordered_operations": [
+      "refresh ActionBroker",
+      "give identical observation/actions to standard policy and search",
+      "select each action",
+      "record first divergence"
+    ],
+    "preconditions": [
+      "One ActionBroker emits the only legal action set."
+    ],
+    "required_assertions": [
+      "both selected handles belong to the same broker generation",
+      "standard selects land play",
+      "exploratory selects Sol Ring in the frozen test evaluation",
+      "hidden future remains inaccessible"
+    ],
+    "required_event_order": [
+      "BROKER_GENERATION_CREATED",
+      "STANDARD_ACTION_SELECTED",
+      "EXPLORATORY_ACTION_SELECTED",
+      "FIRST_DIVERGENCE_RECORDED"
+    ],
+    "test_node": "tests/phase_b/test_behavioral_scenarios.py::test_standard_and_exploratory_paths_share_broker_and_record_first_divergence"
+  },
+  "plain_english": [
+    "One ActionBroker emits the only legal action set.",
+    "Standard policy and bounded exploration consume the same public observation and handles.",
+    "Their first differing selected handle is recorded without future information."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Standard and exploratory paths share one broker and record first divergence",
+  "transcript_id": "PB-T11-shared-broker"
+}

@@ -1,7 +1,4 @@
 {
-  "schema_version": "phase-b-authority-v1",
-  "phase": "B",
-  "only_acceptance_evidence_label": "CLEAN_ENGINE_PRODUCTION_PATH",
   "active_binding": [
     "AGENTS.md",
     "docs/source/MagicCompRules_2026-06-19.txt",
@@ -57,16 +54,6 @@
     "prompts/11_AUDIT_AND_PILOT_REPORT.md",
     "prompts/12_FULL_STUDY_LOCKED.md"
   ],
-  "forbidden_active_paths": [
-    ".github/workflows/pilot-simulation.yml",
-    "src/mtg_sim"
-  ],
-  "locked_commands": [
-    "500 standard pilot games",
-    "200 exploratory pilot games",
-    "20000 standard study games",
-    "5000 exploratory study games"
-  ],
   "blocking_requirement_ids": [
     "B-SOURCE-001",
     "B-COVERAGE-001",
@@ -80,7 +67,21 @@
     "B-MEASURE-001",
     "B-REPLAY-001",
     "B-MANIFEST-001",
+    "B-TRANSCRIPT-001",
     "B-PHASE-A-001",
     "B-PILOT-LOCK-001"
-  ]
+  ],
+  "forbidden_active_paths": [
+    ".github/workflows/pilot-simulation.yml",
+    "src/mtg_sim"
+  ],
+  "locked_commands": [
+    "500 standard pilot games",
+    "200 exploratory pilot games",
+    "20000 standard study games",
+    "5000 exploratory study games"
+  ],
+  "only_acceptance_evidence_label": "CLEAN_ENGINE_PRODUCTION_PATH",
+  "phase": "B",
+  "schema_version": "phase-b-authority-v1"
 }

@@ -1,0 +1,32 @@
+{
+  "family_id": "breeches-unknown-exclusion",
+  "machine": {
+    "ordered_operations": [
+      "deal Pirate combat damage",
+      "put Breeches trigger on stack",
+      "resolve trigger as unknown-card exclusion"
+    ],
+    "preconditions": [
+      "A Pirate damages an opponent while Breeches is present."
+    ],
+    "required_assertions": [
+      "deterministic_resources_added is zero",
+      "hidden_identities_exposed is false",
+      "no card object is placed in exile"
+    ],
+    "required_event_order": [
+      "DAMAGE_DEALT",
+      "ABILITY_TRIGGERED",
+      "BREECHES_UNKNOWN_EXILES_RECORDED"
+    ],
+    "test_node": "tests/phase_b/test_behavioral_scenarios.py::test_breeches_unknown_cards_are_recorded_but_never_deterministic_resources"
+  },
+  "plain_english": [
+    "A Pirate damages an opponent while Breeches is present.",
+    "The trigger is recorded without inventing an opponent library identity.",
+    "No deterministic card resource is added."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Breeches unknown cards are excluded from deterministic resources",
+  "transcript_id": "PB-T04-breeches-unknown"
+}

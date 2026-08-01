@@ -1,0 +1,35 @@
+{
+  "family_id": "fact-or-fiction-minimizing",
+  "machine": {
+    "ordered_operations": [
+      "cast Fact or Fiction",
+      "reveal up to five cards",
+      "enumerate opponent splits",
+      "record minimizing split",
+      "record caster pile choice",
+      "move piles to hand and graveyard"
+    ],
+    "preconditions": [
+      "Five cards are revealed from the actual library."
+    ],
+    "required_assertions": [
+      "opponent is recorded as the split chooser",
+      "minimized_best_score equals the better pile score",
+      "same seed produces the same split and selection"
+    ],
+    "required_event_order": [
+      "FACT_OR_FICTION_REVEALED",
+      "FACT_OR_FICTION_SPLIT",
+      "FACT_OR_FICTION_PILE_CHOSEN"
+    ],
+    "test_node": "tests/phase_b/test_hand_actions.py::test_fact_or_fiction_minimizes_frozen_evaluation_and_records_both_choices"
+  },
+  "plain_english": [
+    "Five cards are revealed from the actual library.",
+    "The opponent enumerates legal splits and minimizes the caster's best frozen score.",
+    "The caster selects the better resulting pile deterministically."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Fact or Fiction uses deterministic minimizing opponent choice",
+  "transcript_id": "PB-T09-fact-min"
+}

@@ -93,6 +93,44 @@ jobs:
         run: uv run python scripts/check_manifest.py
       - name: Durable Phase A certification is current
         run: uv run python scripts/check_phase_a_certification.py
+
+      # Phase B remains a candidate gate until every exact-deck execution capability and
+      # all twelve owner-approved transcripts pass. A failing candidate still writes and
+      # uploads immutable blocker evidence; it does not block the standing Phase A CI.
+      - name: Phase B candidate verifier
+        id: phase_b
+        continue-on-error: true
+        env:
+          PHASE_B_ARTIFACT_ROOT: ${{ runner.temp }}/phase-b-result
+        run: uv run mtg-engine verify-phase-b
+      - name: Build Phase B certification candidate
+        if: steps.phase_b.outcome == 'success'
+        run: |
+          RESULT="$(find "${RUNNER_TEMP}/phase-b-result" -name result.json -type f -print -quit)"
+          test -n "${RESULT}"
+          uv run python scripts/record_phase_b_certification.py \
+            --verifier-result "${RESULT}" \
+            --output "${RUNNER_TEMP}/phase-b-certification-candidate/CERTIFICATION.json"
+      - name: Durable Phase B certification is current
+        if: steps.phase_b.outcome == 'success'
+        run: uv run python scripts/check_phase_b_certification.py
+      - name: Upload Phase B verification artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-b-result-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase-b-result
+          if-no-files-found: error
+          retention-days: 90
+      - name: Upload Phase B certification candidate
+        if: steps.phase_b.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-b-certification-candidate-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase-b-certification-candidate
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Upload Phase A verification artifact
         if: always()
         uses: actions/upload-artifact@v4

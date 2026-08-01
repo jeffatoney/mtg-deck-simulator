@@ -15,6 +15,12 @@ from mtg_kernel.serialization import state_from_data
 TRANSCRIPT_SCHEMA = "phase-a-replay-v2"
 
 
+def _json_default(value: Any) -> Any:
+    if isinstance(value, set):
+        return sorted(value)
+    return str(value)
+
+
 def _json_safe(value: Any) -> Any:
     return json.loads(
         json.dumps(
@@ -23,7 +29,7 @@ def _json_safe(value: Any) -> Any:
             separators=(",", ":"),
             ensure_ascii=False,
             allow_nan=False,
-            default=str,
+            default=_json_default,
         )
     )
 

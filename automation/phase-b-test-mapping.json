@@ -1,48 +1,54 @@
 {
-  "schema_version": "phase-b-test-mapping-v1",
   "requirements": {
-    "B-SOURCE-001": [
-      "tests/phase_b/test_full_deck.py::test_all_frozen_oracle_records_and_physical_cards_resolve"
-    ],
     "B-COVERAGE-001": [
       "tests/phase_b/test_full_deck.py::test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
     ],
-    "B-RULES-001": [
-      "PENDING_SLICE_2_COMPLETE_DECK_COMPETENCY"
+    "B-HIDDEN-001": [
+      "tests/phase_b/test_policy_broker.py::test_hidden_library_identity_never_enters_policy_observation_or_actions"
     ],
     "B-LEGALITY-001": [
       "tests/phase_b/test_policy_broker.py::test_broker_probes_the_production_executor_without_mutating_live_state",
       "tests/phase_b/test_policy_broker.py::test_broker_handles_are_one_shot_and_state_bound"
     ],
-    "B-HIDDEN-001": [
-      "tests/phase_b/test_policy_broker.py::test_hidden_library_identity_never_enters_policy_observation_or_actions"
-    ],
-    "B-OPPONENT-001": [
-      "PENDING_SLICE_2_OPPONENT_CHOICE_SERVICE"
-    ],
-    "B-POLICY-001": [
-      "tests/phase_b/test_policies.py"
-    ],
-    "B-SEARCH-001": [
-      "PENDING_SLICE_3_BOUNDED_SEARCH"
+    "B-MANIFEST-001": [
+      "tests/phase_b/test_manifests.py"
     ],
     "B-MEASURE-001": [
-      "PENDING_SLICE_3_MEASUREMENTS"
+      "tests/phase_b/test_measurements.py"
     ],
-    "B-REPLAY-001": [
-      "PENDING_SLICE_3_REPLAY"
-    ],
-    "B-MANIFEST-001": [
-      "PENDING_SLICE_3_MANIFESTS"
+    "B-OPPONENT-001": [
+      "tests/phase_b/test_behavioral_scenarios.py::test_breeches_unknown_cards_are_recorded_but_never_deterministic_resources",
+      "tests/phase_b/test_hand_actions.py::test_fact_or_fiction_minimizes_frozen_evaluation_and_records_both_choices"
     ],
     "B-PHASE-A-001": [
       "tests/phase_b/test_phase_a_regression.py"
     ],
     "B-PILOT-LOCK-001": [
       "tests/phase_b/test_pilot_lock.py"
+    ],
+    "B-POLICY-001": [
+      "tests/phase_b/test_policies.py"
+    ],
+    "B-REPLAY-001": [
+      "tests/phase_b/test_replay_audit.py",
+      "tests/phase_b/test_behavioral_scenarios.py::test_fresh_process_replay_measurement_and_worker_invariance_with_terminal_short_circuit"
+    ],
+    "B-RULES-001": [
+      "tests/phase_b/test_behavioral_scenarios.py::test_malcolm_treasure_count_uses_exact_damaged_opponent_set",
+      "tests/phase_b/test_behavioral_scenarios.py::test_modal_x_and_alternative_cost_legality_and_payment_share_executor"
+    ],
+    "B-SEARCH-001": [
+      "tests/phase_b/test_search.py"
+    ],
+    "B-SOURCE-001": [
+      "tests/phase_b/test_full_deck.py::test_all_frozen_oracle_records_and_physical_cards_resolve"
+    ],
+    "B-TRANSCRIPT-001": [
+      "tests/phase_b/test_phase_b_transcript_gate.py"
     ]
-  }
+  },
+  "schema_version": "phase-b-test-mapping-v1"
 }

@@ -1,0 +1,37 @@
+{
+  "family_id": "dualcaster-twinflame-not-cast",
+  "machine": {
+    "ordered_operations": [
+      "cast target spell",
+      "cast Dualcaster",
+      "resolve ETB trigger",
+      "resolve copied spell",
+      "cast and resolve Twinflame",
+      "resolve delayed triggers"
+    ],
+    "preconditions": [
+      "Dualcaster copies a spell through its ETB trigger."
+    ],
+    "required_assertions": [
+      "spell-copy was_cast is false",
+      "spell-copy component identities are empty",
+      "Twinflame token copies are synthetic and cease after delayed exile"
+    ],
+    "required_event_order": [
+      "SPELL_CAST",
+      "TRIGGER_PUT_ON_STACK",
+      "SPELL_COPIED",
+      "STACK_OBJECT_RESOLVED",
+      "DELAYED_EXILE"
+    ],
+    "test_node": "tests/phase_a/test_kernel_acceptance.py::test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects"
+  },
+  "plain_english": [
+    "Dualcaster copies a spell through its ETB trigger.",
+    "The spell copy has no physical-card component and was not cast.",
+    "Twinflame token copies receive delayed exile handling."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Dualcaster and Twinflame preserve copied-spell-not-cast identity",
+  "transcript_id": "PB-T05-dualcaster-twinflame"
+}

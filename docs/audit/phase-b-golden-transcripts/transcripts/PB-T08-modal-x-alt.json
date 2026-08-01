@@ -1,0 +1,36 @@
+{
+  "family_id": "modal-x-alternative-cost",
+  "machine": {
+    "ordered_operations": [
+      "cast modal Abrade",
+      "reject mismatched X target count atomically",
+      "cast X spell with matching targets",
+      "foretell Ravenform",
+      "cast foretold mode on later turn"
+    ],
+    "preconditions": [
+      "Abrade requires an explicit legal mode and target."
+    ],
+    "required_assertions": [
+      "Abrade records the selected mode",
+      "illegal X target count leaves state unchanged",
+      "X payment records two generic mana",
+      "foretell payment is exactly one blue mana"
+    ],
+    "required_event_order": [
+      "SPELL_CAST",
+      "STACK_OBJECT_COUNTERED",
+      "FORETOLD",
+      "SPELL_CAST"
+    ],
+    "test_node": "tests/phase_b/test_behavioral_scenarios.py::test_modal_x_and_alternative_cost_legality_and_payment_share_executor"
+  },
+  "plain_english": [
+    "Abrade requires an explicit legal mode and target.",
+    "An X spell requires its target count to equal X and pays the chosen X cost.",
+    "A foretold Ravenform uses its alternative cost on a later turn."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Modal, X, and alternative costs use the shared executor",
+  "transcript_id": "PB-T08-modal-x-alt"
+}
