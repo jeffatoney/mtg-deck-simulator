@@ -93,6 +93,8 @@ def test_current_certification_passes(sandbox: Path) -> None:
         "scripts/check_phase_a_certification.py",
         ".github/workflows/ci.yml",
         "automation/phase-a-test-mapping.json",
+        "docs/audit/phase-a-golden-transcripts/APPROVALS.json",
+        "scripts/check_phase_a_golden_transcripts.py",
     ],
 )
 def test_covered_change_is_rejected(sandbox: Path, relative: str) -> None:
@@ -134,6 +136,7 @@ def test_missing_record_is_rejected(sandbox: Path) -> None:
         ({"github_run_id": None}, "github_run_id"),
         ({"ci_artifact_name": "forged"}, "ci_artifact_name"),
         ({"pilot_lock": "FAIL"}, "pilot lock"),
+        ({"golden_transcripts": "FAIL"}, "golden transcripts"),
     ],
 )
 def test_forged_record_is_rejected(sandbox: Path, changes: dict[str, object], message: str) -> None:

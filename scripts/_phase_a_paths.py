@@ -25,11 +25,13 @@ COVERED_PATHS = (
     "tests/conftest.py",
     "tests/test_gate_negatives.py",
     "tests/test_certification_gate.py",
+    "tests/test_golden_transcript_gate.py",
     "tests/test_boundary_support_tier.py",
     "tests/test_source_validation.py",
     "automation/phase-a-test-mapping.json",
     "scripts/_phase_a_paths.py",
     "scripts/check_phase_a_certification.py",
+    "scripts/check_phase_a_golden_transcripts.py",
     "scripts/record_phase_a_certification.py",
     "scripts/check_clean_engine_boundary.py",
     "scripts/check_phase_a_authority.py",
@@ -37,6 +39,7 @@ COVERED_PATHS = (
     "scripts/phase_a_verify_runner.py",
     "docs/source/oracle/snapshot_v1.json",
     "docs/source/source_inventory.json",
+    "docs/audit/phase-a-golden-transcripts",
 )
 
 _IGNORED_DIRECTORIES = {"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"}

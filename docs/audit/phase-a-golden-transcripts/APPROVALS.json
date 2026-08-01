@@ -1,0 +1,51 @@
+{
+  "approvals": [
+    {
+      "approval_statement": "Approved — all five exact transcript IDs and digests listed above; this entry binds transcript commit-removes-spell-copy-pending-action to SHA-256 c4b100597d11be67c09021635cdc99c2e2222c1ac1a5a928ad59b7e9aacfc682.",
+      "approved_at": "2026-07-31T05:37:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-a-golden-transcripts/transcripts/commit-removes-spell-copy-pending-action.json",
+      "sha256": "c4b100597d11be67c09021635cdc99c2e2222c1ac1a5a928ad59b7e9aacfc682",
+      "status": "APPROVED",
+      "transcript_id": "commit-removes-spell-copy-pending-action"
+    },
+    {
+      "approval_statement": "Approved — all five exact transcript IDs and digests listed above; this entry binds transcript dualcaster-opt-spell-copy to SHA-256 caa953d24aebf3ff1ee5b3e3d3b0f58a52b1203714d8c9bdd0dedb44c693dd91.",
+      "approved_at": "2026-07-31T05:37:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-a-golden-transcripts/transcripts/dualcaster-opt-spell-copy.json",
+      "sha256": "caa953d24aebf3ff1ee5b3e3d3b0f58a52b1203714d8c9bdd0dedb44c693dd91",
+      "status": "APPROVED",
+      "transcript_id": "dualcaster-opt-spell-copy"
+    },
+    {
+      "approval_statement": "Approved — all five exact transcript IDs and digests listed above; this entry binds transcript glint-horn-discard-trigger-order to SHA-256 558fadda4b67d27d608bddb540ff536b47c87e22e42098cafa0e99192b1f9863.",
+      "approved_at": "2026-07-31T05:37:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-a-golden-transcripts/transcripts/glint-horn-discard-trigger-order.json",
+      "sha256": "558fadda4b67d27d608bddb540ff536b47c87e22e42098cafa0e99192b1f9863",
+      "status": "APPROVED",
+      "transcript_id": "glint-horn-discard-trigger-order"
+    },
+    {
+      "approval_statement": "Approved — all five exact transcript IDs and digests listed above; this entry binds transcript priority-gated-sol-ring-resolution to SHA-256 4062ff7f0a2560415166b39895263af26a0df9821e8e08ef4d4041f499fb2e6f.",
+      "approved_at": "2026-07-31T05:37:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-a-golden-transcripts/transcripts/priority-gated-sol-ring-resolution.json",
+      "sha256": "4062ff7f0a2560415166b39895263af26a0df9821e8e08ef4d4041f499fb2e6f",
+      "status": "APPROVED",
+      "transcript_id": "priority-gated-sol-ring-resolution"
+    },
+    {
+      "approval_statement": "Approved — all five exact transcript IDs and digests listed above; this entry binds transcript twinflame-delayed-token-exile to SHA-256 265c04ab7b9159b06d6a68580dc770c334afcf3a4fdd0e7dfbb9ac119943d649.",
+      "approved_at": "2026-07-31T05:37:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-a-golden-transcripts/transcripts/twinflame-delayed-token-exile.json",
+      "sha256": "265c04ab7b9159b06d6a68580dc770c334afcf3a4fdd0e7dfbb9ac119943d649",
+      "status": "APPROVED",
+      "transcript_id": "twinflame-delayed-token-exile"
+    }
+  ],
+  "required_count": 5,
+  "schema_version": "phase-a-golden-transcript-approvals-v1"
+}
