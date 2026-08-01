@@ -107,9 +107,7 @@ class ActionBroker(_CoreActionBroker):
             faces = obj.current_characteristics.get("faces", [])
             for face_index, face in enumerate(faces):
                 card_types = set(str(value) for value in face.get("card_types", ()))
-                entry_variants: tuple[tuple[dict[str, Any], dict[str, Any]], ...] = (
-                    (({}, {}),)
-                )
+                entry_variants: tuple[tuple[dict[str, Any], dict[str, Any]], ...] = (({}, {}),)
                 if card_types.intersection(PERMANENT_TYPES):
                     entry_variants = self._entry_trigger_choice_variants(obj)
                     if not entry_variants:
@@ -147,9 +145,7 @@ class ActionBroker(_CoreActionBroker):
                                         "face": face_index,
                                         "mode": ability.get("mode"),
                                         "target_handles": target_handles,
-                                        "cast_permission": ability.get(
-                                            "cast_permission", "NORMAL"
-                                        ),
+                                        "cast_permission": ability.get("cast_permission", "NORMAL"),
                                         **self._public_choice_metadata(spell_choices),
                                         **entry_public,
                                     },

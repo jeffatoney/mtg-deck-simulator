@@ -70,9 +70,7 @@ def test_dualcaster_twinflame_execute_through_full_deck_broker_path() -> None:
         for item in observation["objects"]
         if item.get("identity") == "Opt" and item.get("zone") == "STACK"
     )
-    assert dualcaster_action.metadata["trigger_target_handles"] == {
-        "dualcaster:etb": opt_handle
-    }
+    assert dualcaster_action.metadata["trigger_target_handles"] == {"dualcaster:etb": opt_handle}
     assert dualcaster.zone is Zone.HAND
 
     pass_priority_round(executor)
@@ -93,8 +91,7 @@ def test_dualcaster_twinflame_execute_through_full_deck_broker_path() -> None:
     desired_handles = {
         item["handle"]
         for item in observation["objects"]
-        if item.get("identity")
-        in {"Malcolm, Keen-Eyed Navigator", "Glint-Horn Buccaneer"}
+        if item.get("identity") in {"Malcolm, Keen-Eyed Navigator", "Glint-Horn Buccaneer"}
         and item.get("zone") == "BATTLEFIELD"
     }
     twinflame_action = next(
