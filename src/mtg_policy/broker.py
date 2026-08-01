@@ -48,8 +48,7 @@ class ActionBroker:
 
     def _handle(self, index: int, operation: str) -> str:
         material = (
-            f"action:{self.player_id}:{self.generation}:{index}:"
-            f"{operation}:{self._state_token}"
+            f"action:{self.player_id}:{self.generation}:{index}:{operation}:{self._state_token}"
         )
         return hashlib.sha256(material.encode()).hexdigest()[:24]
 
@@ -95,9 +94,7 @@ class ActionBroker:
             result.append(handle)
         return tuple(result)
 
-    def _target_sets(
-        self, actor: str, schema: dict[str, Any]
-    ) -> tuple[tuple[TargetRef, ...], ...]:
+    def _target_sets(self, actor: str, schema: dict[str, Any]) -> tuple[tuple[TargetRef, ...], ...]:
         minimum = int(schema.get("min", 0))
         maximum_raw = schema.get("max")
         try:
