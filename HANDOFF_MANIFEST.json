@@ -1,7 +1,7 @@
 {
   "AGENTS.md": {
-    "bytes": 7319,
-    "sha256": "c7ac49bf8e83ed669b110d64343b138e125b91d4f6c997f5bbcd5a279053aece"
+    "bytes": 9353,
+    "sha256": "2af4b18868cbcefc035f957810118826cf92e5b3b3c2a63e303da8a26bed382f"
   },
   "README.md": {
     "bytes": 3284,
@@ -9,7 +9,7 @@
   },
   "docs/architecture/PROPOSED_ARCHITECTURE.md": {
     "bytes": 5835,
-    "sha256": "81d57de507585b9f9b4083b0a24015a613a69e092978a10ce8011ecb69f2ddbd"
+    "sha256": "81d57de507585b9f4083b0a24015a613a69e092978a10ce8011ecb69f2ddbd"
   },
   "docs/architecture/TRACEABILITY_TEMPLATE.csv": {
     "bytes": 103,
@@ -49,7 +49,7 @@
   },
   "docs/spec/LEAGUE_MULLIGAN.md": {
     "bytes": 817,
-    "sha256": "a95b9e52152a36009463ea348115a94cca3281bc36a94b87eff7cc7d97690754"
+    "sha256": "a95b9e52152a36009463ea348115a94b87eff7cc7d97690754"
   },
   "docs/spec/MEASUREMENTS.md": {
     "bytes": 2805,
@@ -129,7 +129,7 @@
   },
   "prompts/12_FULL_STUDY_LOCKED.md": {
     "bytes": 608,
-    "sha256": "471d902d61d0c51183b4973cff6eaabd4cd8929631f9afbd6a9aff57de97ab67"
+    "sha256": "471d902d1f87b73fc6eaabd4cd8929631f9afbd6a9aff57de97ab67"
   },
   "pyproject.toml.template": {
     "bytes": 616,
