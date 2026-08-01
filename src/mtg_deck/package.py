@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[2]
 DECKLIST = ROOT / "docs/source/decklist.txt"
 COMMANDERS = ROOT / "docs/source/commanders.txt"
 
+COMPOSITION_REVIEWED = "REVIEWED_COMPOSITION"
+EXECUTION_UNVERIFIED = "UNVERIFIED"
+
 
 @dataclass(frozen=True)
 class DeckEntry:
@@ -26,7 +29,8 @@ class DeckEntry:
 class CoverageRecord:
     name: str
     oracle_id: str
-    status: str
+    composition_status: str
+    execution_status: str
     handler_ids: tuple[str, ...]
     source: str
 
@@ -85,7 +89,14 @@ def load_exact_deck_package() -> DeckPackage:
             raise ValueError(f"card has no reviewed behavior composition: {name}")
         handler_ids = tuple(str(value["ability_id"]) for value in abilities)
         coverage.append(
-            CoverageRecord(name, spec.oracle_id, "IMPLEMENTED", handler_ids, spec.source_version)
+            CoverageRecord(
+                name,
+                spec.oracle_id,
+                COMPOSITION_REVIEWED,
+                EXECUTION_UNVERIFIED,
+                handler_ids,
+                spec.source_version,
+            )
         )
     return DeckPackage(library, commanders, tuple(coverage))
 
@@ -105,24 +116,18 @@ def build_exact_game(
     )
     executor = GameExecutor(state, seed)
     created: dict[str, list[GameObject]] = {"library": [], "command": []}
-    source_position = 0
     for entry in package.library:
         for _ in range(entry.quantity):
-            obj = add_card(executor, specs[entry.name], Zone.LIBRARY, owner="P0")
-            slot_id = obj.component_card_instance_ids[0]
-            instance = state.card_instances[slot_id]
-            deck_slot = state.deck_slots[instance.deck_slot_id]
-            object.__setattr__(deck_slot, "deck_source_position", source_position)
-            source_position += 1
-            created["library"].append(obj)
+            created["library"].append(
+                add_card(executor, specs[entry.name], Zone.LIBRARY, owner="P0")
+            )
     for entry in package.commanders:
-        obj = add_card(executor, specs[entry.name], Zone.COMMAND, owner="P0", commander=True)
-        slot_id = obj.component_card_instance_ids[0]
-        instance = state.card_instances[slot_id]
-        deck_slot = state.deck_slots[instance.deck_slot_id]
-        object.__setattr__(deck_slot, "deck_source_position", source_position)
-        source_position += 1
-        created["command"].append(obj)
+        created["command"].append(
+            add_card(executor, specs[entry.name], Zone.COMMAND, owner="P0", commander=True)
+        )
     if len(state.card_instances) != 100 or len(state.deck_slots) != 100:
         raise ValueError("physical deck identity construction failed")
+    positions = sorted(slot.deck_source_position for slot in state.deck_slots.values())
+    if positions != list(range(100)):
+        raise ValueError("deck source positions are not the exact immutable range 0..99")
     return state, executor, {key: tuple(value) for key, value in created.items()}
