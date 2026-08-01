@@ -26,7 +26,10 @@ class ObservationService:
 
     def _identity_known(self, obj: GameObject, player_id: str) -> bool:
         if self._face_down(obj):
-            return False
+            return bool(
+                obj.zone is Zone.EXILE
+                and obj.current_characteristics.get("foretold_by") == player_id
+            )
         if obj.zone is Zone.LIBRARY:
             return False
         return player_id in obj.identity_visible_to
