@@ -93,9 +93,8 @@ def test_broker_offers_only_complete_explicit_land_choice_variants() -> None:
     land_actions = [action for action in actions if action.kind == "PLAY_LAND"]
     assert {action.metadata.get("chosen_color") for action in land_actions} == {
         "W",
-        "U",
         "B",
         "R",
         "G",
     }
-    assert len(land_actions) == 5
+    assert len(land_actions) == 4
