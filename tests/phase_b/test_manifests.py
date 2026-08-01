@@ -21,7 +21,9 @@ def evidence() -> Evidence:
     return Evidence("a" * 40, "pytest -q", "PASS", 10, 0, 0, 0, "b" * 64)
 
 
-def manifest(shard: int, first: int, seeds: tuple[int, ...], *, config: str = "c" * 64) -> RunManifest:
+def manifest(
+    shard: int, first: int, seeds: tuple[int, ...], *, config: str = "c" * 64
+) -> RunManifest:
     assignment = SeedAssignment(shard, first, first + len(seeds) - 1, seeds)
     data = {
         "schema_version": "phase-b-run-manifest-v1",
@@ -53,7 +55,9 @@ def manifest(shard: int, first: int, seeds: tuple[int, ...], *, config: str = "c
     return RunManifest(**data)
 
 
-def test_aggregation_accepts_contiguous_shards_and_rejects_mixed_duplicate_or_gapped_inputs() -> None:
+def test_aggregation_accepts_contiguous_shards_and_rejects_mixed_duplicate_or_gapped_inputs() -> (
+    None
+):
     first = manifest(0, 1, (11, 12))
     second = manifest(1, 3, (13, 14))
     result = validate_aggregation((second, first))

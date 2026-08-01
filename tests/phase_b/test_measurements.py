@@ -19,9 +19,7 @@ def game(index: int, *, access: bool) -> GameMeasurement:
         seed=1000 + index,
         mode="STANDARD" if index == 1 else "EXPLORATORY",
         policy_config_id="anchor_balanced",
-        opening_hands=(
-            OpeningHandMeasurement(1, 7, ("Island",) * 7, True),
-        ),
+        opening_hands=(OpeningHandMeasurement(1, 7, ("Island",) * 7, True),),
         kept_at=7,
         checkpoint_table_win_access={5: False, 6: False, 8: access, 10: access},
         failure_labels={

@@ -70,7 +70,9 @@ def _collected_nodes(root: Path) -> set[str]:
         env={**os.environ, "PYTHONPATH": str(root / "src")},
     )
     if completed.returncode != 0:
-        raise ValueError(f"could not collect transcript tests: {completed.stdout}{completed.stderr}")
+        raise ValueError(
+            f"could not collect transcript tests: {completed.stdout}{completed.stderr}"
+        )
     return {
         line.strip()
         for line in completed.stdout.splitlines()
@@ -129,16 +131,25 @@ def validate_phase_b_transcripts(
         seen_families.add(family_id)
         plain = document.get("plain_english")
         machine = document.get("machine")
-        if not isinstance(plain, list) or not plain or not all(
-            isinstance(item, str) and item.strip() for item in plain
+        if (
+            not isinstance(plain, list)
+            or not plain
+            or not all(isinstance(item, str) and item.strip() for item in plain)
         ):
             raise ValueError(f"plain-English representation is incomplete: {transcript_id}")
         if not isinstance(machine, dict):
             raise ValueError(f"machine representation is missing: {transcript_id}")
-        for key in ("preconditions", "ordered_operations", "required_event_order", "required_assertions"):
+        for key in (
+            "preconditions",
+            "ordered_operations",
+            "required_event_order",
+            "required_assertions",
+        ):
             value = machine.get(key)
-            if not isinstance(value, list) or not value or not all(
-                isinstance(item, str) and item.strip() for item in value
+            if (
+                not isinstance(value, list)
+                or not value
+                or not all(isinstance(item, str) and item.strip() for item in value)
             ):
                 raise ValueError(f"machine {key} is incomplete: {transcript_id}")
         test_node = str(machine.get("test_node", ""))
@@ -163,9 +174,13 @@ def validate_phase_b_transcripts(
             approved_at = str(approval.get("approved_at", "")).strip()
             statement = str(approval.get("approval_statement", "")).strip()
             if approved_by != EXPECTED_OWNER or not _iso_timestamp(approved_at):
-                raise ValueError(f"owner approval identity or timestamp is invalid: {transcript_id}")
+                raise ValueError(
+                    f"owner approval identity or timestamp is invalid: {transcript_id}"
+                )
             if transcript_id not in statement or digest not in statement:
-                raise ValueError(f"approval statement is not bound to ID and digest: {transcript_id}")
+                raise ValueError(
+                    f"approval statement is not bound to ID and digest: {transcript_id}"
+                )
         validated.append(
             {
                 "transcript_id": transcript_id,
@@ -177,7 +192,9 @@ def validate_phase_b_transcripts(
         )
 
     if seen_families != REQUIRED_FAMILIES:
-        raise ValueError(f"mandatory transcript family mismatch: {sorted(REQUIRED_FAMILIES - seen_families)}")
+        raise ValueError(
+            f"mandatory transcript family mismatch: {sorted(REQUIRED_FAMILIES - seen_families)}"
+        )
     if set(approval_by_id) != seen_ids:
         raise ValueError("approval entries and transcript files identify different sets")
 
@@ -193,7 +210,9 @@ def validate_phase_b_transcripts(
             env={**os.environ, "PYTHONPATH": str(root / "src")},
         )
         if completed.returncode != 0:
-            raise ValueError(f"named Phase B transcript execution failed: {completed.stdout}{completed.stderr}")
+            raise ValueError(
+                f"named Phase B transcript execution failed: {completed.stdout}{completed.stderr}"
+            )
         match = re.search(r"(\d+) passed", completed.stdout + completed.stderr)
         passed = int(match.group(1)) if match else 0
         if passed != REQUIRED_COUNT:

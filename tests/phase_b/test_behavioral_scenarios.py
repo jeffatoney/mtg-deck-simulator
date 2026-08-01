@@ -69,14 +69,18 @@ def test_glint_horn_curiosity_table_elimination_orders_terminal_before_optional_
     assert state.stack == [activated_id]
     assert not state.waiting_triggers
     assert all(not state.players[player].in_game for player in ("P1", "P2", "P3"))
-    assert all(state.players[player].loss_reasons == ["LIFE_TOTAL"] for player in ("P1", "P2", "P3"))
+    assert all(
+        state.players[player].loss_reasons == ["LIFE_TOTAL"] for player in ("P1", "P2", "P3")
+    )
     resolved = next(
         index
         for index, event in enumerate(state.events)
         if event.kind == "STACK_OBJECT_RESOLVED"
         and event.payload.get("object_id") == damage_trigger_id
     )
-    terminal = next(index for index, event in enumerate(state.events) if event.kind == "GAME_TERMINATED")
+    terminal = next(
+        index for index, event in enumerate(state.events) if event.kind == "GAME_TERMINATED"
+    )
     assert resolved < terminal == len(state.events) - 1
     assert not any(event.kind == "TRIGGER_PUT_ON_STACK" for event in state.events[terminal + 1 :])
     assert len(state.zones.get("HAND:P0", [])) == 0
@@ -84,7 +88,9 @@ def test_glint_horn_curiosity_table_elimination_orders_terminal_before_optional_
 
 def test_modal_x_and_alternative_cost_legality_and_payment_share_executor() -> None:
     state, executor, specs = funded_game("modal-x-alt")
-    creature = add_card(executor, specs["Malcolm, Keen-Eyed Navigator"], Zone.BATTLEFIELD, owner="P1")
+    creature = add_card(
+        executor, specs["Malcolm, Keen-Eyed Navigator"], Zone.BATTLEFIELD, owner="P1"
+    )
     artifact_a = add_card(executor, specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
     artifact_b = add_card(executor, specs["Arcane Signet"], Zone.BATTLEFIELD, owner="P2")
 
@@ -166,7 +172,9 @@ def test_standard_and_exploratory_paths_share_broker_and_record_first_divergence
     assert exploratory.log.post_result_replay_attempts == 0
 
 
-def test_fresh_process_replay_measurement_and_worker_invariance_with_terminal_short_circuit() -> None:
+def test_fresh_process_replay_measurement_and_worker_invariance_with_terminal_short_circuit() -> (
+    None
+):
     state, executor, specs = funded_game("slice3-invariance", ("P0", "P1"))
     state.replay_initial_state = state.audit_dict()
     state.players["P1"].life = 1

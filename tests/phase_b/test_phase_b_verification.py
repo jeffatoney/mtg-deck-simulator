@@ -15,16 +15,14 @@ def test_phase_b_mapping_has_no_slice_placeholders_and_covers_all_blockers() -> 
     mapping = json.loads((ROOT / "automation/phase-b-test-mapping.json").read_text())
     assert set(mapping["requirements"]) == set(authority["blocking_requirement_ids"])
     assert not any(
-        "PENDING_SLICE" in node
-        for nodes in mapping["requirements"].values()
-        for node in nodes
+        "PENDING_SLICE" in node for nodes in mapping["requirements"].values() for node in nodes
     )
 
 
 def test_verifier_and_durable_certification_fail_closed_on_real_blockers() -> None:
     cli = (ROOT / "src/mtg_kernel/cli.py").read_text(encoding="utf-8")
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-    assert 'verify-phase-b' in cli
+    assert "verify-phase-b" in cli
     assert "Phase B candidate verifier" in workflow
     assert "Build Phase B certification candidate" in workflow
     assert "Durable Phase B certification is current" in workflow

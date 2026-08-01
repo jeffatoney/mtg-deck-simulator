@@ -31,28 +31,39 @@ def _json(path: Path) -> dict[str, Any]:
 
 def build_record(verifier: dict[str, Any]) -> dict[str, Any]:
     if os.environ.get("GITHUB_ACTIONS") != "true":
-        raise RuntimeError("Phase B certification candidates may only be produced in GitHub Actions")
-    required = {name: os.environ.get(name, "").strip() for name in (
-        "GITHUB_RUN_ID", "GITHUB_SERVER_URL", "GITHUB_REPOSITORY"
-    )}
+        raise RuntimeError(
+            "Phase B certification candidates may only be produced in GitHub Actions"
+        )
+    required = {
+        name: os.environ.get(name, "").strip()
+        for name in ("GITHUB_RUN_ID", "GITHUB_SERVER_URL", "GITHUB_REPOSITORY")
+    }
     if any(not value for value in required.values()):
         raise RuntimeError("GitHub Actions evidence environment is incomplete")
     head = _git("rev-parse", "HEAD")
     if verifier.get("commit") != head or verifier.get("status") != "PASS":
         raise RuntimeError("verifier did not PASS the checked-out head")
-    if verifier.get("github_actions") is not True or str(verifier.get("github_run_id")) != required["GITHUB_RUN_ID"]:
+    if (
+        verifier.get("github_actions") is not True
+        or str(verifier.get("github_run_id")) != required["GITHUB_RUN_ID"]
+    ):
         raise RuntimeError("verifier did not run in this GitHub Actions job")
     if verifier.get("clean_tree_before_run") is not True:
         raise RuntimeError("verifier did not begin from a clean tree")
-    if verifier.get("evidence_classification") != "CLEAN_ENGINE_PRODUCTION_PATH" or verifier.get("legacy_evidence_used") is not False:
+    if (
+        verifier.get("evidence_classification") != "CLEAN_ENGINE_PRODUCTION_PATH"
+        or verifier.get("legacy_evidence_used") is not False
+    ):
         raise RuntimeError("verifier evidence classification is unacceptable")
     if verifier.get("golden_transcripts") != "PASS" or verifier.get("transcript_count") != 12:
         raise RuntimeError("twelve owner-approved transcripts did not pass")
     if verifier.get("pilot_lock") != "PASS" or verifier.get("unsupported_capabilities"):
         raise RuntimeError("pilot lock or unsupported exact-deck capabilities block certification")
     counts = verifier.get("counts")
-    if not isinstance(counts, dict) or counts.get("pass", 0) < 1 or any(
-        counts.get(key) != 0 for key in ("fail", "skip", "xfail")
+    if (
+        not isinstance(counts, dict)
+        or counts.get("pass", 0) < 1
+        or any(counts.get(key) != 0 for key in ("fail", "skip", "xfail"))
     ):
         raise RuntimeError("verifier test counts are not fully passing")
     paths = all_digests()
@@ -98,12 +109,17 @@ def main() -> int:
     except (OSError, ValueError, RuntimeError, KeyError, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
-    print(json.dumps({
-        "status": "PASS",
-        "output": str(output),
-        "certified_content_commit": record["certified_content_commit"],
-        "covered_content_sha256": record["covered_content_sha256"],
-    }, indent=2))
+    print(
+        json.dumps(
+            {
+                "status": "PASS",
+                "output": str(output),
+                "certified_content_commit": record["certified_content_commit"],
+                "covered_content_sha256": record["covered_content_sha256"],
+            },
+            indent=2,
+        )
+    )
     return 0
 
 

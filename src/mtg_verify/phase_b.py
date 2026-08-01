@@ -111,14 +111,13 @@ def verify_phase_b_run() -> int:
     collected = _run("uv run --no-sync pytest --collect-only -q tests/phase_a tests/phase_b")
     node_output = collected["stdout"]
     mapping_ok = all(
-        node in node_output
-        for nodes in mapping["requirements"].values()
-        for node in nodes
+        node in node_output for nodes in mapping["requirements"].values() for node in nodes
     )
     quarantined_import_root = "mtg" + "_sim"
-    pilot_locked = not (ROOT / ".github/workflows/pilot-simulation.yml").exists() and not (
-        ROOT / "src" / quarantined_import_root
-    ).exists()
+    pilot_locked = (
+        not (ROOT / ".github/workflows/pilot-simulation.yml").exists()
+        and not (ROOT / "src" / quarantined_import_root).exists()
+    )
     unsupported = exact_deck_execution_blockers()
     transcript_status = "PASS" if commands[5]["exit_code"] == 0 else "FAIL"
     passed = (
@@ -175,14 +174,20 @@ def verify_phase_b_run() -> int:
     }
     artifact.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     artifact.chmod(0o444)
-    print(json.dumps({
-        "status": result["status"],
-        "artifact": str(artifact),
-        "commit": commit,
-        "counts": result["counts"],
-        "mapping_complete": mapping_ok,
-        "golden_transcripts": transcript_status,
-        "unsupported_capability_count": len(unsupported),
-        "pilot_lock": result["pilot_lock"],
-    }, indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": result["status"],
+                "artifact": str(artifact),
+                "commit": commit,
+                "counts": result["counts"],
+                "mapping_complete": mapping_ok,
+                "golden_transcripts": transcript_status,
+                "unsupported_capability_count": len(unsupported),
+                "pilot_lock": result["pilot_lock"],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0 if passed else 1

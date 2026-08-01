@@ -83,7 +83,9 @@ def verify_worker_invariance(
     for workers, records in worker_outputs.items():
         if workers < 1:
             raise ValueError("worker count must be positive")
-        ordered = sorted((dict(record) for record in records), key=lambda row: int(row["game_index"]))
+        ordered = sorted(
+            (dict(record) for record in records), key=lambda row: int(row["game_index"])
+        )
         digests[workers] = hashlib.sha256(_canonical(ordered)).hexdigest()
     unique = set(digests.values())
     if len(unique) != 1:

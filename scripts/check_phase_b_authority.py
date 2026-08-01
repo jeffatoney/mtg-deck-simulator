@@ -52,10 +52,21 @@ def main() -> int:
     if set(locked) != expected_locked:
         errors.append("pilot/full-study command locks drifted")
     expected_blockers = {
-        "B-SOURCE-001", "B-COVERAGE-001", "B-DECK-001", "B-RULES-001",
-        "B-LEGALITY-001", "B-HIDDEN-001", "B-OPPONENT-001", "B-POLICY-001",
-        "B-SEARCH-001", "B-MEASURE-001", "B-REPLAY-001", "B-MANIFEST-001",
-        "B-TRANSCRIPT-001", "B-PHASE-A-001", "B-PILOT-LOCK-001",
+        "B-SOURCE-001",
+        "B-COVERAGE-001",
+        "B-DECK-001",
+        "B-RULES-001",
+        "B-LEGALITY-001",
+        "B-HIDDEN-001",
+        "B-OPPONENT-001",
+        "B-POLICY-001",
+        "B-SEARCH-001",
+        "B-MEASURE-001",
+        "B-REPLAY-001",
+        "B-MANIFEST-001",
+        "B-TRANSCRIPT-001",
+        "B-PHASE-A-001",
+        "B-PILOT-LOCK-001",
     }
     if set(blockers) != expected_blockers:
         errors.append("blocking Phase B requirement set is incomplete or changed")
@@ -64,15 +75,21 @@ def main() -> int:
         for error in errors:
             print(f"- {error}")
         return 1
-    print(json.dumps({
-        "status": "PASS",
-        "schema_version": data["schema_version"],
-        "active_binding_count": len(active),
-        "architecture_decision_count": len(decisions),
-        "blocking_requirement_count": len(blockers),
-        "pilot_and_study_locked": True,
-        "acceptance_evidence_label": data["only_acceptance_evidence_label"],
-    }, indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": "PASS",
+                "schema_version": data["schema_version"],
+                "active_binding_count": len(active),
+                "architecture_decision_count": len(decisions),
+                "blocking_requirement_count": len(blockers),
+                "pilot_and_study_locked": True,
+                "acceptance_evidence_label": data["only_acceptance_evidence_label"],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0
 
 

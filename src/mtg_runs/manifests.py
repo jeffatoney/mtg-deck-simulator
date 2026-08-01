@@ -124,7 +124,9 @@ class RunManifest:
         return asdict(self)
 
 
-def manifest_run_id(manifest: RunManifest | Mapping[str, Any], *, include_run_id: bool = True) -> str:
+def manifest_run_id(
+    manifest: RunManifest | Mapping[str, Any], *, include_run_id: bool = True
+) -> str:
     body = asdict(manifest) if isinstance(manifest, RunManifest) else dict(manifest)
     if not include_run_id:
         body.pop("run_id", None)
@@ -219,9 +221,7 @@ def validate_aggregation(manifests: Sequence[RunManifest]) -> dict[str, Any]:
     first = manifests[0]
     for manifest in manifests[1:]:
         mixed = [
-            field
-            for field in invariant_fields
-            if getattr(manifest, field) != getattr(first, field)
+            field for field in invariant_fields if getattr(manifest, field) != getattr(first, field)
         ]
         if mixed:
             raise ValueError(f"aggregation rejects mixed manifest fields: {mixed}")

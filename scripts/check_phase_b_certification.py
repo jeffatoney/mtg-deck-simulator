@@ -37,7 +37,9 @@ def main() -> int:
     if record.get("pilot_lock") != "PASS":
         errors.append("certification does not preserve pilot/full-study locks")
     counts = record.get("counts", {})
-    if not isinstance(counts, dict) or any(counts.get(key) != 0 for key in ("fail", "skip", "xfail")):
+    if not isinstance(counts, dict) or any(
+        counts.get(key) != 0 for key in ("fail", "skip", "xfail")
+    ):
         errors.append("certification contains failures, skips, or xfails")
     actual = all_digests()
     if record.get("covered_paths") != actual:
@@ -52,7 +54,13 @@ def main() -> int:
     if not run_id or not run_url.endswith(f"/actions/runs/{run_id}"):
         errors.append("GitHub Actions run evidence is incomplete")
     try:
-        if commit and subprocess.check_output(["git", "cat-file", "-t", commit], cwd=ROOT, text=True).strip() != "commit":
+        if (
+            commit
+            and subprocess.check_output(
+                ["git", "cat-file", "-t", commit], cwd=ROOT, text=True
+            ).strip()
+            != "commit"
+        ):
             errors.append("certified content commit is unavailable")
     except subprocess.CalledProcessError:
         errors.append("certified content commit is unavailable")
@@ -61,14 +69,20 @@ def main() -> int:
         for error in errors:
             print(f"- {error}")
         return 1
-    print(json.dumps({
-        "status": "PASS",
-        "certified_content_commit": commit,
-        "covered_content_sha256": record["covered_content_sha256"],
-        "github_run_url": run_url,
-        "counts": counts,
-        "transcript_count": record["transcript_count"],
-    }, indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": "PASS",
+                "certified_content_commit": commit,
+                "covered_content_sha256": record["covered_content_sha256"],
+                "github_run_url": run_url,
+                "counts": counts,
+                "transcript_count": record["transcript_count"],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0
 
 

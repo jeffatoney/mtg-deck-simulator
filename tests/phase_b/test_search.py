@@ -29,7 +29,9 @@ def test_bounded_search_enforces_frozen_limits_and_expected_value() -> None:
 
     def expand(parent: SearchPosition, selected: ObservedAction, seed: int) -> SearchPosition:
         value = int(selected.metadata["value"]) + (seed % 2)
-        next_actions = tuple(action(f"{selected.handle}-{index}", value + index) for index in range(10))
+        next_actions = tuple(
+            action(f"{selected.handle}-{index}", value + index) for index in range(10)
+        )
         return position(next_actions, value, min(3, parent.player_turns_elapsed + 1))
 
     result = BoundedExplorer().choose(root, belief_sample_seeds=(11, 12), expand=expand)

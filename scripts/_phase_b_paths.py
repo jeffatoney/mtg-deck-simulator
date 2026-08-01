@@ -52,7 +52,8 @@ def _files(relative: str) -> list[Path]:
     if target.is_file():
         return [target]
     files = sorted(
-        path for path in target.rglob("*")
+        path
+        for path in target.rglob("*")
         if path.is_file() and not any(part in _IGNORED for part in path.parts)
     )
     if not files:

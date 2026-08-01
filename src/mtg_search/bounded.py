@@ -25,8 +25,10 @@ def _assert_public(value: Any, path: str = "observation") -> None:
     if isinstance(value, Mapping):
         for raw_key, item in value.items():
             key = str(raw_key)
-            if key in _FORBIDDEN_KEYS or key.endswith("_object_id") or key.endswith(
-                "_card_instance_id"
+            if (
+                key in _FORBIDDEN_KEYS
+                or key.endswith("_object_id")
+                or key.endswith("_card_instance_id")
             ):
                 raise ValueError(f"search input exposes forbidden hidden field: {path}.{key}")
             _assert_public(item, f"{path}.{key}")
