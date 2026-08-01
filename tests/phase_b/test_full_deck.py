@@ -25,12 +25,8 @@ def test_all_frozen_oracle_records_and_physical_cards_resolve() -> None:
 def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() -> None:
     package = load_exact_deck_package()
     assert len(package.coverage) == 80
-    assert {record.composition_status for record in package.coverage} == {
-        COMPOSITION_REVIEWED
-    }
-    assert {record.execution_status for record in package.coverage} == {
-        EXECUTION_UNVERIFIED
-    }
+    assert {record.composition_status for record in package.coverage} == {COMPOSITION_REVIEWED}
+    assert {record.execution_status for record in package.coverage} == {EXECUTION_UNVERIFIED}
     assert all(record.handler_ids for record in package.coverage)
     assert set(RULES_BY_NAME) == set(FULL_DECK_NAMES)
     assert all(abilities for abilities in RULES_BY_NAME.values())
