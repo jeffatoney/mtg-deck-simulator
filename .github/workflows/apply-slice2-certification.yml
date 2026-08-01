@@ -1,0 +1,47 @@
+name: Apply Exact Slice 2 Certification
+
+on:
+  push:
+    branches:
+      - engine/phase-b-full-deck-policy
+    paths:
+      - .github/workflows/apply-slice2-certification.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - name: Download exact CI-produced certification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/slice2-certification
+          gh run download 30691443032 \
+            --repo "${GITHUB_REPOSITORY}" \
+            --name phase-a-certification-candidate-738b04fa37c0e945c5e69cd6d429415447687655 \
+            --dir /tmp/slice2-certification
+      - name: Verify exact artifact bytes
+        run: |
+          test "$(sha256sum /tmp/slice2-certification/CERTIFICATION.json | cut -d' ' -f1)" = \
+            "94f048278af16cded048eb95ce17b81ec382aaac9fe021940b70b0de6aa678b6"
+          test "$(git hash-object /tmp/slice2-certification/CERTIFICATION.json)" = \
+            "1879cb915a2c7eab1c72b2f7da16ed068c2d41f1"
+      - name: Commit exact durable record
+        run: |
+          cp /tmp/slice2-certification/CERTIFICATION.json \
+            docs/audit/phase-a-certification/CERTIFICATION.json
+          test "$(git hash-object docs/audit/phase-a-certification/CERTIFICATION.json)" = \
+            "1879cb915a2c7eab1c72b2f7da16ed068c2d41f1"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/audit/phase-a-certification/CERTIFICATION.json
+          git commit -m "Commit exact Slice 2 Phase A certification"
+          git push origin HEAD:${{ github.ref_name }}
