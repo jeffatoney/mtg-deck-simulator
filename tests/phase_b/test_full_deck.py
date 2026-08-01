@@ -4,6 +4,7 @@ from collections import Counter
 
 from mtg_cards.full_deck import FULL_DECK_NAMES, RULES_BY_NAME, load_full_deck_specs
 from mtg_deck import build_exact_game, load_exact_deck_package
+from mtg_deck.package import COMPOSITION_REVIEWED, EXECUTION_UNVERIFIED
 from mtg_kernel.models import Zone
 
 
@@ -21,10 +22,15 @@ def test_all_frozen_oracle_records_and_physical_cards_resolve() -> None:
     )
 
 
-def test_complete_reviewed_coverage_has_no_fallback() -> None:
+def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() -> None:
     package = load_exact_deck_package()
     assert len(package.coverage) == 80
-    assert {record.status for record in package.coverage} == {"IMPLEMENTED"}
+    assert {record.composition_status for record in package.coverage} == {
+        COMPOSITION_REVIEWED
+    }
+    assert {record.execution_status for record in package.coverage} == {
+        EXECUTION_UNVERIFIED
+    }
     assert all(record.handler_ids for record in package.coverage)
     assert set(RULES_BY_NAME) == set(FULL_DECK_NAMES)
     assert all(abilities for abilities in RULES_BY_NAME.values())
@@ -43,6 +49,9 @@ def test_exact_deck_has_98_library_cards_and_two_commanders() -> None:
     assert len(set(state.card_instances)) == 100
     assert all(obj.zone is Zone.LIBRARY for obj in objects["library"])
     assert all(obj.zone is Zone.COMMAND for obj in objects["command"])
+    assert sorted(slot.deck_source_position for slot in state.deck_slots.values()) == list(
+        range(100)
+    )
     names = Counter(obj.current_characteristics["name"] for obj in objects["library"])
     assert names["Island"] == 12
     assert names["Mountain"] == 10
