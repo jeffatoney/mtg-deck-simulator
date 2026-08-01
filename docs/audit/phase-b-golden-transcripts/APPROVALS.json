@@ -41,7 +41,7 @@
       "approved_at": null,
       "approved_by": null,
       "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T05-dualcaster-twinflame.json",
-      "sha256": "4cbf1fc7fc540c8faef4b9696400c8371509c799e21164172b51f9b32938160c",
+      "sha256": "3f9769a84eedf8ae51f1b1ceb6ea82269e4ee350811bf95fd86858232bdd5fcb",
       "status": "PENDING_OWNER_APPROVAL",
       "transcript_id": "PB-T05-dualcaster-twinflame"
     },

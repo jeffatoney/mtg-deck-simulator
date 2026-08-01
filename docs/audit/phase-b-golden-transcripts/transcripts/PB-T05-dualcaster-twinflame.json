@@ -2,17 +2,19 @@
   "family_id": "dualcaster-twinflame-not-cast",
   "machine": {
     "ordered_operations": [
-      "cast target spell",
-      "cast Dualcaster",
-      "resolve ETB trigger",
-      "resolve copied spell",
-      "cast and resolve Twinflame",
-      "resolve delayed triggers"
+      "load the exact full-deck Oracle specifications",
+      "cast Opt through the shared ActionBroker",
+      "cast Dualcaster Mage through the shared ActionBroker with an explicit ETB target handle",
+      "resolve the Dualcaster ETB trigger and copied spell",
+      "cast Twinflame through the shared ActionBroker targeting two controlled creatures",
+      "resolve the delayed exile triggers"
     ],
     "preconditions": [
-      "Dualcaster copies a spell through its ETB trigger."
+      "The full-deck package supplies Opt, Dualcaster Mage, Twinflame, Malcolm, and Glint-Horn Buccaneer.",
+      "The acting policy receives only observations and opaque broker action handles."
     ],
     "required_assertions": [
+      "the Dualcaster cast action exposes the original Opt spell only through an opaque trigger target handle",
       "spell-copy was_cast is false",
       "spell-copy component identities are empty",
       "Twinflame token copies are synthetic and cease after delayed exile"
@@ -24,14 +26,14 @@
       "STACK_OBJECT_RESOLVED",
       "DELAYED_EXILE"
     ],
-    "test_node": "tests/phase_a/test_kernel_acceptance.py::test_dualcaster_copy_and_twinflame_delayed_exile_are_real_objects"
+    "test_node": "tests/phase_b/test_dualcaster_broker_path.py::test_dualcaster_twinflame_execute_through_full_deck_broker_path"
   },
   "plain_english": [
-    "Dualcaster copies a spell through its ETB trigger.",
-    "The spell copy has no physical-card component and was not cast.",
-    "Twinflame token copies receive delayed exile handling."
+    "The exact deck's Opt, Dualcaster Mage, and Twinflame are selected and cast through the same opaque ActionBroker used by Phase B policy code.",
+    "Dualcaster's ETB target is represented to policy by an opaque handle, and the resulting spell copy has no physical-card component and was not cast.",
+    "Twinflame creates synthetic token copies through the broker path and the delayed triggers exile those copies at the next end step."
   ],
   "schema_version": "phase-b-golden-transcript-v1",
-  "title": "Dualcaster and Twinflame preserve copied-spell-not-cast identity",
+  "title": "Dualcaster and Twinflame preserve copied-spell-not-cast identity through the Phase B broker",
   "transcript_id": "PB-T05-dualcaster-twinflame"
 }
