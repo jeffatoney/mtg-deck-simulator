@@ -25,10 +25,8 @@ def _assert_public(value: Any, path: str = "observation") -> None:
     if isinstance(value, Mapping):
         for raw_key, item in value.items():
             key = str(raw_key)
-            if (
-                key in _FORBIDDEN_KEYS
-                or key.endswith("_object_id")
-                or key.endswith("_card_instance_id")
+            if key in _FORBIDDEN_KEYS or key.endswith("_object_id") or key.endswith(
+                "_card_instance_id"
             ):
                 raise ValueError(f"search input exposes forbidden hidden field: {path}.{key}")
             _assert_public(item, f"{path}.{key}")
@@ -129,6 +127,7 @@ class SearchDecisionLog:
     post_result_replay_attempts: int
     future_information_rejections: int
     post_result_optimization_rejections: int
+    game_nodes_used: int
 
 
 @dataclass(frozen=True)
@@ -170,6 +169,16 @@ class BoundedExplorer:
 
     def __init__(self, limits: SearchLimits | None = None) -> None:
         self.limits = limits or SearchLimits()
+        self._game_nodes_used = 0
+
+    @property
+    def game_nodes_used(self) -> int:
+        """Return the cumulative node count for the current exploratory game."""
+        return self._game_nodes_used
+
+    def begin_game(self) -> None:
+        """Start a new exploratory game with a fresh 5,000-node budget."""
+        self._game_nodes_used = 0
 
     def choose(
         self,
@@ -180,6 +189,9 @@ class BoundedExplorer:
     ) -> SearchResult:
         if not root.actions:
             raise ValueError("exploratory search received no legal actions")
+        remaining_nodes = self.limits.maximum_nodes - self._game_nodes_used
+        if remaining_nodes <= 0:
+            raise ValueError("exploratory game node budget is exhausted")
         seeds = tuple(int(value) for value in belief_sample_seeds)
         if not seeds:
             raise ValueError("exploratory search requires precommitted belief sample seeds")
@@ -201,7 +213,7 @@ class BoundedExplorer:
 
         for action in root_actions:
             for seed in seeds:
-                if nodes >= self.limits.maximum_nodes:
+                if nodes >= remaining_nodes:
                     pruning.add("node_cap")
                     break
                 successor = expand(root, action, seed)
@@ -234,7 +246,7 @@ class BoundedExplorer:
                     pruning.add("candidate_cap")
                 for action in candidate_actions:
                     for seed in seeds:
-                        if nodes >= self.limits.maximum_nodes:
+                        if nodes >= remaining_nodes:
                             pruning.add("node_cap")
                             break
                         successor = expand(node.position, action, seed)
@@ -245,9 +257,9 @@ class BoundedExplorer:
                         depth_reached = max(depth_reached, successor.player_turns_elapsed)
                         evaluations[node.root_handle].append(successor.evaluation)
                         next_frontier.append(_FrontierNode(node.root_handle, successor))
-                    if nodes >= self.limits.maximum_nodes:
+                    if nodes >= remaining_nodes:
                         break
-                if nodes >= self.limits.maximum_nodes:
+                if nodes >= remaining_nodes:
                     break
             frontier = next_frontier
             depth += 1
@@ -263,6 +275,7 @@ class BoundedExplorer:
             reverse=True,
         )
         selected = ranked_roots[0]
+        self._game_nodes_used += nodes
         log = SearchDecisionLog(
             candidate_count=len(root.actions),
             branches_searched=len(evaluations),
@@ -275,5 +288,6 @@ class BoundedExplorer:
             post_result_replay_attempts=0,
             future_information_rejections=0,
             post_result_optimization_rejections=0,
+            game_nodes_used=self._game_nodes_used,
         )
         return SearchResult(selected, log)

@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Any
 
 from mtg_kernel.engine_core import MAIN_PHASES, PERMANENT_TYPES
 from mtg_kernel.engine_core import GameExecutor as _CoreGameExecutor
-from mtg_kernel.errors import IllegalAction
-from mtg_kernel.models import GameObject, TargetRef
+from mtg_kernel.errors import IllegalAction, UnsupportedCapability
+from mtg_kernel.models import GameObject, GameState, TargetRef
 
 
 class HardenedGameExecutor(_CoreGameExecutor):
@@ -51,6 +51,27 @@ class HardenedGameExecutor(_CoreGameExecutor):
             trigger.retired = True
             trigger.ceased_to_exist = True
         self.state.waiting_triggers.clear()
+
+
+_CORE_INITIALIZER = _CoreGameExecutor.__init__
+
+
+def _guarded_core_initializer(
+    self: _CoreGameExecutor,
+    state: GameState,
+    seed: str = "phase-a",
+    *,
+    replaying: bool = False,
+) -> None:
+    if type(self) is _CoreGameExecutor:
+        raise UnsupportedCapability(
+            "internal executor core cannot be instantiated directly; "
+            "use mtg_kernel.engine.GameExecutor"
+        )
+    _CORE_INITIALIZER(self, state, seed, replaying=replaying)
+
+
+setattr(_CoreGameExecutor, "__init__", _guarded_core_initializer)
 
 
 if TYPE_CHECKING:

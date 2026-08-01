@@ -59,3 +59,29 @@ def test_search_rejects_hidden_future_fields_and_more_than_eight_samples() -> No
             belief_sample_seeds=tuple(range(9)),
             expand=lambda parent, selected, seed: replace(parent, player_turns_elapsed=1),
         )
+
+
+def test_node_budget_is_cumulative_across_major_decisions_in_one_game() -> None:
+    root_actions = tuple(action(f"a{index:02d}", index) for index in range(12))
+    root = position(root_actions)
+
+    def expand(parent: SearchPosition, selected: ObservedAction, seed: int) -> SearchPosition:
+        value = int(selected.metadata["value"]) + (seed % 2)
+        next_actions = tuple(
+            action(f"{selected.handle}-{index}", value + index) for index in range(12)
+        )
+        return position(next_actions, value, min(3, parent.player_turns_elapsed + 1))
+
+    explorer = BoundedExplorer()
+    latest = None
+    for _ in range(4):
+        latest = explorer.choose(root, belief_sample_seeds=tuple(range(8)), expand=expand)
+    assert latest is not None
+    assert latest.log.game_nodes_used == 5_000
+    assert explorer.game_nodes_used == 5_000
+    with pytest.raises(ValueError, match="node budget is exhausted"):
+        explorer.choose(root, belief_sample_seeds=(1,), expand=expand)
+
+    explorer.begin_game()
+    reset = explorer.choose(root, belief_sample_seeds=(1,), expand=expand)
+    assert 0 < reset.log.game_nodes_used < 5_000
