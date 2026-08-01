@@ -86,8 +86,16 @@ def test_land_play_uses_priority_and_records_as_enters_choice_before_entry() -> 
     assert kinds.index("LAND_COLOR_CHOSEN") < kinds.index("LAND_PLAYED")
 
 
-def test_broker_does_not_offer_choice_incomplete_land_actions() -> None:
+def test_broker_offers_only_complete_explicit_land_choice_variants() -> None:
     _, executor, specs = scenario()
     add_card(executor, specs["Thriving Isle"], Zone.HAND)
     _, actions = ActionBroker(executor, "P0").refresh()
-    assert not any(action.kind == "PLAY_LAND" for action in actions)
+    land_actions = [action for action in actions if action.kind == "PLAY_LAND"]
+    assert {action.metadata.get("chosen_color") for action in land_actions} == {
+        "W",
+        "U",
+        "B",
+        "R",
+        "G",
+    }
+    assert len(land_actions) == 5
