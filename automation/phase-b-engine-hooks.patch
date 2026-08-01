@@ -1,0 +1,114 @@
+--- a/src/mtg_kernel/engine.py
++++ b/src/mtg_kernel/engine.py
+@@ -123,6 +123,10 @@
+             return self._is_permanent(obj) and "Creature" in types
+         if kind == "ARTIFACT":
+             return self._is_permanent(obj) and "Artifact" in types
++        if kind == "ARTIFACT_OR_CREATURE":
++            return self._is_permanent(obj) and bool(
++                types.intersection({"Artifact", "Creature"})
++            )
+         if kind == "GRAVEYARD_CARD":
+             return obj.zone is Zone.GRAVEYARD and bool(obj.component_card_instance_ids)
+         if kind == "SPELL_OR_NONLAND_PERMANENT":
+@@ -223,18 +227,31 @@
+         card_types = set(face_data.get("card_types", []))
+         if "Land" in card_types:
+             raise IllegalAction("lands are played, not cast")
+-        permission = spell_ability.get("cast_permission", "NORMAL")
+-        if card.zone is Zone.GRAVEYARD and permission not in {"AFTERMATH", "FLASHBACK"}:
++        permission = str(spell_ability.get("cast_permission", "NORMAL"))
++        if permission in {"AFTERMATH", "FLASHBACK"}:
++            if card.zone is not Zone.GRAVEYARD:
++                raise IllegalAction("this face may be cast only from the graveyard")
++        elif card.zone is Zone.GRAVEYARD:
+             raise IllegalAction("no graveyard casting permission")
+-        if permission in {"AFTERMATH", "FLASHBACK"} and card.zone is not Zone.GRAVEYARD:
+-            raise IllegalAction("this face may be cast only from the graveyard")
++        if permission == "FORETELL":
++            if card.zone is not Zone.EXILE:
++                raise IllegalAction("a foretold spell may be cast only from exile")
++            if not bool(card.current_characteristics.get("foretold")):
++                raise IllegalAction("card was not foretold")
++            if card.current_characteristics.get("foretold_by") != actor:
++                raise IllegalAction("only the foretelling player may cast this card")
++            foretold_turn = int(card.current_characteristics.get("foretold_turn", -1))
++            if self.state.turn.number <= foretold_turn:
++                raise IllegalAction("a foretold card cannot be cast during the turn it was foretold")
++        elif card.zone is Zone.EXILE:
++            raise IllegalAction("no exile casting permission")
+         if card.zone is Zone.COMMAND:
+             if not card.component_card_instance_ids:
+                 raise IllegalAction("command-zone card has no physical identity")
+             instance = self.state.card_instances[card.component_card_instance_ids[0]]
+             if not instance.commander_designation or instance.owner_id != actor:
+                 raise IllegalAction("only a designated commander may be cast from command")
+-        if card.zone not in {Zone.HAND, Zone.COMMAND, Zone.GRAVEYARD}:
++        if card.zone not in {Zone.HAND, Zone.COMMAND, Zone.GRAVEYARD, Zone.EXILE}:
+             raise IllegalAction("card is not castable from its current zone")
+         instant_speed = "Instant" in card_types or "Flash" in face_data.get("keywords", [])
+         if not instant_speed:
+@@ -268,7 +285,10 @@
+             schema = dict(spell_ability.get("target_schema", {}))
+             self._validate_targets(actor, targets, schema)
+ 
+-            base_cost = parse_mana_cost(str(face_data.get("mana_cost", "")), x_value=x_value)
++            cost_text = spell_ability.get(
++                "alternative_cost", face_data.get("mana_cost", "")
++            )
++            base_cost = parse_mana_cost(str(cost_text), x_value=x_value)
+             extra_cost = {symbol: 0 for symbol in (*("W", "U", "B", "R", "G", "C"), "GENERIC")}
+             per_target = spell_ability.get("additional_cost", {}).get("per_target_beyond_first")
+             if per_target:
+@@ -836,6 +856,10 @@
+                         self._event("DELAYED_EXILE", action),
+                     )
+             return
++        from mtg_kernel.phase_b_actions import apply_phase_b_effect
++
++        if apply_phase_b_effect(self, source, action, effect, targets, choices):
++            return
+         raise UnsupportedCapability(f"unsupported effect primitive: {kind}")
+ 
+     def _rules_source(self, stack_object: GameObject | None) -> GameObject | None:
+@@ -1646,6 +1670,40 @@
+                 dict(arguments.get("choices", {})),
+                 _record=False,
+             )
++        elif operation == "activate_hand":
++            from mtg_kernel.phase_b_actions import activate_hand_ability
++
++            activate_hand_ability(
++                self,
++                str(arguments["actor"]),
++                str(arguments["source_id"]),
++                str(arguments["ability_id"]),
++                tuple(
++                    self._target_from_data(dict(value)) for value in arguments.get("targets", [])
++                ),
++                dict(arguments.get("choices", {})),
++                record=False,
++            )
++        elif operation == "foretell":
++            from mtg_kernel.phase_b_actions import foretell
++
++            foretell(
++                self,
++                str(arguments["actor"]),
++                str(arguments["card_object_id"]),
++                str(arguments["ability_id"]),
++                record=False,
++            )
++        elif operation == "play_land":
++            from mtg_kernel.land_actions import play_land
++
++            play_land(
++                self,
++                str(arguments["actor"]),
++                str(arguments["card_object_id"]),
++                dict(arguments.get("choices", {})),
++                record=False,
++            )
+         elif operation == "pass_priority":
+             self.pass_priority(str(arguments["player_id"]), _record=False)
+         elif operation == "resolve_top":
