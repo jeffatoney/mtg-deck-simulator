@@ -49,7 +49,7 @@
   },
   "docs/spec/LEAGUE_MULLIGAN.md": {
     "bytes": 817,
-    "sha256": "a95b9e52152a36009463ea348115a94b87eff7cc7d97690754"
+    "sha256": "a95b9e52152a36009463ea348115a94cca3281bc36a94b87eff7cc7d97690754"
   },
   "docs/spec/MEASUREMENTS.md": {
     "bytes": 2805,
@@ -129,7 +129,7 @@
   },
   "prompts/12_FULL_STUDY_LOCKED.md": {
     "bytes": 608,
-    "sha256": "471d902d1f87b73fc6eaabd4cd8929631f9afbd6a9aff57de97ab67"
+    "sha256": "471d902d61d0c51183b4973cff6eaabd4cd8929631f9afbd6a9aff57de97ab67"
   },
   "pyproject.toml.template": {
     "bytes": 616,
