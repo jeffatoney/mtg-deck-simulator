@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail unless the exact 100-card deck has complete reviewed clean-engine coverage."""
+"""Validate exact-deck inventory and reviewed compositions without claiming execution."""
 
 from __future__ import annotations
 
@@ -11,6 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from mtg_deck import load_exact_deck_package  # noqa: E402
+from mtg_deck.package import (  # noqa: E402
+    COMPOSITION_REVIEWED,
+    EXECUTION_UNVERIFIED,
+)
 
 
 def main() -> int:
@@ -19,13 +23,28 @@ def main() -> int:
     except Exception as error:
         print(json.dumps({"status": "FAIL", "error": str(error)}, indent=2))
         return 1
-    invalid = [record.name for record in package.coverage if record.status != "IMPLEMENTED"]
-    if invalid or len(package.coverage) != 80 or package.physical_card_count != 100:
+    invalid_composition = [
+        record.name
+        for record in package.coverage
+        if record.composition_status != COMPOSITION_REVIEWED
+    ]
+    premature_execution_claims = [
+        record.name
+        for record in package.coverage
+        if record.execution_status != EXECUTION_UNVERIFIED
+    ]
+    if (
+        invalid_composition
+        or premature_execution_claims
+        or len(package.coverage) != 80
+        or package.physical_card_count != 100
+    ):
         print(
             json.dumps(
                 {
                     "status": "FAIL",
-                    "invalid": invalid,
+                    "invalid_composition": invalid_composition,
+                    "premature_execution_claims": premature_execution_claims,
                     "coverage_count": len(package.coverage),
                     "physical_card_count": package.physical_card_count,
                 },
@@ -41,7 +60,9 @@ def main() -> int:
                 "library_card_count": package.library_count,
                 "commander_count": package.commander_count,
                 "physical_card_count": package.physical_card_count,
-                "coverage_status": "IMPLEMENTED",
+                "composition_status": COMPOSITION_REVIEWED,
+                "execution_status": EXECUTION_UNVERIFIED,
+                "phase_b_complete": False,
                 "legacy_evidence_used": False,
             },
             indent=2,
