@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from mtg_kernel.models import GameObject, TargetRef, Zone
+from mtg_kernel.models import GameObject, Zone
 from mtg_kernel.phase_b_actions import (
     automatic_ability_execution_supported,
     effect_execution_supported,
