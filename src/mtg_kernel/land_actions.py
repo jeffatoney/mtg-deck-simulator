@@ -66,6 +66,7 @@ def play_land(
                     allowed = set(str(value) for value in effect.get("subtypes", []))
                     legal = bool(
                         reveal
+                        and reveal.object_id != card.object_id
                         and not reveal.retired
                         and reveal.zone is Zone.HAND
                         and reveal.owner == actor
