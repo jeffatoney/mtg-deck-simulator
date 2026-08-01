@@ -72,8 +72,8 @@ def load_exact_deck_package() -> DeckPackage:
     requested = {entry.name for entry in (*library, *commanders)}
     if requested != set(FULL_DECK_NAMES):
         raise ValueError(
-            f"exact deck and frozen Oracle inventory differ: missing={sorted(set(FULL_DECK_NAMES)-requested)}, "
-            f"extra={sorted(requested-set(FULL_DECK_NAMES))}"
+            f"exact deck and frozen Oracle inventory differ: missing={sorted(set(FULL_DECK_NAMES) - requested)}, "
+            f"extra={sorted(requested - set(FULL_DECK_NAMES))}"
         )
     if sum(entry.quantity for entry in library) != 98 or len(commanders) != 2:
         raise ValueError("exact deck must contain 98 library cards and two commanders")

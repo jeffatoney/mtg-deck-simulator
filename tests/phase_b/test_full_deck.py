@@ -16,7 +16,9 @@ def test_all_frozen_oracle_records_and_physical_cards_resolve() -> None:
     assert package.commander_count == 2
     assert all(spec.card_spec_id == f"oracle:{spec.oracle_id}" for spec in specs.values())
     assert all(len(spec.oracle_record_sha256) == 64 for spec in specs.values())
-    assert all(spec.faces and all(face["oracle_text"] for face in spec.faces) for spec in specs.values())
+    assert all(
+        spec.faces and all(face["oracle_text"] for face in spec.faces) for spec in specs.values()
+    )
 
 
 def test_complete_reviewed_coverage_has_no_fallback() -> None:

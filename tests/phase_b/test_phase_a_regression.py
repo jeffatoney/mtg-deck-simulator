@@ -12,9 +12,7 @@ def test_phase_a_certification_and_verifier_are_standing() -> None:
     assert "Durable Phase A certification is current" in workflow
     assert "github.head_ref == 'engine/phase-a-rules-kernel'" not in workflow
     record = json.loads(
-        (ROOT / "docs/audit/phase-a-certification/CERTIFICATION.json").read_text(
-            encoding="utf-8"
-        )
+        (ROOT / "docs/audit/phase-a-certification/CERTIFICATION.json").read_text(encoding="utf-8")
     )
     assert record["status"] == "PASS"
     assert record["verification_environment"] == "GITHUB_ACTIONS"
