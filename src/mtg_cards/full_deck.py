@@ -113,7 +113,7 @@ def mana(
     choice: tuple[str, ...] = (),
     life: int = 0,
 ) -> dict[str, Any]:
-    effect = {"kind": "ADD_MANA", "mana": produced}
+    effect: dict[str, Any] = {"kind": "ADD_MANA", "mana": produced}
     if choice:
         effect = {"kind": "ADD_CHOSEN_MANA", "choices": choice}
     return activated(
