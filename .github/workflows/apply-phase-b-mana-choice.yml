@@ -35,3 +35,5 @@ jobs:
           git add src/mtg_kernel/phase_b_actions.py src/mtg_policy/broker.py
           git commit -m "Enumerate and execute explicit damaging mana choices"
           git push origin HEAD:${{ github.ref_name }}
+
+# Updating this already-present workflow triggers its one reviewed execution.
