@@ -1,0 +1,92 @@
+--- a/src/mtg_kernel/phase_b_actions.py
++++ b/src/mtg_kernel/phase_b_actions.py
+@@ -484,6 +484,72 @@
+         )
+ 
+ 
++def _create_token(
++    executor: GameExecutor,
++    controller: str,
++    action: Action,
++    token_spec: dict[str, Any],
++) -> GameObject:
++    name = str(token_spec.get("name", "Token"))
++    event = executor._event(
++        "TOKEN_CREATED",
++        action,
++        controller=controller,
++        token_name=name,
++    )
++    characteristics: dict[str, Any] = {
++        "name": name,
++        "card_types": list(token_spec.get("card_types", ["Creature"])),
++        "subtypes": list(token_spec.get("subtypes", [])),
++        "colors": list(token_spec.get("colors", [])),
++        "keywords": list(token_spec.get("keywords", [])),
++        "abilities": list(token_spec.get("abilities", [])),
++    }
++    if "power" in token_spec:
++        characteristics["power"] = int(token_spec["power"])
++    if "toughness" in token_spec:
++        characteristics["toughness"] = int(token_spec["toughness"])
++    token = GameObject(
++        executor.identity.new_id("object"),
++        ObjectKind.TOKEN_OBJECT,
++        Zone.BATTLEFIELD,
++        controller,
++        controller,
++        created_by_event_id=event.event_id,
++        current_characteristics=characteristics,
++        permanent_status={"tap": "UNTAPPED", "face": "FACE_UP", "phase": "PHASED_IN"},
++        identity_visible_to=set(executor.state.players),
++    )
++    executor.state.objects[token.object_id] = token
++    executor.zones.register(token)
++    executor._queue_etb(token)
++    return token
++
++
++def _exile_create_token(
++    executor: GameExecutor,
++    action: Action,
++    effect: dict[str, Any],
++    targets: list[GameObject],
++) -> None:
++    if len(targets) != 1:
++        raise IllegalAction("exile-and-token effect requires exactly one legal target")
++    target = targets[0]
++    controller = target.controller or target.owner
++    if controller is None:
++        raise IllegalAction("target has no player to create the token")
++    exile_event = executor._event(
++        "OBJECT_EXILED",
++        action,
++        target_object_id=target.object_id,
++    )
++    executor.zones.move(target.object_id, Zone.EXILE, "EXILE", exile_event)
++    token_spec = effect.get("token")
++    if not isinstance(token_spec, dict):
++        raise IllegalAction("exile-and-token effect omits its token specification")
++    _create_token(executor, controller, action, dict(token_spec))
++
++
+ def apply_phase_b_effect(
+     executor: GameExecutor,
+     source: GameObject | None,
+@@ -494,7 +560,7 @@
+ ) -> bool:
+     """Apply one Phase B primitive and report whether it was handled."""
+ 
+-    del source, targets
++    del source
+     kind = str(effect.get("kind", ""))
+     if kind in {"TRANSMUTE", "TYPECYCLE"}:
+         _search_to_hand(executor, action, effect, choices)
+@@ -502,4 +568,7 @@
+     if kind == "FACT_OR_FICTION_MINIMIZING":
+         _fact_or_fiction(executor, action, effect)
+         return True
++    if kind == "EXILE_CREATE_TOKEN":
++        _exile_create_token(executor, action, effect, targets)
++        return True
+     return False
