@@ -105,9 +105,7 @@ class ObservationService:
     def observe_for_policy(self, player_id: str) -> dict[str, Any]:
         return self.observe(player_id)
 
-    def handle_for_object(
-        self, player_id: str, generation: int, object_id: str
-    ) -> str | None:
+    def handle_for_object(self, player_id: str, generation: int, object_id: str) -> str | None:
         """Return the current opaque handle for a visible object without exposing its ID."""
         self.require_current_generation(generation)
         for handle, binding in self._handles.items():

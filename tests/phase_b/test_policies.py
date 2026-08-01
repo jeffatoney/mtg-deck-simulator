@@ -22,10 +22,22 @@ def test_discovery_validation_seeds_are_precommitted_and_disjoint() -> None:
 
 def test_mulligan_policy_compares_hypotheses_at_7_6_5_4() -> None:
     matrix = load_policy_matrix()
-    balanced = StandardPolicy(next(bundle for bundle in matrix if bundle.policy_config_id == "anchor_balanced"))
-    aggressive = StandardPolicy(next(bundle for bundle in matrix if bundle.policy_config_id == "anchor_aggressive"))
+    balanced = StandardPolicy(
+        next(bundle for bundle in matrix if bundle.policy_config_id == "anchor_balanced")
+    )
+    aggressive = StandardPolicy(
+        next(bundle for bundle in matrix if bundle.policy_config_id == "anchor_aggressive")
+    )
     names = ("Island", "Mountain", "Sol Ring", "Opt", "Abrade", "Twinflame", "Dualcaster Mage")
-    types = (("Land",), ("Land",), ("Artifact",), ("Instant",), ("Instant",), ("Sorcery",), ("Creature",))
+    types = (
+        ("Land",),
+        ("Land",),
+        ("Artifact",),
+        ("Instant",),
+        ("Instant",),
+        ("Sorcery",),
+        ("Creature",),
+    )
     assert balanced.decide_keep(7, names, types).keep
     assert aggressive.decide_keep(7, names, types).keep
     for size in (6, 5, 4):

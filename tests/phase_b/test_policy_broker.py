@@ -38,7 +38,9 @@ def test_broker_probes_the_production_executor_without_mutating_live_state() -> 
     assert tuple(state.actions) == before_actions
     assert {key: tuple(value) for key, value in state.zones.items()} == before_zones
     assert {action.kind for action in actions} >= {"PLAY_LAND", "CAST", "PASS_PRIORITY"}
-    encoded = json.dumps({"observation": observation, "actions": [action.__dict__ for action in actions]})
+    encoded = json.dumps(
+        {"observation": observation, "actions": [action.__dict__ for action in actions]}
+    )
     assert island.object_id not in encoded
     assert ring.object_id not in encoded
     assert island.component_card_instance_ids[0] not in encoded
@@ -61,7 +63,9 @@ def test_hidden_library_identity_never_enters_policy_observation_or_actions() ->
     _, executor, specs = scenario()
     hidden = add_card(executor, specs["Twinflame"], Zone.LIBRARY, visible_to=set())
     observation, actions = ActionBroker(executor, "P0").refresh()
-    encoded = json.dumps({"observation": observation, "actions": [action.__dict__ for action in actions]})
+    encoded = json.dumps(
+        {"observation": observation, "actions": [action.__dict__ for action in actions]}
+    )
     assert hidden.object_id not in encoded
     assert hidden.component_card_instance_ids[0] not in encoded
     assert "Twinflame" not in encoded
