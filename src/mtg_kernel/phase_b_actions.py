@@ -54,6 +54,107 @@ _EFFECT_WEIGHTS: dict[str, int] = {
     "EXILE_CREATE_TOKEN": 16,
 }
 
+# Broker-visible actions are limited to effect primitives that the production
+# executor can resolve without fallback.  This registry is deliberately smaller
+# than the declarative deck composition and must expand only with competency
+# evidence.
+_BROKER_SUPPORTED_EFFECTS = frozenset(
+    {
+        "NONE",
+        "ADD_MANA",
+        "ADD_CHOSEN_MANA",
+        "ATTACH_AURA",
+        "CREATE_SPELL_COPY",
+        "CREATE_TOKEN_COPIES",
+        "CREATE_TREASURES_FOR_DAMAGED_OPPONENTS",
+        "DAMAGE",
+        "DAMAGE_EACH_OPPONENT",
+        "DESTROY",
+        "DRAW",
+        "EXILE_CREATE_TOKEN",
+        "EXILE_OBJECTS",
+        "EXILE_OPPONENT_GRAVEYARDS",
+        "EXILE_TARGET",
+        "FACT_OR_FICTION_MINIMIZING",
+        "SCRY",
+        "TRANSMUTE",
+        "TYPECYCLE",
+    }
+)
+_BROKER_SUPPORTED_TRIGGERS = frozenset(
+    {
+        "CONTROLLER_DISCARDS",
+        "ENCHANTED_CREATURE_DAMAGE_TO_OPPONENT",
+        "ETB",
+        "PIRATE_DAMAGE_TO_OPPONENTS",
+    }
+)
+_BROKER_SUPPORTED_ENTRY_REPLACEMENTS = frozenset(
+    {"CHOOSE_COLOR_ENTER_TAPPED", "ENTER_TAPPED", "REVEAL_OR_ENTER_TAPPED"}
+)
+
+
+def effect_execution_supported(effect: dict[str, Any]) -> bool:
+    """Return whether the shared executor has a fail-closed implementation."""
+
+    kind = str(effect.get("kind", "NONE"))
+    if kind == "SEQUENCE":
+        return all(
+            effect_execution_supported(dict(child)) for child in effect.get("effects", ())
+        )
+    if kind == "SCRY":
+        return int(effect.get("count", 1)) == 1
+    return kind in _BROKER_SUPPORTED_EFFECTS
+
+
+def _effect_requires_explicit_choice(effect: dict[str, Any]) -> bool:
+    kind = str(effect.get("kind", "NONE"))
+    if kind == "SEQUENCE":
+        return any(
+            _effect_requires_explicit_choice(dict(child))
+            for child in effect.get("effects", ())
+        )
+    return kind in {"ADD_CHOSEN_MANA", "SCRY"}
+
+
+def automatic_ability_execution_supported(
+    ability: dict[str, Any], *, entering: bool
+) -> bool:
+    """Reject automatic behavior that could otherwise become a silent no-op."""
+
+    kind = str(ability.get("kind", ""))
+    effect = dict(ability.get("effect", {}))
+    if kind in {"SPELL", "ACTIVATED", "SPECIAL_ACTION"}:
+        return True
+    if kind == "STATIC":
+        return False
+    if kind == "REPLACEMENT":
+        if str(ability.get("event", "")) != "ENTERS_BATTLEFIELD":
+            return False
+        return str(effect.get("kind", "")) in _BROKER_SUPPORTED_ENTRY_REPLACEMENTS
+    if kind != "TRIGGERED":
+        return False
+    trigger = str(ability.get("trigger", ""))
+    if trigger == "ETB" and not entering:
+        return True
+    schema = dict(ability.get("target_schema", {}))
+    return bool(
+        trigger in _BROKER_SUPPORTED_TRIGGERS
+        and effect_execution_supported(effect)
+        and not ability.get("optional")
+        and int(schema.get("max", 0) or 0) == 0
+        and not _effect_requires_explicit_choice(effect)
+    )
+
+
+def object_automatic_execution_supported(obj: GameObject, *, entering: bool) -> bool:
+    """Check every automatic ability that can affect this object's legal state."""
+
+    return all(
+        automatic_ability_execution_supported(dict(ability), entering=entering)
+        for ability in obj.current_characteristics.get("abilities", ())
+    )
+
 
 def _ability_by_id(source: GameObject, ability_id: str, kind: str) -> dict[str, Any]:
     abilities = source.current_characteristics.get("abilities", [])
@@ -264,20 +365,31 @@ def _matches_tutor(obj: GameObject, effect: dict[str, Any]) -> bool:
     return False
 
 
+def _spec_matches_tutor(spec: Any, effect: dict[str, Any]) -> bool:
+    kind = str(effect.get("kind", ""))
+    if kind == "TRANSMUTE":
+        return int(spec.mana_value) == int(effect.get("mana_value", -2))
+    if kind == "TYPECYCLE":
+        selector = str(effect.get("subtype", ""))
+        if selector == "Basic Land":
+            return "Basic" in spec.supertypes and "Land" in spec.card_types
+        return selector in spec.subtypes
+    return False
+
+
 def legal_tutor_names(
     executor: GameExecutor, player_id: str, effect: dict[str, Any]
 ) -> tuple[str, ...]:
-    """Return identities that may be selected without exposing library order or object IDs."""
+    """Return deck-list candidates without inspecting current hidden library contents."""
 
-    return tuple(
-        sorted(
-            {
-                str(obj.current_characteristics.get("name", ""))
-                for obj in _library_objects(executor, player_id)
-                if _matches_tutor(obj, effect)
-            }
-        )
-    )
+    names: set[str] = set()
+    for instance in executor.state.card_instances.values():
+        if instance.owner_id != player_id or instance.commander_designation:
+            continue
+        spec = executor.state.card_specs[instance.card_spec_id]
+        if _spec_matches_tutor(spec, effect):
+            names.add(spec.name)
+    return tuple(sorted(names))
 
 
 def _search_to_hand(
@@ -289,23 +401,20 @@ def _search_to_hand(
     eligible = [
         obj for obj in _library_objects(executor, action.actor_id) if _matches_tutor(obj, effect)
     ]
-    selected_name = str(choices.get("tutor_name", ""))
-    if selected_name == "FAIL_TO_FIND":
-        selected: GameObject | None = None
-    else:
-        matches = [
-            obj
-            for obj in eligible
-            if str(obj.current_characteristics.get("name", "")) == selected_name
-        ]
-        if not matches:
-            raise IllegalAction("tutor choice does not name a legal card")
-        selected = min(matches, key=lambda obj: _deck_position(executor, obj))
+    requested_name = str(choices.get("tutor_name", "FAIL_TO_FIND"))
+    matches = [
+        obj
+        for obj in eligible
+        if str(obj.current_characteristics.get("name", "")) == requested_name
+    ]
+    selected = min(matches, key=lambda obj: _deck_position(executor, obj)) if matches else None
+    selected_name = requested_name if selected is not None else "FAIL_TO_FIND"
 
     choice_event = executor._event(
         "LIBRARY_SEARCH_CHOICE",
         action,
         search_kind=str(effect.get("kind", "")),
+        requested_name=requested_name,
         selected_name=selected_name,
     )
     executor.state.choices.append(

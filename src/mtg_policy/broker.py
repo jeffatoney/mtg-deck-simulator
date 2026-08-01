@@ -14,7 +14,15 @@ from mtg_kernel.hashing import state_hash
 from mtg_kernel.land_actions import play_land
 from mtg_kernel.models import GameObject, TargetRef, Zone
 from mtg_kernel.observation import ObservationService
-from mtg_kernel.phase_b_actions import activate_hand_ability, foretell, legal_tutor_names
+from mtg_kernel.phase_b_actions import (
+    activate_hand_ability,
+    effect_execution_supported,
+    foretell,
+    legal_tutor_names,
+    object_automatic_execution_supported,
+)
+
+PERMANENT_TYPES = {"Artifact", "Battle", "Creature", "Enchantment", "Planeswalker"}
 
 
 @dataclass(frozen=True)
@@ -151,11 +159,31 @@ class ActionBroker:
         }
 
     @staticmethod
-    def _ability_choice_variants(ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:
-        effect = dict(ability.get("effect", {}))
-        if effect.get("kind") == "ADD_CHOSEN_MANA":
+    def _effect_choice_variants(effect: dict[str, Any]) -> tuple[dict[str, Any], ...]:
+        kind = str(effect.get("kind", "NONE"))
+        if kind == "SEQUENCE":
+            variants: tuple[dict[str, Any], ...] = ({},)
+            for child in effect.get("effects", ()):
+                additions = ActionBroker._effect_choice_variants(dict(child))
+                variants = tuple({**base, **extra} for base in variants for extra in additions)
+            return variants
+        if kind == "ADD_CHOSEN_MANA":
             return tuple({"mana_color": str(color)} for color in effect.get("choices", ()))
+        if kind == "SCRY":
+            return ({"scry_to_bottom": False}, {"scry_to_bottom": True})
         return ({},)
+
+    @staticmethod
+    def _ability_choice_variants(ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:
+        return ActionBroker._effect_choice_variants(dict(ability.get("effect", {})))
+
+    @staticmethod
+    def _public_choice_metadata(choices: dict[str, Any]) -> dict[str, Any]:
+        metadata: dict[str, Any] = {}
+        for key in ("mana_color", "scry_to_bottom"):
+            if key in choices:
+                metadata[key] = choices[key]
+        return metadata
 
     def _land_choice_variants(self, obj: GameObject) -> tuple[dict[str, Any], ...]:
         variants: list[dict[str, Any]] = [{}]
@@ -195,7 +223,7 @@ class ActionBroker:
         return tuple(variants)
 
     def _public_land_metadata(self, choices: dict[str, Any]) -> dict[str, Any]:
-        metadata: dict[str, Any] = {}
+        metadata = self._public_choice_metadata(choices)
         if "chosen_color" in choices:
             metadata["chosen_color"] = str(choices["chosen_color"])
         reveal_id = choices.get("reveal_object_id")
@@ -221,37 +249,49 @@ class ActionBroker:
                 continue
             faces = obj.current_characteristics.get("faces", [])
             for face_index, face in enumerate(faces):
+                card_types = set(str(value) for value in face.get("card_types", ()))
+                if card_types.intersection(PERMANENT_TYPES) and not object_automatic_execution_supported(
+                    obj, entering=True
+                ):
+                    continue
                 modes = list(face.get("spell_modes", [])) or [self._permanent_spell_ability()]
-                for ability in modes:
+                for raw_ability in modes:
+                    ability = dict(raw_ability)
+                    if not effect_execution_supported(dict(ability.get("effect", {}))):
+                        continue
                     schema = dict(ability.get("target_schema", {}))
                     for targets in self._target_sets(self.player_id, schema):
-                        arguments = {
-                            "actor": self.player_id,
-                            "card_object_id": obj.object_id,
-                            "targets": targets,
-                            "face": face_index,
-                            "x_value": 0,
-                            "mode": ability.get("mode"),
-                            "choices": {},
-                        }
-                        if not self._probe("cast", arguments):
-                            continue
-                        target_handles = self._public_target_handles(targets)
-                        public = ObservedAction(
-                            "",
-                            "CAST",
-                            str(obj.current_characteristics.get("name")),
-                            int(face.get("mana_value", 0)),
-                            self._tags(obj, ability),
-                            len(targets),
-                            {
+                        for choices in self._ability_choice_variants(ability):
+                            arguments = {
+                                "actor": self.player_id,
+                                "card_object_id": obj.object_id,
+                                "targets": targets,
                                 "face": face_index,
+                                "x_value": 0,
                                 "mode": ability.get("mode"),
-                                "target_handles": target_handles,
-                                "cast_permission": ability.get("cast_permission", "NORMAL"),
-                            },
-                        )
-                        result.append(_InternalAction("cast", arguments, public))
+                                "choices": choices,
+                            }
+                            if not self._probe("cast", arguments):
+                                continue
+                            target_handles = self._public_target_handles(targets)
+                            public = ObservedAction(
+                                "",
+                                "CAST",
+                                str(obj.current_characteristics.get("name")),
+                                int(face.get("mana_value", 0)),
+                                self._tags(obj, ability),
+                                len(targets),
+                                {
+                                    "face": face_index,
+                                    "mode": ability.get("mode"),
+                                    "target_handles": target_handles,
+                                    "cast_permission": ability.get(
+                                        "cast_permission", "NORMAL"
+                                    ),
+                                    **self._public_choice_metadata(choices),
+                                },
+                            )
+                            result.append(_InternalAction("cast", arguments, public))
         return result
 
     def _candidate_activations(self) -> list[_InternalAction]:
@@ -259,12 +299,15 @@ class ActionBroker:
         for obj in self.executor.state.objects.values():
             if obj.retired or obj.zone is not Zone.BATTLEFIELD or obj.controller != self.player_id:
                 continue
-            for ability in obj.current_characteristics.get("abilities", []):
+            for raw_ability in obj.current_characteristics.get("abilities", []):
+                ability = dict(raw_ability)
                 if ability.get("kind") != "ACTIVATED":
+                    continue
+                if not effect_execution_supported(dict(ability.get("effect", {}))):
                     continue
                 schema = dict(ability.get("target_schema", {}))
                 for targets in self._target_sets(self.player_id, schema):
-                    for choices in self._ability_choice_variants(dict(ability)):
+                    for choices in self._ability_choice_variants(ability):
                         arguments = {
                             "actor": self.player_id,
                             "source_id": obj.object_id,
@@ -280,12 +323,12 @@ class ActionBroker:
                             "ACTIVATE",
                             str(obj.current_characteristics.get("name")),
                             0,
-                            self._tags(obj, dict(ability)),
+                            self._tags(obj, ability),
                             len(targets),
                             {
                                 "ability_id": ability["ability_id"],
                                 "target_handles": target_handles,
-                                **choices,
+                                **self._public_choice_metadata(choices),
                             },
                         )
                         result.append(_InternalAction("activate", arguments, public))
@@ -304,6 +347,8 @@ class ActionBroker:
                 if int(cost.get("discard", 0)) != 1:
                     continue
                 effect = dict(ability.get("effect", {}))
+                if not effect_execution_supported(effect):
+                    continue
                 kind = str(effect.get("kind", ""))
                 if kind in {"TRANSMUTE", "TYPECYCLE"}:
                     names = legal_tutor_names(self.executor, self.player_id, effect)
@@ -311,7 +356,7 @@ class ActionBroker:
                         {"tutor_name": "FAIL_TO_FIND"},
                     )
                 else:
-                    choice_variants = ({},)
+                    choice_variants = self._ability_choice_variants(ability)
                 schema = dict(ability.get("target_schema", {}))
                 for targets in self._target_sets(self.player_id, schema):
                     for choices in choice_variants:
@@ -345,6 +390,49 @@ class ActionBroker:
                                 ),
                             )
                         )
+        return result
+
+    def _candidate_commander_choices(self) -> list[_InternalAction]:
+        result: list[_InternalAction] = []
+        for object_id in self.executor.state.pending_commander_choices:
+            obj = self.executor.state.objects[object_id]
+            if obj.owner != self.player_id:
+                continue
+            handle = self.observations.handle_for_object(
+                self.player_id, self.generation, object_id
+            )
+            if handle is None:
+                raise UnsupportedCapability(
+                    "pending commander choice is not visible to its owner"
+                )
+            for return_to_command in (False, True):
+                arguments = {
+                    "player_id": self.player_id,
+                    "object_id": object_id,
+                    "return_to_command": return_to_command,
+                }
+                if not self._probe("commander_return_choice", arguments):
+                    continue
+                result.append(
+                    _InternalAction(
+                        "commander_return_choice",
+                        arguments,
+                        ObservedAction(
+                            "",
+                            "COMMANDER_RETURN",
+                            str(obj.current_characteristics.get("name", "")),
+                            0,
+                            ("COMMANDER_CHOICE",),
+                            0,
+                            {
+                                "object_handle": handle,
+                                "destination": "COMMAND"
+                                if return_to_command
+                                else obj.zone.value,
+                            },
+                        ),
+                    )
+                )
         return result
 
     def _candidate_special_actions(self) -> list[_InternalAction]:
@@ -386,47 +474,69 @@ class ActionBroker:
         observation = self.observations.observe_for_policy(self.player_id)
         self.generation = int(observation["generation"])
         self._state_token = state_hash(self.executor.state)
-        candidates: list[_InternalAction] = []
-        hand = self.executor.state.zones.get(f"{Zone.HAND.value}:{self.player_id}", [])
-        for object_id in hand:
-            obj = self.executor.state.objects[object_id]
-            if "Land" not in obj.current_characteristics.get("card_types", []):
-                continue
-            for choices in self._land_choice_variants(obj):
-                arguments = {
-                    "actor": self.player_id,
-                    "card_object_id": object_id,
-                    "choices": choices,
-                }
-                if self._probe("play_land", arguments):
-                    candidates.append(
-                        _InternalAction(
-                            "play_land",
-                            arguments,
-                            ObservedAction(
-                                "",
-                                "PLAY_LAND",
-                                str(obj.current_characteristics.get("name")),
-                                0,
-                                self._tags(obj),
-                                0,
-                                self._public_land_metadata(choices),
-                            ),
-                        )
-                    )
-        candidates.extend(self._candidate_casts())
-        candidates.extend(self._candidate_activations())
-        candidates.extend(self._candidate_hand_activations())
-        candidates.extend(self._candidate_special_actions())
-        pass_arguments = {"player_id": self.player_id}
-        if self._probe("pass_priority", pass_arguments):
-            candidates.append(
-                _InternalAction(
-                    "pass_priority",
-                    pass_arguments,
-                    ObservedAction("", "PASS_PRIORITY", None, 0, (), 0, {}),
+        candidates = self._candidate_commander_choices()
+        if self.executor.state.pending_commander_choices:
+            if not candidates:
+                raise UnsupportedCapability(
+                    "a pending commander choice requires its owning policy"
                 )
+        else:
+            unsafe = [
+                obj
+                for obj in self.executor.state.objects.values()
+                if not obj.retired
+                and not obj.ceased_to_exist
+                and obj.zone is Zone.BATTLEFIELD
+                and not object_automatic_execution_supported(obj, entering=False)
+            ]
+            if unsafe:
+                raise UnsupportedCapability(
+                    "battlefield contains unverified automatic behavior"
+                )
+            hand = self.executor.state.zones.get(
+                f"{Zone.HAND.value}:{self.player_id}", []
             )
+            for object_id in hand:
+                obj = self.executor.state.objects[object_id]
+                if "Land" not in obj.current_characteristics.get("card_types", []):
+                    continue
+                if not object_automatic_execution_supported(obj, entering=True):
+                    continue
+                for choices in self._land_choice_variants(obj):
+                    arguments = {
+                        "actor": self.player_id,
+                        "card_object_id": object_id,
+                        "choices": choices,
+                    }
+                    if self._probe("play_land", arguments):
+                        candidates.append(
+                            _InternalAction(
+                                "play_land",
+                                arguments,
+                                ObservedAction(
+                                    "",
+                                    "PLAY_LAND",
+                                    str(obj.current_characteristics.get("name")),
+                                    0,
+                                    self._tags(obj),
+                                    0,
+                                    self._public_land_metadata(choices),
+                                ),
+                            )
+                        )
+            candidates.extend(self._candidate_casts())
+            candidates.extend(self._candidate_activations())
+            candidates.extend(self._candidate_hand_activations())
+            candidates.extend(self._candidate_special_actions())
+            pass_arguments = {"player_id": self.player_id}
+            if self._probe("pass_priority", pass_arguments):
+                candidates.append(
+                    _InternalAction(
+                        "pass_priority",
+                        pass_arguments,
+                        ObservedAction("", "PASS_PRIORITY", None, 0, (), 0, {}),
+                    )
+                )
 
         self._actions.clear()
         public: list[ObservedAction] = []
