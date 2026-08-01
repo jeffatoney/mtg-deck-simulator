@@ -250,9 +250,9 @@ class ActionBroker:
             faces = obj.current_characteristics.get("faces", [])
             for face_index, face in enumerate(faces):
                 card_types = set(str(value) for value in face.get("card_types", ()))
-                if card_types.intersection(PERMANENT_TYPES) and not object_automatic_execution_supported(
-                    obj, entering=True
-                ):
+                if card_types.intersection(
+                    PERMANENT_TYPES
+                ) and not object_automatic_execution_supported(obj, entering=True):
                     continue
                 modes = list(face.get("spell_modes", [])) or [self._permanent_spell_ability()]
                 for raw_ability in modes:
@@ -285,9 +285,7 @@ class ActionBroker:
                                     "face": face_index,
                                     "mode": ability.get("mode"),
                                     "target_handles": target_handles,
-                                    "cast_permission": ability.get(
-                                        "cast_permission", "NORMAL"
-                                    ),
+                                    "cast_permission": ability.get("cast_permission", "NORMAL"),
                                     **self._public_choice_metadata(choices),
                                 },
                             )
@@ -398,13 +396,9 @@ class ActionBroker:
             obj = self.executor.state.objects[object_id]
             if obj.owner != self.player_id:
                 continue
-            handle = self.observations.handle_for_object(
-                self.player_id, self.generation, object_id
-            )
+            handle = self.observations.handle_for_object(self.player_id, self.generation, object_id)
             if handle is None:
-                raise UnsupportedCapability(
-                    "pending commander choice is not visible to its owner"
-                )
+                raise UnsupportedCapability("pending commander choice is not visible to its owner")
             for return_to_command in (False, True):
                 arguments = {
                     "player_id": self.player_id,
@@ -426,9 +420,7 @@ class ActionBroker:
                             0,
                             {
                                 "object_handle": handle,
-                                "destination": "COMMAND"
-                                if return_to_command
-                                else obj.zone.value,
+                                "destination": "COMMAND" if return_to_command else obj.zone.value,
                             },
                         ),
                     )
@@ -477,9 +469,7 @@ class ActionBroker:
         candidates = self._candidate_commander_choices()
         if self.executor.state.pending_commander_choices:
             if not candidates:
-                raise UnsupportedCapability(
-                    "a pending commander choice requires its owning policy"
-                )
+                raise UnsupportedCapability("a pending commander choice requires its owning policy")
         else:
             unsafe = [
                 obj
@@ -490,12 +480,8 @@ class ActionBroker:
                 and not object_automatic_execution_supported(obj, entering=False)
             ]
             if unsafe:
-                raise UnsupportedCapability(
-                    "battlefield contains unverified automatic behavior"
-                )
-            hand = self.executor.state.zones.get(
-                f"{Zone.HAND.value}:{self.player_id}", []
-            )
+                raise UnsupportedCapability("battlefield contains unverified automatic behavior")
+            hand = self.executor.state.zones.get(f"{Zone.HAND.value}:{self.player_id}", [])
             for object_id in hand:
                 obj = self.executor.state.objects[object_id]
                 if "Land" not in obj.current_characteristics.get("card_types", []):

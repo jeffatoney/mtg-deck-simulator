@@ -36,7 +36,11 @@ def test_broker_omits_casts_and_activations_without_execution_support() -> None:
 
     _, actions = ActionBroker(executor, "P0").refresh()
 
-    casts = {(action.identity, action.metadata.get("mode")) for action in actions if action.kind == "CAST"}
+    casts = {
+        (action.identity, action.metadata.get("mode"))
+        for action in actions
+        if action.kind == "CAST"
+    }
     assert ("Fact or Fiction", "default") in casts
     assert all(identity != "Aetherize" for identity, _mode in casts)
 
@@ -98,8 +102,7 @@ def test_tutor_action_descriptions_do_not_depend_on_current_hidden_library_conte
         and obj.current_characteristics.get("name") == "Sol Ring"
     ]
     assert any(
-        choice.kind == "TRANSMUTE" and choice.selected == "FAIL_TO_FIND"
-        for choice in state.choices
+        choice.kind == "TRANSMUTE" and choice.selected == "FAIL_TO_FIND" for choice in state.choices
     )
 
 

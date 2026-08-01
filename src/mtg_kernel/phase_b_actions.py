@@ -99,9 +99,7 @@ def effect_execution_supported(effect: dict[str, Any]) -> bool:
 
     kind = str(effect.get("kind", "NONE"))
     if kind == "SEQUENCE":
-        return all(
-            effect_execution_supported(dict(child)) for child in effect.get("effects", ())
-        )
+        return all(effect_execution_supported(dict(child)) for child in effect.get("effects", ()))
     if kind == "SCRY":
         return int(effect.get("count", 1)) == 1
     return kind in _BROKER_SUPPORTED_EFFECTS
@@ -111,15 +109,12 @@ def _effect_requires_explicit_choice(effect: dict[str, Any]) -> bool:
     kind = str(effect.get("kind", "NONE"))
     if kind == "SEQUENCE":
         return any(
-            _effect_requires_explicit_choice(dict(child))
-            for child in effect.get("effects", ())
+            _effect_requires_explicit_choice(dict(child)) for child in effect.get("effects", ())
         )
     return kind in {"ADD_CHOSEN_MANA", "SCRY"}
 
 
-def automatic_ability_execution_supported(
-    ability: dict[str, Any], *, entering: bool
-) -> bool:
+def automatic_ability_execution_supported(ability: dict[str, Any], *, entering: bool) -> bool:
     """Reject automatic behavior that could otherwise become a silent no-op."""
 
     kind = str(ability.get("kind", ""))
