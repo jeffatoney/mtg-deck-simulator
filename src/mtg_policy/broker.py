@@ -37,8 +37,8 @@ class ActionBroker(_CoreActionBroker):
     ) -> tuple[tuple[dict[str, Any], dict[str, Any]], ...]:
         """Enumerate policy-visible choices for supported targeted ETB triggers.
 
-        Automatic ETB behavior that needs no policy decision remains implicit.  Any
-        unsupported automatic ability still suppresses the cast.  Targeted,
+        Automatic ETB behavior that needs no policy decision remains implicit. Any
+        unsupported automatic ability still suppresses the cast. Targeted,
         nonoptional ETB triggers with supported effects are made explicit in the
         cast action, using opaque public handles while retaining object IDs only in
         the broker's private execution arguments.
@@ -145,13 +145,90 @@ class ActionBroker(_CoreActionBroker):
                                         "face": face_index,
                                         "mode": ability.get("mode"),
                                         "target_handles": target_handles,
-                                        "cast_permission": ability.get("cast_permission", "NORMAL"),
+                                        "cast_permission": ability.get(
+                                            "cast_permission", "NORMAL"
+                                        ),
                                         **self._public_choice_metadata(spell_choices),
                                         **entry_public,
                                     },
                                 )
                                 result.append(_InternalAction("cast", arguments, public))
         return result
+
+    def _candidate_hand_activations(self) -> list[_InternalAction]:
+        """Expose one activation; choose a hidden-zone identity at resolution."""
+
+        from mtg_kernel.phase_b_actions import legal_tutor_names
+
+        result: list[_InternalAction] = []
+        hand = self.executor.state.zones.get(f"{Zone.HAND.value}:{self.player_id}", [])
+        for object_id in hand:
+            obj = self.executor.state.objects[object_id]
+            for raw_ability in obj.current_characteristics.get("abilities", []):
+                ability = dict(raw_ability)
+                if ability.get("kind") != "ACTIVATED":
+                    continue
+                cost = dict(ability.get("cost", {}))
+                if int(cost.get("discard", 0)) != 1:
+                    continue
+                effect = dict(ability.get("effect", {}))
+                if not effect_execution_supported(effect):
+                    continue
+                kind = str(effect.get("kind", ""))
+                tutor_names: tuple[str, ...] = ()
+                choice_variants: tuple[dict[str, Any], ...]
+                if kind in {"TRANSMUTE", "TYPECYCLE"}:
+                    tutor_names = legal_tutor_names(self.executor, self.player_id, effect)
+                    choice_variants = ({},)
+                else:
+                    choice_variants = self._ability_choice_variants(ability)
+                schema = dict(ability.get("target_schema", {}))
+                for targets in self._target_sets(self.player_id, schema):
+                    for choices in choice_variants:
+                        arguments = {
+                            "actor": self.player_id,
+                            "source_id": obj.object_id,
+                            "ability_id": str(ability["ability_id"]),
+                            "targets": targets,
+                            "choices": choices,
+                        }
+                        if not self._probe("activate_hand", arguments):
+                            continue
+                        metadata: dict[str, Any] = {
+                            "ability_id": ability["ability_id"],
+                            "target_handles": self._public_target_handles(targets),
+                        }
+                        if tutor_names:
+                            metadata["eligible_tutor_identities"] = tutor_names
+                            metadata["choice_timing"] = "RESOLUTION"
+                        result.append(
+                            _InternalAction(
+                                "activate_hand",
+                                arguments,
+                                ObservedAction(
+                                    "",
+                                    "ACTIVATE_HAND",
+                                    str(obj.current_characteristics.get("name", "")),
+                                    0,
+                                    self._tags(obj, ability),
+                                    len(targets),
+                                    metadata,
+                                ),
+                            )
+                        )
+        return result
+
+    def refresh(self) -> tuple[dict[str, Any], tuple[ObservedAction, ...]]:
+        tracker = getattr(self.executor, "combo_access_tracker", None)
+        if tracker is not None:
+            tracker.observe(self.executor)
+        return super().refresh()
+
+    def execute(self, generation: int, action_handle: str) -> None:
+        super().execute(generation, action_handle)
+        tracker = getattr(self.executor, "combo_access_tracker", None)
+        if tracker is not None:
+            tracker.observe(self.executor)
 
 
 __all__ = ["ActionBroker", "ObservedAction"]

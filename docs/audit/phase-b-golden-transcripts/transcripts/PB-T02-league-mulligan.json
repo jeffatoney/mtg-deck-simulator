@@ -1,31 +1,14 @@
 {
+  "evidence_scope": "MECHANIC_ISOLATION",
   "family_id": "league-mulligan-draw-back-seven",
   "machine": {
-    "ordered_operations": [
-      "present successive candidate hands",
-      "record the keep level",
-      "draw exactly seven minus kept-size refill cards"
-    ],
-    "preconditions": [
-      "The league mulligan examines hands at seven, six, five, and four."
-    ],
-    "required_assertions": [
-      "kept level is one of 7, 6, 5, or 4",
-      "final hand size is seven",
-      "refill count equals seven minus keep level"
-    ],
-    "required_event_order": [
-      "MULLIGAN_HAND_PRESENTED",
-      "MULLIGAN_KEEP_RECORDED",
-      "MULLIGAN_REFILL_DRAWN"
-    ],
+    "ordered_operations": ["present successive candidate hands", "record the keep level", "draw exactly seven minus kept-size refill cards"],
+    "preconditions": ["The league mulligan examines hands at seven, six, five, and four."],
+    "required_assertions": ["kept level is one of 7, 6, 5, or 4", "final hand size is seven", "refill count equals seven minus keep level"],
+    "required_event_order": ["MULLIGAN_HAND_PRESENTED", "MULLIGAN_KEEP_RECORDED", "MULLIGAN_REFILL_DRAWN"],
     "test_node": "tests/phase_b/test_league_mulligan.py::test_league_mulligan_keeps_at_7_6_5_or_4_then_draws_back_to_seven"
   },
-  "plain_english": [
-    "The league mulligan examines hands at seven, six, five, and four.",
-    "The player never goes below four.",
-    "After a keep below seven, refill cards restore a seven-card hand."
-  ],
+  "plain_english": ["The league mulligan examines hands at seven, six, five, and four.", "The player never goes below four.", "After a keep below seven, refill cards restore a seven-card hand."],
   "schema_version": "phase-b-golden-transcript-v1",
   "title": "League mulligan keeps at 7, 6, 5, or 4 then refills to seven",
   "transcript_id": "PB-T02-league-mulligan"

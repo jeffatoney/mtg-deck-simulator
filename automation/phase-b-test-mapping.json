@@ -1,27 +1,38 @@
 {
   "requirements": {
+    "B-COMBO-001": [
+      "tests/phase_b/test_continuous_combo_access.py",
+      "tests/phase_b/test_strategic_evaluation.py::test_canonical_policy_fails_closed_on_unadjudicated_dualcaster_twinflame_loop",
+      "tests/phase_b/test_corrective_resolution_choices.py::test_actual_dualcaster_twinflame_line_is_bounded_by_policy_choice"
+    ],
     "B-COVERAGE-001": [
       "tests/phase_b/test_full_deck.py::test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
     ],
+    "B-EVALUATOR-001": [
+      "tests/phase_b/test_strategic_evaluation.py",
+      "tests/phase_b/test_corrective_resolution_choices.py::test_exact_deck_fact_or_fiction_keeps_twinflame_over_excess_lands"
+    ],
     "B-HIDDEN-001": [
       "tests/phase_b/test_policy_broker.py::test_hidden_library_identity_never_enters_policy_observation_or_actions"
     ],
     "B-LEGALITY-001": [
       "tests/phase_b/test_policy_broker.py::test_broker_probes_the_production_executor_without_mutating_live_state",
-      "tests/phase_b/test_policy_broker.py::test_broker_handles_are_one_shot_and_state_bound"
+      "tests/phase_b/test_policy_broker.py::test_broker_handles_are_one_shot_and_state_bound",
+      "tests/phase_b/test_corrective_resolution_choices.py::test_exact_deck_transmute_selects_singleton_at_resolution"
     ],
     "B-MANIFEST-001": [
       "tests/phase_b/test_manifests.py"
     ],
     "B-MEASURE-001": [
-      "tests/phase_b/test_measurements.py"
+      "tests/phase_b/test_measurements.py",
+      "tests/phase_b/test_continuous_combo_access.py"
     ],
     "B-OPPONENT-001": [
       "tests/phase_b/test_behavioral_scenarios.py::test_breeches_unknown_cards_are_recorded_but_never_deterministic_resources",
-      "tests/phase_b/test_hand_actions.py::test_fact_or_fiction_minimizes_frozen_evaluation_and_records_both_choices"
+      "tests/phase_b/test_hand_actions.py::test_fact_or_fiction_uses_contextual_policy_evaluation_and_records_both_choices"
     ],
     "B-PHASE-A-001": [
       "tests/phase_b/test_phase_a_regression.py"
@@ -30,11 +41,13 @@
       "tests/phase_b/test_pilot_lock.py"
     ],
     "B-POLICY-001": [
-      "tests/phase_b/test_policies.py"
+      "tests/phase_b/test_policies.py",
+      "tests/phase_b/test_strategic_evaluation.py::test_content_addressed_learned_snapshot_can_be_selected_as_a_policy_button"
     ],
     "B-REPLAY-001": [
       "tests/phase_b/test_replay_audit.py",
-      "tests/phase_b/test_behavioral_scenarios.py::test_fresh_process_replay_measurement_and_worker_invariance_with_terminal_short_circuit"
+      "tests/phase_b/test_behavioral_scenarios.py::test_fresh_process_replay_measurement_and_worker_invariance_with_terminal_short_circuit",
+      "tests/phase_b/test_corrective_resolution_choices.py::test_exact_deck_fact_or_fiction_keeps_twinflame_over_excess_lands"
     ],
     "B-RULES-001": [
       "tests/phase_b/test_behavioral_scenarios.py::test_malcolm_treasure_count_uses_exact_damaged_opponent_set",

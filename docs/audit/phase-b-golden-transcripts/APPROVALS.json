@@ -1,113 +1,17 @@
 {
   "approvals": [
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T01-exact-deck.json",
-      "sha256": "55e2b5dacf2540981dd17cf4a8941550d8e0f524cb47dcac7f45199e2fb46351",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T01-exact-deck"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T02-league-mulligan.json",
-      "sha256": "5aabff714e3968319f8a1d6aae8943cb0fe056a98176289d6682940d7b1943cf",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T02-league-mulligan"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T03-malcolm-opponents.json",
-      "sha256": "69284521bb6bd87c69ec8fc5e4c741800af168c881a2773cd1085f31e003a774",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T03-malcolm-opponents"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T04-breeches-unknown.json",
-      "sha256": "2ab538a3067e86bb01b9e203f7c9aafa6f91a88a72b62e2ff51b08f6ab7d4d27",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T04-breeches-unknown"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T05-dualcaster-twinflame.json",
-      "sha256": "3f9769a84eedf8ae51f1b1ceb6ea82269e4ee350811bf95fd86858232bdd5fcb",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T05-dualcaster-twinflame"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T06-glint-curiosity-terminal.json",
-      "sha256": "d0f987e4a9b9a7b671896aa6cee6c358ad0733a9fdc07788781e071b8043ee23",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T06-glint-curiosity-terminal"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T07-tutor-one.json",
-      "sha256": "0a2fa4e436891c3af222cb7a18e772e773b9cc7b76abb177c92eb738fd4c7a5b",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T07-tutor-one"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T08-modal-x-alt.json",
-      "sha256": "4c40bcadb38b7792eb2f88b26db26d47a11b8b9b7668e7e126a7c3ef084cadc1",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T08-modal-x-alt"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T09-fact-min.json",
-      "sha256": "484a5fd48c5860cdf39827f7d4ac8784e53d3444b31b2c9eb543e1b840835656",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T09-fact-min"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T10-hidden-future.json",
-      "sha256": "bbf9befdb7852a26a87a810588bef732f61c8d56fd452f7971042be5d8423fce",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T10-hidden-future"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T11-shared-broker.json",
-      "sha256": "0db1d997107c8be937664744316000b5010e4672cf902eb9d217947d55eb159b",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T11-shared-broker"
-    },
-    {
-      "approval_statement": null,
-      "approved_at": null,
-      "approved_by": null,
-      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T12-replay-invariance.json",
-      "sha256": "d880b77db00e2ebda5976e5442b7a16eabafb862954ea6092d76bbac45b48aa5",
-      "status": "PENDING_OWNER_APPROVAL",
-      "transcript_id": "PB-T12-replay-invariance"
-    }
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T01-exact-deck.json", "sha256": "91dd901592e1d1afd87dade6f6ea814ea60939dc588b9eb7001da0aeb92bf61f", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T01-exact-deck"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T02-league-mulligan.json", "sha256": "0e99318ea861cdca6046c997e1b1d03128d91a0674a90993abef3f97a1ca9290", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T02-league-mulligan"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T03-malcolm-opponents.json", "sha256": "73fff1e4da53e0bff0e59954bf0243f60f1e2c566da792ed4c9fc92b13adc752", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T03-malcolm-opponents"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T04-breeches-unknown.json", "sha256": "e207b11632d98617b1ead1d435e2c6050a97495ea3d04374ef71e7e3af02bba7", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T04-breeches-unknown"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T05-dualcaster-twinflame.json", "sha256": "c1251070a71ffa1864c8d583f9a527cd0220c3e93e88d32947ba0c5ceb5c9048", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T05-dualcaster-twinflame"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T06-glint-curiosity-terminal.json", "sha256": "6f8a5c23d7c726bdb31b54a1f00579291d7d2fe246a844b772068ebf9265fb4e", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T06-glint-curiosity-terminal"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T07-tutor-one.json", "sha256": "70c8f49d714be889d73618c2dae058ebbd80048fe43e04bf1c3d5dcff5b4e8f5", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T07-tutor-one"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T08-modal-x-alt.json", "sha256": "ebb5fc8939d5cd37fce1476b7cab77be96069cce8c6fab472812dad498fe0ab5", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T08-modal-x-alt"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T09-fact-min.json", "sha256": "4689e02965e0c707dd1e310ff361485e5f13b82548bddae7d7d5f344548570f5", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T09-fact-min"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T10-hidden-future.json", "sha256": "b243d482a9af292e7d39899174e1b32df56167fbafe5108b48bf49cd439b86e4", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T10-hidden-future"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T11-shared-broker.json", "sha256": "eff3a1419632a248ae5194b2369fe20e6d8cb54109bdb7334ce4c20314d0c67c", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T11-shared-broker"},
+    {"approval_statement": null, "approved_at": null, "approved_by": null, "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T12-replay-invariance.json", "sha256": "132bd94a1f8bb2b5f944b41052a4d61bfbd43cfad725685263e18e37baac20bc", "status": "PENDING_OWNER_APPROVAL", "transcript_id": "PB-T12-replay-invariance"}
   ],
   "required_count": 12,
   "schema_version": "phase-b-golden-transcript-approvals-v1"

@@ -1,39 +1,22 @@
 {
+  "evidence_scope": "EXACT_DECK_INTEGRATION",
   "family_id": "dualcaster-twinflame-not-cast",
   "machine": {
     "ordered_operations": [
-      "load the exact full-deck Oracle specifications",
-      "cast Opt through the shared ActionBroker",
-      "cast Dualcaster Mage through the shared ActionBroker with an explicit ETB target handle",
-      "resolve the Dualcaster ETB trigger and copied spell",
-      "cast Twinflame through the shared ActionBroker targeting two controlled creatures",
-      "resolve the delayed exile triggers"
+      "move the exact singleton Dualcaster Mage and Twinflame to hand and Malcolm to the battlefield",
+      "cast Twinflame targeting Malcolm",
+      "cast Dualcaster Mage and choose the original Twinflame for its ETB trigger",
+      "resolve copied Twinflames and token Dualcaster ETB triggers through opaque strategic choices",
+      "continue twice to prove the repeatable loop with an audit-only witness",
+      "record an explicit audit-witness choice that stops the line"
     ],
-    "preconditions": [
-      "The full-deck package supplies Opt, Dualcaster Mage, Twinflame, Malcolm, and Glint-Horn Buccaneer.",
-      "The acting policy receives only observations and opaque broker action handles."
-    ],
-    "required_assertions": [
-      "the Dualcaster cast action exposes the original Opt spell only through an opaque trigger target handle",
-      "spell-copy was_cast is false",
-      "spell-copy component identities are empty",
-      "Twinflame token copies are synthetic and cease after delayed exile"
-    ],
-    "required_event_order": [
-      "SPELL_CAST",
-      "TRIGGER_PUT_ON_STACK",
-      "SPELL_COPIED",
-      "STACK_OBJECT_RESOLVED",
-      "DELAYED_EXILE"
-    ],
-    "test_node": "tests/phase_b/test_dualcaster_broker_path.py::test_dualcaster_twinflame_execute_through_full_deck_broker_path"
+    "preconditions": ["The scenario is constructed with build_exact_game().", "An audit-only loop-witness provider is fixed before the line starts; it is not eligible as a canonical simulation policy."],
+    "required_assertions": ["every Twinflame spell copy has was_cast false", "spell copies have no physical-card components", "token Dualcasters receive their ETB triggers", "both continue-loop and stop-loop audit decisions are recorded", "the audit witness terminates after two token Dualcasters without claiming that two tokens are the canonical combo outcome"],
+    "required_event_order": ["SPELL_CAST", "ABILITY_TRIGGERED", "SPELL_COPIED", "TOKEN_CREATED", "ABILITY_TRIGGERED", "COPY_TARGETS"],
+    "test_node": "tests/phase_b/test_corrective_resolution_choices.py::test_actual_dualcaster_twinflame_line_is_bounded_by_policy_choice"
   },
-  "plain_english": [
-    "The exact deck's Opt, Dualcaster Mage, and Twinflame are selected and cast through the same opaque ActionBroker used by Phase B policy code.",
-    "Dualcaster's ETB target is represented to policy by an opaque handle, and the resulting spell copy has no physical-card component and was not cast.",
-    "Twinflame creates synthetic token copies through the broker path and the delayed triggers exile those copies at the next end step."
-  ],
+  "plain_english": ["The exact frozen deck supplies the singleton Dualcaster Mage, Twinflame, and Malcolm used in the line.", "Dualcaster copies Twinflame, and copied Twinflames are spell copies that were not cast and have no physical-card component.", "Token Dualcasters trigger normally, while an audit-only bounded witness continues twice and deliberately stops; canonical loop adjudication remains fail-closed until it can prove the table-kill outcome."],
   "schema_version": "phase-b-golden-transcript-v1",
-  "title": "Dualcaster and Twinflame preserve copied-spell-not-cast identity through the Phase B broker",
+  "title": "The actual Dualcaster and Twinflame line is legal, copied-not-cast, and policy-bounded",
   "transcript_id": "PB-T05-dualcaster-twinflame"
 }

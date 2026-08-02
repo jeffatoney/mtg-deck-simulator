@@ -44,6 +44,8 @@ def main() -> int:
     if set(active).intersection(archival):
         errors.append("Phase B paths are classified as both active and archival")
     expected_locked = {
+        "4800 evaluator discovery comparisons",
+        "1000 evaluator validation examples",
         "500 standard pilot games",
         "200 exploratory pilot games",
         "20000 standard study games",
@@ -60,6 +62,8 @@ def main() -> int:
         "B-HIDDEN-001",
         "B-OPPONENT-001",
         "B-POLICY-001",
+        "B-EVALUATOR-001",
+        "B-COMBO-001",
         "B-SEARCH-001",
         "B-MEASURE-001",
         "B-REPLAY-001",

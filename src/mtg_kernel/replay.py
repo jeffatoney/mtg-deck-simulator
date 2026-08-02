@@ -11,6 +11,7 @@ from mtg_kernel.errors import ReplayError
 from mtg_kernel.hashing import state_hash
 from mtg_kernel.models import GameState
 from mtg_kernel.serialization import state_from_data
+from mtg_kernel.strategic_choices import RecordedStrategicChoiceProvider
 
 TRANSCRIPT_SCHEMA = "phase-a-replay-v2"
 
@@ -81,7 +82,15 @@ def validate_replay(expected: dict[str, Any]) -> GameState:
         state = state_from_data(initial)
         from mtg_kernel.engine import GameExecutor
 
-        executor = GameExecutor(state, str(expected.get("seed", "phase-a")), replaying=True)
+        recorded_choices = expected.get("choices", [])
+        if not isinstance(recorded_choices, list):
+            raise ReplayError("transcript choices are malformed")
+        executor = GameExecutor(
+            state,
+            str(expected.get("seed", "phase-a")),
+            replaying=True,
+            strategic_choice_provider=RecordedStrategicChoiceProvider(recorded_choices),
+        )
         for command in commands:
             if not isinstance(command, dict):
                 raise ReplayError("replay command is malformed")

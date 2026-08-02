@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from mtg_kernel import phase_b_actions_core as _core
 from mtg_kernel.models import Choice, GameObject
 from mtg_kernel.phase_b_actions_core import (
     activate_hand_ability,
@@ -19,10 +18,6 @@ if TYPE_CHECKING:
     from mtg_kernel.engine import GameExecutor
     from mtg_kernel.models import Action
 
-_core._BROKER_SUPPORTED_EFFECTS = frozenset(
-    {*_core._BROKER_SUPPORTED_EFFECTS, "RECORD_UNKNOWN_BREECHES_EXILES"}
-)
-
 
 def apply_phase_b_effect(
     executor: GameExecutor,
@@ -35,7 +30,9 @@ def apply_phase_b_effect(
     """Apply the public Phase B primitive set without silent fallback."""
 
     if str(effect.get("kind", "")) != "RECORD_UNKNOWN_BREECHES_EXILES":
-        return _core.apply_phase_b_effect(executor, source, action, effect, targets, choices)
+        from mtg_kernel.phase_b_actions_core import apply_phase_b_effect as apply_core
+
+        return apply_core(executor, source, action, effect, targets, choices)
     opponents = (
         tuple(source.current_characteristics.get("trigger_context", {}).get("opponents", ()))
         if source is not None

@@ -4,15 +4,19 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any
 
+from mtg_policy.evaluation import load_evaluator_config, load_learned_evaluator_config
+from mtg_policy.learning import load_learning_plan
+
 ROOT = Path(__file__).resolve().parents[2]
 POLICIES = ROOT / "configs/policies.yaml"
 SEEDS = ROOT / "configs/policy_seeds.json"
+APPROVED_SNAPSHOTS = ROOT / "configs/evaluators/approved_snapshots"
 
 REQUIRED_AXES = {
     "mulligan_style",
@@ -26,6 +30,9 @@ REQUIRED_AXES = {
     "velocity_plan",
     "muddle_use",
     "glint_horn_use",
+    "evaluator_snapshot_id",
+    "evaluator_snapshot_sha256",
+    "learning_plan_sha256",
 }
 
 
@@ -48,6 +55,8 @@ class PolicyBundle:
     policy_config_id: str
     values: Mapping[str, Any]
     config_hash: str
+    evaluator_snapshot_id: str
+    evaluator_snapshot_sha256: str
 
     def value(self, name: str) -> Any:
         return self.values[name]
@@ -59,7 +68,26 @@ class SeedSplit:
     validation: tuple[int, ...]
 
 
-def load_policy_matrix(path: Path | None = None) -> tuple[PolicyBundle, ...]:
+def _evaluator_registry(snapshot_paths: Sequence[Path] = ()) -> dict[tuple[str, str], Any]:
+    baseline = load_evaluator_config()
+    result: dict[tuple[str, str], Any] = {
+        (baseline.evaluator_id, baseline.config_sha256): baseline
+    }
+    committed = tuple(sorted(APPROVED_SNAPSHOTS.glob("*/snapshot.json"))) if APPROVED_SNAPSHOTS.is_dir() else ()
+    for snapshot_path in (*committed, *snapshot_paths):
+        learned = load_learned_evaluator_config(snapshot_path)
+        key = (learned.evaluator_id, learned.config_sha256)
+        if key in result:
+            raise ValueError(f"duplicate evaluator snapshot binding: {key[0]}")
+        result[key] = learned
+    return result
+
+
+def load_policy_matrix(
+    path: Path | None = None,
+    *,
+    evaluator_snapshot_paths: Sequence[Path] = (),
+) -> tuple[PolicyBundle, ...]:
     source = path or POLICIES
     payload = json.loads(source.read_text(encoding="utf-8"))
     policies = payload.get("policies")
@@ -68,6 +96,8 @@ def load_policy_matrix(path: Path | None = None) -> tuple[PolicyBundle, ...]:
     if payload.get("full_factorial_run") is not False:
         raise ValueError("Phase B policy screening must not claim a full-factorial run")
 
+    evaluators = _evaluator_registry(evaluator_snapshot_paths)
+    learning_plan = load_learning_plan()
     result: list[PolicyBundle] = []
     ids: set[str] = set()
     for raw in policies:
@@ -88,7 +118,23 @@ def load_policy_matrix(path: Path | None = None) -> tuple[PolicyBundle, ...]:
         recorded = str(raw.get("config_hash", ""))
         if recorded != expected:
             raise ValueError(f"policy {policy_id} config_hash mismatch")
-        result.append(PolicyBundle(policy_id, _freeze(dict(raw)), recorded))
+        evaluator_id = str(raw.get("evaluator_snapshot_id", "")).strip()
+        evaluator_sha = str(raw.get("evaluator_snapshot_sha256", "")).strip()
+        if not evaluator_id or len(evaluator_sha) != 64:
+            raise ValueError(f"policy {policy_id} has an invalid evaluator snapshot binding")
+        if (evaluator_id, evaluator_sha) not in evaluators:
+            raise ValueError(f"policy {policy_id} references an unavailable evaluator snapshot")
+        if str(raw.get("learning_plan_sha256", "")) != learning_plan.plan_sha256:
+            raise ValueError(f"policy {policy_id} references a different learning plan")
+        result.append(
+            PolicyBundle(
+                policy_id,
+                _freeze(dict(raw)),
+                recorded,
+                evaluator_id,
+                evaluator_sha,
+            )
+        )
     return tuple(result)
 
 

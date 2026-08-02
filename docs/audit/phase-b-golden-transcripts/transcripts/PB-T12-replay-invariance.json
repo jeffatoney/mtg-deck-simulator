@@ -1,4 +1,5 @@
 {
+  "evidence_scope": "REPLAY_AUDIT",
   "family_id": "replay-measurement-manifest-terminal-invariance",
   "machine": {
     "ordered_operations": [

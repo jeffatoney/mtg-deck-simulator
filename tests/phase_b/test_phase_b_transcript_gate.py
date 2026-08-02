@@ -38,6 +38,12 @@ def test_twelve_digest_bound_transcript_candidates_execute_and_cover_all_familie
     assert result["count"] == 12
     assert len({item["family_id"] for item in result["transcripts"]}) == 12
     assert len({item["sha256"] for item in result["transcripts"]}) == 12
+    assert {item["evidence_scope"] for item in result["transcripts"]} == {
+        "EXACT_DECK_INTEGRATION",
+        "MECHANIC_ISOLATION",
+        "POLICY_INTEGRATION",
+        "REPLAY_AUDIT",
+    }
 
 
 def test_pending_owner_approval_blocks_strict_phase_b_gate() -> None:
@@ -64,6 +70,36 @@ def test_transcript_change_after_digest_binding_is_rejected(tmp_path: Path) -> N
             root=sandbox,
             collected_nodes=_nodes(SOURCE),
             expected_approval_document_sha256=approval_sha,
+            allow_pending=True,
+            execute=False,
+        )
+
+
+def test_exact_deck_scope_cannot_point_to_synthetic_fixture(tmp_path: Path) -> None:
+    sandbox = tmp_path / "repo"
+    destination = sandbox / "docs/audit/phase-b-golden-transcripts"
+    shutil.copytree(SOURCE, destination)
+    approvals_path = destination / "APPROVALS.json"
+    approvals = json.loads(approvals_path.read_text(encoding="utf-8"))
+    entry = next(
+        item
+        for item in approvals["approvals"]
+        if item["transcript_id"] == "PB-T03-malcolm-opponents"
+    )
+    transcript_path = sandbox / entry["path"]
+    document = json.loads(transcript_path.read_text(encoding="utf-8"))
+    document["evidence_scope"] = "EXACT_DECK_INTEGRATION"
+    transcript_path.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n")
+    from check_phase_b_golden_transcripts import transcript_digest
+
+    entry["sha256"] = transcript_digest(document)
+    approvals_path.write_text(json.dumps(approvals, indent=2, sort_keys=True) + "\n")
+    with pytest.raises(ValueError, match="does not use build_exact_game"):
+        validate_phase_b_transcripts(
+            destination / "transcripts",
+            approvals_path,
+            root=sandbox,
+            collected_nodes=_nodes(SOURCE),
             allow_pending=True,
             execute=False,
         )

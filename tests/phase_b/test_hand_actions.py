@@ -15,6 +15,12 @@ from mtg_kernel.models import ObjectKind, TargetRef, Zone
 from mtg_kernel.observation import ObservationService
 from mtg_kernel.phase_b_actions import activate_hand_ability, foretell
 from mtg_kernel.replay import transcript, validate_replay
+from mtg_policy import (
+    ContextualEvaluator,
+    PolicyStrategicChoiceProvider,
+    load_evaluator_config,
+    load_policy_matrix,
+)
 from mtg_policy.broker import ActionBroker
 
 PLAYERS = ("P0", "P1", "P2", "P3")
@@ -28,6 +34,12 @@ def funded_game(seed: str = "phase-b-actions"):
     state, executor = new_game(PLAYERS, seed)
     for symbol in ("W", "U", "B", "R", "G", "C"):
         state.players["P0"].mana_pool[symbol] = 30
+    executor.bind_strategic_choice_provider(
+        PolicyStrategicChoiceProvider(
+            load_policy_matrix()[0],
+            ContextualEvaluator(load_evaluator_config()),
+        )
+    )
     return state, executor, specs_by_name()
 
 
@@ -57,23 +69,11 @@ def test_transmute_is_sorcery_speed_stack_action_with_discard_cost_and_search() 
     state.turn.phase = "COMBAT"
     before = state_hash(state)
     with pytest.raises(IllegalAction, match="sorcery timing"):
-        activate_hand_ability(
-            executor,
-            "P0",
-            dizzy.object_id,
-            "dizzy-spell:transmute",
-            choices={"tutor_name": "Sol Ring"},
-        )
+        activate_hand_ability(executor, "P0", dizzy.object_id, "dizzy-spell:transmute")
     assert state_hash(state) == before
 
     state.turn.phase = "PRECOMBAT_MAIN"
-    ability = activate_hand_ability(
-        executor,
-        "P0",
-        dizzy.object_id,
-        "dizzy-spell:transmute",
-        choices={"tutor_name": "Sol Ring"},
-    )
+    ability = activate_hand_ability(executor, "P0", dizzy.object_id, "dizzy-spell:transmute")
     assert ability.object_kind is ObjectKind.ACTIVATED_ABILITY
     assert state.stack == [ability.object_id]
     assert active_objects(state, name="Dizzy Spell", zone=Zone.GRAVEYARD)
@@ -86,7 +86,8 @@ def test_transmute_is_sorcery_speed_stack_action_with_discard_cost_and_search() 
     assert len(rings) == 1
     assert rings[0].component_card_instance_ids == first_ring.component_card_instance_ids
     assert any(
-        choice.kind == "TRANSMUTE" and choice.selected == "Sol Ring" for choice in state.choices
+        choice.kind == "TRANSMUTE" and choice.selected["identity"] == "Sol Ring"
+        for choice in state.choices
     )
     assert any(event.kind == "LIBRARY_SHUFFLED" for event in state.events)
 
@@ -98,13 +99,7 @@ def test_typecycling_uses_stack_at_instant_timing_and_reveals_selected_type() ->
     add_card(executor, specs["Island"], Zone.LIBRARY)
     state.turn.phase = "COMBAT"
 
-    ability = activate_hand_ability(
-        executor,
-        "P0",
-        step.object_id,
-        "step-through:wizardcycling",
-        choices={"tutor_name": "Vedalken Aethermage"},
-    )
+    ability = activate_hand_ability(executor, "P0", step.object_id, "step-through:wizardcycling")
     assert state.stack == [ability.object_id]
     assert active_objects(state, name="Step Through", zone=Zone.GRAVEYARD)
 
@@ -164,24 +159,14 @@ def test_foretell_is_no_stack_hidden_special_action_and_later_uses_alternative_c
 
     before = state_hash(state)
     with pytest.raises(IllegalAction, match="during the turn it was foretold"):
-        executor.cast(
-            "P0",
-            foretold.object_id,
-            (TargetRef(target.object_id),),
-            mode="foretell",
-        )
+        executor.cast("P0", foretold.object_id, (TargetRef(target.object_id),), mode="foretell")
     assert state_hash(state) == before
 
     state.turn.number += 1
     for symbol in state.players["P0"].mana_pool:
         state.players["P0"].mana_pool[symbol] = 0
     state.players["P0"].mana_pool["U"] = 1
-    spell = executor.cast(
-        "P0",
-        foretold.object_id,
-        (TargetRef(target.object_id),),
-        mode="foretell",
-    )
+    spell = executor.cast("P0", foretold.object_id, (TargetRef(target.object_id),), mode="foretell")
     assert executor._created_action(spell).payments["cost"]["U"] == 1
     assert sum(executor._created_action(spell).payments["cost"].values()) == 1
 
@@ -210,10 +195,11 @@ def _fact_or_fiction_result(seed: str) -> tuple[dict[str, Any], dict[str, Any]]:
     assert selected.player_id == "P0"
     split_value = dict(split.selected)
     selected_value = dict(selected.selected)
-    assert split_value["minimized_best_score"] == max(
-        split_value["score_a"], split_value["score_b"]
-    )
-    assert selected_value["score"] == split_value["minimized_best_score"]
+    assert split_value["evaluator_id"] == "contextual_combo_v1"
+    assert selected_value["evaluator_id"] == "contextual_combo_v1"
+    diagnostics = selected_value["diagnostics"]
+    assert "pile_a_evaluation" in diagnostics
+    assert "pile_b_evaluation" in diagnostics
     moved_names = {
         str(obj.current_characteristics.get("name"))
         for obj in active_objects(state)
@@ -225,7 +211,7 @@ def _fact_or_fiction_result(seed: str) -> tuple[dict[str, Any], dict[str, Any]]:
     return split_value, selected_value
 
 
-def test_fact_or_fiction_minimizes_frozen_evaluation_and_records_both_choices() -> None:
+def test_fact_or_fiction_uses_contextual_policy_evaluation_and_records_both_choices() -> None:
     first = _fact_or_fiction_result("fact-or-fiction")
     second = _fact_or_fiction_result("fact-or-fiction")
     assert first == second
@@ -281,15 +267,10 @@ def test_broker_enumerates_mana_reveal_tutor_and_foretell_choices_without_raw_id
     ]
     assert {action.metadata.get("reveal_identity") for action in lands} == {None, "Island"}
 
-    tutors = [
-        action
-        for action in actions
-        if action.kind == "ACTIVATE_HAND" and action.identity == "Dizzy Spell"
-    ]
-    assert {action.metadata.get("tutor_identity") for action in tutors} >= {
-        "Sol Ring",
-        "FAIL_TO_FIND",
-    }
+    tutors = [action for action in actions if action.kind == "ACTIVATE_HAND" and action.identity == "Dizzy Spell"]
+    assert len(tutors) == 1
+    assert tutors[0].metadata["choice_timing"] == "RESOLUTION"
+    assert "Sol Ring" in tutors[0].metadata["eligible_tutor_identities"]
     assert any(action.kind == "FORETELL" and action.identity == "Ravenform" for action in actions)
 
     encoded = json.dumps([action.__dict__ for action in actions])

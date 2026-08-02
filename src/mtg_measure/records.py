@@ -213,6 +213,11 @@ class MeasurementSummary:
     failure_label_counts: Mapping[str, int]
     combo_attempt_counts: Mapping[str, int]
     combo_kill_counts: Mapping[str, int]
+    earliest_legal_attempt_turn_counts: Mapping[int, int]
+    actual_first_attempt_turn_counts: Mapping[int, int]
+    terminal_turn_counts: Mapping[int, int]
+    never_legal_attempt_count: int
+    never_attempted_count: int
     future_information_rejections: int
     post_result_optimization_rejections: int
     raw_measurement_sha256: str
@@ -239,6 +244,11 @@ def aggregate_measurements(records: Sequence[GameMeasurement]) -> MeasurementSum
     failures: Counter[str] = Counter()
     attempts: Counter[str] = Counter()
     kills: Counter[str] = Counter()
+    earliest_turns: Counter[int] = Counter()
+    actual_turns: Counter[int] = Counter()
+    terminal_turns: Counter[int] = Counter()
+    never_legal = 0
+    never_attempted = 0
     future_rejections = 0
     post_result_rejections = 0
     for record in records:
@@ -246,6 +256,16 @@ def aggregate_measurements(records: Sequence[GameMeasurement]) -> MeasurementSum
         keep_levels[record.kept_at] += 1
         future_rejections += record.future_information_rejections
         post_result_rejections += record.post_result_optimization_rejections
+        if record.earliest_legal_attempt_turn is None:
+            never_legal += 1
+        else:
+            earliest_turns[record.earliest_legal_attempt_turn] += 1
+        if record.actual_first_attempt_turn is None:
+            never_attempted += 1
+        else:
+            actual_turns[record.actual_first_attempt_turn] += 1
+        if record.terminal_turn is not None:
+            terminal_turns[record.terminal_turn] += 1
         for turn in CHECKPOINTS:
             access[turn] += int(record.checkpoint_table_win_access[turn])
             failures.update(record.failure_labels[turn])
@@ -263,6 +283,11 @@ def aggregate_measurements(records: Sequence[GameMeasurement]) -> MeasurementSum
         failure_label_counts=dict(sorted(failures.items())),
         combo_attempt_counts=dict(sorted(attempts.items())),
         combo_kill_counts=dict(sorted(kills.items())),
+        earliest_legal_attempt_turn_counts=dict(sorted(earliest_turns.items())),
+        actual_first_attempt_turn_counts=dict(sorted(actual_turns.items())),
+        terminal_turn_counts=dict(sorted(terminal_turns.items())),
+        never_legal_attempt_count=never_legal,
+        never_attempted_count=never_attempted,
         future_information_rejections=future_rejections,
         post_result_optimization_rejections=post_result_rejections,
         raw_measurement_sha256=measurement_digest(records),

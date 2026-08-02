@@ -22,6 +22,12 @@ REQUIRED_COUNT = 12
 EXPECTED_OWNER = "Jeff Toney"
 # Replaced only after the owner approves the exact IDs and digests.
 OWNER_APPROVAL_DOCUMENT_SHA256 = "PENDING_OWNER_APPROVAL"
+EVIDENCE_SCOPES = {
+    "EXACT_DECK_INTEGRATION",
+    "MECHANIC_ISOLATION",
+    "POLICY_INTEGRATION",
+    "REPLAY_AUDIT",
+}
 REQUIRED_FAMILIES = {
     "exact-deck-two-commanders",
     "league-mulligan-draw-back-seven",
@@ -123,6 +129,9 @@ def validate_phase_b_transcripts(
             raise ValueError(f"unsupported Phase B transcript schema: {path}")
         transcript_id = str(document.get("transcript_id", "")).strip()
         family_id = str(document.get("family_id", "")).strip()
+        evidence_scope = str(document.get("evidence_scope", "")).strip()
+        if evidence_scope not in EVIDENCE_SCOPES:
+            raise ValueError(f"invalid evidence scope: {transcript_id}: {evidence_scope}")
         if not transcript_id or transcript_id in seen_ids:
             raise ValueError("Phase B transcript IDs must be nonempty and unique")
         if family_id not in REQUIRED_FAMILIES or family_id in seen_families:
@@ -155,6 +164,26 @@ def validate_phase_b_transcripts(
         test_node = str(machine.get("test_node", ""))
         if test_node not in nodes:
             raise ValueError(f"machine test node is not collected: {test_node}")
+        test_path = root / test_node.split("::", 1)[0]
+        if not test_path.is_file() and root != ROOT:
+            test_path = ROOT / test_node.split("::", 1)[0]
+        if not test_path.is_file():
+            raise ValueError(f"machine test source is missing: {test_node}")
+        test_source = test_path.read_text(encoding="utf-8")
+        combined_claims = " ".join(
+            [str(document.get("title", "")), *plain, *machine.get("preconditions", ())]
+        ).lower()
+        if evidence_scope == "EXACT_DECK_INTEGRATION" and "build_exact_game" not in test_source:
+            raise ValueError(f"exact-deck evidence does not use build_exact_game: {transcript_id}")
+        if evidence_scope == "MECHANIC_ISOLATION" and "exact deck" in combined_claims:
+            raise ValueError(f"mechanic-isolation transcript overclaims exact-deck evidence: {transcript_id}")
+        if evidence_scope == "POLICY_INTEGRATION" and not any(
+            marker in test_source
+            for marker in ("ActionBroker", "StandardPolicy", "BoundedExplorer", "PolicyStrategicChoiceProvider")
+        ):
+            raise ValueError(f"policy-integration evidence does not execute policy surfaces: {transcript_id}")
+        if evidence_scope == "REPLAY_AUDIT" and "replay" not in test_source.lower():
+            raise ValueError(f"replay-audit evidence does not execute replay: {transcript_id}")
 
         digest = transcript_digest(document)
         approval = approval_by_id.get(transcript_id)
@@ -185,6 +214,7 @@ def validate_phase_b_transcripts(
             {
                 "transcript_id": transcript_id,
                 "family_id": family_id,
+                "evidence_scope": evidence_scope,
                 "path": expected_path,
                 "sha256": digest,
                 "test_node": test_node,

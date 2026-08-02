@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from mtg_policy.config import REQUIRED_AXES, load_policy_matrix, load_seed_split
 from mtg_policy.standard import StandardPolicy
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_policy_matrix_is_precommitted_composable_and_complete() -> None:
@@ -22,25 +26,16 @@ def test_discovery_validation_seeds_are_precommitted_and_disjoint() -> None:
 
 def test_mulligan_policy_compares_hypotheses_at_7_6_5_4() -> None:
     matrix = load_policy_matrix()
-    balanced = StandardPolicy(
-        next(bundle for bundle in matrix if bundle.policy_config_id == "anchor_balanced")
-    )
-    aggressive = StandardPolicy(
-        next(bundle for bundle in matrix if bundle.policy_config_id == "anchor_aggressive")
-    )
+    balanced = StandardPolicy(next(bundle for bundle in matrix if bundle.policy_config_id == "anchor_balanced"))
+    aggressive = StandardPolicy(next(bundle for bundle in matrix if bundle.policy_config_id == "anchor_aggressive"))
     names = ("Island", "Mountain", "Sol Ring", "Opt", "Abrade", "Twinflame", "Dualcaster Mage")
-    types = (
-        ("Land",),
-        ("Land",),
-        ("Artifact",),
-        ("Instant",),
-        ("Instant",),
-        ("Sorcery",),
-        ("Creature",),
-    )
+    types = (("Land",), ("Land",), ("Artifact",), ("Instant",), ("Instant",), ("Sorcery",), ("Creature",))
     assert balanced.decide_keep(7, names, types).keep
     assert aggressive.decide_keep(7, names, types).keep
     for size in (6, 5, 4):
         decision = balanced.decide_keep(size, names[:size], types[:size])
-        assert decision.hand_size == size
-        assert isinstance(decision.keep, bool)
+        assert decision.hand_size == size and isinstance(decision.keep, bool)
+
+
+def test_json_and_yaml_policy_artifacts_remain_identical() -> None:
+    assert (ROOT / "configs/policies.json").read_bytes() == (ROOT / "configs/policies.yaml").read_bytes()

@@ -6,7 +6,7 @@
 
 Phase B begins from corrected Phase A merge commit `b5743b54fa26e3e20c175fddb6401b390c828b8c` and remains on `engine/phase-b-full-deck-policy` in draft PR #37 until every Phase B gate passes.
 
-The repository owner approved the documented single-owner exception. Required pull requests, required CI, conversation resolution, standing Phase A verification, durable certification, blocked force pushes, and blocked branch deletion remain mandatory. The exception does not create or imply independent human review.
+The repository owner approved the documented single-owner exception. Required pull requests, required CI, conversation resolution, standing Phase A verification, and durable certification remain mandatory. Branch protection or a repository ruleset is still required but is not currently enabled, so force-push and branch-deletion protection are not claimed. The exception does not create or imply independent human review.
 
 This contract does not authorize the 500/200 pilot or the 20,000/5,000 study.
 
@@ -94,15 +94,25 @@ Unsupported rules requirements block the affected card, action, and scenario. Th
 - Every competency records its authority reference and stable test ID.
 - Complete coverage is machine-readable and rejects missing, unreviewed, blocked, partial, or fallback entries.
 
-## Standard policy framework
+## Standard policy and strategic-evaluator framework
 
 - Candidate axes come from `POLICY_CANDIDATES.md` and the precommitted matrix in `configs/policies.yaml`.
 - Candidate definitions are hypotheses to compare, not strategic truths supplied by the owner.
-- Policies receive only `Observation` and legal action descriptions.
+- Policies receive only `Observation` and opaque legal action or choice descriptions.
+- The rules kernel owns legality, choice timing, revelation, target validation, resolution, and state changes. It does not assign strategic value.
+- Tutor identities are selected during resolution. Fact or Fiction split and pile choices and copied-spell target changes use the same injected observation-only strategic-choice boundary.
+- The baseline contextual evaluator and every learned evaluator snapshot are content-addressed artifacts under `configs/evaluators/`.
+- Every exact-deck effect kind must have an explicit reviewed strategic classification. Missing classifications and unadjudicated combo loops fail closed.
+- Adjustable evaluator parameters are policy inputs, not rules changes.
+- Learning is discovery-only. It uses exactly 4,800 comparisons from the 300 frozen discovery seeds (16 each), with the first 200 seeds for mining/initial fitting and the remaining 100 for confirmation. The feature set freezes before refitting on all discovery examples. Validation uses exactly 1,000 comparisons from the untouched 200 validation seeds (5 each).
+- Pairwise alternatives must share the exact initial state, future RNG streams, continuation policy, information boundary, and Turn-10-or-terminal horizon. Raw records preserve policy-visible card identities, zones, legal actions, action order, mana/land context, combo/protection access, and both outcomes; hidden internal identifiers and future fields are forbidden.
+- Generic-feature, card-pair, and action-sequence miners are review-only hypothesis rankers. They may not activate a feature, weight, combo package, or policy rule and may not claim uncorrected statistical significance.
+- Promotion requires at least a 3.0-point paired validation-accuracy improvement over the human evaluator, a seed-clustered 95% confidence lower bound above zero, and no regression in checkpoint table-kill access, full-table-kill rate, or median earliest legal-attempt turn.
+- Only a reviewed `FROZEN_VALIDATED` snapshot may be selected by a policy, and its evaluator ID/SHA-256 and learning-plan SHA-256 must be bound into policy configuration, run manifests, replay evidence, and certification.
 - Implement mulligan decisions at 7, 6, 5, and 4; development ordering; commander/Breeches timing; tutor priorities; combo choice; cantrip/ramp ordering; protection delay; Muddle use; and Glint-Horn value timing.
 - Create immutable discovery and validation seed lists before any policy evaluation result exists.
 - Implement paired-comparison and first-divergence records.
-- Do not run policy discovery or pilot games during Phase B acceptance.
+- Do not run evaluator learning, policy discovery, pilot games, or the full study during Phase B acceptance.
 
 ## Bounded exploratory search
 
@@ -119,13 +129,15 @@ Search receives the same restricted observation as policy code. Actual hidden li
 
 ## Measurements, replay, and manifests
 
-Implement all fields in `MEASUREMENTS.md`, including opening hands, mulligan counts, mana/action-density failures, combo access, first legal attempt by checkpoint, protection availability/payability, independent second lines, card draw/cast/held/stranded/contribution records, paired standard/exploratory differences, safeguard rejections, exact denominators, and uncertainty-ready raw records.
+Implement all fields in `MEASUREMENTS.md`, including opening hands, mulligan counts, mana/action-density failures, continuous Turn 1 through Turn 10 combo access, earliest legal and actual attempt turns, cumulative Turn 5/6/8/10 checkpoints, protection availability/payability, independent second lines, card draw/cast/held/stranded/contribution records, strategic-choice evidence, early-turn distributions, paired standard/exploratory differences, safeguard rejections, exact denominators, and uncertainty-ready raw records.
 
-Run manifests bind commit, dirty flag, Python/dependency/rules/Oracle/deck/config/seed hashes, command, timestamps, worker count, and same-commit test evidence. Aggregation rejects mixed commits, configs, sources, duplicate seeds, and gaps. Replay and audit do not call policy decision code.
+Combo availability must be refreshed before every major policy decision and after every relevant state change. A Turn 3 or Turn 4 line may not be deferred until the Turn 5 reporting checkpoint. Unsupported package detection or loop adjudication is a hard blocker.
+
+Run manifests bind commit, dirty flag, Python/dependency/rules/Oracle/deck/policy/evaluator/learning-plan/seed hashes, command, timestamps, worker count, and same-commit test evidence. Aggregation rejects mixed commits, configs, evaluator snapshots, learning plans, sources, duplicate seeds, and gaps. Replay and audit consume recorded strategic choices and do not call policy or learning code.
 
 ## Mandatory Phase B behavioral transcripts
 
-Phase B GO requires a frozen manifest with at least 12 exact transcript IDs. Each transcript must include plain-English and machine representations, a production `test_node`, ordered operations, required event order, explicit assertions, a SHA-256 digest, and an owner approval entry bound to the exact transcript ID and digest.
+Phase B GO requires a frozen manifest with at least 12 exact transcript IDs. Each transcript must include plain-English and machine representations, one of the required evidence scopes (`EXACT_DECK_INTEGRATION`, `MECHANIC_ISOLATION`, `POLICY_INTEGRATION`, or `REPLAY_AUDIT`), a production `test_node`, ordered operations, required event order, explicit assertions, a SHA-256 digest, and an owner approval entry bound to the exact transcript ID and digest. Exact-deck claims must execute the exact deck constructor; mechanic-isolation evidence may not overclaim deck-level behavior.
 
 The mandatory scenario families are:
 
@@ -150,8 +162,8 @@ The transcript gate must execute the named test nodes. Collection alone is insuf
 
 - run the full standing Phase A verifier;
 - validate all 100 deck cards and 80 Oracle records;
-- execute all Phase B competency, property, policy, search, measurement, replay, manifest, and transcript tests;
-- verify hidden-information and seed-separation boundaries;
+- execute all Phase B competency, property, policy, evaluator, learning-boundary, combo-detection, search, measurement, replay, manifest, and transcript tests;
+- verify hidden-information, discovery/validation separation, evaluator effect coverage, evaluator snapshot binding, and seed-separation boundaries;
 - verify the pilot/full-study locks;
 - map every blocking Phase B requirement to named tests and transcripts;
 - write an immutable `CLEAN_ENGINE_PRODUCTION_PATH` result artifact bound to the exact tested commit;
@@ -171,10 +183,12 @@ Phase B remains NO-GO until all CI, transcript, durable-certification, and revie
 | B-HIDDEN-001 | Policy and search cannot access hidden identities, actual future order, or future events. |
 | B-OPPONENT-001 | Opponent metadata and choices follow frozen baseline decisions and never assume favorable or unspecified resources. |
 | B-POLICY-001 | Required policy axes are explicit, immutable, observation-only configurations with discovery/validation separation. |
+| B-EVALUATOR-001 | Strategic valuation is outside the rules kernel; exact-deck effect classifications, evaluator snapshots, learning boundaries, and recorded choices are complete, content-addressed, and fail closed. |
+| B-COMBO-001 | Combo access is checked continuously from Turn 1 through Turn 10, early legal lines are preserved, later checkpoints are cumulative, and unsupported loop adjudication blocks certification. |
 | B-SEARCH-001 | Exploratory search enforces all frozen bounds, belief sampling, logging, and no-selective-replay safeguards. |
 | B-MEASURE-001 | Every required raw measurement and denominator is emitted deterministically. |
 | B-REPLAY-001 | Replay and audit independently reconstruct legal execution and are invariant to worker count. |
-| B-MANIFEST-001 | Run manifests and aggregation are immutable, complete, and reject mixed, duplicate, or gapped inputs. |
+| B-MANIFEST-001 | Run manifests and aggregation are immutable, complete, bind evaluator and optional learning-plan identities, and reject mixed, duplicate, or gapped inputs. |
 | B-TRANSCRIPT-001 | At least 12 digest-bound, owner-approved behavioral transcripts execute the mandatory scenario families through named production tests. |
 | B-PHASE-A-001 | Standing Phase A verification remains PASS and durable Phase A certification is current for the final Phase A covered surface. |
 | B-PILOT-LOCK-001 | The 500/200 pilot and full study remain unavailable and unexecuted throughout Phase B. |

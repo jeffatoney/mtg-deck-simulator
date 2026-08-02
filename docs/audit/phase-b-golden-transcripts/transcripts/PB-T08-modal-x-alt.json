@@ -1,4 +1,5 @@
 {
+  "evidence_scope": "MECHANIC_ISOLATION",
   "family_id": "modal-x-alternative-cost",
   "machine": {
     "ordered_operations": [

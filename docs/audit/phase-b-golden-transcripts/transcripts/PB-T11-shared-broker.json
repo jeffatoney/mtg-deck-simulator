@@ -1,9 +1,10 @@
 {
+  "evidence_scope": "POLICY_INTEGRATION",
   "family_id": "shared-broker-first-divergence",
   "machine": {
     "ordered_operations": [
       "refresh ActionBroker",
-      "give identical observation/actions to standard policy and search",
+      "give identical observation and actions to standard policy and search",
       "select each action",
       "record first divergence"
     ],
