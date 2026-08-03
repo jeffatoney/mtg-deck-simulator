@@ -66,6 +66,8 @@ SUPPORTED_EFFECTS = frozenset(
         "SEQUENCE",
         "SWITCH_POWER_TOUGHNESS",
         "TRANSMUTE",
+        "TUTOR_THIRD_FROM_TOP",
+        "TUTOR_TYPES",
         "TYPECYCLE",
         "UMBRA_ARMOR",
         "UNTAP_ATTACHED",
