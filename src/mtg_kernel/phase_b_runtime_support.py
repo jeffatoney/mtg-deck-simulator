@@ -61,6 +61,7 @@ SUPPORTED_EFFECTS = frozenset(
         "LOOK_SELECT_REST_BOTTOM",
         "MEMORY",
         "MODIFY_POWER_TOUGHNESS",
+        "PHASE_OUT",
         "RECORD_UNKNOWN_BREECHES_EXILES",
         "RETURN_CONTROLLED_LAND",
         "SCRY",
@@ -192,6 +193,15 @@ def _types(obj: GameObject) -> set[str]:
 
 def _subtypes(obj: GameObject) -> set[str]:
     return set(str(value) for value in obj.current_characteristics.get("subtypes", ()))
+
+
+def _is_permanent(obj: GameObject) -> bool:
+    """Treat phased-out battlefield objects as nonexistent for rules queries."""
+
+    if not bool(_ORIGINALS["is_permanent"](obj)):
+        return False
+    status = obj.permanent_status or {}
+    return status.get("phase", "PHASED_IN") != "PHASED_OUT"
 
 
 def _target_matches(self: Any, actor: str, obj: GameObject, kind: str) -> bool:
