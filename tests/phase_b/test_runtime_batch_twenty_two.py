@@ -108,7 +108,6 @@ def test_reality_shift_with_empty_library_exiles_without_creating_a_permanent() 
         for obj in state.objects.values()
     )
     assert any(
-        event.kind == "MANIFEST_SKIPPED_EMPTY_LIBRARY"
-        and event.payload.get("player_id") == "P1"
+        event.kind == "MANIFEST_SKIPPED_EMPTY_LIBRARY" and event.payload.get("player_id") == "P1"
         for event in state.events
     )
