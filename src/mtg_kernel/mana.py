@@ -25,8 +25,10 @@ def parse_mana_cost(cost: str, *, x_value: int = 0) -> dict[str, int]:
             parsed[symbol] += 1
         else:
             hybrid = tuple(symbol.split("/"))
-            if len(hybrid) == 2 and hybrid[0] != hybrid[1] and all(
-                option in COLORS for option in hybrid
+            if (
+                len(hybrid) == 2
+                and hybrid[0] != hybrid[1]
+                and all(option in COLORS for option in hybrid)
             ):
                 key = f"{HYBRID_PREFIX}{'/'.join(hybrid)}"
                 parsed[key] = parsed.get(key, 0) + 1
