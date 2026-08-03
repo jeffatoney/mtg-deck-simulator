@@ -15,7 +15,10 @@
       "tests/phase_b/test_runtime_batch_twelve.py::test_electroduplicate_flashback_mode_exiles_the_card_after_resolution",
       "tests/phase_b/test_runtime_batch_twelve.py::test_scavenger_grounds_executes_mana_and_graveyard_exile_modes",
       "tests/phase_b/test_runtime_batch_thirteen.py::test_cascade_bluffs_executes_each_declared_filter_option",
-      "tests/phase_b/test_runtime_batch_thirteen.py::test_cascade_bluffs_rejects_an_unlisted_option_atomically"
+      "tests/phase_b/test_runtime_batch_thirteen.py::test_cascade_bluffs_rejects_an_unlisted_option_atomically",
+      "tests/phase_b/test_runtime_batch_fourteen.py::test_faithless_looting_selects_discards_after_drawing_and_supports_flashback",
+      "tests/phase_b/test_runtime_batch_fourteen.py::test_frantic_search_draws_discards_then_untaps_three_selected_lands",
+      "tests/phase_b/test_runtime_batch_fourteen.py::test_resolution_time_card_selection_rejects_illegal_handles_atomically"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
