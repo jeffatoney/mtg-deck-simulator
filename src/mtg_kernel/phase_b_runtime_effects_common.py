@@ -108,6 +108,26 @@ def apply_effect_common(
             _return_to_hand(self, target, action, kind)
         return True
 
+    if kind == "BOUNCE_AND_CONDITIONAL_SCRY":
+        if len(targets) != 1:
+            raise IllegalAction("conditional bounce requires one target")
+        target = targets[0]
+        maximum_mana_value = int(effect.get("mana_value_lte", -1))
+        should_scry = (
+            int(target.current_characteristics.get("mana_value", 0)) <= maximum_mana_value
+        )
+        _return_to_hand(self, target, action, kind)
+        if should_scry:
+            _ORIGINALS["apply_effect"](
+                self,
+                source,
+                action,
+                {"kind": "SCRY", "count": int(effect.get("scry", 1))},
+                [],
+                choices,
+            )
+        return True
+
     if kind == "BOUNCE_ATTACKING_CREATURES":
         for target in list(_permanents(self)):
             if "Creature" in _types(target) and target.current_characteristics.get("attacking"):
