@@ -17,7 +17,7 @@ from mtg_kernel.phase_b_runtime_helpers import (
     _cleanup_iteration,
     _draw_card,
 )
-from mtg_kernel.phase_b_runtime_support import _ORIGINALS, _target_matches
+from mtg_kernel.phase_b_runtime_support import _ORIGINALS, _is_permanent, _target_matches
 
 
 def _apply_effect(
@@ -116,6 +116,31 @@ def _copy_permanent_token(
     return token
 
 
+def _begin_step(
+    self: Any,
+    step: str,
+    choices: dict[str, Any] | None = None,
+    *,
+    _record: bool = True,
+) -> None:
+    """Preserve indirect phasing until the directly phased permanent returns."""
+
+    original_begin_step = _ORIGINALS["begin_step"]
+    original_begin_step(self, step, choices, _record=_record)
+    if step != "UNTAP":
+        return
+    for obj in self.state.objects.values():
+        root_id = obj.current_characteristics.get("phased_out_with")
+        if not isinstance(root_id, str) or obj.permanent_status is None:
+            continue
+        root = self.state.objects.get(root_id)
+        root_status = root.permanent_status if root is not None else None
+        root_phased_out = bool(root_status and root_status.get("phase") == "PHASED_OUT")
+        obj.permanent_status["phase"] = "PHASED_OUT" if root_phased_out else "PHASED_IN"
+        if not root_phased_out:
+            obj.current_characteristics.pop("phased_out_with", None)
+
+
 def install_phase_b_runtime(executor_class: type[Any]) -> None:
     """Install explicit exact-deck extensions without creating a second executor."""
 
@@ -124,19 +149,23 @@ def install_phase_b_runtime(executor_class: type[Any]) -> None:
     _ORIGINALS.update(
         {
             "target_matches": executor_class._target_matches,
+            "is_permanent": executor_class._is_permanent,
             "apply_effect": executor_class._apply_effect,
             "draw_card": executor_class.draw_card,
             "cast": executor_class.cast,
             "copy_permanent_token": executor_class.copy_permanent_token,
             "check_state_based_actions": executor_class.check_state_based_actions,
             "cleanup_iteration": executor_class._cleanup_iteration,
+            "begin_step": executor_class.begin_step,
         }
     )
     executor_class._target_matches = _target_matches
+    executor_class._is_permanent = staticmethod(_is_permanent)
     executor_class._apply_effect = _apply_effect
     executor_class.draw_card = _draw_card
     executor_class.cast = cast_with_counter_predicate
     executor_class.copy_permanent_token = _copy_permanent_token
     executor_class.check_state_based_actions = _check_state_based_actions
     executor_class._cleanup_iteration = _cleanup_iteration
+    executor_class.begin_step = _begin_step
     executor_class._phase_b_runtime_installed = True
