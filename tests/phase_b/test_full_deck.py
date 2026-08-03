@@ -94,6 +94,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Prismatic Lens",
             "Psychosis Crawler",
             "Ravenform",
+            "Reality Ripple",
             "Rebuild",
             "Resculpt",
             "Scavenger Grounds",
