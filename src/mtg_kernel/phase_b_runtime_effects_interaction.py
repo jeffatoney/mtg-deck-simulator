@@ -61,6 +61,43 @@ def apply_effect_interaction(
         self._event("POWER_TOUGHNESS_SWITCHED", action, count=len(targets))
         return True
 
+    if kind == "PHASE_OUT":
+        if len(targets) != 1:
+            raise IllegalAction("phase-out effect requires one target")
+        target = targets[0]
+        if target.permanent_status is None:
+            raise IllegalAction("phase-out target has no permanent status")
+        affected = [target]
+        affected_ids = {target.object_id}
+        for permanent in affected:
+            for candidate in self.state.objects.values():
+                if (
+                    candidate.retired
+                    or candidate.ceased_to_exist
+                    or candidate.zone is not Zone.BATTLEFIELD
+                    or candidate.object_id in affected_ids
+                    or candidate.attached_to_ref is None
+                    or candidate.attached_to_ref.object_id != permanent.object_id
+                ):
+                    continue
+                affected.append(candidate)
+                affected_ids.add(candidate.object_id)
+        for permanent in affected:
+            if permanent.permanent_status is None:
+                raise IllegalAction("attached phase-out object has no permanent status")
+            indirect = permanent.object_id != target.object_id
+            permanent.permanent_status["phase"] = "PHASED_OUT"
+            if indirect:
+                permanent.current_characteristics["phased_out_with"] = target.object_id
+            self._event(
+                "PERMANENT_PHASED_OUT",
+                action,
+                object_id=permanent.object_id,
+                indirect=indirect,
+                phased_out_with=target.object_id if indirect else None,
+            )
+        return True
+
     if kind in {"COUNTER", "COUNTER_IF"}:
         if len(targets) != 1:
             raise IllegalAction("counter effect requires one target")
