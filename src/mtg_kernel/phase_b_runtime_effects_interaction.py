@@ -10,7 +10,6 @@ from mtg_kernel.phase_b_runtime_helpers import (
     _counter_to,
     _mark_eot_original,
     _spell_satisfies,
-    _types,
 )
 
 
@@ -55,7 +54,7 @@ def apply_effect_interaction(
             power = target.current_characteristics.get("power")
             toughness = target.current_characteristics.get("toughness")
             if not isinstance(power, int) or not isinstance(toughness, int):
-                raise IllegalAction("switch effect requires numeric power and toughness")
+                raise Illegaction("switch effect requires numeric power and toughness")
             _mark_eot_original(target)
             target.current_characteristics["power"] = toughness
             target.current_characteristics["toughness"] = power
@@ -72,7 +71,7 @@ def apply_effect_interaction(
 
     if kind == "COUNTER_TARGETING_CONTROLLER":
         if len(targets) != 1:
-            raise IllegalAction("Stormtamer counter requires one stack target")
+            raise IllegalAction("Stormtammer counter requires one stack target")
         target = targets[0]
         created = self._created_action(target)
         protected = action.actor_id
