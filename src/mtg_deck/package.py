@@ -24,10 +24,12 @@ IMPLEMENTED_CARDS = frozenset(
         "Brotherhood's End",
         "Crab Umbra",
         "Dispel",
+        "Evolving Wilds",
         "Fading Hope",
         "Fiery Cannonade",
         "Lightning-Rig Crew",
         "Psychosis Crawler",
+        "Terramorphic Expanse",
         "Wily Goblin",
     }
 )
