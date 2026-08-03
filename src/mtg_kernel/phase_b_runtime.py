@@ -6,11 +6,11 @@ from typing import Any
 
 from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.models import Action, GameObject
+from mtg_kernel.phase_b_counter_validation import cast_with_counter_predicate
 from mtg_kernel.phase_b_runtime_effects_common import apply_effect_common
 from mtg_kernel.phase_b_runtime_effects_interaction import apply_effect_interaction
 from mtg_kernel.phase_b_runtime_effects_search import apply_effect_search
 from mtg_kernel.phase_b_runtime_helpers import (
-    _cast,
     _check_state_based_actions,
     _cleanup_iteration,
     _draw_card,
@@ -54,7 +54,7 @@ def install_phase_b_runtime(executor_class: type[Any]) -> None:
     executor_class._target_matches = _target_matches
     executor_class._apply_effect = _apply_effect
     executor_class.draw_card = _draw_card
-    executor_class.cast = _cast
+    executor_class.cast = cast_with_counter_predicate
     executor_class.check_state_based_actions = _check_state_based_actions
     executor_class._cleanup_iteration = _cleanup_iteration
     executor_class._phase_b_runtime_installed = True
