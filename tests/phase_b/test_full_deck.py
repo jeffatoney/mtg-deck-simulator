@@ -52,6 +52,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Breeches, Brazen Plunderer",
             "Brotherhood's End",
             "By Force",
+            "Cascade Bluffs",
             "Change the Equation",
             "Command Tower",
             "Commit // Memory",
