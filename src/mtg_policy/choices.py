@@ -5,8 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from mtg_kernel.errors import UnsupportedCapability
-
 from mtg_kernel.strategic_choices import (
+    CardSelection,
+    CardSelectionRequest,
     FactOrFictionRequest,
     FactOrFictionSelection,
     SpellCopyTargetRequest,
@@ -35,6 +36,47 @@ class PolicyStrategicChoiceProvider:
     @property
     def evaluator_sha256(self) -> str:
         return self.evaluator.config.config_sha256
+
+    def choose_cards(self, request: CardSelectionRequest) -> CardSelection:
+        if request.minimum < 0 or request.maximum < request.minimum:
+            raise ValueError("strategic card-selection bounds are invalid")
+        if request.maximum > len(request.candidates):
+            raise ValueError("strategic card-selection maximum exceeds candidates")
+        evaluations = {
+            card.handle: self.evaluator.evaluate_pile((card,), request.observation).score
+            for card in request.candidates
+        }
+        if request.purpose == "DISCARD":
+            ordered = sorted(
+                request.candidates,
+                key=lambda card: (evaluations[card.handle], card.identity, card.handle),
+            )
+            selected = tuple(card.handle for card in ordered[: request.minimum])
+        elif request.purpose == "UNTAP_LANDS":
+            selected = tuple(
+                card.handle
+                for card in sorted(
+                    request.candidates,
+                    key=lambda card: (-evaluations[card.handle], card.identity, card.handle),
+                )[: request.maximum]
+            )
+        else:
+            raise UnsupportedCapability(
+                f"policy card-selection purpose is unsupported: {request.purpose}"
+            )
+        return CardSelection(
+            selected,
+            self.evaluator_id,
+            self.evaluator_sha256,
+            {
+                "policy_config_id": self.bundle.policy_config_id,
+                "purpose": request.purpose,
+                "candidate_evaluation_microunits": {
+                    handle: score_to_microunits(value)
+                    for handle, value in evaluations.items()
+                },
+            },
+        )
 
     def choose_tutor(self, request: TutorChoiceRequest) -> TutorChoiceSelection:
         candidates = tuple(request.eligible_cards)
