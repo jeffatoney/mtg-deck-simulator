@@ -49,7 +49,7 @@ def test_aetherize_returns_each_attacking_creature_and_not_nonattacker() -> None
 
 def test_fiery_cannonade_uses_umbra_armor_replacement() -> None:
     state, executor, specs = funded_game("umbra-armor")
-    creature = add_card(executor, specs["Wily Goblin"], Zone.BATTLEFIELD)
+    creature = add_card(executor, specs["Dualcaster Mage"], Zone.BATTLEFIELD)
     aura = add_card(executor, specs["Crab Umbra"], Zone.HAND)
     executor.cast("P0", aura.object_id, (TargetRef(creature.object_id),))
     pass_all(executor)
