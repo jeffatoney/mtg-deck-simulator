@@ -48,6 +48,7 @@ SUPPORTED_EFFECTS = frozenset(
         "EXILE_TARGET",
         "EXILE_THEN_CONTROLLER_DRAWS",
         "FACT_OR_FICTION_MINIMIZING",
+        "FETCH_BASIC",
         "FORETELL",
         "GRANT_HASTE",
         "HAND_SIZE_POWER_TOUGHNESS",
