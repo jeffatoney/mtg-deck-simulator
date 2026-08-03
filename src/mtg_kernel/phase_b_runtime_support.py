@@ -89,7 +89,9 @@ def effect_execution_supported(effect: dict[str, Any]) -> bool:
 
     kind = str(effect.get("kind", "NONE"))
     if kind == "SEQUENCE":
-        return all(effect_execution_supported(dict(child)) for child in effect.get("effects", ()))
+        return all(
+            effect_execution_supported(dict(child)) for child in effect.get("effects", ())
+        )
     if kind == "SCRY":
         return int(effect.get("count", 1)) == 1
     return kind in SUPPORTED_EFFECTS
@@ -187,7 +189,10 @@ def _target_matches(self: Any, actor: str, obj: GameObject, kind: str) -> bool:
         return permanent
     if kind == "OPPONENT_NONBASIC_LAND":
         return (
-            permanent and obj.controller != actor and "Land" in types and "Basic" not in supertypes
+            permanent
+            and obj.controller != actor
+            and "Land" in types
+            and "Basic" not in supertypes
         )
     if kind == "OPPONENT_ARTIFACT":
         return permanent and obj.controller != actor and "Artifact" in types
