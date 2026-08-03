@@ -6,7 +6,11 @@
       "tests/phase_b/test_corrective_resolution_choices.py::test_actual_dualcaster_twinflame_line_is_bounded_by_policy_choice"
     ],
     "B-COVERAGE-001": [
-      "tests/phase_b/test_full_deck.py::test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim"
+      "tests/phase_b/test_full_deck.py::test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim",
+      "tests/phase_b/test_runtime_batch_eleven.py::test_izzet_boilerworks_executes_entry_trigger_and_mana",
+      "tests/phase_b/test_runtime_batch_eleven.py::test_sentinel_totem_scries_then_exiles_all_graveyards",
+      "tests/phase_b/test_runtime_batch_eleven.py::test_storm_fleet_sprinter_resolves_with_both_static_abilities",
+      "tests/phase_b/test_runtime_batch_eleven.py::test_temple_of_epiphany_scries_on_entry_and_produces_mana"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
