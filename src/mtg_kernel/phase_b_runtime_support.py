@@ -88,6 +88,15 @@ SUPPORTED_ENTRY_REPLACEMENTS = frozenset(
     {"CHOOSE_COLOR_ENTER_TAPPED", "ENTER_TAPPED", "REVEAL_OR_ENTER_TAPPED"}
 )
 SUPPORTED_STATIC_EFFECTS = frozenset({"HAND_SIZE_POWER_TOUGHNESS", "KEYWORD", "CANT_BE_BLOCKED"})
+SUPPORTED_ETB_TARGET_SCHEMAS = frozenset(
+    {
+        "NONE",
+        "CONTROLLED_LAND",
+        "GRAVEYARD_CARD",
+        "INSTANT_OR_SORCERY_SPELL",
+        "SLIVER",
+    }
+)
 
 
 def effect_execution_supported(effect: dict[str, Any]) -> bool:
@@ -139,13 +148,18 @@ def automatic_ability_execution_supported(ability: dict[str, Any], *, entering: 
     if trigger == "ETB" and not entering:
         return True
     schema = dict(ability.get("target_schema", {}))
+    minimum = int(schema.get("min", 0) or 0)
+    maximum_value = schema.get("max", 0)
+    maximum = int(maximum_value) if maximum_value is not None else None
+    # Entry-trigger target and resolution choices are captured as cast/play
+    # choice hints, then validated when the waiting trigger is put on the stack.
     if (
         trigger == "ETB"
-        and str(effect.get("kind", "")) == "CREATE_SPELL_COPY"
-        and str(schema.get("kind", "")) == "INSTANT_OR_SORCERY_SPELL"
-        and int(schema.get("min", 0) or 0) == 1
-        and int(schema.get("max", 0) or 0) == 1
         and not ability.get("optional")
+        and str(schema.get("kind", "NONE")) in SUPPORTED_ETB_TARGET_SCHEMAS
+        and minimum <= 1
+        and maximum is not None
+        and maximum <= 1
         and effect_execution_supported(effect)
     ):
         return True
