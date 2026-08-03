@@ -38,9 +38,7 @@ def pass_all(executor) -> None:
         ("Terramorphic Expanse", "terramorphic:fetch"),
     ),
 )
-def test_fetch_lands_sacrifice_then_find_basic_land_tapped(
-    land_name: str, ability_id: str
-) -> None:
+def test_fetch_lands_sacrifice_then_find_basic_land_tapped(land_name: str, ability_id: str) -> None:
     state, executor = new_game(("P0", "P1"), f"fetch-{land_name}")
     executor.bind_strategic_choice_provider(FirstBasicProvider())
     specs = {spec.name: spec for spec in load_full_deck_specs().values()}
@@ -72,14 +70,12 @@ def test_fetch_lands_sacrifice_then_find_basic_land_tapped(
     assert fetched[0].permanent_status is not None
     assert fetched[0].permanent_status["tap"] == "TAPPED"
     assert any(
-        choice.kind == "FETCH_BASIC"
-        and choice.selected["identity"] in {"Island", "Mountain"}
+        choice.kind == "FETCH_BASIC" and choice.selected["identity"] in {"Island", "Mountain"}
         for choice in state.choices
     )
     assert any(event.kind == "LIBRARY_SHUFFLED" for event in state.events)
     assert all(
-        obj.current_characteristics.get("name") != "Izzet Boilerworks"
-        or obj.zone is Zone.LIBRARY
+        obj.current_characteristics.get("name") != "Izzet Boilerworks" or obj.zone is Zone.LIBRARY
         for obj in state.objects.values()
         if not obj.retired
     )
