@@ -101,7 +101,7 @@ def test_verified_automatic_battlefield_behavior_allows_broker_refresh() -> None
 
 def test_unverified_automatic_battlefield_behavior_remains_a_hard_failure() -> None:
     _, executor, specs = scenario("unsafe-automatic")
-    add_card(executor, specs["Curiosity"], Zone.BATTLEFIELD)
+    add_card(executor, specs["Niv-Mizzet, the Firemind"], Zone.BATTLEFIELD)
     with pytest.raises(UnsupportedCapability, match="unverified automatic behavior"):
         ActionBroker(executor, "P0").refresh()
 
