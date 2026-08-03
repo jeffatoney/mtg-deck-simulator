@@ -25,7 +25,8 @@
       "tests/phase_b/test_runtime_batch_sixteen.py::test_long_term_plans_places_selected_card_third_from_top",
       "tests/phase_b/test_runtime_batch_seventeen.py::test_choice_bearing_etb_shapes_are_registered_for_automatic_execution",
       "tests/phase_b/test_runtime_batch_seventeen.py::test_soul_guide_lantern_executes_entry_and_both_activated_modes",
-      "tests/phase_b/test_runtime_batch_seventeen.py::test_vedalken_aethermage_executes_entry_bounce_and_wizardcycling"
+      "tests/phase_b/test_runtime_batch_seventeen.py::test_vedalken_aethermage_executes_entry_bounce_and_wizardcycling",
+      "tests/phase_b/test_runtime_batch_eighteen.py::test_curiosity_requires_and_executes_each_explicit_optional_choice"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
