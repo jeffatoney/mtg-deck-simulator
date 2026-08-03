@@ -57,6 +57,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Command Tower",
             "Commit // Memory",
             "Crab Umbra",
+            "Curiosity",
             "Curse of the Swine",
             "Dispel",
             "Dizzy Spell",
