@@ -61,11 +61,14 @@ def test_by_force_requires_x_targets_and_destroys_each_selected_artifact() -> No
     pass_all(executor)
 
     assert first.retired and second.retired
-    assert sum(
-        1
-        for obj in state.objects.values()
-        if not obj.retired and obj.zone is Zone.GRAVEYARD and obj.owner == "P1"
-    ) == 2
+    assert (
+        sum(
+            1
+            for obj in state.objects.values()
+            if not obj.retired and obj.zone is Zone.GRAVEYARD and obj.owner == "P1"
+        )
+        == 2
+    )
 
     invalid_state, invalid_executor, invalid_specs = funded_game("by-force-invalid")
     invalid_first = add_card(
@@ -104,14 +107,17 @@ def test_curse_of_the_swine_exiles_x_creatures_and_creates_one_boar_each() -> No
     pass_all(executor)
 
     assert first.retired and second.retired
-    assert sum(
-        1
-        for obj in state.objects.values()
-        if not obj.retired
-        and obj.zone is Zone.EXILE
-        and obj.owner == "P1"
-        and obj.current_characteristics.get("name") in {"Wily Goblin", "Spectral Sailor"}
-    ) == 2
+    assert (
+        sum(
+            1
+            for obj in state.objects.values()
+            if not obj.retired
+            and obj.zone is Zone.EXILE
+            and obj.owner == "P1"
+            and obj.current_characteristics.get("name") in {"Wily Goblin", "Spectral Sailor"}
+        )
+        == 2
+    )
     boars = [
         obj
         for obj in state.objects.values()
@@ -165,12 +171,8 @@ def test_spectral_sailor_casts_and_its_activated_ability_draws() -> None:
 
 def test_vandalblast_executes_target_and_overload_modes() -> None:
     target_state, target_executor, target_specs = funded_game("vandalblast-target")
-    selected = add_card(
-        target_executor, target_specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1"
-    )
-    unaffected = add_card(
-        target_executor, target_specs["Mind Stone"], Zone.BATTLEFIELD, owner="P1"
-    )
+    selected = add_card(target_executor, target_specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
+    unaffected = add_card(target_executor, target_specs["Mind Stone"], Zone.BATTLEFIELD, owner="P1")
     target_spell = add_card(target_executor, target_specs["Vandalblast"], Zone.HAND)
 
     target_executor.cast(
@@ -225,9 +227,7 @@ def test_wash_away_uses_cast_origin_for_normal_mode_and_cleave_counters_any_spel
     assert hand_spell.current_characteristics.get("cast_from_zone") == Zone.HAND.value
     cleave = add_card(cleave_executor, cleave_specs["Wash Away"], Zone.HAND)
 
-    cleave_executor.cast(
-        "P0", cleave.object_id, (TargetRef(hand_spell.object_id),), mode="cleave"
-    )
+    cleave_executor.cast("P0", cleave.object_id, (TargetRef(hand_spell.object_id),), mode="cleave")
     pass_all(cleave_executor)
 
     assert hand_spell.retired
