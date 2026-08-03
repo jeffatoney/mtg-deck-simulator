@@ -100,6 +100,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Siren Stormtamer",
             "Sleight of Hand",
             "Sol Ring",
+            "Soul-Guide Lantern",
             "Spectral Sailor",
             "Step Through",
             "Storm Fleet Sprinter",
@@ -108,6 +109,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Thriving Isle",
             "Twinflame",
             "Vandalblast",
+            "Vedalken Aethermage",
             "Wash Away",
             "Wily Goblin",
         }
