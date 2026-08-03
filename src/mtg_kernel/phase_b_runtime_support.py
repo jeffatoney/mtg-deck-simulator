@@ -49,6 +49,7 @@ SUPPORTED_EFFECTS = frozenset(
         "EXILE_THEN_CONTROLLER_DRAWS",
         "FACT_OR_FICTION_MINIMIZING",
         "FETCH_BASIC",
+        "FILTER_MANA_OPTIONS",
         "FORETELL",
         "GRANT_HASTE",
         "HAND_SIZE_POWER_TOUGHNESS",
@@ -107,6 +108,7 @@ def _effect_requires_explicit_choice(effect: dict[str, Any]) -> bool:
         "ADD_CHOSEN_MANA_AND_DAMAGE_SELF",
         "ADD_COMMANDER_COLOR",
         "ADD_OPPONENT_PROFILE_COLOR",
+        "FILTER_MANA_OPTIONS",
         "SCRY",
     }
 
