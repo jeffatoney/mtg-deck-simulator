@@ -198,6 +198,18 @@ def _check_state_based_actions(self: Any) -> None:
                     count = len(self.state.zones.get(f"{Zone.HAND.value}:{player_id}", ()))
                     obj.current_characteristics["power"] = count
                     obj.current_characteristics["toughness"] = count
+    if not self._resolution_depth:
+        for obj in list(_permanents(self)):
+            if "Planeswalker" not in _types(obj):
+                continue
+            loyalty = obj.counters.get("LOYALTY")
+            if isinstance(loyalty, int) and loyalty <= 0:
+                self.zones.move(
+                    obj.object_id,
+                    Zone.GRAVEYARD,
+                    "STATE_BASED_PLANESWALKER_LOYALTY",
+                    self._event("SBA_PLANESWALKER_TO_GRAVEYARD", object_id=obj.object_id),
+                )
     for obj in list(_permanents(self)):
         toughness = obj.current_characteristics.get("toughness")
         if "Creature" in _types(obj) and isinstance(toughness, int) and toughness > 0:
