@@ -113,7 +113,7 @@ class RecordedStrategicChoiceProvider:
         self._tutors = [
             dict(choice)
             for choice in choices
-            if str(choice.get("kind")) in {"TRANSMUTE", "TYPECYCLE"}
+            if str(choice.get("kind")) in {"FETCH_BASIC", "TRANSMUTE", "TYPECYCLE"}
         ]
         splits = [
             dict(choice) for choice in choices if str(choice.get("kind")) == "FACT_OR_FICTION_SPLIT"
