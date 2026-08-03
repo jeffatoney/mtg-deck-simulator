@@ -41,16 +41,20 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
         for record in package.coverage
         if record.execution_status == EXECUTION_UNVERIFIED
     }
-    assert implemented == set(IMPLEMENTED_CARDS) == {
-        "Aetherize",
-        "Brotherhood's End",
-        "Crab Umbra",
-        "Dispel",
-        "Fiery Cannonade",
-        "Lightning-Rig Crew",
-        "Psychosis Crawler",
-        "Wily Goblin",
-    }
+    assert (
+        implemented
+        == set(IMPLEMENTED_CARDS)
+        == {
+            "Aetherize",
+            "Brotherhood's End",
+            "Crab Umbra",
+            "Dispel",
+            "Fiery Cannonade",
+            "Lightning-Rig Crew",
+            "Psychosis Crawler",
+            "Wily Goblin",
+        }
+    )
     assert unverified == set(FULL_DECK_NAMES) - implemented
     assert all(record.handler_ids for record in package.coverage)
     assert set(RULES_BY_NAME) == set(FULL_DECK_NAMES)
