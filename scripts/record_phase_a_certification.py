@@ -125,18 +125,9 @@ def main() -> int:
     except (OSError, ValueError, KeyError, RuntimeError, json.JSONDecodeError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print(
-        json.dumps(
-            {
-                "status": record["status"],
-                "output": str(output),
-                "certified_content_commit": record["certified_content_commit"],
-                "covered_content_sha256": record["covered_content_sha256"],
-                "github_run_url": record["github_run_url"],
-            },
-            indent=2,
-        )
-    )
+    # The complete non-secret record is printed so reviewers can audit and recover the
+    # exact CI candidate directly from job logs when artifact download tooling is unavailable.
+    print(json.dumps(record, indent=2, sort_keys=True))
     return 0
 
 
