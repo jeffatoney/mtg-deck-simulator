@@ -15,7 +15,9 @@ DECKLIST = ROOT / "docs/source/decklist.txt"
 COMMANDERS = ROOT / "docs/source/commanders.txt"
 
 COMPOSITION_REVIEWED = "REVIEWED_COMPOSITION"
+EXECUTION_IMPLEMENTED = "IMPLEMENTED"
 EXECUTION_UNVERIFIED = "UNVERIFIED"
+IMPLEMENTED_CARDS = frozenset({"Brotherhood's End"})
 
 
 @dataclass(frozen=True)
@@ -88,12 +90,15 @@ def load_exact_deck_package() -> DeckPackage:
         if not abilities:
             raise ValueError(f"card has no reviewed behavior composition: {name}")
         handler_ids = tuple(str(value["ability_id"]) for value in abilities)
+        execution_status = (
+            EXECUTION_IMPLEMENTED if name in IMPLEMENTED_CARDS else EXECUTION_UNVERIFIED
+        )
         coverage.append(
             CoverageRecord(
                 name,
                 spec.oracle_id,
                 COMPOSITION_REVIEWED,
-                EXECUTION_UNVERIFIED,
+                execution_status,
                 handler_ids,
                 spec.source_version,
             )
