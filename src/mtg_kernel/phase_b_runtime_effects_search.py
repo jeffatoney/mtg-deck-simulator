@@ -15,7 +15,7 @@ def _deck_position(executor: Any, obj: GameObject) -> int:
     if not obj.component_card_instance_ids:
         return 2**31 - 1
     instance = executor.state.card_instances[obj.component_card_instance_ids[0]]
-    return executor.state.deck_slots[instance.deck_slot_id].deck_source_position
+    return int(executor.state.deck_slots[instance.deck_slot_id].deck_source_position)
 
 
 def _choice_handle(request_id: str, object_id: str) -> str:
