@@ -72,8 +72,7 @@ class PolicyStrategicChoiceProvider:
                 "policy_config_id": self.bundle.policy_config_id,
                 "purpose": request.purpose,
                 "candidate_evaluation_microunits": {
-                    handle: score_to_microunits(value)
-                    for handle, value in evaluations.items()
+                    handle: score_to_microunits(value) for handle, value in evaluations.items()
                 },
             },
         )
