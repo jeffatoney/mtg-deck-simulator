@@ -20,6 +20,7 @@ EXECUTION_UNVERIFIED = "UNVERIFIED"
 # Each entry below has direct exact-deck execution coverage in tests/phase_b.
 IMPLEMENTED_CARDS = frozenset(
     {
+        "Abrade",
         "Aetherize",
         "Arcane Signet",
         "Breeches, Brazen Plunderer",
