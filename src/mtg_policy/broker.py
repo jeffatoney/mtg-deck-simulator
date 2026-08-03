@@ -59,10 +59,7 @@ class ActionBroker(_CoreActionBroker):
                 ability, entering=True
             ):
                 continue
-            if (
-                not is_targeted_etb
-                or self._ability_choice_variants(ability) != ({},)
-            ):
+            if not is_targeted_etb or self._ability_choice_variants(ability) != ({},):
                 return ()
 
             target_sets = self._target_sets(self.player_id, schema)
