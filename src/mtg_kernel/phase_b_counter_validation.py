@@ -21,17 +21,20 @@ def cast_with_counter_predicate(
     *,
     _record: bool = True,
 ) -> GameObject:
-    """Reject a COUNTER_IF target before costs are paid or state is mutated."""
+    """Validate exact-deck casting predicates before costs or mutation."""
 
     card = self.state.objects[card_object_id]
+    cast_from_zone = card.zone
     face_data = self._selected_face(card, face)
     ability = self._selected_spell_ability(face_data, mode)
     effect = dict(ability.get("effect", {}))
+    if effect.get("target_count_from_x") and len(targets) != x_value:
+        raise IllegalAction("target count must equal X")
     if str(effect.get("kind", "")) == "COUNTER_IF" and len(targets) == 1:
         target = self.state.objects.get(targets[0].object_id)
         if target is not None and not _spell_satisfies(target, dict(effect.get("predicate", {}))):
             raise IllegalAction("target spell does not satisfy counter predicate")
-    return _cast(
+    spell = _cast(
         self,
         actor,
         card_object_id,
@@ -42,3 +45,5 @@ def cast_with_counter_predicate(
         choices,
         _record=_record,
     )
+    spell.current_characteristics["cast_from_zone"] = cast_from_zone.value
+    return spell
