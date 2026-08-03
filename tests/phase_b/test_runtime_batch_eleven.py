@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from mtg_cards.full_deck import load_full_deck_specs
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.land_actions import play_land
