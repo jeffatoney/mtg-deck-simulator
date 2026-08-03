@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from mtg_cards.full_deck import load_full_deck_specs
 from mtg_kernel.factory import add_card, add_external_public_object, new_game
-from mtg_kernel.models import Zone
+from mtg_kernel.models import TargetRef, Zone
 
 
 def funded_game(seed: str):
@@ -105,3 +105,50 @@ def test_brotherhoods_end_destroys_only_artifacts_with_mana_value_three_or_less(
     )
     assert not high_value.retired
     assert high_value.zone is Zone.BATTLEFIELD
+
+
+def test_fading_hope_bounces_and_scries_only_for_low_mana_value() -> None:
+    state, executor, specs = funded_game("fading-hope-low")
+    low_value = add_card(executor, specs["Dualcaster Mage"], Zone.BATTLEFIELD, owner="P1")
+    add_card(executor, specs["Island"], Zone.LIBRARY)
+    add_card(executor, specs["Mountain"], Zone.LIBRARY)
+    spell = add_card(executor, specs["Fading Hope"], Zone.HAND)
+
+    executor.cast(
+        "P0",
+        spell.object_id,
+        (TargetRef(low_value.object_id),),
+        choices={"scry_to_bottom": True},
+    )
+    pass_all(executor)
+
+    assert low_value.retired
+    assert any(
+        not obj.retired
+        and obj.zone is Zone.HAND
+        and obj.owner == "P1"
+        and obj.current_characteristics.get("name") == "Dualcaster Mage"
+        for obj in state.objects.values()
+    )
+    assert any(choice.kind == "SCRY_1" and choice.selected == "BOTTOM" for choice in state.choices)
+
+    high_state, high_executor, high_specs = funded_game("fading-hope-high")
+    high_value = add_card(
+        high_executor,
+        high_specs["Niv-Mizzet, the Firemind"],
+        Zone.BATTLEFIELD,
+        owner="P1",
+    )
+    add_card(high_executor, high_specs["Island"], Zone.LIBRARY)
+    high_spell = add_card(high_executor, high_specs["Fading Hope"], Zone.HAND)
+
+    high_executor.cast(
+        "P0",
+        high_spell.object_id,
+        (TargetRef(high_value.object_id),),
+        choices={"scry_to_bottom": True},
+    )
+    pass_all(high_executor)
+
+    assert high_value.retired
+    assert not any(choice.kind == "SCRY_1" for choice in high_state.choices)
