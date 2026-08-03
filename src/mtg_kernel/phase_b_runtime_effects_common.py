@@ -11,11 +11,9 @@ from mtg_kernel.phase_b_runtime_helpers import (
     _destroy,
     _permanents,
     _return_to_hand,
-    _subtypes,
-    _types,
     _untap,
 )
-from mtg_kernel.phase_b_runtime_support import _ORIGINALS
+from mtg_kernel.phase_b_runtime_support import _ORIGINALS, _subtypes, _types
 
 
 def _source_permanent(self: Any, source: GameObject | None, action: Action) -> GameObject:
@@ -24,7 +22,10 @@ def _source_permanent(self: Any, source: GameObject | None, action: Action) -> G
         object_id = source.source_object_id
     if object_id is None or object_id not in self.state.objects:
         raise IllegalAction("effect cannot find its source permanent")
-    return self.state.objects[object_id]
+    permanent = self.state.objects[object_id]
+    if not isinstance(permanent, GameObject):
+        raise TypeError("state object registry returned a non-GameObject value")
+    return permanent
 
 
 def apply_effect_common(
@@ -65,41 +66,41 @@ def apply_effect_common(
         return True
 
     if kind == "ADD_COMMANDER_COLOR":
-        selected = str(choices.get("mana_color", ""))
-        if selected not in {"U", "R"}:
+        selected_color = str(choices.get("mana_color", ""))
+        if selected_color not in {"U", "R"}:
             raise IllegalAction("commander-color mana requires an explicit U or R choice")
-        add_mana(self.state.players[action.actor_id].mana_pool, {selected: 1})
-        self._event("MANA_ADDED", action, mana={selected: 1}, source_kind=kind)
+        add_mana(self.state.players[action.actor_id].mana_pool, {selected_color: 1})
+        self._event("MANA_ADDED", action, mana={selected_color: 1}, source_kind=kind)
         return True
 
     if kind == "ADD_OPPONENT_PROFILE_COLOR":
         profile = str(choices.get("opponent_mana_profile", "blue_red_available"))
-        selected = str(choices.get("mana_color", ""))
-        if profile != "blue_red_available" or selected not in {"U", "R"}:
+        selected_color = str(choices.get("mana_color", ""))
+        if profile != "blue_red_available" or selected_color not in {"U", "R"}:
             raise IllegalAction("opponent-profile mana requires an explicit available U or R")
-        add_mana(self.state.players[action.actor_id].mana_pool, {selected: 1})
-        self._event("MANA_ADDED", action, mana={selected: 1}, opponent_profile=profile)
+        add_mana(self.state.players[action.actor_id].mana_pool, {selected_color: 1})
+        self._event("MANA_ADDED", action, mana={selected_color: 1}, opponent_profile=profile)
         return True
 
     if kind == "ADD_CHOSEN_MANA_AND_DAMAGE_SELF":
         allowed = tuple(str(value) for value in effect.get("choices", ()))
-        selected = str(choices.get("mana_color", ""))
-        if selected not in allowed:
+        selected_color = str(choices.get("mana_color", ""))
+        if selected_color not in allowed:
             raise IllegalAction("pain-land ability requires an explicit legal color")
-        add_mana(self.state.players[action.actor_id].mana_pool, {selected: 1})
+        add_mana(self.state.players[action.actor_id].mana_pool, {selected_color: 1})
         self.state.players[action.actor_id].life -= int(effect.get("damage", 1))
-        self._event("MANA_ADDED_AND_PLAYER_DAMAGED", action, mana={selected: 1})
+        self._event("MANA_ADDED_AND_PLAYER_DAMAGED", action, mana={selected_color: 1})
         self.check_state_based_actions()
         return True
 
     if kind == "ADD_BLUE_OR_FIXED_CHOSEN":
         permanent = _source_permanent(self, source, action)
         fixed = str(permanent.current_characteristics.get("chosen_color", ""))
-        selected = str(choices.get("mana_color", ""))
-        if selected not in {"U", fixed} or not selected:
+        selected_color = str(choices.get("mana_color", ""))
+        if selected_color not in {"U", fixed} or not selected_color:
             raise IllegalAction("Thriving Isle requires blue or its fixed chosen color")
-        add_mana(self.state.players[action.actor_id].mana_pool, {selected: 1})
-        self._event("MANA_ADDED", action, mana={selected: 1})
+        add_mana(self.state.players[action.actor_id].mana_pool, {selected_color: 1})
+        self._event("MANA_ADDED", action, mana={selected_color: 1})
         return True
 
     if kind in {"BOUNCE_TARGET", "BOUNCE_TARGETS"}:
@@ -141,7 +142,7 @@ def apply_effect_common(
         return True
 
     if kind in {"DESTROY_TARGETS", "DESTROY_ALL_OPPONENT_ARTIFACTS"}:
-        selected = (
+        selected_targets = (
             targets
             if kind == "DESTROY_TARGETS"
             else [
@@ -150,7 +151,7 @@ def apply_effect_common(
                 if obj.controller != action.actor_id and "Artifact" in _types(obj)
             ]
         )
-        for target in list(selected):
+        for target in list(selected_targets):
             _destroy(self, target, action, kind)
         return True
 
