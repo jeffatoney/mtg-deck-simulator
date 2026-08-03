@@ -112,7 +112,13 @@ def _untap(executor: Any, objects: Sequence[GameObject], action: Action) -> None
 
 
 def _mark_eot_original(obj: GameObject) -> dict[str, Any]:
-    values = obj.current_characteristics.setdefault("until_end_of_turn", {})
+    existing = obj.current_characteristics.get("until_end_of_turn")
+    values: dict[str, Any]
+    if isinstance(existing, dict):
+        values = existing
+    else:
+        values = {}
+        obj.current_characteristics["until_end_of_turn"] = values
     values.setdefault("original_power", obj.current_characteristics.get("power"))
     values.setdefault("original_toughness", obj.current_characteristics.get("toughness"))
     values.setdefault("original_keywords", list(obj.current_characteristics.get("keywords", ())))
@@ -121,6 +127,8 @@ def _mark_eot_original(obj: GameObject) -> dict[str, Any]:
 
 def _draw_card(self: Any, player_id: str, *, action: Action | None = None) -> GameObject | None:
     moved = _ORIGINALS["draw_card"](self, player_id, action=action)
+    if moved is not None and not isinstance(moved, GameObject):
+        raise TypeError("draw_card returned a non-GameObject value")
     if moved is None or self.state.terminal.status != "ACTIVE":
         return moved
     event = self.state.events[-1]
@@ -159,6 +167,8 @@ def _cast(
         choices,
         _record=_record,
     )
+    if not isinstance(spell, GameObject):
+        raise TypeError("cast returned a non-GameObject value")
     is_pirate = "Pirate" in _subtypes(spell)
     for source in _permanents(self):
         if source.controller != actor:
