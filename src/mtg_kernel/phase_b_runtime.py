@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.models import Action, GameObject, ObjectKind, TargetRef, Zone
@@ -65,13 +65,16 @@ def _copy_permanent_token(
     delayed: str,
 ) -> GameObject:
     original_copy = _ORIGINALS["copy_permanent_token"]
-    token = original_copy(
-        self,
-        original,
-        controller,
-        cause_action,
-        haste=haste,
-        delayed="" if delayed == "SACRIFICE_AT_NEXT_END_STEP" else delayed,
+    token = cast(
+        GameObject,
+        original_copy(
+            self,
+            original,
+            controller,
+            cause_action,
+            haste=haste,
+            delayed="" if delayed == "SACRIFICE_AT_NEXT_END_STEP" else delayed,
+        ),
     )
     self._queue_etb(token)
     if delayed != "SACRIFICE_AT_NEXT_END_STEP":
