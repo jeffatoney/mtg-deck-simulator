@@ -4,7 +4,7 @@ from __future__ import annotations
 import statistics
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import asdict
-from typing import Any, cast
+from typing import Any
 from mtg_policy.learning_models import (
     CHECKPOINTS,
     EvaluatorSnapshot,
@@ -58,7 +58,7 @@ def _outcome_guardrails(
         )
         if len(result) != 4:
             raise AssertionError("checkpoint guardrail shape changed")
-        return cast(tuple[float, float, float, float], result)
+        return result
 
     def earliest(values: Sequence[OutcomeVector]) -> float:
         turns = [
