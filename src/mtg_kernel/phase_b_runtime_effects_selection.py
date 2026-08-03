@@ -135,6 +135,73 @@ def _draw_then_discard(
         executor._discard_card(action.actor_id, card.object_id, action)
 
 
+def _look_select_rest_bottom(
+    executor: Any,
+    action: Action,
+    *,
+    look_count: int,
+    select_count: int,
+) -> None:
+    if look_count < 0 or select_count < 0 or select_count > look_count:
+        raise IllegalAction("look/select counts are invalid")
+    key = executor.zones.zone_key(Zone.LIBRARY, action.actor_id)
+    library = executor.state.zones.get(key, [])
+    looked_ids = list(reversed(library[-look_count:])) if look_count else []
+    looked = [executor.state.objects[object_id] for object_id in looked_ids]
+    required = min(select_count, len(looked))
+    selected = _select_cards(
+        executor,
+        action,
+        purpose="LOOK_SELECT",
+        candidates=looked,
+        minimum=required,
+        maximum=required,
+    )
+    selected_ids = {card.object_id for card in selected}
+    remaining = [card for card in looked if card.object_id not in selected_ids]
+    ordered_bottom = (
+        _select_cards(
+            executor,
+            action,
+            purpose="ORDER_LIBRARY_BOTTOM",
+            candidates=remaining,
+            minimum=len(remaining),
+            maximum=len(remaining),
+        )
+        if remaining
+        else []
+    )
+
+    for card in selected:
+        moved = executor.zones.move(
+            card.object_id,
+            Zone.HAND,
+            "LOOK_SELECT",
+            executor._event(
+                "LOOKED_CARD_PUT_IN_HAND",
+                action,
+                selected_object_id=card.object_id,
+            ),
+        )
+        if moved is None:
+            raise IllegalAction("look/select effect did not create a hand object")
+
+    current_library = executor.state.zones.get(key, [])
+    for card in remaining:
+        if card.object_id not in current_library:
+            raise IllegalAction("look/select remainder left the library unexpectedly")
+        current_library.remove(card.object_id)
+    current_library[0:0] = [card.object_id for card in ordered_bottom]
+    executor._event(
+        "LOOK_SELECT_REST_BOTTOM",
+        action,
+        looked_count=len(looked),
+        selected_count=len(selected),
+        bottom_count=len(ordered_bottom),
+        bottom_order="BOTTOMMOST_FIRST",
+    )
+
+
 def apply_effect_selection(
     self: Any,
     source: GameObject | None,
@@ -145,6 +212,14 @@ def apply_effect_selection(
 ) -> bool:
     del source, targets, choices
     kind = str(effect.get("kind", "NONE"))
+    if kind == "LOOK_SELECT_REST_BOTTOM":
+        _look_select_rest_bottom(
+            self,
+            action,
+            look_count=int(effect.get("look", 0)),
+            select_count=int(effect.get("select", 0)),
+        )
+        return True
     if kind == "DRAW_DISCARD":
         _draw_then_discard(
             self,
