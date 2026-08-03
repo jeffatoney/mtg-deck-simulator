@@ -159,7 +159,7 @@ def _target_matches(self: Any, actor: str, obj: GameObject, kind: str) -> bool:
     types = _types(obj)
     subtypes = _subtypes(obj)
     supertypes = set(str(value) for value in obj.current_characteristics.get("supertypes", ()))
-    permanent = self._is_permanent(obj)
+    permanent = bool(self._is_permanent(obj))
     if kind == "SPELL":
         return obj.zone is Zone.STACK and obj.object_kind in {
             ObjectKind.SPELL,
