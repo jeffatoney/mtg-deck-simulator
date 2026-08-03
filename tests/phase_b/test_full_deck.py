@@ -4,7 +4,12 @@ from collections import Counter
 
 from mtg_cards.full_deck import FULL_DECK_NAMES, RULES_BY_NAME, load_full_deck_specs
 from mtg_deck import build_exact_game, load_exact_deck_package
-from mtg_deck.package import COMPOSITION_REVIEWED, EXECUTION_UNVERIFIED
+from mtg_deck.package import (
+    COMPOSITION_REVIEWED,
+    EXECUTION_IMPLEMENTED,
+    EXECUTION_UNVERIFIED,
+    IMPLEMENTED_CARDS,
+)
 from mtg_kernel.models import Zone
 
 
@@ -26,7 +31,18 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
     package = load_exact_deck_package()
     assert len(package.coverage) == 80
     assert {record.composition_status for record in package.coverage} == {COMPOSITION_REVIEWED}
-    assert {record.execution_status for record in package.coverage} == {EXECUTION_UNVERIFIED}
+    implemented = {
+        record.name
+        for record in package.coverage
+        if record.execution_status == EXECUTION_IMPLEMENTED
+    }
+    unverified = {
+        record.name
+        for record in package.coverage
+        if record.execution_status == EXECUTION_UNVERIFIED
+    }
+    assert implemented == set(IMPLEMENTED_CARDS) == {"Brotherhood's End"}
+    assert unverified == set(FULL_DECK_NAMES) - implemented
     assert all(record.handler_ids for record in package.coverage)
     assert set(RULES_BY_NAME) == set(FULL_DECK_NAMES)
     assert all(abilities for abilities in RULES_BY_NAME.values())
