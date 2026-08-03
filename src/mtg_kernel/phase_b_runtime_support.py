@@ -128,11 +128,22 @@ def automatic_ability_execution_supported(ability: dict[str, Any], *, entering: 
         )
     if kind != "TRIGGERED":
         return False
-    if str(ability.get("trigger", "")) == "ETB" and not entering:
+    trigger = str(ability.get("trigger", ""))
+    if trigger == "ETB" and not entering:
         return True
     schema = dict(ability.get("target_schema", {}))
+    if (
+        trigger == "ETB"
+        and str(effect.get("kind", "")) == "CREATE_SPELL_COPY"
+        and str(schema.get("kind", "")) == "INSTANT_OR_SORCERY_SPELL"
+        and int(schema.get("min", 0) or 0) == 1
+        and int(schema.get("max", 0) or 0) == 1
+        and not ability.get("optional")
+        and effect_execution_supported(effect)
+    ):
+        return True
     return bool(
-        str(ability.get("trigger", "")) in SUPPORTED_NO_CHOICE_TRIGGERS
+        trigger in SUPPORTED_NO_CHOICE_TRIGGERS
         and effect_execution_supported(effect)
         and not ability.get("optional")
         and int(schema.get("max", 0) or 0) == 0
