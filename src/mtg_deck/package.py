@@ -35,6 +35,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Dispel",
         "Dizzy Spell",
         "Drift of Phantasms",
+        "Dualcaster Mage",
         "Echoing Truth",
         "Evolving Wilds",
         "Exotic Orchard",
