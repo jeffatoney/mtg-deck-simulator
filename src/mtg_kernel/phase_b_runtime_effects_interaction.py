@@ -71,7 +71,7 @@ def apply_effect_interaction(
 
     if kind == "COUNTER_TARGETING_CONTROLLER":
         if len(targets) != 1:
-            raise IllegalAction("Stormtammer counter requires one stack target")
+            raise IllegalAction("Stormtamer counter requires one stack target")
         target = targets[0]
         created = self._created_action(target)
         protected = action.actor_id
