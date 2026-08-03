@@ -43,9 +43,7 @@ def apply_effect_mana(
     if not isinstance(configured, (list, tuple)):
         raise IllegalAction("filter-mana options are malformed")
     options = tuple(
-        _normalize_option(option)
-        for option in configured
-        if isinstance(option, Mapping)
+        _normalize_option(option) for option in configured if isinstance(option, Mapping)
     )
     if len(options) != len(configured):
         raise IllegalAction("filter-mana options are malformed")
