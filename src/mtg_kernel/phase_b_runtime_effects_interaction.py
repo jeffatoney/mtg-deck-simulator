@@ -5,12 +5,73 @@ from __future__ import annotations
 from typing import Any
 
 from mtg_kernel.errors import IllegalAction
-from mtg_kernel.models import Action, GameObject, ObjectKind, Zone
+from mtg_kernel.mana import pay_mana
+from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
 from mtg_kernel.phase_b_runtime_helpers import (
     _counter_to,
     _mark_eot_original,
     _spell_satisfies,
 )
+
+
+def _resolve_counter_unless_pay(
+    self: Any,
+    action: Action,
+    effect: dict[str, Any],
+    targets: list[GameObject],
+    choices: dict[str, Any],
+    *,
+    destination: Zone,
+) -> None:
+    if len(targets) != 1:
+        raise IllegalAction("counter-unless-pay effect requires one target")
+    target = targets[0]
+    payer = target.controller or target.owner
+    if payer is None or payer not in self.state.players:
+        raise IllegalAction("counter-unless-pay target has no available controller")
+
+    raw_decision = choices.get("counter_payment")
+    if not isinstance(raw_decision, dict):
+        raise IllegalAction("counter-unless-pay requires an explicit controller payment decision")
+    if raw_decision.get("player_id") != payer:
+        raise IllegalAction("counter payment decision must be anchored to the target controller")
+    pay = raw_decision.get("pay")
+    if not isinstance(pay, bool):
+        raise IllegalAction("counter payment decision must record a boolean pay value")
+
+    amount = action.x_value if effect.get("amount_from_x") else int(effect.get("amount", 0))
+    if amount < 0:
+        raise IllegalAction("counter payment amount cannot be negative")
+
+    payment: dict[str, int] = {}
+    if pay:
+        payment = pay_mana(self.state.players[payer].mana_pool, {"GENERIC": amount})
+
+    decision_event = self._event(
+        "COUNTER_PAYMENT_DECISION",
+        action,
+        payer=payer,
+        pay=pay,
+        amount=amount,
+        payment=payment,
+        target_object_id=target.object_id,
+    )
+    self.state.choices.append(
+        Choice(
+            self.identity.new_id("choice"),
+            payer,
+            "COUNTER_UNLESS_PAY",
+            {
+                "pay": pay,
+                "amount": amount,
+                "payment": payment,
+                "target_object_id": target.object_id,
+            },
+            decision_event.event_id,
+        )
+    )
+    if not pay:
+        _counter_to(self, target, action, destination)
 
 
 def apply_effect_interaction(
@@ -21,7 +82,7 @@ def apply_effect_interaction(
     targets: list[GameObject],
     choices: dict[str, Any],
 ) -> bool:
-    del source, choices
+    del source
     kind = str(effect.get("kind", "NONE"))
 
     if kind == "GRANT_HASTE":
@@ -104,6 +165,28 @@ def apply_effect_interaction(
         target = targets[0]
         if kind == "COUNTER" or _spell_satisfies(target, dict(effect.get("predicate", {}))):
             _counter_to(self, target, action, Zone.GRAVEYARD)
+        return True
+
+    if kind == "COUNTER_UNLESS_PAY":
+        _resolve_counter_unless_pay(
+            self,
+            action,
+            effect,
+            targets,
+            choices,
+            destination=Zone.GRAVEYARD,
+        )
+        return True
+
+    if kind == "COUNTER_UNLESS_PAY_EXILE":
+        _resolve_counter_unless_pay(
+            self,
+            action,
+            effect,
+            targets,
+            choices,
+            destination=Zone.EXILE,
+        )
         return True
 
     if kind == "COUNTER_TARGETING_CONTROLLER":

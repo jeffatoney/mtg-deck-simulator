@@ -32,9 +32,11 @@ def cast_with_counter_predicate(
     selected_choices = dict(choices or {})
     if effect.get("target_count_from_x") and len(targets) != x_value:
         raise IllegalAction("targets must equal X")
-    if str(effect.get("kind", "")) == "COUNTER_IF" and len(targets) == 1:
+    counter_kinds = {"COUNTER_IF", "COUNTER_UNLESS_PAY", "COUNTER_UNLESS_PAY_EXILE"}
+    if str(effect.get("kind", "")) in counter_kinds and len(targets) == 1:
         target = self.state.objects.get(targets[0].object_id)
-        if target is not None and not _spell_satisfies(target, dict(effect.get("predicate", {}))):
+        predicate = dict(effect.get("predicate", {}))
+        if target is not None and predicate and not _spell_satisfies(target, predicate):
             raise IllegalAction("target spell does not satisfy counter predicate")
 
     kicker_text = str(effect.get("kicker", ""))

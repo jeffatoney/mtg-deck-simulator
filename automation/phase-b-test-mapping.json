@@ -30,7 +30,11 @@
       "tests/phase_b/test_runtime_batch_nineteen.py::test_into_the_roil_executes_normal_and_kicked_paths",
       "tests/phase_b/test_runtime_batch_nineteen.py::test_into_the_roil_kicker_payment_failure_is_atomic",
       "tests/phase_b/test_runtime_batch_twenty.py::test_reality_ripple_phases_target_and_attachments_without_changing_zones",
-      "tests/phase_b/test_runtime_batch_twenty.py::test_indirectly_phased_attachment_returns_with_target_not_its_controller"
+      "tests/phase_b/test_runtime_batch_twenty.py::test_indirectly_phased_attachment_returns_with_target_not_its_controller",
+      "tests/phase_b/test_runtime_batch_twenty_one.py::test_spell_pierce_requires_qualifying_target_and_explicit_controller_decision",
+      "tests/phase_b/test_runtime_batch_twenty_one.py::test_spell_pierce_decline_counters_qualifying_spell_and_records_choice",
+      "tests/phase_b/test_runtime_batch_twenty_one.py::test_spell_pierce_controller_payment_preserves_target_and_records_mana",
+      "tests/phase_b/test_runtime_batch_twenty_one.py::test_syncopate_uses_x_for_payment_and_exiles_when_declined"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
