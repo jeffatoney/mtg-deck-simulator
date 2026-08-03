@@ -54,7 +54,7 @@ def apply_effect_interaction(
             power = target.current_characteristics.get("power")
             toughness = target.current_characteristics.get("toughness")
             if not isinstance(power, int) or not isinstance(toughness, int):
-                raise Illegaction("switch effect requires numeric power and toughness")
+                raise IllegalAction("switch effect requires numeric power and toughness")
             _mark_eot_original(target)
             target.current_characteristics["power"] = toughness
             target.current_characteristics["toughness"] = power
