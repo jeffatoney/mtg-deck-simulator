@@ -22,7 +22,7 @@ from mtg_kernel.strategic_choices import (
 )
 
 if TYPE_CHECKING:
-    from mtg_kernel.engine import GameExecutor
+    from mtg_kernel.engine_core import GameExecutor
 
 
 def _strategic_observation(executor: GameExecutor, actor_id: str) -> dict[str, Any]:
@@ -74,7 +74,7 @@ def _search_to_hand(
     )
     request_id = executor.identity.new_id("strategic-request")
     provider = require_provider(
-        executor.strategic_choice_provider,
+        getattr(executor, "strategic_choice_provider", None),
         f"{str(effect.get('kind', 'library search'))} resolution",
     )
     selection = provider.choose_tutor(
@@ -233,7 +233,7 @@ def _fact_or_fiction(executor: GameExecutor, action: Action, effect: dict[str, A
         if player.in_game and player_id != action.actor_id
     )
     provider = require_provider(
-        executor.strategic_choice_provider,
+        getattr(executor, "strategic_choice_provider", None),
         "Fact or Fiction split and pile selection",
     )
     selection = provider.choose_fact_or_fiction(

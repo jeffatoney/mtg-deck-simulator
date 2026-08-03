@@ -14,7 +14,7 @@ from mtg_kernel.mana import parse_mana_cost, pay_mana
 from mtg_kernel.models import Action, GameObject, ObjectKind, TargetRef, Zone
 
 if TYPE_CHECKING:
-    from mtg_kernel.engine import GameExecutor
+    from mtg_kernel.engine_core import GameExecutor
 
 MAIN_PHASES = {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"}
 

@@ -187,6 +187,7 @@ class RecordedStrategicChoiceProvider:
             raise ReplayError("replay transcript omits a recorded copy-target choice")
         recorded = self._copy_targets.pop(0)
         selected = recorded.get("selected")
+        diagnostics: Mapping[str, Any]
         if selected == "RETAIN_ORIGINAL_TARGETS":
             handles = request.original_target_handles
             evaluator_id, evaluator_sha, diagnostics = "legacy-recorded", "0" * 64, {}

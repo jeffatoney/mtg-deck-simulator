@@ -15,7 +15,7 @@ from mtg_kernel.phase_b_actions_core import (
 )
 
 if TYPE_CHECKING:
-    from mtg_kernel.engine import GameExecutor
+    from mtg_kernel.engine_core import GameExecutor
     from mtg_kernel.models import Action
 
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
-from mtg_kernel.engine import MAIN_PHASES, GameExecutor
+from mtg_kernel.engine_core import MAIN_PHASES, GameExecutor
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
 

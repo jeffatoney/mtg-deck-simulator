@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import statistics
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import asdict
 from typing import Any, cast
 from mtg_policy.learning_models import (
@@ -31,7 +31,7 @@ from mtg_policy.learning_validation import (
 
 
 def _selected_outcomes(
-    examples: Sequence[PairwiseTrainingExample], predictions: Sequence[float]
+    examples: Sequence[PairwiseTrainingExample], predictions: Iterable[float]
 ) -> tuple[OutcomeVector, ...]:
     return tuple(
         example.outcome_a if int(prediction) == 1 else example.outcome_b
@@ -41,8 +41,8 @@ def _selected_outcomes(
 
 def _outcome_guardrails(
     examples: Sequence[PairwiseTrainingExample],
-    baseline_predictions: Sequence[float],
-    learned_predictions: Sequence[float],
+    baseline_predictions: Iterable[float],
+    learned_predictions: Iterable[float],
     *,
     required: bool,
 ) -> OutcomeGuardrailSummary:
