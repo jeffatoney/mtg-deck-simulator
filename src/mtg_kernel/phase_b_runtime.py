@@ -8,6 +8,7 @@ from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.models import Action, GameObject
 from mtg_kernel.phase_b_runtime_effects_common import apply_effect_common
 from mtg_kernel.phase_b_runtime_effects_interaction import apply_effect_interaction
+from mtg_kernel.phase_b_runtime_effects_search import apply_effect_search
 from mtg_kernel.phase_b_runtime_helpers import (
     _cast,
     _check_state_based_actions,
@@ -28,6 +29,8 @@ def _apply_effect(
     if apply_effect_common(self, source, action, effect, targets, choices):
         return
     if apply_effect_interaction(self, source, action, effect, targets, choices):
+        return
+    if apply_effect_search(self, source, action, effect, targets, choices):
         return
     kind = str(effect.get("kind", "NONE"))
     raise UnsupportedCapability(f"unsupported exact-deck effect primitive: {kind}")
