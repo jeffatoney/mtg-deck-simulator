@@ -1,10 +1,10 @@
 # Phase B Project Status
 
-> **Last verified:** 2026-08-03 05:05 PT  
+> **Last verified:** 2026-08-03 06:10 PT  
 > **Repository:** `jeffatoney/mtg-deck-simulator`  
 > **Pull request:** #37 — draft  
 > **Branch:** `engine/phase-b-full-deck-policy`  
-> **Latest evaluated implementation head:** `2715b9a8519a220dc82fb143e0e3180b18df1445`
+> **Latest evaluated implementation head:** `d26655c48a64c90a89b164817c78c7e0403fd9f6`
 
 This file is the executive mirror of the issue-backed GitHub Project task records. Update the task record and this dashboard together whenever work is created, completed, blocked, reopened, reprioritized, or moved to human review. Completion requires exact verification evidence; implementation presence alone is not completion. Dashboard-only commits may follow the evaluated implementation head without changing the recorded engineering verdict.
 
@@ -25,19 +25,19 @@ The progress percentage measures the seven core project milestones tracked in is
 
 | Phase or milestone | Status | Verification basis | Task record |
 |---|---|---|---|
-| Phase A clean-engine foundation | **Current and passing** | Head `2715b9a8519a220dc82fb143e0e3180b18df1445`; Phase A verifier 27/27 PASS; durable certification-current gate PASS | PR #35 / #38 |
+| Phase A clean-engine foundation | **Current and passing** | Head `d26655c48a64c90a89b164817c78c7e0403fd9f6`; Phase A verifier 27/27 PASS; durable certification-current gate PASS | PR #35 / #38 |
 | Phase B Slice 1 — deck construction and coverage framework | **Verified complete** | Head `8f7727026b0fee20a7f1ff242f9ee2cb73f8a16b`; CI `30685183470` PASS | #39 |
 | Phase B Slice 2 — policy configuration and shared broker | **Verified complete** | Head `6964f231e22b7a116e10a4c4e988552e8d861608`; CI `30693534094` PASS; 123 tests | #40 |
 | Phase B Slice 3 framework — search, measurement, replay, manifests, verifier tooling | **Verified complete for framework scope** | Head `2b4a25514c440cd96a147a488e2a6ab13679f6e6`; CI `30696609808` PASS; 144 repository tests; 47 Phase B tests | #41 |
 | Restore current exact-head CI | **Verified complete** | Head `0bb6606cfa57097c698ce820efb5d56175259c06`; workflow run `30804677571` SUCCESS | #42 |
-| Complete exact-deck runtime coverage | **In progress** | 59 unsupported/unverified capabilities remain; one strategic model blocker remains | #43 |
+| Complete exact-deck runtime coverage | **In progress** | 56 unsupported/unverified capabilities remain; one strategic model blocker remains | #43 |
 | Approve and execute 12 mandatory transcripts | **Human review required** | 12 files and digests exist; approval record is not owner-anchored | #44 |
 | Phase B verifier PASS and durable certification | **Blocked** | Requires #43 and #44 to close on one exact commit | #45 |
 | Phase C pilot | Not authorized | Pilot-lock gate passes; no pilot authorization or result is claimed | — |
 
 ## Current Sprint or Focus
 
-1. Continue bounded Oracle-backed runtime batches against the 59 verified remaining capability blockers.
+1. Continue bounded Oracle-backed runtime batches against the 56 verified remaining capability blockers.
 2. Prioritize shared primitives that can clear both an unsupported effect and its corresponding unverified card.
 3. Resolve `UNSUPPORTED_STRATEGIC_LOOP:DUALCASTER_TWINFLAME` without treating the combo as an assumed strategic truth.
 4. Obtain explicit owner review of the 12 golden-transcript candidates and exact digests.
@@ -45,30 +45,29 @@ The progress percentage measures the seven core project milestones tracked in is
 
 ## Completed This Session
 
-- Added direct production-path evidence for Ash Barrens mana and basic landcycling.
-- Added direct Dizzy Spell power/toughness modification evidence while retaining shared transmute coverage.
-- Added direct Muddle the Mixture counter and transmute evidence.
-- Added direct Rebuild all-artifact bounce evidence while retaining shared cycling coverage.
-- Added direct Step Through two-creature bounce evidence while retaining shared Wizardcycling coverage.
-- Credited Twinflame only after confirming the existing production ActionBroker test exercises target selection, token copies, copied-object identity, delayed triggers, and end-step exile.
-- Applied the exact CI-produced Ruff formatting artifact after run 474 identified three formatting-only differences.
-- Verified workflow run `30812057567` / run 477 through all standing gates.
-- Verified 213 repository tests and 116 Phase B tests with no test failures.
-- Reduced exact-deck blockers from 65 to 59.
+- Added direct production-path evidence for both Commit // Memory faces: Commit moves its target to its owner's library, while Memory shuffles hands and graveyards, redraws seven cards, and exiles itself after flashback resolution.
+- Added direct Drift of Phantasms transmute evidence selecting one legal mana-value-three card during resolution.
+- Added direct Siren Stormtamer evidence countering a spell targeting its controller while paying the sacrifice cost.
+- Ran the focused evidence commit through complete CI before granting coverage credit.
+- Credited only Commit // Memory, Drift of Phantasms, and Siren Stormtamer after their direct tests passed.
+- Preserved the anti-overclaim gate: workflow run 480 correctly failed because its literal reviewed-card set had not yet been updated.
+- Updated the anti-overclaim regression and reran the complete pipeline successfully in workflow run `30816512376` / run 481.
+- Verified 216 repository tests and 119 Phase B tests with no test failures.
+- Reduced exact-deck blockers from 59 to 56.
 - Updated issues #43 and #45 and this dashboard to the same exact verifier state.
 
 ## Current Blockers
 
 | Blocker | Current evidence | Required resolution | Task |
 |---|---|---|---|
-| Exact-deck runtime coverage incomplete | 32 unverified cards, 18 unsupported effects, and 9 unsupported automatic abilities; 59 total | Reach zero unsupported capabilities and 100 reviewed `IMPLEMENTED` physical cards | #43 |
+| Exact-deck runtime coverage incomplete | 29 unverified cards, 18 unsupported effects, and 9 unsupported automatic abilities; 56 total | Reach zero unsupported capabilities and 100 reviewed `IMPLEMENTED` physical cards | #43 |
 | Strategic combo model unresolved | `UNSUPPORTED_STRATEGIC_LOOP:DUALCASTER_TWINFLAME` | Add reviewed, fail-closed loop adjudication outside the rules kernel | #43 |
 | Transcript approval not owner-anchored | 12 candidate files and digests exist, but the approval record is not owner-anchored | Owner explicitly reviews and approves or rejects each exact digest | #44 |
 | Durable Phase B certification unavailable | Phase B verifier status is FAIL | Pass verifier, generate immutable artifact, and commit current durable certification | #45 |
 
 ## Quality Dashboard
 
-**Latest evaluated workflow:** run `30812057567` / run number 477 — **SUCCESS**  
+**Latest evaluated workflow:** run `30816512376` / run number 481 — **SUCCESS**  
 **Phase B candidate verdict inside that workflow:** **FAIL**
 
 | Gate | Evaluated-head status | Evidence |
@@ -80,19 +79,19 @@ The progress percentage measures the seven core project milestones tracked in is
 | Phase B evaluator and learning boundary | PASS | 77 classified effect kinds; 14 policy bundles; separation rules passed |
 | Clean engine and support-package boundary | PASS | 62 Python files scanned; no forbidden findings |
 | Legacy package import prohibition | PASS | `mtg_sim` not importable |
-| Ruff formatting | PASS | 151 files already formatted |
+| Ruff formatting | PASS | 152 files already formatted |
 | Ruff lint | PASS | All checks passed |
 | Strict mypy | PASS | 62 source files, no issues |
 | Standing Phase A verifier | PASS | 27 passed, 0 failed, 0 skipped, 0 xfailed |
-| Full pytest suite | PASS | 213 passed |
+| Full pytest suite | PASS | 216 passed |
 | Manifest integrity | PASS | 34 frozen files and 18 required paths |
 | Durable Phase A certification current | PASS | Certified covered-content digest verified |
-| Phase B mapped tests | PASS | 116 passed, 0 failed, 0 skipped, 0 xfailed |
+| Phase B mapped tests | PASS | 119 passed, 0 failed, 0 skipped, 0 xfailed |
 | Phase B requirement mapping | PASS | Complete |
 | Strategic evaluator | PASS | Frozen evaluator and learning-plan identities verified |
 | Pilot-lock gate | PASS | Verifier reports `pilot_lock: PASS` |
 | Golden transcripts | **FAIL** | Approval record is not owner-anchored |
-| Exact-deck capability coverage | **FAIL** | 59 unsupported/unverified capabilities |
+| Exact-deck capability coverage | **FAIL** | 56 unsupported/unverified capabilities |
 | Strategic model | **FAIL** | One unresolved Dualcaster/Twinflame loop |
 | Durable Phase B certification | BLOCKED | Phase B candidate is not PASS |
 
@@ -107,15 +106,15 @@ The progress percentage measures the seven core project milestones tracked in is
 ## Decisions Made
 
 - The owner-approved single-owner exception remains in force; it does not permit automation to approve golden transcripts on the owner’s behalf.
-- Coverage credit is granted only after direct production-path execution tests exist.
-- Existing shared-path tests may support coverage credit only when they execute the exact card’s complete required behavior rather than merely collecting or inspecting declarations.
+- Coverage credit is granted only after direct production-path execution tests exist and the anti-overclaim regression is updated to the same reviewed evidence set.
+- A green workflow does not establish Phase B acceptance when the candidate verifier reports FAIL.
 - General test success does not convert unapproved transcript candidates into golden-transcript evidence.
 - The Phase B verifier remains fail-closed until transcript approval, exact-deck coverage, and strategic-loop adjudication all pass on one exact commit.
 - GitHub issue records are the detailed task records; this file is the executive mirror. They must change together.
 
 ## Next Recommended Tasks
 
-1. Continue the next bounded runtime batch from the 59-item capability list under #43.
+1. Continue the next bounded runtime batch from the 56-item capability list under #43.
 2. Implement a shared primitive for one of the unsupported effect families with a matching unverified card, then add direct exact-deck tests before crediting it.
 3. Resolve the Dualcaster/Twinflame strategic-loop blocker.
 4. Record approval or requested correction individually for each transcript ID and digest in #44.
@@ -131,10 +130,10 @@ The progress percentage measures the seven core project milestones tracked in is
 | Active PR | #37 — `Phase B: migrate full deck and policy framework` |
 | PR state | Open, draft, mergeable at last metadata check |
 | Base | `main` at `b5743b54fa26e3e20c175fddb6401b390c828b8c` |
-| Latest evaluated implementation head | `2715b9a8519a220dc82fb143e0e3180b18df1445` |
-| Latest evaluated workflow | Run 477 / `30812057567` — SUCCESS |
-| Phase B verifier | FAIL — transcripts, 59 capabilities, and one strategic blocker |
-| Phase B artifact | ID `8855184709`; ZIP SHA-256 `32840ef562a81e39c3a2e01ced4f48e0a583db66c5041ff40cd502d5b5c5c1ab` |
+| Latest evaluated implementation head | `d26655c48a64c90a89b164817c78c7e0403fd9f6` |
+| Latest evaluated workflow | Run 481 / `30816512376` — SUCCESS |
+| Phase B verifier | FAIL — transcripts, 56 capabilities, and one strategic blocker |
+| Phase B artifact | ID `8856981817`; ZIP SHA-256 `9f02557d0f47870d0f9065723b98f6e6c97b74009ba90bb944d0790d73fa62da` |
 | Durable Phase B certification | Not generated |
 | Pilot authorization | Not present |
 | Full-study authorization | Not present |
