@@ -106,8 +106,7 @@ def test_faithless_looting_selects_discards_after_drawing_and_supports_flashback
         pass_all(executor)
 
         assert {
-            obj.current_characteristics["name"]
-            for obj in active_objects(state, zone=Zone.HAND)
+            obj.current_characteristics["name"] for obj in active_objects(state, zone=Zone.HAND)
         } >= {"Opt", "Sol Ring"}
         assert {
             obj.current_characteristics["name"]
