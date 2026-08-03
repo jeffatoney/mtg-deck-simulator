@@ -165,6 +165,33 @@ def apply_effect_common(
                 _destroy(self, target, action, kind)
         return True
 
+    if kind == "DAMAGE_ALL_CREATURES_PLANESWALKERS":
+        amount = int(effect.get("amount", 0))
+        if amount < 0:
+            raise IllegalAction("damage amount cannot be negative")
+        assignments: dict[str, int] = {}
+        for target in _permanents(self):
+            types = _types(target)
+            if "Creature" in types:
+                target.marked_damage += amount
+                assignments[target.object_id] = amount
+            elif "Planeswalker" in types:
+                loyalty = target.counters.get("LOYALTY")
+                if not isinstance(loyalty, int):
+                    raise IllegalAction("planeswalker damage requires loyalty counters")
+                target.counters["LOYALTY"] = loyalty - amount
+                assignments[target.object_id] = amount
+        self._event(
+            "DAMAGE_DEALT_TO_OBJECTS",
+            action,
+            source_object_id=self._rules_source(source).object_id
+            if self._rules_source(source) is not None
+            else None,
+            assignments=assignments,
+            combat=False,
+        )
+        return True
+
     if kind == "DAMAGE_ALL_NON_SUBTYPE":
         amount = int(effect.get("amount", 0))
         excluded = str(effect.get("excluded_subtype", ""))
