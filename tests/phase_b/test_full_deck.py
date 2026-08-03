@@ -60,6 +60,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Dispel",
             "Dizzy Spell",
             "Drift of Phantasms",
+            "Dualcaster Mage",
             "Echoing Truth",
             "Evolving Wilds",
             "Exotic Orchard",
