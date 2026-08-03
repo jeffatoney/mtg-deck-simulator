@@ -146,13 +146,16 @@ def test_opt_scries_then_draws_through_the_shared_sequence_path() -> None:
     pass_all(executor)
 
     assert any(choice.kind == "SCRY_1" for choice in state.choices)
-    assert len(
-        [
-            obj
-            for obj in state.objects.values()
-            if not obj.retired and obj.zone is Zone.HAND and obj.owner == "P0"
-        ]
-    ) == 1
+    assert (
+        len(
+            [
+                obj
+                for obj in state.objects.values()
+                if not obj.retired and obj.zone is Zone.HAND and obj.owner == "P0"
+            ]
+        )
+        == 1
+    )
 
 
 def test_introduction_to_annihilation_exiles_and_lets_the_controller_draw() -> None:
