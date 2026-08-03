@@ -8,6 +8,7 @@ from typing import Any
 from mtg_kernel.errors import IllegalAction
 from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
 from mtg_kernel.observation import ObservationService
+from mtg_kernel.phase_b_runtime_effects_selection import _active_zone_objects, _select_cards
 from mtg_kernel.strategic_choices import PublicCard, TutorChoiceRequest, require_provider
 
 
@@ -131,6 +132,81 @@ def _fetch_basic(executor: Any, action: Action) -> None:
     executor.shuffle_library(action.actor_id, action)
 
 
+def _tutor_types(
+    executor: Any,
+    action: Action,
+    *,
+    types: tuple[str, ...],
+    maximum_each: int,
+) -> None:
+    if maximum_each < 0:
+        raise IllegalAction("type-tutor maximum cannot be negative")
+    remaining = _active_zone_objects(executor, Zone.LIBRARY, action.actor_id)
+    selections: list[tuple[str, GameObject]] = []
+    for card_type in types:
+        eligible = [
+            card
+            for card in remaining
+            if card_type in card.current_characteristics.get("card_types", ())
+        ]
+        selected = _select_cards(
+            executor,
+            action,
+            purpose=f"TUTOR_{card_type.upper()}",
+            candidates=eligible,
+            minimum=0,
+            maximum=min(maximum_each, len(eligible)),
+        )
+        selected_ids = {card.object_id for card in selected}
+        remaining = [card for card in remaining if card.object_id not in selected_ids]
+        selections.extend((card_type, card) for card in selected)
+
+    for card_type, card in selections:
+        moved = executor.zones.move(
+            card.object_id,
+            Zone.HAND,
+            "TUTOR_TYPES",
+            executor._event(
+                "SEARCH_CARD_PUT_IN_HAND",
+                action,
+                selected_type=card_type,
+                selected_object_id=card.object_id,
+            ),
+        )
+        if moved is None:
+            raise IllegalAction("type tutor did not create a hand object")
+    executor.shuffle_library(action.actor_id, action)
+
+
+def _tutor_third_from_top(executor: Any, action: Action) -> None:
+    candidates = _active_zone_objects(executor, Zone.LIBRARY, action.actor_id)
+    selected = _select_cards(
+        executor,
+        action,
+        purpose="TUTOR_THIRD_FROM_TOP",
+        candidates=candidates,
+        minimum=1 if candidates else 0,
+        maximum=1 if candidates else 0,
+    )
+    key = executor.zones.zone_key(Zone.LIBRARY, action.actor_id)
+    library = executor.state.zones.get(key, [])
+    selected_card = selected[0] if selected else None
+    if selected_card is not None:
+        if selected_card.object_id not in library:
+            raise IllegalAction("third-from-top tutor selection left the library unexpectedly")
+        library.remove(selected_card.object_id)
+    executor.shuffle_library(action.actor_id, action)
+    if selected_card is None:
+        return
+    shuffled = executor.state.zones.get(key, [])
+    shuffled.insert(max(0, len(shuffled) - 2), selected_card.object_id)
+    executor._event(
+        "SEARCH_CARD_PUT_THIRD_FROM_TOP",
+        action,
+        selected_object_id=selected_card.object_id,
+    )
+
+
 def apply_effect_search(
     self: Any,
     source: GameObject | None,
@@ -140,7 +216,19 @@ def apply_effect_search(
     choices: dict[str, Any],
 ) -> bool:
     del source, targets, choices
-    if str(effect.get("kind", "NONE")) != "FETCH_BASIC":
-        return False
-    _fetch_basic(self, action)
-    return True
+    kind = str(effect.get("kind", "NONE"))
+    if kind == "FETCH_BASIC":
+        _fetch_basic(self, action)
+        return True
+    if kind == "TUTOR_TYPES":
+        _tutor_types(
+            self,
+            action,
+            types=tuple(str(value) for value in effect.get("types", ())),
+            maximum_each=int(effect.get("maximum_each", 1)),
+        )
+        return True
+    if kind == "TUTOR_THIRD_FROM_TOP":
+        _tutor_third_from_top(self, action)
+        return True
+    return False
