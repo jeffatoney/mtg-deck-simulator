@@ -186,9 +186,7 @@ def test_thriving_isle_entry_choice_and_mana(mana_color: str) -> None:
     isle.permanent_status["tap"] = "UNTAPPED"
     reset_pool(state)
 
-    executor.activate(
-        "P0", isle.object_id, "thriving:mana", choices={"mana_color": mana_color}
-    )
+    executor.activate("P0", isle.object_id, "thriving:mana", choices={"mana_color": mana_color})
 
     assert state.players["P0"].mana_pool[mana_color] == 1
 
@@ -207,9 +205,7 @@ def test_frostboil_snarl_reveal_entry_and_mana_choice() -> None:
     assert snarl.permanent_status["tap"] == "UNTAPPED"
     reset_pool(state)
 
-    executor.activate(
-        "P0", snarl.object_id, "snarl:mana", choices={"mana_color": "U"}
-    )
+    executor.activate("P0", snarl.object_id, "snarl:mana", choices={"mana_color": "U"})
 
     assert state.players["P0"].mana_pool["U"] == 1
     assert any(choice.kind == "REVEAL_FOR_LAND_ENTRY" for choice in state.choices)
