@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from mtg_cards.full_deck import load_full_deck_specs
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.models import TargetRef, Zone
@@ -47,7 +45,11 @@ def active_objects(
     zone: Zone | None = None,
     owner: str | None = None,
 ):
-    values = [obj for obj in state.objects.values() if not obj.retired and not obj.ceased_to_exist]
+    values = [
+        obj
+        for obj in state.objects.values()
+        if not obj.retired and not obj.ceased_to_exist
+    ]
     if name is not None:
         values = [obj for obj in values if obj.current_characteristics.get("name") == name]
     if zone is not None:
@@ -124,15 +126,26 @@ def test_muddle_the_mixture_counters_and_transmutes() -> None:
     assert active_objects(state, name="Opt", zone=Zone.GRAVEYARD, owner="P1")
 
     transmute_state, transmute_executor, transmute_specs = funded_game("muddle-transmute")
-    source = add_card(transmute_executor, transmute_specs["Muddle the Mixture"], Zone.HAND)
+    source = add_card(
+        transmute_executor,
+        transmute_specs["Muddle the Mixture"],
+        Zone.HAND,
+    )
     add_card(transmute_executor, transmute_specs["Arcane Signet"], Zone.LIBRARY)
     transmute_state.turn.phase = "PRECOMBAT_MAIN"
 
     activate_hand_ability(transmute_executor, "P0", source.object_id, "muddle:transmute")
     pass_all(transmute_executor)
 
-    assert active_objects(transmute_state, name="Muddle the Mixture", zone=Zone.GRAVEYARD)
-    assert len(active_objects(transmute_state, name="Arcane Signet", zone=Zone.HAND)) == 1
+    assert active_objects(
+        transmute_state,
+        name="Muddle the Mixture",
+        zone=Zone.GRAVEYARD,
+    )
+    assert (
+        len(active_objects(transmute_state, name="Arcane Signet", zone=Zone.HAND))
+        == 1
+    )
 
 
 def test_rebuild_returns_all_artifacts_while_cycling_remains_available() -> None:
@@ -145,9 +158,15 @@ def test_rebuild_returns_all_artifacts_while_cycling_remains_available() -> None
     executor.cast("P0", spell.object_id)
     pass_all(executor)
 
-    assert len(active_objects(state, name="Arcane Signet", zone=Zone.HAND, owner="P0")) == 1
+    assert (
+        len(active_objects(state, name="Arcane Signet", zone=Zone.HAND, owner="P0"))
+        == 1
+    )
     assert len(active_objects(state, name="Sol Ring", zone=Zone.HAND, owner="P1")) == 1
-    assert len(active_objects(state, name="Mind Stone", zone=Zone.HAND, owner="P1")) == 1
+    assert (
+        len(active_objects(state, name="Mind Stone", zone=Zone.HAND, owner="P1"))
+        == 1
+    )
     assert not [
         obj
         for obj in active_objects(state, zone=Zone.BATTLEFIELD)
@@ -169,5 +188,11 @@ def test_step_through_bounces_two_creatures_and_wizardcycling_remains_available(
     pass_all(executor)
 
     assert first.retired and second.retired
-    assert len(active_objects(state, name="Wily Goblin", zone=Zone.HAND, owner="P1")) == 1
-    assert len(active_objects(state, name="Spectral Sailor", zone=Zone.HAND, owner="P1")) == 1
+    assert (
+        len(active_objects(state, name="Wily Goblin", zone=Zone.HAND, owner="P1"))
+        == 1
+    )
+    assert (
+        len(active_objects(state, name="Spectral Sailor", zone=Zone.HAND, owner="P1"))
+        == 1
+    )
