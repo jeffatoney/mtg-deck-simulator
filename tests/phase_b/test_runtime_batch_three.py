@@ -8,7 +8,9 @@ import pytest
 
 from mtg_cards.full_deck import load_full_deck_specs
 from mtg_kernel.factory import add_card, new_game
+from mtg_kernel.hashing import state_hash
 from mtg_kernel.models import Zone
+from mtg_kernel.replay import transcript, validate_replay
 from mtg_kernel.strategic_choices import TutorChoiceRequest, TutorChoiceSelection
 
 
@@ -39,7 +41,8 @@ def pass_all(executor) -> None:
     ),
 )
 def test_fetch_lands_sacrifice_then_find_basic_land_tapped(land_name: str, ability_id: str) -> None:
-    state, executor = new_game(("P0", "P1"), f"fetch-{land_name}")
+    seed = f"fetch-{land_name}"
+    state, executor = new_game(("P0", "P1"), seed)
     executor.bind_strategic_choice_provider(FirstBasicProvider())
     specs = {spec.name: spec for spec in load_full_deck_specs().values()}
     source = add_card(executor, specs[land_name], Zone.BATTLEFIELD)
@@ -79,3 +82,6 @@ def test_fetch_lands_sacrifice_then_find_basic_land_tapped(land_name: str, abili
         for obj in state.objects.values()
         if not obj.retired
     )
+
+    replayed = validate_replay(transcript(state, seed=seed))
+    assert state_hash(replayed) == state_hash(state)
