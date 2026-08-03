@@ -69,6 +69,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Prismatic Lens",
         "Psychosis Crawler",
         "Ravenform",
+        "Reality Ripple",
         "Rebuild",
         "Resculpt",
         "Scavenger Grounds",
