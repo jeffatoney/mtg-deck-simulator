@@ -28,7 +28,9 @@
       "tests/phase_b/test_runtime_batch_seventeen.py::test_vedalken_aethermage_executes_entry_bounce_and_wizardcycling",
       "tests/phase_b/test_runtime_batch_eighteen.py::test_curiosity_requires_and_executes_each_explicit_optional_choice",
       "tests/phase_b/test_runtime_batch_nineteen.py::test_into_the_roil_executes_normal_and_kicked_paths",
-      "tests/phase_b/test_runtime_batch_nineteen.py::test_into_the_roil_kicker_payment_failure_is_atomic"
+      "tests/phase_b/test_runtime_batch_nineteen.py::test_into_the_roil_kicker_payment_failure_is_atomic",
+      "tests/phase_b/test_runtime_batch_twenty.py::test_reality_ripple_phases_target_and_attachments_without_changing_zones",
+      "tests/phase_b/test_runtime_batch_twenty.py::test_indirectly_phased_attachment_returns_with_target_not_its_controller"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
