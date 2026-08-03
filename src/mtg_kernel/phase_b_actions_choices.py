@@ -6,7 +6,7 @@ import hashlib
 from typing import TYPE_CHECKING, Any
 
 from mtg_kernel.errors import IllegalAction
-from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, TargetRef, Zone
+from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
 from mtg_kernel.observation import ObservationService
 from mtg_kernel.phase_b_actions_common import (
     _deck_position,

@@ -3,7 +3,6 @@
 from __future__ import annotations
 import json
 from collections.abc import Mapping, Sequence
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any, cast
 from mtg_policy.learning_models import (

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from mtg_kernel.errors import IllegalAction
 from mtg_kernel.mana import parse_mana_cost, pay_mana
-from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, TargetRef, Zone
+from mtg_kernel.models import Action, GameObject, ObjectKind, TargetRef, Zone
 
 if TYPE_CHECKING:
     from mtg_kernel.engine import GameExecutor

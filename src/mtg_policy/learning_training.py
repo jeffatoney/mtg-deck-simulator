@@ -5,7 +5,6 @@ import statistics
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict
 from typing import Any, cast
-import numpy as np
 from mtg_policy.learning_models import (
     CHECKPOINTS,
     EvaluatorSnapshot,
