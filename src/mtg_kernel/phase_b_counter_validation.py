@@ -29,7 +29,7 @@ def cast_with_counter_predicate(
     ability = self._selected_spell_ability(face_data, mode)
     effect = dict(ability.get("effect", {}))
     if effect.get("target_count_from_x") and len(targets) != x_value:
-        raise IllegalAction("target count must equal X")
+        raise IllegalAction("targets must equal X")
     if str(effect.get("kind", "")) == "COUNTER_IF" and len(targets) == 1:
         target = self.state.objects.get(targets[0].object_id)
         if target is not None and not _spell_satisfies(target, dict(effect.get("predicate", {}))):
