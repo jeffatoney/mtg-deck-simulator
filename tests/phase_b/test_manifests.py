@@ -66,7 +66,7 @@ def test_aggregation_accepts_contiguous_shards_and_rejects_mixed_duplicate_or_ga
     assert result["status"] == "PASS" and result["game_count"] == 4
     with pytest.raises(ValueError, match="mixed manifest fields"):
         validate_aggregation((first, manifest(1, 3, (13, 14), config="9" * 64)))
-    with pytest.raises(ValueError, match="gaps or overlaps"):
+    with pytest.raises(ValueError, match="duplicate shards, gaps, or overlaps"):
         validate_aggregation((first, manifest(1, 4, (13, 14))))
     with pytest.raises(ValueError, match="duplicate seeds"):
         validate_aggregation((first, manifest(1, 3, (12, 14))))
