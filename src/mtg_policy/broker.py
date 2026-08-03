@@ -145,9 +145,7 @@ class ActionBroker(_CoreActionBroker):
                                         "face": face_index,
                                         "mode": ability.get("mode"),
                                         "target_handles": target_handles,
-                                        "cast_permission": ability.get(
-                                            "cast_permission", "NORMAL"
-                                        ),
+                                        "cast_permission": ability.get("cast_permission", "NORMAL"),
                                         **self._public_choice_metadata(spell_choices),
                                         **entry_public,
                                     },

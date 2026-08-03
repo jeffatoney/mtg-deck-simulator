@@ -10,7 +10,16 @@ from typing import Any
 from mtg_kernel.engine_core import MAIN_PHASES, PERMANENT_TYPES
 from mtg_kernel.engine_core import GameExecutor as _CoreGameExecutor
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
-from mtg_kernel.models import Action, Choice, CopyKind, GameObject, GameState, ObjectKind, TargetRef, Zone
+from mtg_kernel.models import (
+    Action,
+    Choice,
+    CopyKind,
+    GameObject,
+    GameState,
+    ObjectKind,
+    TargetRef,
+    Zone,
+)
 from mtg_kernel.observation import ObservationService
 from mtg_kernel.strategic_choices import (
     PublicCard,
@@ -22,7 +31,6 @@ from mtg_kernel.strategic_choices import (
 
 class HardenedGameExecutor(_CoreGameExecutor):
     """Runtime executor adding Slice 3 atomicity and terminal protections."""
-
 
     def __init__(
         self,
@@ -54,9 +62,9 @@ class HardenedGameExecutor(_CoreGameExecutor):
 
     @staticmethod
     def _strategic_handle(request_id: str, object_id: str) -> str:
-        return hashlib.sha256(
-            f"strategic-choice:{request_id}:{object_id}".encode()
-        ).hexdigest()[:24]
+        return hashlib.sha256(f"strategic-choice:{request_id}:{object_id}".encode()).hexdigest()[
+            :24
+        ]
 
     @staticmethod
     def _strategic_effect_kinds(obj: GameObject) -> tuple[str, ...]:
@@ -185,7 +193,6 @@ class HardenedGameExecutor(_CoreGameExecutor):
             action,
             choice_record=choice_record,
         )
-
 
     def copy_spell(
         self,
@@ -323,6 +330,7 @@ class HardenedGameExecutor(_CoreGameExecutor):
             self.state.objects[trigger.object_id] = trigger
             self.state.delayed_triggers.append(trigger.object_id)
         return token
+
     def cast(
         self,
         actor: str,

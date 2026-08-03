@@ -322,7 +322,9 @@ class ContextualEvaluator:
         after = available + pile_names
         combo_ready = False
         for package, components in self.config.combo_packages.items():
-            before_missing = [name for name in components if available[name] < components.count(name)]
+            before_missing = [
+                name for name in components if available[name] < components.count(name)
+            ]
             after_missing = [name for name in components if after[name] < components.count(name)]
             if before_missing and not after_missing:
                 features["combo_completion"] += 1

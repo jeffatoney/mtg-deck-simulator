@@ -1,13 +1,34 @@
 """Feature freezing, refitting, holdout validation, and promotion decisions."""
+
 from __future__ import annotations
 import statistics
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict
 from typing import Any, cast
 import numpy as np
-from mtg_policy.learning_models import CHECKPOINTS, EvaluatorSnapshot, LearningPlan, OutcomeGuardrailSummary, OutcomeVector, PairwiseTrainingExample, _digest, _ordered, _rounded
-from mtg_policy.learning_mining import mine_interaction_candidates, mine_organic_interaction_candidates
-from mtg_policy.learning_validation import _accuracy_details, _clustered_difference_interval, _fit_ridge, _matrix, _validate_examples, _weight_vector
+from mtg_policy.learning_models import (
+    CHECKPOINTS,
+    EvaluatorSnapshot,
+    LearningPlan,
+    OutcomeGuardrailSummary,
+    OutcomeVector,
+    PairwiseTrainingExample,
+    _digest,
+    _ordered,
+    _rounded,
+)
+from mtg_policy.learning_mining import (
+    mine_interaction_candidates,
+    mine_organic_interaction_candidates,
+)
+from mtg_policy.learning_validation import (
+    _accuracy_details,
+    _clustered_difference_interval,
+    _fit_ridge,
+    _matrix,
+    _validate_examples,
+    _weight_vector,
+)
 
 
 def _selected_outcomes(
@@ -31,7 +52,9 @@ def _outcome_guardrails(
 
     def checkpoint_rates(values: Sequence[OutcomeVector]) -> tuple[float, float, float, float]:
         result = tuple(
-            _rounded(statistics.fmean(value.checkpoint_table_kill_access[index] for value in values))
+            _rounded(
+                statistics.fmean(value.checkpoint_table_kill_access[index] for value in values)
+            )
             for index in range(len(CHECKPOINTS))
         )
         if len(result) != 4:
@@ -53,13 +76,10 @@ def _outcome_guardrails(
     learned_kills = _rounded(statistics.fmean(value.full_table_kill for value in learned))
     baseline_earliest = earliest(baseline)
     learned_earliest = earliest(learned)
-    passed = (
-        not required
-        or (
-            all(new >= old for new, old in zip(learned_checkpoints, baseline_checkpoints, strict=True))
-            and learned_kills >= baseline_kills
-            and learned_earliest <= baseline_earliest
-        )
+    passed = not required or (
+        all(new >= old for new, old in zip(learned_checkpoints, baseline_checkpoints, strict=True))
+        and learned_kills >= baseline_kills
+        and learned_earliest <= baseline_earliest
     )
     return OutcomeGuardrailSummary(
         baseline_checkpoints,
@@ -114,7 +134,9 @@ def train_evaluator_snapshot(
     else:
         mining_seeds = set(discovery_seed_order[: plan.mining_seed_count])
     mining_examples = tuple(example for example in discovery if example.seed in mining_seeds)
-    confirmation_examples = tuple(example for example in discovery if example.seed not in mining_seeds)
+    confirmation_examples = tuple(
+        example for example in discovery if example.seed not in mining_seeds
+    )
     if not confirmation_examples:
         confirmation_examples = mining_examples
 

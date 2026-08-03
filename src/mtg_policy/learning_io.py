@@ -1,11 +1,26 @@
 """Content-addressed evaluator snapshot and raw learning-dataset I/O."""
+
 from __future__ import annotations
 import json
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any, cast
-from mtg_policy.learning_models import ActionSignature, CounterfactualContract, DecisionContext, EvaluatorSnapshot, InteractionCandidate, OrganicInteractionCandidate, OutcomeGuardrailSummary, OutcomeVector, PairwiseTrainingExample, VisibleCardRecord, _digest, _ordered, _validate_safe_raw_payload
+from mtg_policy.learning_models import (
+    ActionSignature,
+    CounterfactualContract,
+    DecisionContext,
+    EvaluatorSnapshot,
+    InteractionCandidate,
+    OrganicInteractionCandidate,
+    OutcomeGuardrailSummary,
+    OutcomeVector,
+    PairwiseTrainingExample,
+    VisibleCardRecord,
+    _digest,
+    _ordered,
+    _validate_safe_raw_payload,
+)
 from mtg_policy.learning_training import _snapshot_body
 
 
@@ -39,7 +54,9 @@ def load_evaluator_snapshot(path: Path) -> EvaluatorSnapshot:
         parent_evaluator_sha256=str(payload["parent_evaluator_sha256"]),
         plan_sha256=str(payload["plan_sha256"]),
         feature_schema=tuple(str(value) for value in payload["feature_schema"]),
-        learned_weights={str(key): float(value) for key, value in payload["learned_weights"].items()},
+        learned_weights={
+            str(key): float(value) for key, value in payload["learned_weights"].items()
+        },
         discovery_examples=int(payload["discovery_examples"]),
         mining_examples=int(payload["mining_examples"]),
         confirmation_examples=int(payload["confirmation_examples"]),
@@ -66,7 +83,11 @@ def load_evaluator_snapshot(path: Path) -> EvaluatorSnapshot:
 
 def write_snapshot(snapshot: EvaluatorSnapshot, root: Path) -> Path:
     payload = snapshot.to_dict()
-    body = {key: value for key, value in payload.items() if key not in {"snapshot_id", "snapshot_sha256"}}
+    body = {
+        key: value
+        for key, value in payload.items()
+        if key not in {"snapshot_id", "snapshot_sha256"}
+    }
     if _digest(body) != snapshot.snapshot_sha256:
         raise ValueError("snapshot object does not match its content digest")
     directory = root / f"{snapshot.snapshot_id}-{snapshot.snapshot_sha256[:12]}"
@@ -76,9 +97,7 @@ def write_snapshot(snapshot: EvaluatorSnapshot, root: Path) -> Path:
     return output
 
 
-def write_learning_dataset(
-    examples: Sequence[PairwiseTrainingExample], path: Path
-) -> str:
+def write_learning_dataset(examples: Sequence[PairwiseTrainingExample], path: Path) -> str:
     """Write a canonical hidden-information-safe dataset and return its digest."""
 
     ordered = [example.to_dict() for example in _ordered(examples)]
@@ -107,7 +126,9 @@ def _outcome_from_data(value: Mapping[str, Any]) -> OutcomeVector:
             tuple[int, int, int, int],
             tuple(int(item) for item in value.get("checkpoint_table_kill_access", (0, 0, 0, 0))),
         ),
-        terminal_turn=(int(value["terminal_turn"]) if value.get("terminal_turn") is not None else None),
+        terminal_turn=(
+            int(value["terminal_turn"]) if value.get("terminal_turn") is not None else None
+        ),
         earliest_legal_attempt_turn=(
             int(value["earliest_legal_attempt_turn"])
             if value.get("earliest_legal_attempt_turn") is not None
@@ -137,10 +158,18 @@ def load_learning_dataset(path: Path) -> tuple[PairwiseTrainingExample, ...]:
                 decision_index=int(context_raw["decision_index"]),
                 turn=int(context_raw["turn"]),
                 phase=str(context_raw["phase"]),
-                visible_cards=tuple(VisibleCardRecord(**value) for value in context_raw["visible_cards"]),
-                legal_actions=tuple(ActionSignature(**value) for value in context_raw["legal_actions"]),
-                prior_actions=tuple(ActionSignature(**value) for value in context_raw["prior_actions"]),
-                mana_by_symbol=tuple((str(key), int(amount)) for key, amount in context_raw["mana_by_symbol"]),
+                visible_cards=tuple(
+                    VisibleCardRecord(**value) for value in context_raw["visible_cards"]
+                ),
+                legal_actions=tuple(
+                    ActionSignature(**value) for value in context_raw["legal_actions"]
+                ),
+                prior_actions=tuple(
+                    ActionSignature(**value) for value in context_raw["prior_actions"]
+                ),
+                mana_by_symbol=tuple(
+                    (str(key), int(amount)) for key, amount in context_raw["mana_by_symbol"]
+                ),
                 lands_in_play=int(context_raw["lands_in_play"]),
                 land_drop_remaining=int(context_raw["land_drop_remaining"]),
                 combo_access=tuple(str(value) for value in context_raw.get("combo_access", ())),

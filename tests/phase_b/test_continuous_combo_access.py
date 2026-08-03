@@ -28,7 +28,12 @@ def test_turn_three_combo_is_detected_before_turn_five_checkpoint() -> None:
     _state, executor, tracker = scenario(3, mana={"R": 3, "C": 2})
     ActionBroker(executor, "P0").refresh()
     assert tracker.earliest_legal_turn("dualcaster_twinflame") == 3
-    assert tracker.cumulative_checkpoint_access("dualcaster_twinflame") == {5: True, 6: True, 8: True, 10: True}
+    assert tracker.cumulative_checkpoint_access("dualcaster_twinflame") == {
+        5: True,
+        6: True,
+        8: True,
+        10: True,
+    }
 
 
 def test_turn_four_access_is_recorded_when_turn_three_mana_was_short() -> None:

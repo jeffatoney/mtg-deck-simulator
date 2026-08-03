@@ -99,9 +99,7 @@ class StrategicChoiceProvider(Protocol):
 
     def choose_tutor(self, request: TutorChoiceRequest) -> TutorChoiceSelection: ...
 
-    def choose_fact_or_fiction(
-        self, request: FactOrFictionRequest
-    ) -> FactOrFictionSelection: ...
+    def choose_fact_or_fiction(self, request: FactOrFictionRequest) -> FactOrFictionSelection: ...
 
     def choose_spell_copy_targets(
         self, request: SpellCopyTargetRequest
@@ -161,9 +159,7 @@ class RecordedStrategicChoiceProvider:
             raise ReplayError("recorded tutor choice is not eligible in replay")
         return TutorChoiceSelection(identity, evaluator_id, evaluator_sha, diagnostics)
 
-    def choose_fact_or_fiction(
-        self, request: FactOrFictionRequest
-    ) -> FactOrFictionSelection:
+    def choose_fact_or_fiction(self, request: FactOrFictionRequest) -> FactOrFictionSelection:
         if not self._facts:
             raise ReplayError("replay transcript omits a recorded Fact or Fiction choice")
         split_record, pile_record = self._facts.pop(0)
@@ -206,7 +202,9 @@ class RecordedStrategicChoiceProvider:
         return SpellCopyTargetSelection(handles, evaluator_id, evaluator_sha, diagnostics)
 
 
-def require_provider(provider: StrategicChoiceProvider | None, purpose: str) -> StrategicChoiceProvider:
+def require_provider(
+    provider: StrategicChoiceProvider | None, purpose: str
+) -> StrategicChoiceProvider:
     if provider is None:
         raise IllegalAction(f"{purpose} requires an injected strategic choice provider")
     return provider

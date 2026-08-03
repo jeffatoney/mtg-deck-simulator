@@ -66,9 +66,7 @@ class PolicyStrategicChoiceProvider:
             },
         )
 
-    def choose_fact_or_fiction(
-        self, request: FactOrFictionRequest
-    ) -> FactOrFictionSelection:
+    def choose_fact_or_fiction(self, request: FactOrFictionRequest) -> FactOrFictionSelection:
         if self.evaluator.config.opponent_choice_mode != "PERFECT_MINIMIZER":
             raise ValueError("unsupported opponent Fact or Fiction choice mode")
         cards = {card.handle: card for card in request.revealed_cards}
@@ -86,15 +84,20 @@ class PolicyStrategicChoiceProvider:
             )
             candidates.append((key, split.split_index, eval_a, eval_b))
         _, split_index, eval_a, eval_b = min(candidates, key=lambda item: item[0])
-        chosen = "A" if (
-            eval_a.score,
-            len(request.legal_splits[split_index].pile_a_handles),
-            tuple(sorted(request.legal_splits[split_index].pile_a_handles)),
-        ) >= (
-            eval_b.score,
-            len(request.legal_splits[split_index].pile_b_handles),
-            tuple(sorted(request.legal_splits[split_index].pile_b_handles)),
-        ) else "B"
+        chosen = (
+            "A"
+            if (
+                eval_a.score,
+                len(request.legal_splits[split_index].pile_a_handles),
+                tuple(sorted(request.legal_splits[split_index].pile_a_handles)),
+            )
+            >= (
+                eval_b.score,
+                len(request.legal_splits[split_index].pile_b_handles),
+                tuple(sorted(request.legal_splits[split_index].pile_b_handles)),
+            )
+            else "B"
+        )
         return FactOrFictionSelection(
             split_index,
             chosen,

@@ -176,12 +176,21 @@ def validate_phase_b_transcripts(
         if evidence_scope == "EXACT_DECK_INTEGRATION" and "build_exact_game" not in test_source:
             raise ValueError(f"exact-deck evidence does not use build_exact_game: {transcript_id}")
         if evidence_scope == "MECHANIC_ISOLATION" and "exact deck" in combined_claims:
-            raise ValueError(f"mechanic-isolation transcript overclaims exact-deck evidence: {transcript_id}")
+            raise ValueError(
+                f"mechanic-isolation transcript overclaims exact-deck evidence: {transcript_id}"
+            )
         if evidence_scope == "POLICY_INTEGRATION" and not any(
             marker in test_source
-            for marker in ("ActionBroker", "StandardPolicy", "BoundedExplorer", "PolicyStrategicChoiceProvider")
+            for marker in (
+                "ActionBroker",
+                "StandardPolicy",
+                "BoundedExplorer",
+                "PolicyStrategicChoiceProvider",
+            )
         ):
-            raise ValueError(f"policy-integration evidence does not execute policy surfaces: {transcript_id}")
+            raise ValueError(
+                f"policy-integration evidence does not execute policy surfaces: {transcript_id}"
+            )
         if evidence_scope == "REPLAY_AUDIT" and "replay" not in test_source.lower():
             raise ValueError(f"replay-audit evidence does not execute replay: {transcript_id}")
 

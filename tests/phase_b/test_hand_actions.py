@@ -267,7 +267,11 @@ def test_broker_enumerates_mana_reveal_tutor_and_foretell_choices_without_raw_id
     ]
     assert {action.metadata.get("reveal_identity") for action in lands} == {None, "Island"}
 
-    tutors = [action for action in actions if action.kind == "ACTIVATE_HAND" and action.identity == "Dizzy Spell"]
+    tutors = [
+        action
+        for action in actions
+        if action.kind == "ACTIVATE_HAND" and action.identity == "Dizzy Spell"
+    ]
     assert len(tutors) == 1
     assert tutors[0].metadata["choice_timing"] == "RESOLUTION"
     assert "Sol Ring" in tutors[0].metadata["eligible_tutor_identities"]

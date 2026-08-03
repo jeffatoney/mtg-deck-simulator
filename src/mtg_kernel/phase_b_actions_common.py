@@ -350,4 +350,3 @@ def legal_tutor_names(
         if _spec_matches_tutor(spec, effect):
             names.add(spec.name)
     return tuple(sorted(names))
-

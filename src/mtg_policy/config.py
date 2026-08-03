@@ -70,10 +70,12 @@ class SeedSplit:
 
 def _evaluator_registry(snapshot_paths: Sequence[Path] = ()) -> dict[tuple[str, str], Any]:
     baseline = load_evaluator_config()
-    result: dict[tuple[str, str], Any] = {
-        (baseline.evaluator_id, baseline.config_sha256): baseline
-    }
-    committed = tuple(sorted(APPROVED_SNAPSHOTS.glob("*/snapshot.json"))) if APPROVED_SNAPSHOTS.is_dir() else ()
+    result: dict[tuple[str, str], Any] = {(baseline.evaluator_id, baseline.config_sha256): baseline}
+    committed = (
+        tuple(sorted(APPROVED_SNAPSHOTS.glob("*/snapshot.json")))
+        if APPROVED_SNAPSHOTS.is_dir()
+        else ()
+    )
     for snapshot_path in (*committed, *snapshot_paths):
         learned = load_learned_evaluator_config(snapshot_path)
         key = (learned.evaluator_id, learned.config_sha256)

@@ -1,4 +1,5 @@
 """Immutable data contracts for offline strategic-evaluator learning."""
+
 from __future__ import annotations
 import hashlib
 import json
@@ -6,10 +7,19 @@ from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
+
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_LEARNING_PLAN = ROOT / "configs/evaluators/learning_plan_v1.yaml"
 CHECKPOINTS = (5, 6, 8, 10)
-FORBIDDEN_RAW_KEYS = {"object_id","object_ids","card_instance_id","card_instance_ids","library_order","future_events","future_random_outcomes"}
+FORBIDDEN_RAW_KEYS = {
+    "object_id",
+    "object_ids",
+    "card_instance_id",
+    "card_instance_ids",
+    "library_order",
+    "future_events",
+    "future_random_outcomes",
+}
 
 
 def _canonical(value: Any) -> bytes:
@@ -368,12 +378,8 @@ def load_learning_plan(path: Path | None = None) -> LearningPlan:
         require_outcome_non_regression=bool(payload["require_outcome_non_regression"]),
         require_raw_context=bool(payload["require_raw_context"]),
         organic_candidate_min_support=int(payload["organic_candidate_min_support"]),
-        organic_candidate_min_distinct_seeds=int(
-            payload["organic_candidate_min_distinct_seeds"]
-        ),
-        organic_candidate_min_mining_support=int(
-            payload["organic_candidate_min_mining_support"]
-        ),
+        organic_candidate_min_distinct_seeds=int(payload["organic_candidate_min_distinct_seeds"]),
+        organic_candidate_min_mining_support=int(payload["organic_candidate_min_mining_support"]),
         organic_candidate_min_confirmation_support=int(
             payload["organic_candidate_min_confirmation_support"]
         ),
@@ -382,7 +388,9 @@ def load_learning_plan(path: Path | None = None) -> LearningPlan:
 
 
 def _ordered(examples: Sequence[PairwiseTrainingExample]) -> tuple[PairwiseTrainingExample, ...]:
-    return tuple(sorted(examples, key=lambda item: (item.seed, item.decision_index, item.example_id)))
+    return tuple(
+        sorted(examples, key=lambda item: (item.seed, item.decision_index, item.example_id))
+    )
 
 
 def _validate_safe_raw_payload(value: Any, path: str = "record") -> None:

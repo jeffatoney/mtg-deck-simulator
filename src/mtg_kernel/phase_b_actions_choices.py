@@ -91,8 +91,7 @@ def _search_to_hand(
                     identity=str(obj.current_characteristics.get("name", "")),
                     mana_value=int(obj.current_characteristics.get("mana_value", 0)),
                     card_types=tuple(
-                        str(value)
-                        for value in obj.current_characteristics.get("card_types", ())
+                        str(value) for value in obj.current_characteristics.get("card_types", ())
                     ),
                     effect_kinds=_effect_kinds(obj),
                 )
@@ -104,9 +103,7 @@ def _search_to_hand(
     if selected_name != "FAIL_TO_FIND" and selected_name not in eligible_identities:
         raise IllegalAction("strategic tutor provider selected an ineligible identity")
     matches = [
-        obj
-        for obj in eligible
-        if str(obj.current_characteristics.get("name", "")) == selected_name
+        obj for obj in eligible if str(obj.current_characteristics.get("name", "")) == selected_name
     ]
     selected = min(matches, key=lambda obj: _deck_position(executor, obj)) if matches else None
     if selected is None:
@@ -205,8 +202,7 @@ def _fact_or_fiction(executor: GameExecutor, action: Action, effect: dict[str, A
             identity=str(card.current_characteristics.get("name", "")),
             mana_value=int(card.current_characteristics.get("mana_value", 0)),
             card_types=tuple(
-                str(value)
-                for value in card.current_characteristics.get("card_types", ())
+                str(value) for value in card.current_characteristics.get("card_types", ())
             ),
             effect_kinds=_effect_kinds(card),
         )

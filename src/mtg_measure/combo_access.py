@@ -169,9 +169,7 @@ class ComboAccessTracker:
 
     def _unsupported_package(self, executor: Any, package: str) -> ComboAccessSnapshot:
         zones = self._owned_names_by_zone(executor)
-        accessible = set(zones[Zone.HAND]) | set(zones[Zone.BATTLEFIELD]) | set(
-            zones[Zone.COMMAND]
-        )
+        accessible = set(zones[Zone.HAND]) | set(zones[Zone.BATTLEFIELD]) | set(zones[Zone.COMMAND])
         required = set(self.package_definitions[package])
         assembled = required.issubset(accessible)
         return ComboAccessSnapshot(

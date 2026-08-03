@@ -1,4 +1,5 @@
 """Review-only generic, card-pair, and action-sequence hypothesis mining."""
+
 from __future__ import annotations
 import math
 from collections import Counter, defaultdict
@@ -6,7 +7,14 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal, cast
 import numpy as np
-from mtg_policy.learning_models import ActionSignature, InteractionCandidate, LearningPlan, OrganicInteractionCandidate, PairwiseTrainingExample, _rounded
+from mtg_policy.learning_models import (
+    ActionSignature,
+    InteractionCandidate,
+    LearningPlan,
+    OrganicInteractionCandidate,
+    PairwiseTrainingExample,
+    _rounded,
+)
 from mtg_policy.learning_validation import _matrix
 
 
@@ -64,13 +72,23 @@ def mine_interaction_candidates(
 
 def _card_pair_keys(identities: Sequence[str]) -> set[tuple[str, ...]]:
     names = sorted(set(str(value) for value in identities if value))
-    return {(names[first], names[second]) for first in range(len(names)) for second in range(first + 1, len(names))}
+    return {
+        (names[first], names[second])
+        for first in range(len(names))
+        for second in range(first + 1, len(names))
+    }
 
 
-def _sequence_keys(example: PairwiseTrainingExample, action: ActionSignature | None) -> set[tuple[str, ...]]:
+def _sequence_keys(
+    example: PairwiseTrainingExample, action: ActionSignature | None
+) -> set[tuple[str, ...]]:
     if action is None:
         return set()
-    previous = example.context.prior_actions[-1].key if example.context and example.context.prior_actions else "START"
+    previous = (
+        example.context.prior_actions[-1].key
+        if example.context and example.context.prior_actions
+        else "START"
+    )
     return {(previous, action.key)}
 
 

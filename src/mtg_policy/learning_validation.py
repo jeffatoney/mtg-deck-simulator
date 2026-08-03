@@ -1,11 +1,18 @@
 """Deterministic dataset validation, fitting matrices, and uncertainty helpers."""
+
 from __future__ import annotations
 import math
 import statistics
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 import numpy as np
-from mtg_policy.learning_models import LearningPlan, PairwiseTrainingExample, _ordered, _rounded, _validate_safe_raw_payload
+from mtg_policy.learning_models import (
+    LearningPlan,
+    PairwiseTrainingExample,
+    _ordered,
+    _rounded,
+    _validate_safe_raw_payload,
+)
 
 
 def _validate_seed_quotas(
@@ -106,8 +113,7 @@ def _matrix(
             continue
         rows.append(
             [
-                float(example.features_a.get(name, 0.0))
-                - float(example.features_b.get(name, 0.0))
+                float(example.features_a.get(name, 0.0)) - float(example.features_b.get(name, 0.0))
                 for name in feature_schema
             ]
         )
@@ -150,9 +156,7 @@ def _clustered_difference_interval(
     z_value: float,
 ) -> tuple[float, float, float]:
     by_seed: defaultdict[int, list[float]] = defaultdict(list)
-    for example, learned, baseline in zip(
-        examples, learned_correct, baseline_correct, strict=True
-    ):
+    for example, learned, baseline in zip(examples, learned_correct, baseline_correct, strict=True):
         by_seed[example.seed].append(float(learned - baseline))
     cluster_means = [statistics.fmean(values) for _, values in sorted(by_seed.items())]
     if not cluster_means:
