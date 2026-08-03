@@ -55,7 +55,7 @@ def test_spell_pierce_requires_qualifying_target_and_explicit_controller_decisio
     state.turn.active_player_id = "P1"
     state.turn.priority_holder_id = "P1"
     state.turn.phase = "PRECOMBAT_MAIN"
-    state.players["P1"].mana_pool["R"] = 1
+    state.players["P1"].mana_pool["R"] = 2
     state.players["P0"].mana_pool["U"] = 1
     creature = add_card(executor, specs["Wily Goblin"], Zone.HAND, owner="P1")
     creature_spell = executor.cast("P1", creature.object_id)
