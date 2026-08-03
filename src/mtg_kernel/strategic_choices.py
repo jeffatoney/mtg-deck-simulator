@@ -134,9 +134,7 @@ class RecordedStrategicChoiceProvider:
 
     def __init__(self, choices: Sequence[Mapping[str, Any]]) -> None:
         self._card_selections = [
-            dict(choice)
-            for choice in choices
-            if str(choice.get("kind")) == "CARD_SELECTION"
+            dict(choice) for choice in choices if str(choice.get("kind")) == "CARD_SELECTION"
         ]
         self._tutors = [
             dict(choice)
@@ -144,14 +142,10 @@ class RecordedStrategicChoiceProvider:
             if str(choice.get("kind")) in {"FETCH_BASIC", "TRANSMUTE", "TYPECYCLE"}
         ]
         splits = [
-            dict(choice)
-            for choice in choices
-            if str(choice.get("kind")) == "FACT_OR_FICTION_SPLIT"
+            dict(choice) for choice in choices if str(choice.get("kind")) == "FACT_OR_FICTION_SPLIT"
         ]
         piles = [
-            dict(choice)
-            for choice in choices
-            if str(choice.get("kind")) == "FACT_OR_FICTION_PILE"
+            dict(choice) for choice in choices if str(choice.get("kind")) == "FACT_OR_FICTION_PILE"
         ]
         if len(splits) != len(piles):
             raise ReplayError("recorded Fact or Fiction split and pile choices differ")
