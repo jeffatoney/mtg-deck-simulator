@@ -63,7 +63,9 @@ def test_fiery_cannonade_uses_umbra_armor_replacement() -> None:
     executor.cast("P0", cannonade.object_id)
     pass_all(executor)
 
-    assert not creature.retired and creature.zone is Zone.BATTLEFIELD and creature.marked_damage == 0
+    assert (
+        not creature.retired and creature.zone is Zone.BATTLEFIELD and creature.marked_damage == 0
+    )
     assert attached.retired
     assert any(
         not obj.retired
@@ -85,9 +87,7 @@ def test_dispel_counters_an_instant_on_the_shared_stack_path() -> None:
     pass_all(executor)
 
     assert opt_spell.retired
-    assert not any(
-        not obj.retired and obj.zone is Zone.STACK for obj in state.objects.values()
-    )
+    assert not any(not obj.retired and obj.zone is Zone.STACK for obj in state.objects.values())
 
 
 def test_psychosis_crawler_tracks_hand_size_and_draw_trigger() -> None:

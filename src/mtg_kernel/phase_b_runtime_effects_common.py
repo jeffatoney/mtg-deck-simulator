@@ -157,9 +157,10 @@ def apply_effect_common(
     if kind == "DESTROY_ARTIFACTS_MV_LEQ":
         maximum = int(effect.get("maximum_mana_value", 0))
         for target in list(_permanents(self)):
-            if "Artifact" in _types(target) and int(
-                target.current_characteristics.get("mana_value", 0)
-            ) <= maximum:
+            if (
+                "Artifact" in _types(target)
+                and int(target.current_characteristics.get("mana_value", 0)) <= maximum
+            ):
                 _destroy(self, target, action, kind)
         return True
 

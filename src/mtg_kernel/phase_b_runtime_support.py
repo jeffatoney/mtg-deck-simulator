@@ -78,9 +78,7 @@ SUPPORTED_NO_CHOICE_TRIGGERS = frozenset(
 SUPPORTED_ENTRY_REPLACEMENTS = frozenset(
     {"CHOOSE_COLOR_ENTER_TAPPED", "ENTER_TAPPED", "REVEAL_OR_ENTER_TAPPED"}
 )
-SUPPORTED_STATIC_EFFECTS = frozenset(
-    {"HAND_SIZE_POWER_TOUGHNESS", "KEYWORD", "CANT_BE_BLOCKED"}
-)
+SUPPORTED_STATIC_EFFECTS = frozenset({"HAND_SIZE_POWER_TOUGHNESS", "KEYWORD", "CANT_BE_BLOCKED"})
 
 
 def effect_execution_supported(effect: dict[str, Any]) -> bool:
@@ -163,7 +161,10 @@ def _target_matches(self: Any, actor: str, obj: GameObject, kind: str) -> bool:
     supertypes = set(str(value) for value in obj.current_characteristics.get("supertypes", ()))
     permanent = self._is_permanent(obj)
     if kind == "SPELL":
-        return obj.zone is Zone.STACK and obj.object_kind in {ObjectKind.SPELL, ObjectKind.SPELL_COPY}
+        return obj.zone is Zone.STACK and obj.object_kind in {
+            ObjectKind.SPELL,
+            ObjectKind.SPELL_COPY,
+        }
     if kind == "SPELL_OR_ABILITY":
         return obj.zone is Zone.STACK and obj.object_kind is not ObjectKind.MANA_ABILITY
     if kind == "NONLAND_PERMANENT":
@@ -171,7 +172,9 @@ def _target_matches(self: Any, actor: str, obj: GameObject, kind: str) -> bool:
     if kind == "PERMANENT":
         return permanent
     if kind == "OPPONENT_NONBASIC_LAND":
-        return permanent and obj.controller != actor and "Land" in types and "Basic" not in supertypes
+        return (
+            permanent and obj.controller != actor and "Land" in types and "Basic" not in supertypes
+        )
     if kind == "OPPONENT_ARTIFACT":
         return permanent and obj.controller != actor and "Artifact" in types
     if kind == "ARTIFACT_CREATURE_OR_LAND":

@@ -179,7 +179,10 @@ def _check_state_based_actions(self: Any) -> None:
     for obj in _permanents(self):
         for ability in obj.current_characteristics.get("abilities", ()):
             effect = dict(ability.get("effect", {}))
-            if ability.get("kind") == "STATIC" and effect.get("kind") == "HAND_SIZE_POWER_TOUGHNESS":
+            if (
+                ability.get("kind") == "STATIC"
+                and effect.get("kind") == "HAND_SIZE_POWER_TOUGHNESS"
+            ):
                 player_id = obj.controller or obj.owner
                 if player_id is not None:
                     count = len(self.state.zones.get(f"{Zone.HAND.value}:{player_id}", ()))
