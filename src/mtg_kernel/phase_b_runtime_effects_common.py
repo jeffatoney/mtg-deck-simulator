@@ -169,25 +169,24 @@ def apply_effect_common(
         amount = int(effect.get("amount", 0))
         if amount < 0:
             raise IllegalAction("damage amount cannot be negative")
-        assignments: dict[str, int] = {}
+        damage_assignments: dict[str, int] = {}
         for target in _permanents(self):
             types = _types(target)
             if "Creature" in types:
                 target.marked_damage += amount
-                assignments[target.object_id] = amount
+                damage_assignments[target.object_id] = amount
             elif "Planeswalker" in types:
                 loyalty = target.counters.get("LOYALTY")
                 if not isinstance(loyalty, int):
                     raise IllegalAction("planeswalker damage requires loyalty counters")
                 target.counters["LOYALTY"] = loyalty - amount
-                assignments[target.object_id] = amount
+                damage_assignments[target.object_id] = amount
+        rules_source = self._rules_source(source)
         self._event(
             "DAMAGE_DEALT_TO_OBJECTS",
             action,
-            source_object_id=self._rules_source(source).object_id
-            if self._rules_source(source) is not None
-            else None,
-            assignments=assignments,
+            source_object_id=rules_source.object_id if rules_source is not None else None,
+            assignments=damage_assignments,
             combat=False,
         )
         return True
@@ -195,13 +194,15 @@ def apply_effect_common(
     if kind == "DAMAGE_ALL_NON_SUBTYPE":
         amount = int(effect.get("amount", 0))
         excluded = str(effect.get("excluded_subtype", ""))
-        assignments = [
+        creature_assignments = [
             (obj, amount)
             for obj in _permanents(self)
             if "Creature" in _types(obj) and excluded not in _subtypes(obj)
         ]
-        if assignments:
-            self._damage_batch(self._rules_source(source), assignments, action, combat=False)
+        if creature_assignments:
+            self._damage_batch(
+                self._rules_source(source), creature_assignments, action, combat=False
+            )
         return True
 
     if kind == "EACH_OPPONENT_LOSES_LIFE":
