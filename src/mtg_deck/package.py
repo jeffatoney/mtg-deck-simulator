@@ -52,6 +52,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Frostboil Snarl",
         "Glint-Horn Buccaneer",
         "Impulse",
+        "Into the Roil",
         "Introduction to Annihilation",
         "Invert // Invent",
         "Island",

@@ -77,6 +77,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Frostboil Snarl",
             "Glint-Horn Buccaneer",
             "Impulse",
+            "Into the Roil",
             "Introduction to Annihilation",
             "Invert // Invent",
             "Island",

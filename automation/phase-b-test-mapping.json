@@ -26,7 +26,9 @@
       "tests/phase_b/test_runtime_batch_seventeen.py::test_choice_bearing_etb_shapes_are_registered_for_automatic_execution",
       "tests/phase_b/test_runtime_batch_seventeen.py::test_soul_guide_lantern_executes_entry_and_both_activated_modes",
       "tests/phase_b/test_runtime_batch_seventeen.py::test_vedalken_aethermage_executes_entry_bounce_and_wizardcycling",
-      "tests/phase_b/test_runtime_batch_eighteen.py::test_curiosity_requires_and_executes_each_explicit_optional_choice"
+      "tests/phase_b/test_runtime_batch_eighteen.py::test_curiosity_requires_and_executes_each_explicit_optional_choice",
+      "tests/phase_b/test_runtime_batch_nineteen.py::test_into_the_roil_executes_normal_and_kicked_paths",
+      "tests/phase_b/test_runtime_batch_nineteen.py::test_into_the_roil_kicker_payment_failure_is_atomic"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"

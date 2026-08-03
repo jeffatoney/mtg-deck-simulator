@@ -108,6 +108,14 @@ def apply_effect_common(
             _return_to_hand(self, target, action, kind)
         return True
 
+    if kind == "BOUNCE_AND_KICKER_DRAW":
+        if len(targets) != 1:
+            raise IllegalAction("kicker bounce requires one target")
+        _return_to_hand(self, targets[0], action, kind)
+        if bool(choices.get("kicked", False)):
+            self.draw_card(action.actor_id, action=action)
+        return True
+
     if kind == "BOUNCE_AND_CONDITIONAL_SCRY":
         if len(targets) != 1:
             raise IllegalAction("conditional bounce requires one target")
