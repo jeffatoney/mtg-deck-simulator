@@ -1,8 +1,8 @@
 """Kernel-side contracts for injected strategic decisions.
 
-The rules engine owns legality, revelation, and state changes.  A provider receives
-only an observation-safe request and returns one of the legal choices.  Production
-policy providers live outside the kernel.  Replay uses the recorded provider below
+The rules engine owns legality, revelation, and state changes. A provider receives
+only an observation-safe request and returns one of the legal choices. Production
+policy providers live outside the kernel. Replay uses the recorded provider below
 and never imports policy decision code.
 """
 
@@ -21,6 +21,27 @@ class PublicCard:
     mana_value: int
     card_types: tuple[str, ...]
     effect_kinds: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CardSelectionRequest:
+    request_id: str
+    actor_id: str
+    ability_id: str
+    purpose: str
+    turn_number: int
+    observation: Mapping[str, Any]
+    candidates: tuple[PublicCard, ...]
+    minimum: int
+    maximum: int
+
+
+@dataclass(frozen=True)
+class CardSelection:
+    selected_handles: tuple[str, ...]
+    evaluator_id: str
+    evaluator_sha256: str
+    diagnostics: Mapping[str, Any]
 
 
 @dataclass(frozen=True)
@@ -97,6 +118,8 @@ class SpellCopyTargetSelection:
 class StrategicChoiceProvider(Protocol):
     """Observation-only policy interface called at rules-defined choice times."""
 
+    def choose_cards(self, request: CardSelectionRequest) -> CardSelection: ...
+
     def choose_tutor(self, request: TutorChoiceRequest) -> TutorChoiceSelection: ...
 
     def choose_fact_or_fiction(self, request: FactOrFictionRequest) -> FactOrFictionSelection: ...
@@ -110,16 +133,25 @@ class RecordedStrategicChoiceProvider:
     """Replay provider that consumes recorded choices without running policy code."""
 
     def __init__(self, choices: Sequence[Mapping[str, Any]]) -> None:
+        self._card_selections = [
+            dict(choice)
+            for choice in choices
+            if str(choice.get("kind")) == "CARD_SELECTION"
+        ]
         self._tutors = [
             dict(choice)
             for choice in choices
             if str(choice.get("kind")) in {"FETCH_BASIC", "TRANSMUTE", "TYPECYCLE"}
         ]
         splits = [
-            dict(choice) for choice in choices if str(choice.get("kind")) == "FACT_OR_FICTION_SPLIT"
+            dict(choice)
+            for choice in choices
+            if str(choice.get("kind")) == "FACT_OR_FICTION_SPLIT"
         ]
         piles = [
-            dict(choice) for choice in choices if str(choice.get("kind")) == "FACT_OR_FICTION_PILE"
+            dict(choice)
+            for choice in choices
+            if str(choice.get("kind")) == "FACT_OR_FICTION_PILE"
         ]
         if len(splits) != len(piles):
             raise ReplayError("recorded Fact or Fiction split and pile choices differ")
@@ -143,6 +175,25 @@ class RecordedStrategicChoiceProvider:
         else:
             diagnostics = {}
         return evaluator_id, evaluator_sha, diagnostics
+
+    def choose_cards(self, request: CardSelectionRequest) -> CardSelection:
+        if not self._card_selections:
+            raise ReplayError("replay transcript omits a recorded card selection")
+        recorded = self._card_selections.pop(0)
+        selected = recorded.get("selected")
+        if not isinstance(selected, Mapping):
+            raise ReplayError("recorded card selection is malformed")
+        purpose = str(selected.get("purpose", ""))
+        if purpose != request.purpose:
+            raise ReplayError("recorded card selection purpose differs in replay")
+        handles = tuple(str(value) for value in selected.get("selected_handles", ()))
+        legal = {card.handle for card in request.candidates}
+        if len(handles) != len(set(handles)) or not set(handles) <= legal:
+            raise ReplayError("recorded card selection contains an illegal handle")
+        if not request.minimum <= len(handles) <= request.maximum:
+            raise ReplayError("recorded card selection count is not legal in replay")
+        evaluator_id, evaluator_sha, diagnostics = self._metadata(selected)
+        return CardSelection(handles, evaluator_id, evaluator_sha, diagnostics)
 
     def choose_tutor(self, request: TutorChoiceRequest) -> TutorChoiceSelection:
         if not self._tutors:
@@ -195,8 +246,6 @@ class RecordedStrategicChoiceProvider:
             handles = tuple(str(value) for value in selected.get("target_handles", ()))
             evaluator_id, evaluator_sha, diagnostics = self._metadata(selected)
         else:
-            # Older transcripts store raw object IDs here and cannot safely satisfy
-            # the new opaque-choice contract.
             raise ReplayError("recorded copy targets do not use opaque handles")
         if handles not in request.legal_target_sets:
             raise ReplayError("recorded copy target set is not legal in replay")
