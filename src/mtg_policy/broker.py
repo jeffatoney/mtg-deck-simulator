@@ -47,19 +47,24 @@ class ActionBroker(_CoreActionBroker):
         variants: tuple[tuple[dict[str, Any], dict[str, Any]], ...] = (({}, {}),)
         for raw_ability in obj.current_characteristics.get("abilities", ()):
             ability = dict(raw_ability)
-            if automatic_ability_execution_supported(ability, entering=True):
+            schema = dict(ability.get("target_schema", {}))
+            is_targeted_etb = bool(
+                ability.get("kind") == "TRIGGERED"
+                and ability.get("trigger") == "ETB"
+                and not ability.get("optional")
+                and int(schema.get("max", 0) or 0) > 0
+                and effect_execution_supported(dict(ability.get("effect", {})))
+            )
+            if not is_targeted_etb and automatic_ability_execution_supported(
+                ability, entering=True
+            ):
                 continue
             if (
-                ability.get("kind") != "TRIGGERED"
-                or ability.get("trigger") != "ETB"
-                or ability.get("optional")
-                or not effect_execution_supported(dict(ability.get("effect", {})))
+                not is_targeted_etb
+                or self._ability_choice_variants(ability) != ({},)
             ):
                 return ()
-            if self._ability_choice_variants(ability) != ({},):
-                return ()
 
-            schema = dict(ability.get("target_schema", {}))
             target_sets = self._target_sets(self.player_id, schema)
             if not target_sets:
                 return ()
