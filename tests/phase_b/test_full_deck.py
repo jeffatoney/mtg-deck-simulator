@@ -46,14 +46,19 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
         == set(IMPLEMENTED_CARDS)
         == {
             "Aetherize",
+            "Breeches, Brazen Plunderer",
             "Brotherhood's End",
             "Crab Umbra",
             "Dispel",
             "Evolving Wilds",
+            "Fact or Fiction",
             "Fading Hope",
             "Fiery Cannonade",
+            "Glint-Horn Buccaneer",
             "Lightning-Rig Crew",
+            "Malcolm, Keen-Eyed Navigator",
             "Psychosis Crawler",
+            "Ravenform",
             "Terramorphic Expanse",
             "Wily Goblin",
         }
