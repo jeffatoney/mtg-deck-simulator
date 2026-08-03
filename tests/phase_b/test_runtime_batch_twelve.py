@@ -63,6 +63,9 @@ def test_electroduplicate_normal_mode_creates_hasty_copy_then_sacrifices_it() ->
     assert len(state.delayed_triggers) == 1
     assert active_objects(state, name="Electroduplicate", zone=Zone.GRAVEYARD)
 
+    pass_all(executor)
+    assert active_objects(state, name="Treasure", zone=Zone.BATTLEFIELD)
+
     executor.begin_step("END")
     pass_all(executor)
     assert tokens[0].retired
