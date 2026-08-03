@@ -21,14 +21,19 @@ EXECUTION_UNVERIFIED = "UNVERIFIED"
 IMPLEMENTED_CARDS = frozenset(
     {
         "Aetherize",
+        "Breeches, Brazen Plunderer",
         "Brotherhood's End",
         "Crab Umbra",
         "Dispel",
         "Evolving Wilds",
+        "Fact or Fiction",
         "Fading Hope",
         "Fiery Cannonade",
+        "Glint-Horn Buccaneer",
         "Lightning-Rig Crew",
+        "Malcolm, Keen-Eyed Navigator",
         "Psychosis Crawler",
+        "Ravenform",
         "Terramorphic Expanse",
         "Wily Goblin",
     }
