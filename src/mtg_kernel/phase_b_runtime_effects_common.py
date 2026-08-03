@@ -113,9 +113,7 @@ def apply_effect_common(
             raise IllegalAction("conditional bounce requires one target")
         target = targets[0]
         maximum_mana_value = int(effect.get("mana_value_lte", -1))
-        should_scry = (
-            int(target.current_characteristics.get("mana_value", 0)) <= maximum_mana_value
-        )
+        should_scry = int(target.current_characteristics.get("mana_value", 0)) <= maximum_mana_value
         _return_to_hand(self, target, action, kind)
         if should_scry:
             _ORIGINALS["apply_effect"](
