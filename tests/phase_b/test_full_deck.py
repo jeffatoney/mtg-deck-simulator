@@ -45,6 +45,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
         implemented
         == set(IMPLEMENTED_CARDS)
         == {
+            "Abrade",
             "Aetherize",
             "Arcane Signet",
             "Breeches, Brazen Plunderer",
