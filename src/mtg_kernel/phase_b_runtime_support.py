@@ -80,6 +80,7 @@ SUPPORTED_NO_CHOICE_TRIGGERS = frozenset(
         "CONTROLLER_CASTS_PIRATE",
         "CONTROLLER_DISCARDS",
         "CONTROLLER_DRAWS",
+        "ENCHANTED_CREATURE_DAMAGE_TO_OPPONENT",
         "ETB",
         "PIRATE_DAMAGE_TO_OPPONENTS",
     }
@@ -163,10 +164,12 @@ def automatic_ability_execution_supported(ability: dict[str, Any], *, entering: 
         and effect_execution_supported(effect)
     ):
         return True
+    # Optional triggers are executable only through an explicit recorded yes/no
+    # choice. The trigger path enforces that choice before the ability is put on
+    # the stack, so their optionality is not a silent default.
     return bool(
         trigger in SUPPORTED_NO_CHOICE_TRIGGERS
         and effect_execution_supported(effect)
-        and not ability.get("optional")
         and int(schema.get("max", 0) or 0) == 0
         and not _effect_requires_explicit_choice(effect)
     )
