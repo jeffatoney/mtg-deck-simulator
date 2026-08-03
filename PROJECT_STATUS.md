@@ -1,6 +1,6 @@
 # Phase B Project Status
 
-> **Last verified:** 2026-08-03 12:06 PT  
+> **Last verified:** 2026-08-03 12:11 PT  
 > **Repository:** `jeffatoney/mtg-deck-simulator`  
 > **Pull request:** #37 — draft  
 > **Branch:** `engine/phase-b-full-deck-policy`  
@@ -54,7 +54,7 @@ The progress percentage measures the seven core project milestones tracked in is
 - Renewed durable Phase A certification from the exact CI-produced candidate after the covered-kernel change.
 - Verified 238 repository tests, 141 mapped Phase B tests, and 27 Phase A verifier tests with no test failures.
 - Reduced exact-deck blockers from 34 to 27 in this batch, and from the accepted Slice 3 baseline of 149 to 27.
-- Updated issues #43 and #45 with the same exact evidence; #44 remains open and unchanged because no owner transcript decision was made.
+- Updated issues #43, #44, and #45 with the same exact evidence; #44 remains open for owner transcript review.
 - No task was marked complete.
 
 ## Current Blockers
@@ -140,5 +140,5 @@ The progress percentage measures the seven core project milestones tracked in is
 | Durable Phase B certification | Not generated |
 | Pilot authorization | Not present |
 | Full-study authorization | Not present |
-| Task synchronization | Issues #43 and #45 and this dashboard synchronized; #44 remains open for unchanged human review |
+| Task synchronization | Issues #43–#45 and this dashboard synchronized; #44 remains open for human review |
 | Repository protection | Open risk #46 |
