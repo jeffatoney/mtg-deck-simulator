@@ -75,6 +75,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Siren Stormtamer",
         "Sleight of Hand",
         "Sol Ring",
+        "Soul-Guide Lantern",
         "Spectral Sailor",
         "Step Through",
         "Storm Fleet Sprinter",
@@ -83,6 +84,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Thriving Isle",
         "Twinflame",
         "Vandalblast",
+        "Vedalken Aethermage",
         "Wash Away",
         "Wily Goblin",
     }
