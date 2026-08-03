@@ -38,6 +38,8 @@ SUPPORTED_EFFECTS = frozenset(
         "DESTROY_ARTIFACTS_MV_LEQ",
         "DESTROY_TARGETS",
         "DRAW",
+        "DRAW_DISCARD",
+        "DRAW_DISCARD_UNTAP_LANDS",
         "EACH_OPPONENT_LOSES_LIFE",
         "ECHOING_BOUNCE",
         "EXILE_ALL_GRAVEYARDS",
