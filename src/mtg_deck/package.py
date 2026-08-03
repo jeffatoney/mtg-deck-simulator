@@ -27,6 +27,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Breeches, Brazen Plunderer",
         "Brotherhood's End",
         "By Force",
+        "Cascade Bluffs",
         "Change the Equation",
         "Command Tower",
         "Commit // Memory",
