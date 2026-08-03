@@ -70,6 +70,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Psychosis Crawler",
         "Ravenform",
         "Reality Ripple",
+        "Reality Shift",
         "Rebuild",
         "Resculpt",
         "Scavenger Grounds",

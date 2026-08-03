@@ -10,6 +10,7 @@ from mtg_kernel.phase_b_counter_validation import cast_with_counter_predicate
 from mtg_kernel.phase_b_runtime_effects_common import apply_effect_common
 from mtg_kernel.phase_b_runtime_effects_interaction import apply_effect_interaction
 from mtg_kernel.phase_b_runtime_effects_mana import apply_effect_mana
+from mtg_kernel.phase_b_runtime_effects_manifest import apply_effect_manifest
 from mtg_kernel.phase_b_runtime_effects_search import apply_effect_search
 from mtg_kernel.phase_b_runtime_effects_selection import apply_effect_selection
 from mtg_kernel.phase_b_runtime_helpers import (
@@ -53,6 +54,8 @@ def _apply_effect(
     if apply_effect_interaction(self, source, action, effect, targets, choices):
         return
     if apply_effect_mana(self, source, action, effect, targets, choices):
+        return
+    if apply_effect_manifest(self, source, action, effect, targets, choices):
         return
     if apply_effect_search(self, source, action, effect, targets, choices):
         return

@@ -95,6 +95,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Psychosis Crawler",
             "Ravenform",
             "Reality Ripple",
+            "Reality Shift",
             "Rebuild",
             "Resculpt",
             "Scavenger Grounds",

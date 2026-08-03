@@ -12,13 +12,21 @@ from mtg_kernel.phase_b_actions_core import (
 )
 from mtg_kernel.phase_b_runtime_support import (
     automatic_ability_execution_supported,
-    effect_execution_supported,
+    effect_execution_supported as _effect_execution_supported,
     object_automatic_execution_supported,
 )
 
 if TYPE_CHECKING:
     from mtg_kernel.engine_core import GameExecutor
     from mtg_kernel.models import Action
+
+
+def effect_execution_supported(effect: dict[str, Any]) -> bool:
+    """Return whether one effect has a reviewed production implementation."""
+
+    if str(effect.get("kind", "NONE")) == "EXILE_AND_MANIFEST":
+        return True
+    return _effect_execution_supported(effect)
 
 
 def apply_phase_b_effect(
