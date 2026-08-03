@@ -1,7 +1,9 @@
 """Fail-closed broker coverage and hidden-state boundary tests."""
 
 from __future__ import annotations
+
 import pytest
+
 from mtg_cards.full_deck import load_full_deck_specs
 from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.factory import add_card, new_game
@@ -27,14 +29,17 @@ def pass_all(executor) -> None:
         executor.pass_priority(holder)
 
 
-def test_broker_omits_casts_and_activations_without_execution_support() -> None:
+def test_broker_includes_verified_casts_and_omits_unsupported_casts() -> None:
     _, executor, specs = scenario("fail-closed-actions")
     add_card(executor, specs["Aetherize"], Zone.HAND)
     add_card(executor, specs["Fact or Fiction"], Zone.HAND)
+    add_card(executor, specs["Arcane Denial"], Zone.HAND)
     add_card(executor, specs["Shivan Reef"], Zone.BATTLEFIELD)
     _, actions = ActionBroker(executor, "P0").refresh()
     casts = {(a.identity, a.metadata.get("mode")) for a in actions if a.kind == "CAST"}
-    assert ("Fact or Fiction", "default") in casts and all(i != "Aetherize" for i, _ in casts)
+    assert ("Fact or Fiction", "default") in casts
+    assert ("Aetherize", "default") in casts
+    assert all(identity != "Arcane Denial" for identity, _ in casts)
 
 
 def test_broker_enumerates_both_explicit_opt_scry_choices() -> None:
@@ -72,24 +77,31 @@ def test_tutor_action_descriptions_do_not_depend_on_current_hidden_library_conte
     broker.execute(int(observation["generation"]), absent[0].handle)
     pass_all(executor)
     assert not [
-        o
-        for o in state.objects.values()
-        if not o.retired
-        and o.zone is Zone.HAND
-        and o.current_characteristics.get("name") == "Sol Ring"
+        obj
+        for obj in state.objects.values()
+        if not obj.retired
+        and obj.zone is Zone.HAND
+        and obj.current_characteristics.get("name") == "Sol Ring"
     ]
     assert any(
-        c.kind == "TRANSMUTE"
-        and isinstance(c.selected, dict)
-        and c.selected.get("identity") == "FAIL_TO_FIND"
-        and c.selected.get("chosen_at") == "RESOLUTION"
-        for c in state.choices
+        choice.kind == "TRANSMUTE"
+        and isinstance(choice.selected, dict)
+        and choice.selected.get("identity") == "FAIL_TO_FIND"
+        and choice.selected.get("chosen_at") == "RESOLUTION"
+        for choice in state.choices
     )
 
 
-def test_unverified_automatic_battlefield_behavior_is_a_hard_broker_failure() -> None:
-    _, executor, specs = scenario("unsafe-static")
+def test_verified_automatic_battlefield_behavior_allows_broker_refresh() -> None:
+    _, executor, specs = scenario("safe-static")
     add_card(executor, specs["Psychosis Crawler"], Zone.BATTLEFIELD)
+    _, actions = ActionBroker(executor, "P0").refresh()
+    assert any(action.kind == "PASS_PRIORITY" for action in actions)
+
+
+def test_unverified_automatic_battlefield_behavior_remains_a_hard_failure() -> None:
+    _, executor, specs = scenario("unsafe-automatic")
+    add_card(executor, specs["Curiosity"], Zone.BATTLEFIELD)
     with pytest.raises(UnsupportedCapability, match="unverified automatic behavior"):
         ActionBroker(executor, "P0").refresh()
 
@@ -106,10 +118,10 @@ def test_pending_commander_return_choice_suppresses_priority_actions() -> None:
     return_action = next(a for a in actions if a.metadata["destination"] == "COMMAND")
     broker.execute(int(observation["generation"]), return_action.handle)
     successors = [
-        o
-        for o in state.objects.values()
-        if not o.retired
-        and o.zone is Zone.COMMAND
-        and o.component_card_instance_ids == commander.component_card_instance_ids
+        obj
+        for obj in state.objects.values()
+        if not obj.retired
+        and obj.zone is Zone.COMMAND
+        and obj.component_card_instance_ids == commander.component_card_instance_ids
     ]
     assert len(successors) == 1 and not state.pending_commander_choices

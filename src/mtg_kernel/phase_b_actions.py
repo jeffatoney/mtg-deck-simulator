@@ -7,10 +7,12 @@ from typing import TYPE_CHECKING, Any
 from mtg_kernel.models import Choice, GameObject
 from mtg_kernel.phase_b_actions_core import (
     activate_hand_ability,
-    automatic_ability_execution_supported,
-    effect_execution_supported,
     foretell,
     legal_tutor_names,
+)
+from mtg_kernel.phase_b_runtime_support import (
+    automatic_ability_execution_supported,
+    effect_execution_supported,
     object_automatic_execution_supported,
 )
 
