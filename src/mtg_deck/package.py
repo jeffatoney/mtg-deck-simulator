@@ -32,6 +32,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Command Tower",
         "Commit // Memory",
         "Crab Umbra",
+        "Curiosity",
         "Curse of the Swine",
         "Dispel",
         "Dizzy Spell",
