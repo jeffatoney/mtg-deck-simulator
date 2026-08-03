@@ -10,7 +10,10 @@
       "tests/phase_b/test_runtime_batch_eleven.py::test_izzet_boilerworks_executes_entry_trigger_and_mana",
       "tests/phase_b/test_runtime_batch_eleven.py::test_sentinel_totem_scries_then_exiles_all_graveyards",
       "tests/phase_b/test_runtime_batch_eleven.py::test_storm_fleet_sprinter_resolves_with_both_static_abilities",
-      "tests/phase_b/test_runtime_batch_eleven.py::test_temple_of_epiphany_scries_on_entry_and_produces_mana"
+      "tests/phase_b/test_runtime_batch_eleven.py::test_temple_of_epiphany_scries_on_entry_and_produces_mana",
+      "tests/phase_b/test_runtime_batch_twelve.py::test_electroduplicate_normal_mode_creates_hasty_copy_then_sacrifices_it",
+      "tests/phase_b/test_runtime_batch_twelve.py::test_electroduplicate_flashback_mode_exiles_the_card_after_resolution",
+      "tests/phase_b/test_runtime_batch_twelve.py::test_scavenger_grounds_executes_mana_and_graveyard_exile_modes"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
