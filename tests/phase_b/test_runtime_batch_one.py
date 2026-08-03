@@ -50,6 +50,7 @@ def test_aetherize_returns_each_attacking_creature_and_not_nonattacker() -> None
 def test_fiery_cannonade_uses_umbra_armor_replacement() -> None:
     state, executor, specs = funded_game("umbra-armor")
     creature = add_card(executor, specs["Dualcaster Mage"], Zone.BATTLEFIELD)
+    pirate = add_card(executor, specs["Malcolm, Keen-Eyed Navigator"], Zone.BATTLEFIELD)
     aura = add_card(executor, specs["Crab Umbra"], Zone.HAND)
     executor.cast("P0", aura.object_id, (TargetRef(creature.object_id),))
     pass_all(executor)
@@ -66,6 +67,7 @@ def test_fiery_cannonade_uses_umbra_armor_replacement() -> None:
     assert (
         not creature.retired and creature.zone is Zone.BATTLEFIELD and creature.marked_damage == 0
     )
+    assert not pirate.retired and pirate.zone is Zone.BATTLEFIELD and pirate.marked_damage == 0
     assert attached.retired
     assert any(
         not obj.retired
