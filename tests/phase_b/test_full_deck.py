@@ -49,10 +49,12 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Brotherhood's End",
             "Crab Umbra",
             "Dispel",
+            "Evolving Wilds",
             "Fading Hope",
             "Fiery Cannonade",
             "Lightning-Rig Crew",
             "Psychosis Crawler",
+            "Terramorphic Expanse",
             "Wily Goblin",
         }
     )
