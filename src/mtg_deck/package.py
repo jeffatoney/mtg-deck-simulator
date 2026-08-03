@@ -17,7 +17,19 @@ COMMANDERS = ROOT / "docs/source/commanders.txt"
 COMPOSITION_REVIEWED = "REVIEWED_COMPOSITION"
 EXECUTION_IMPLEMENTED = "IMPLEMENTED"
 EXECUTION_UNVERIFIED = "UNVERIFIED"
-IMPLEMENTED_CARDS = frozenset({"Brotherhood's End"})
+# Each entry below has direct exact-deck execution coverage in tests/phase_b.
+IMPLEMENTED_CARDS = frozenset(
+    {
+        "Aetherize",
+        "Brotherhood's End",
+        "Crab Umbra",
+        "Dispel",
+        "Fiery Cannonade",
+        "Lightning-Rig Crew",
+        "Psychosis Crawler",
+        "Wily Goblin",
+    }
+)
 
 
 @dataclass(frozen=True)
