@@ -191,8 +191,8 @@ def test_thriving_isle_entry_choice_and_mana(mana_color: str) -> None:
     assert state.players["P0"].mana_pool[mana_color] == 1
 
 
-def test_frostboil_snarl_reveal_entry_and_mana_choice() -> None:
-    state, executor, specs = funded_game("frostboil-snarl")
+def test_frostboil_snarl_reveal_decline_and_mana_paths() -> None:
+    state, executor, specs = funded_game("frostboil-snarl-reveal")
     reveal = add_card(executor, specs["Island"], Zone.HAND)
     card = add_card(executor, specs["Frostboil Snarl"], Zone.HAND)
     snarl = play_land(
@@ -209,3 +209,13 @@ def test_frostboil_snarl_reveal_entry_and_mana_choice() -> None:
 
     assert state.players["P0"].mana_pool["U"] == 1
     assert any(choice.kind == "REVEAL_FOR_LAND_ENTRY" for choice in state.choices)
+
+    decline_state, decline_executor, decline_specs = funded_game("frostboil-snarl-decline")
+    decline_card = add_card(decline_executor, decline_specs["Frostboil Snarl"], Zone.HAND)
+    declined = play_land(decline_executor, "P0", decline_card.object_id)
+    assert declined.permanent_status is not None
+    assert declined.permanent_status["tap"] == "TAPPED"
+    assert any(
+        choice.kind == "REVEAL_FOR_LAND_ENTRY" and choice.selected == "DECLINE"
+        for choice in decline_state.choices
+    )
