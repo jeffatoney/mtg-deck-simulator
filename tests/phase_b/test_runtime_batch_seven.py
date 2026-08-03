@@ -80,7 +80,7 @@ def test_by_force_requires_x_targets_and_destroys_each_selected_artifact() -> No
     invalid_spell = add_card(invalid_executor, invalid_specs["By Force"], Zone.HAND)
     mana_before = dict(invalid_state.players["P0"].mana_pool)
 
-    with pytest.raises(IllegalAction, match="target count must equal X"):
+    with pytest.raises(IllegalAction, match="targets must equal"):
         invalid_executor.cast(
             "P0",
             invalid_spell.object_id,
