@@ -70,9 +70,7 @@ def cast_with_counter_predicate(
             _record=_record,
         )
         action = self._created_action(spell)
-        action.payments["cost"] = combine_costs(
-            dict(action.payments.get("cost", {})), kicker_cost
-        )
+        action.payments["cost"] = combine_costs(dict(action.payments.get("cost", {})), kicker_cost)
         action.payments["mana"] = combine_costs(
             dict(action.payments.get("mana", {})), kicker_payment
         )
