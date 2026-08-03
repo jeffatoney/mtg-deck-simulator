@@ -24,6 +24,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Brotherhood's End",
         "Crab Umbra",
         "Dispel",
+        "Fading Hope",
         "Fiery Cannonade",
         "Lightning-Rig Crew",
         "Psychosis Crawler",
