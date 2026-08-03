@@ -57,10 +57,7 @@ def active_names(state, zone: Zone, owner: str = "P0") -> set[str]:
     return {
         str(obj.current_characteristics.get("name", ""))
         for obj in state.objects.values()
-        if not obj.retired
-        and not obj.ceased_to_exist
-        and obj.zone is zone
-        and obj.owner == owner
+        if not obj.retired and not obj.ceased_to_exist and obj.zone is zone and obj.owner == owner
     }
 
 
@@ -138,8 +135,7 @@ def test_long_term_plans_places_selected_card_third_from_top() -> None:
     selection = next(
         choice
         for choice in state.choices
-        if choice.kind == "CARD_SELECTION"
-        and choice.selected["purpose"] == "TUTOR_THIRD_FROM_TOP"
+        if choice.kind == "CARD_SELECTION" and choice.selected["purpose"] == "TUTOR_THIRD_FROM_TOP"
     )
     assert len(selection.selected["selected_handles"]) == 1
     assert selection.selected["chosen_at"] == "RESOLUTION"
