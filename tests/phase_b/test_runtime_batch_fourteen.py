@@ -101,7 +101,7 @@ def test_faithless_looting_selects_discards_after_drawing_and_supports_flashback
         executor.cast(
             "P0",
             looting.object_id,
-            mode="flashback" if zone is Zone.GRAVEYARD else "default",
+            mode="flashback" if zone is Zone.GRAVEYARD else "normal",
         )
         pass_all(executor)
 
@@ -172,7 +172,7 @@ def test_resolution_time_card_selection_rejects_illegal_handles_atomically() -> 
     looting = add_card(executor, specs["Faithless Looting"], Zone.HAND)
     executor.bind_strategic_choice_provider(IllegalSelectionProvider())
 
-    spell = executor.cast("P0", looting.object_id)
+    spell = executor.cast("P0", looting.object_id, mode="normal")
     before_library = tuple(state.zones[executor.zones.zone_key(Zone.LIBRARY, "P0")])
     before_hand = tuple(state.zones[executor.zones.zone_key(Zone.HAND, "P0")])
     executor.pass_priority("P0")
