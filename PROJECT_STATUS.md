@@ -4,9 +4,9 @@
 > **Repository:** `jeffatoney/mtg-deck-simulator`  
 > **Pull request:** #37 — draft  
 > **Branch:** `engine/phase-b-full-deck-policy`  
-> **Exact head:** `4167ba574023b9c04034ec4b6db8d3b92573557b`
+> **Latest evaluated implementation head:** `4167ba574023b9c04034ec4b6db8d3b92573557b`
 
-This file is the executive mirror of the issue-backed GitHub Project task records. Update the task record and this dashboard together whenever work is created, completed, blocked, reopened, reprioritized, or moved to human review. Completion requires exact verification evidence; implementation presence alone is not completion.
+This file is the executive mirror of the issue-backed GitHub Project task records. Update the task record and this dashboard together whenever work is created, completed, blocked, reopened, reprioritized, or moved to human review. Completion requires exact verification evidence; implementation presence alone is not completion. Dashboard-only commits may follow the evaluated implementation head without changing the recorded engineering verdict.
 
 ## Overview
 
@@ -43,7 +43,7 @@ The progress percentage measures the seven core project milestones tracked in is
 4. Continue narrow Oracle-backed runtime batches until exact-deck blockers reach zero.
 5. Keep task records and this dashboard synchronized after every new CI result or discovered blocker.
 
-The current head commit credited reviewed coverage for Change the Equation, Echoing Truth, Expedite, Introduction to Annihilation, Negate, and Opt. That credit is **not marked complete on the current head** because CI is red.
+The evaluated implementation head credited reviewed coverage for Change the Equation, Echoing Truth, Expedite, Introduction to Annihilation, Negate, and Opt. That credit is **not marked complete on the evaluated head** because CI is red.
 
 ## Completed This Session
 
@@ -53,7 +53,7 @@ The current head commit credited reviewed coverage for Change the Equation, Echo
 - Created the final certification dependency record #45.
 - Created the repository-protection risk record #46.
 - Created the standing synchronization-governance record #47.
-- Verified the current PR head, latest CI run, exact formatting failure, open review-thread count, branch divergence, and transcript approval file.
+- Verified the current PR state, evaluated implementation head, latest CI run, exact formatting failure, open review-thread count, branch divergence, and transcript approval file.
 - Added this `PROJECT_STATUS.md` executive dashboard.
 
 ## Current Blockers
@@ -67,9 +67,9 @@ The current head commit credited reviewed coverage for Change the Equation, Echo
 
 ## Quality Dashboard
 
-**Latest exact-head CI:** run `30803861598` / run number 451 — **FAIL**
+**Latest evaluated implementation CI:** run `30803861598` / run number 451 — **FAIL**
 
-| Gate | Exact-head status | Evidence |
+| Gate | Evaluated-head status | Evidence |
 |---|---|---|
 | Dependency installation | PASS | `uv sync --frozen --all-extras` completed |
 | Frozen identity lock | PASS | Approved SHA-256 matched |
@@ -91,8 +91,8 @@ The current head commit credited reviewed coverage for Change the Equation, Echo
 ## Risks
 
 - **Repository protection:** branch protection or a repository ruleset is required but not currently verified as enabled. Force-push and branch-deletion protection are not claimed. See #46.
-- **Large change surface:** the Phase B branch is 183 commits ahead of `main`, increasing regression and review risk.
-- **Incomplete exact-head evidence:** the latest run stopped at formatting, so downstream quality, Phase A standing, manifest, and Phase B results are unknown for the current head.
+- **Large change surface:** the Phase B branch was 183 commits ahead of `main` at the evaluated implementation head, increasing regression and review risk.
+- **Incomplete exact-head evidence:** the latest implementation run stopped at formatting, so downstream quality, Phase A standing, manifest, and Phase B results are unknown for that head.
 - **Human approval dependency:** automation cannot approve transcript content or digests on the owner’s behalf. See #44.
 - **Unknown current blocker count:** later runtime work exists, but the exact remaining count must come from a successful current verifier run.
 - **Project integration limitation:** the available GitHub connection can maintain issue-backed task records and repository files, but it cannot directly mutate GitHub Projects fields or board placement. Configure automatic addition of repository issues to the Phase B Project or use a Projects-capable connection. See #47.
@@ -127,9 +127,9 @@ The current head commit credited reviewed coverage for Change the Equation, Echo
 | Active PR | #37 — `Phase B: migrate full deck and policy framework` |
 | PR state | Open, draft, mergeable |
 | Base | `main` at `b5743b54fa26e3e20c175fddb6401b390c828b8c` |
-| Head before this dashboard commit | `4167ba574023b9c04034ec4b6db8d3b92573557b` |
-| Branch divergence | 183 commits ahead, 0 behind |
-| Latest CI | Run 451 / `30803861598` — FAIL at formatting |
+| Latest evaluated implementation head | `4167ba574023b9c04034ec4b6db8d3b92573557b` |
+| Branch divergence at evaluated head | 183 commits ahead, 0 behind |
+| Latest evaluated implementation CI | Run 451 / `30803861598` — FAIL at formatting |
 | Review conversations | 0 unresolved threads |
 | Phase B verdict | NO-GO |
 | Durable Phase B certification | Not generated |
