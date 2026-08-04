@@ -9,8 +9,16 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any
+
+from mtg_verify.transcript_evidence import (
+    ALLOWED_EVENT_SOURCES,
+    EVIDENCE_DIR_ENV,
+    EVIDENCE_SCHEMA,
+    subsequence_indexes,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ROOT = ROOT / "docs/audit/phase-b-golden-transcripts"
@@ -86,6 +94,53 @@ def _collected_nodes(root: Path) -> set[str]:
     }
 
 
+def _validate_execution_evidence(
+    evidence_dir: Path,
+    validated: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    paths = sorted(evidence_dir.glob("*.json"))
+    if len(paths) != REQUIRED_COUNT:
+        raise ValueError(
+            f"expected 12 transcript evidence files, observed {len(paths)}: "
+            f"{[path.name for path in paths]}"
+        )
+    evidence_records: list[dict[str, Any]] = []
+    for transcript in validated:
+        transcript_id = str(transcript["transcript_id"])
+        path = evidence_dir / f"{transcript_id}.json"
+        if not path.is_file():
+            raise ValueError(f"named transcript test omitted evidence: {transcript_id}")
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if document.get("schema_version") != EVIDENCE_SCHEMA:
+            raise ValueError(f"transcript evidence schema is unsupported: {transcript_id}")
+        if document.get("transcript_id") != transcript_id:
+            raise ValueError(f"transcript evidence ID differs: {transcript_id}")
+        if document.get("event_source") != transcript["event_source"]:
+            raise ValueError(f"transcript evidence source differs: {transcript_id}")
+        required = document.get("required_event_order")
+        observed = document.get("observed_event_order")
+        matched = document.get("matched_indexes")
+        if required != transcript["required_event_order"]:
+            raise ValueError(f"transcript evidence requirements differ: {transcript_id}")
+        if not isinstance(observed, list) or not all(isinstance(item, str) for item in observed):
+            raise ValueError(f"transcript observed event stream is malformed: {transcript_id}")
+        if not isinstance(matched, list) or not all(isinstance(item, int) for item in matched):
+            raise ValueError(f"transcript matched indexes are malformed: {transcript_id}")
+        expected_indexes = subsequence_indexes(required, observed)
+        if expected_indexes is None or list(expected_indexes) != matched:
+            raise ValueError(f"transcript required event order is not runtime-bound: {transcript_id}")
+        evidence_records.append(
+            {
+                "transcript_id": transcript_id,
+                "event_source": transcript["event_source"],
+                "observed_event_count": len(observed),
+                "matched_indexes": matched,
+                "evidence_sha256": hashlib.sha256(canonical_bytes(document)).hexdigest(),
+            }
+        )
+    return evidence_records
+
+
 def validate_phase_b_transcripts(
     transcript_dir: Path = DEFAULT_TRANSCRIPTS,
     approvals_path: Path = DEFAULT_APPROVALS,
@@ -104,8 +159,6 @@ def validate_phase_b_transcripts(
     if approval_document.get("required_count") != REQUIRED_COUNT:
         raise ValueError("Phase B approval record must require exactly 12 transcripts")
     approval_sha = approval_document_digest(approval_document)
-    if not allow_pending and approval_sha != expected_approval_document_sha256:
-        raise ValueError("Phase B transcript approval record is not owner-anchored")
 
     paths = sorted(transcript_dir.glob("*.json"))
     if len(paths) != REQUIRED_COUNT:
@@ -120,7 +173,7 @@ def validate_phase_b_transcripts(
         raise ValueError("approval transcript IDs must be unique")
 
     nodes = collected_nodes if collected_nodes is not None else _collected_nodes(root)
-    validated: list[dict[str, str]] = []
+    validated: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
     seen_families: set[str] = set()
     for path in paths:
@@ -148,6 +201,9 @@ def validate_phase_b_transcripts(
             raise ValueError(f"plain-English representation is incomplete: {transcript_id}")
         if not isinstance(machine, dict):
             raise ValueError(f"machine representation is missing: {transcript_id}")
+        event_source = str(machine.get("event_source", ""))
+        if event_source not in ALLOWED_EVENT_SOURCES:
+            raise ValueError(f"machine event source is invalid: {transcript_id}: {event_source}")
         for key in (
             "preconditions",
             "ordered_operations",
@@ -202,28 +258,15 @@ def validate_phase_b_transcripts(
         if approval.get("path") != expected_path or approval.get("sha256") != digest:
             raise ValueError(f"approval path or digest mismatch: {transcript_id}")
         status = str(approval.get("status", ""))
-        if allow_pending:
-            if status not in {"PENDING_OWNER_APPROVAL", "APPROVED"}:
-                raise ValueError(f"invalid approval status: {transcript_id}")
-        else:
-            if status != "APPROVED":
-                raise ValueError(f"owner approval is pending: {transcript_id}")
-            approved_by = str(approval.get("approved_by", "")).strip()
-            approved_at = str(approval.get("approved_at", "")).strip()
-            statement = str(approval.get("approval_statement", "")).strip()
-            if approved_by != EXPECTED_OWNER or not _iso_timestamp(approved_at):
-                raise ValueError(
-                    f"owner approval identity or timestamp is invalid: {transcript_id}"
-                )
-            if transcript_id not in statement or digest not in statement:
-                raise ValueError(
-                    f"approval statement is not bound to ID and digest: {transcript_id}"
-                )
+        if allow_pending and status not in {"PENDING_OWNER_APPROVAL", "APPROVED"}:
+            raise ValueError(f"invalid approval status: {transcript_id}")
         validated.append(
             {
                 "transcript_id": transcript_id,
                 "family_id": family_id,
                 "evidence_scope": evidence_scope,
+                "event_source": event_source,
+                "required_event_order": list(machine["required_event_order"]),
                 "path": expected_path,
                 "sha256": digest,
                 "test_node": test_node,
@@ -237,33 +280,68 @@ def validate_phase_b_transcripts(
     if set(approval_by_id) != seen_ids:
         raise ValueError("approval entries and transcript files identify different sets")
 
-    execution = {"status": "NOT_EXECUTED", "passed": 0}
+    execution: dict[str, Any] = {"status": "NOT_EXECUTED", "passed": 0, "evidence": []}
     if execute:
-        command = ["pytest", "-q", *[item["test_node"] for item in validated]]
-        completed = subprocess.run(
-            command,
-            cwd=root,
-            text=True,
-            capture_output=True,
-            check=False,
-            env={**os.environ, "PYTHONPATH": str(root / "src")},
-        )
-        if completed.returncode != 0:
-            raise ValueError(
-                f"named Phase B transcript execution failed: {completed.stdout}{completed.stderr}"
+        command = ["pytest", "-q", *[str(item["test_node"]) for item in validated]]
+        with tempfile.TemporaryDirectory(prefix="phase-b-transcript-evidence-") as temp:
+            evidence_dir = Path(temp)
+            completed = subprocess.run(
+                command,
+                cwd=root,
+                text=True,
+                capture_output=True,
+                check=False,
+                env={
+                    **os.environ,
+                    "PYTHONPATH": str(root / "src"),
+                    EVIDENCE_DIR_ENV: str(evidence_dir),
+                },
             )
-        match = re.search(r"(\d+) passed", completed.stdout + completed.stderr)
-        passed = int(match.group(1)) if match else 0
-        if passed != REQUIRED_COUNT:
-            raise ValueError(f"expected 12 executed transcript tests, observed {passed}")
+            if completed.returncode != 0:
+                raise ValueError(
+                    f"named Phase B transcript execution failed: {completed.stdout}{completed.stderr}"
+                )
+            match = re.search(r"(\d+) passed", completed.stdout + completed.stderr)
+            passed = int(match.group(1)) if match else 0
+            if passed != REQUIRED_COUNT:
+                raise ValueError(f"expected 12 executed transcript tests, observed {passed}")
+            evidence = _validate_execution_evidence(evidence_dir, validated)
         execution = {
             "status": "PASS",
             "passed": passed,
             "command": " ".join(command),
+            "evidence": evidence,
         }
 
+    # The owner anchor remains the final strict gate. It is deliberately checked
+    # after runtime evidence so a pending candidate still exposes stale or invented
+    # event contracts instead of stopping before the named tests run.
+    if not allow_pending:
+        if approval_sha != expected_approval_document_sha256:
+            raise ValueError("Phase B transcript approval record is not owner-anchored")
+        for transcript_id in sorted(seen_ids):
+            approval = approval_by_id[transcript_id]
+            if str(approval.get("status", "")) != "APPROVED":
+                raise ValueError(f"owner approval is pending: {transcript_id}")
+            approved_by = str(approval.get("approved_by", "")).strip()
+            approved_at = str(approval.get("approved_at", "")).strip()
+            statement = str(approval.get("approval_statement", "")).strip()
+            digest = next(
+                str(item["sha256"])
+                for item in validated
+                if item["transcript_id"] == transcript_id
+            )
+            if approved_by != EXPECTED_OWNER or not _iso_timestamp(approved_at):
+                raise ValueError(
+                    f"owner approval identity or timestamp is invalid: {transcript_id}"
+                )
+            if transcript_id not in statement or digest not in statement:
+                raise ValueError(
+                    f"approval statement is not bound to ID and digest: {transcript_id}"
+                )
+
     return {
-        "schema_version": "phase-b-golden-transcript-validation-v1",
+        "schema_version": "phase-b-golden-transcript-validation-v2",
         "status": "CANDIDATE_PASS_PENDING_OWNER" if allow_pending else "PASS",
         "count": len(validated),
         "approval_document_sha256": approval_sha,

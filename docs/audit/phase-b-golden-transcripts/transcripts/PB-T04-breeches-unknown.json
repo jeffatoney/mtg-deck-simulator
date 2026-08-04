@@ -1,15 +1,1 @@
-{
-  "evidence_scope": "MECHANIC_ISOLATION",
-  "family_id": "breeches-unknown-exclusion",
-  "machine": {
-    "ordered_operations": ["deal Pirate combat damage", "put Breeches trigger on stack", "resolve trigger as unknown-card exclusion"],
-    "preconditions": ["A Pirate damages an opponent while Breeches is present."],
-    "required_assertions": ["deterministic_resources_added is zero", "hidden_identities_exposed is false", "no card object is placed in exile"],
-    "required_event_order": ["DAMAGE_DEALT", "ABILITY_TRIGGERED", "BREECHES_UNKNOWN_EXILES_RECORDED"],
-    "test_node": "tests/phase_b/test_behavioral_scenarios.py::test_breeches_unknown_cards_are_recorded_but_never_deterministic_resources"
-  },
-  "plain_english": ["A Pirate damages an opponent while Breeches is present.", "The trigger is recorded without inventing an opponent library identity.", "No deterministic card resource is added."],
-  "schema_version": "phase-b-golden-transcript-v1",
-  "title": "Breeches unknown cards are excluded from deterministic resources",
-  "transcript_id": "PB-T04-breeches-unknown"
-}
+{"evidence_scope":"MECHANIC_ISOLATION","family_id":"breeches-unknown-exclusion","machine":{"event_source":"GAME_STATE_EVENTS","ordered_operations":["deal Pirate combat damage","trigger and stack Breeches","resolve the opponent-boundary unknown-exile record","confirm no local deterministic card resource or fabricated exile object was created"],"preconditions":["A Pirate damages an opponent while Breeches is present.","Opponent libraries are abstract metadata rather than local card objects in this modeled environment."],"required_assertions":["deterministic_resources_added is zero","hidden_identities_exposed is false","the damaged opponent set contains P1","no local card object is fabricated in exile","the transcript does not claim a physical opponent-library zone transfer"],"required_event_order":["DAMAGE_DEALT","ABILITY_TRIGGERED","TRIGGER_PUT_ON_STACK","BREECHES_UNKNOWN_EXILES_RECORDED","STACK_OBJECT_RESOLVED"],"test_node":"tests/phase_b/test_golden_transcript_evidence.py::test_pb_t04_breeches_boundary_evidence"},"plain_english":["A Pirate damages an opponent while Breeches is present.","Because complete opponent libraries are outside the modeled environment, the trigger is recorded at the external-opponent boundary without fabricating a local card object or identity.","The record adds no deterministic resource and exposes no hidden identity; a future full-opponent-deck model would require a real public exile-zone transfer."],"schema_version":"phase-b-golden-transcript-v1","title":"Breeches records an unknown opponent-boundary exile without inventing a deterministic card","transcript_id":"PB-T04-breeches-unknown"}

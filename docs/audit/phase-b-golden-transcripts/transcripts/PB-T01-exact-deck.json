@@ -1,15 +1,1 @@
-{
-  "evidence_scope": "EXACT_DECK_INTEGRATION",
-  "family_id": "exact-deck-two-commanders",
-  "machine": {
-    "ordered_operations": ["load exact deck package", "construct game objects", "count library, command zone, deck slots, and card instances"],
-    "preconditions": ["The exact frozen 100-card package is constructed through build_exact_game()."],
-    "required_assertions": ["library count is 98", "command zone count is 2", "all 100 physical identities are unique", "duplicate basics preserve exact multiplicity"],
-    "required_event_order": ["DECK_PACKAGE_LOADED", "CARD_INSTANCES_CREATED", "COMMANDERS_PLACED"],
-    "test_node": "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
-  },
-  "plain_english": ["The exact frozen 100-card package is constructed.", "Twelve Islands and ten Mountains remain separate physical cards.", "Malcolm and Breeches remain separate command-zone commanders."],
-  "schema_version": "phase-b-golden-transcript-v1",
-  "title": "Exact deck construction preserves duplicate basics and independent commanders",
-  "transcript_id": "PB-T01-exact-deck"
-}
+{"evidence_scope":"EXACT_DECK_INTEGRATION","family_id":"exact-deck-two-commanders","machine":{"event_source":"AUDIT_EVIDENCE","ordered_operations":["load the exact deck package","construct the 100 card instances and active rules objects","validate library and command-zone counts","validate card-instance, active-object, and commander assignments"],"preconditions":["The exact frozen 100-card package is constructed through build_exact_game()."],"required_assertions":["library count is 98","command zone count is 2","all 100 card_instance_id values are unique","all 100 active object_id values are unique","every active deck object contains exactly one physical card instance","duplicate basics preserve exact multiplicity"],"required_event_order":["DECK_PACKAGE_VALIDATED","CARD_INSTANCE_IDENTIFIERS_VALIDATED","ACTIVE_OBJECT_IDENTIFIERS_VALIDATED","COMMAND_ZONE_ASSIGNMENTS_VALIDATED"],"test_node":"tests/phase_b/test_golden_transcript_evidence.py::test_pb_t01_exact_deck_evidence"},"plain_english":["The exact frozen package constructs 98 library cards and two independent command-zone commanders.","Each of the 100 physical cards has a unique card_instance_id even when several cards share the same Oracle identity.","Each active rules object has a unique object_id, and every active deck object contains exactly one physical card instance."],"schema_version":"phase-b-golden-transcript-v1","title":"Exact deck construction preserves duplicate basics and independent commanders","transcript_id":"PB-T01-exact-deck"}
