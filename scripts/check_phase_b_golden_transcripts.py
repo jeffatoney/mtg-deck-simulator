@@ -128,7 +128,9 @@ def _validate_execution_evidence(
             raise ValueError(f"transcript matched indexes are malformed: {transcript_id}")
         expected_indexes = subsequence_indexes(required, observed)
         if expected_indexes is None or list(expected_indexes) != matched:
-            raise ValueError(f"transcript required event order is not runtime-bound: {transcript_id}")
+            raise ValueError(
+                f"transcript required event order is not runtime-bound: {transcript_id}"
+            )
         evidence_records.append(
             {
                 "transcript_id": transcript_id,
@@ -327,9 +329,7 @@ def validate_phase_b_transcripts(
             approved_at = str(approval.get("approved_at", "")).strip()
             statement = str(approval.get("approval_statement", "")).strip()
             digest = next(
-                str(item["sha256"])
-                for item in validated
-                if item["transcript_id"] == transcript_id
+                str(item["sha256"]) for item in validated if item["transcript_id"] == transcript_id
             )
             if approved_by != EXPECTED_OWNER or not _iso_timestamp(approved_at):
                 raise ValueError(
