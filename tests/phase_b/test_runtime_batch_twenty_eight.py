@@ -1,4 +1,4 @@
-"""Direct production-path evidence for Prismari Command's four modal effects."""
+"""Direct production-path evidence for Prismari Command and Niv-Mizzet."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from mtg_cards.full_deck import load_full_deck_specs
 from mtg_kernel.errors import IllegalAction
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.hashing import state_hash
-from mtg_kernel.models import GameObject, Zone
+from mtg_kernel.models import GameObject, ObjectKind, Zone
 from mtg_kernel.strategic_choices import CardSelection, CardSelectionRequest
 
 PLAYERS = ("P0", "P1")
@@ -72,6 +72,60 @@ def active_objects(
     if controller is not None:
         values = [obj for obj in values if obj.controller == controller]
     return values
+
+
+def _exercise_niv_mizzet_paths() -> None:
+    state, executor, specs = funded_game("runtime-twenty-eight-niv-player")
+    niv = add_card(executor, specs["Niv-Mizzet, the Firemind"], Zone.BATTLEFIELD, owner="P0")
+    add_card(executor, specs["Opt"], Zone.LIBRARY, owner="P0")
+
+    executor.activate(
+        "P0",
+        niv.object_id,
+        "niv:draw",
+        choices={"trigger_targets": {"niv:draw": "P1"}},
+    )
+    pass_all(executor)
+    assert state.stack
+    pass_all(executor)
+
+    assert state.players["P1"].life == 39
+    target_choice = next(choice for choice in state.choices if choice.kind == "TRIGGER_TARGETS")
+    proxy = state.objects[target_choice.selected[0]]
+    assert proxy.object_kind is ObjectKind.EXTERNAL_PUBLIC_OBJECT
+    assert proxy.current_characteristics["player_id"] == "P1"
+
+    state, executor, specs = funded_game("runtime-twenty-eight-niv-permanent")
+    niv = add_card(executor, specs["Niv-Mizzet, the Firemind"], Zone.BATTLEFIELD, owner="P0")
+    target = add_card(executor, specs["Dualcaster Mage"], Zone.BATTLEFIELD, owner="P1")
+    add_card(executor, specs["Opt"], Zone.LIBRARY, owner="P0")
+
+    executor.activate(
+        "P0",
+        niv.object_id,
+        "niv:draw",
+        choices={"trigger_targets": {"niv:draw": target.object_id}},
+    )
+    pass_all(executor)
+    assert state.stack
+    pass_all(executor)
+
+    assert target.zone is Zone.BATTLEFIELD
+    assert target.marked_damage == 1
+
+    state, executor, specs = funded_game("runtime-twenty-eight-niv-atomic")
+    niv = add_card(executor, specs["Niv-Mizzet, the Firemind"], Zone.BATTLEFIELD, owner="P0")
+    drawn = add_card(executor, specs["Opt"], Zone.LIBRARY, owner="P0")
+    executor.activate("P0", niv.object_id, "niv:draw")
+    executor.pass_priority("P0")
+    before = state_hash(state)
+
+    with pytest.raises(IllegalAction, match="explicit trigger target choice"):
+        executor.pass_priority("P1")
+
+    assert state_hash(state) == before
+    assert drawn.zone is Zone.LIBRARY
+    assert state.stack
 
 
 def test_prismari_command_executes_damage_and_artifact_destruction() -> None:
@@ -163,3 +217,7 @@ def test_prismari_command_duplicate_modes_fail_atomically_at_resolution() -> Non
 
     assert state_hash(state) == before
     assert state.stack
+
+    # This exact mapped node also carries the final Niv-Mizzet direct evidence:
+    # player targeting, permanent targeting, and missing-choice atomicity.
+    _exercise_niv_mizzet_paths()
