@@ -38,8 +38,7 @@ def _marked_trigger_ability(self: Any, action: Action) -> tuple[GameObject, dict
     matches = [
         dict(ability)
         for ability in source.current_characteristics.get("abilities", ())
-        if ability.get("kind") == "TRIGGERED"
-        and ability.get("trigger") == PATH_SHARED_TYPE_TRIGGER
+        if ability.get("kind") == "TRIGGERED" and ability.get("trigger") == PATH_SHARED_TYPE_TRIGGER
     ]
     if len(matches) != 1:
         raise IllegalAction("marked commander mana requires one shared-type trigger")
