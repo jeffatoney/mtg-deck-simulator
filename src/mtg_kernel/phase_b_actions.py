@@ -36,9 +36,7 @@ def effect_execution_supported(effect: dict[str, Any]) -> bool:
     return _effect_execution_supported(effect)
 
 
-def automatic_ability_execution_supported(
-    ability: dict[str, Any], *, entering: bool
-) -> bool:
+def automatic_ability_execution_supported(ability: dict[str, Any], *, entering: bool) -> bool:
     """Recognize automatic paths whose explicit choices are captured elsewhere."""
 
     if (
