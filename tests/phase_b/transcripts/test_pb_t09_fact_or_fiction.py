@@ -22,7 +22,8 @@ def test_pb_t09_fact_or_fiction_evidence() -> None:
     library = list(created["library"])
     state.turn.number = 3
     state.turn.phase = "PRECOMBAT_MAIN"
-    executor.bind_strategic_choice_provider(_provider())
+    bound_provider = _provider()
+    executor.bind_strategic_choice_provider(bound_provider)
     for _ in range(3):
         move_named(executor, library, "Island", Zone.BATTLEFIELD)
         library = [obj for obj in library if not obj.retired]
@@ -52,6 +53,9 @@ def test_pb_t09_fact_or_fiction_evidence() -> None:
     pass_round(executor)
     chosen = next(choice for choice in state.choices if choice.kind == "FACT_OR_FICTION_PILE")
     assert "Twinflame" in chosen.selected["cards"]
+    assert chosen.selected["evaluator_id"] == bound_provider.evaluator_id
+    assert chosen.selected["evaluator_sha256"] == bound_provider.evaluator_sha256
+    assert len(chosen.selected["evaluator_sha256"]) == 64
     resolved_revealed = [
         obj
         for obj in state.objects.values()
@@ -83,5 +87,7 @@ def test_pb_t09_fact_or_fiction_evidence() -> None:
             "unchosen_pile_may_be_empty": True,
             "fresh_replay_reproduced_selection": True,
             "test_fixture_uses_sol_ring": False,
+            "evaluator_id": bound_provider.evaluator_id,
+            "evaluator_sha256": bound_provider.evaluator_sha256,
         },
     )
