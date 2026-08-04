@@ -39,9 +39,7 @@ def test_pb_t08_modal_x_foretell_evidence() -> None:
     ravenform = add_card(executor, specs["Ravenform"], Zone.HAND)
     foretold = foretell(executor, "P0", ravenform.object_id, "ravenform:foretell")
     state.turn.number += 1
-    state.players["P0"].mana_pool.update(
-        {symbol: 0 for symbol in ("W", "U", "B", "R", "G", "C")}
-    )
+    state.players["P0"].mana_pool.update({symbol: 0 for symbol in ("W", "U", "B", "R", "G", "C")})
     state.players["P0"].mana_pool["U"] = 1
     alt_spell = executor.cast(
         "P0", foretold.object_id, (TargetRef(artifact_a.object_id),), mode="foretell"
