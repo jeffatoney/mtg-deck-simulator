@@ -9,6 +9,23 @@ from mtg_runs.manifests import (
     validate_aggregation,
     write_immutable_run,
 )
+from mtg_runs.phase_c import (
+    CONFIRMATION_TOKEN,
+    CURRENT_ENGINE_BLOCKERS,
+    EXPLORATORY_GAMES,
+    STANDARD_GAMES,
+    PhaseCApproval,
+    PhaseCConfiguration,
+    PhaseCControlError,
+    PhaseCDryRunReport,
+    PilotSeedPlan,
+    build_pilot_seed_plan,
+    dry_run_phase_c,
+    execute_phase_c_pilot,
+    load_phase_c_approval,
+    load_phase_c_config,
+    validate_execution_authorization,
+)
 from mtg_runs.replay_audit import (
     FreshProcessReplayResult,
     replay_in_fresh_process,
@@ -16,14 +33,29 @@ from mtg_runs.replay_audit import (
 )
 
 __all__ = [
+    "CONFIRMATION_TOKEN",
+    "CURRENT_ENGINE_BLOCKERS",
+    "EXPLORATORY_GAMES",
     "FreshProcessReplayResult",
+    "PhaseCApproval",
+    "PhaseCConfiguration",
+    "PhaseCControlError",
+    "PhaseCDryRunReport",
+    "PilotSeedPlan",
     "RunManifest",
+    "STANDARD_GAMES",
     "SeedAssignment",
     "TestEvidence",
     "build_manifest",
+    "build_pilot_seed_plan",
+    "dry_run_phase_c",
+    "execute_phase_c_pilot",
     "load_manifest",
+    "load_phase_c_approval",
+    "load_phase_c_config",
     "replay_in_fresh_process",
     "validate_aggregation",
+    "validate_execution_authorization",
     "verify_worker_invariance",
     "write_immutable_run",
 ]

@@ -81,6 +81,15 @@
     "standard_games": 500,
     "standard_seed_namespace": "phase-c-pilot-standard-v1"
   },
+  "policy": {
+    "evaluator_snapshot_id": "contextual_combo_v1",
+    "evaluator_snapshot_sha256": "86c5e07daaa86362a38fad7a66d712443e32ba8af743bcaaa15576207264eca2",
+    "exploratory_continuation_policy_config_id": "anchor_balanced",
+    "learning_plan_sha256": "4884586c492c62cfd009c0a53c6d4ddd888274771c10efddc2b1853745a685e2",
+    "policy_mutation_allowed": false,
+    "standard_policy_config_hash": "d10bc384f254ab7684ea62b45340d86349f36e4d9786a9d639a9c7c6ce38f800",
+    "standard_policy_config_id": "anchor_balanced"
+  },
   "prerequisites": {
     "clean_engine_only": true,
     "legacy_import_allowed": false,

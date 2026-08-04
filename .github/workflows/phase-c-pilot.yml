@@ -1,0 +1,108 @@
+name: Phase C Pilot — Locked
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Exact Phase C owner confirmation token
+        required: true
+        type: string
+      authorized_commit:
+        description: Exact reviewed implementation commit SHA
+        required: true
+        type: string
+      config_sha256:
+        description: Exact reviewed pilot configuration SHA-256
+        required: true
+        type: string
+      workflow_sha256:
+        description: Exact reviewed workflow SHA-256
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  phase-c-pilot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require main and exact confirmation token
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${CONFIRMATION}" = "AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.authorized_commit }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Require exact clean commit and reviewed file digests
+        env:
+          AUTHORIZED_COMMIT: ${{ inputs.authorized_commit }}
+          CONFIG_SHA256: ${{ inputs.config_sha256 }}
+          WORKFLOW_SHA256: ${{ inputs.workflow_sha256 }}
+        run: |
+          test "$(git rev-parse HEAD)" = "${AUTHORIZED_COMMIT}"
+          test -z "$(git status --porcelain)"
+          test "$(sha256sum docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json | cut -d' ' -f1)" = "${CONFIG_SHA256}"
+          test "$(sha256sum .github/workflows/phase-c-pilot.yml | cut -d' ' -f1)" = "${WORKFLOW_SHA256}"
+      - name: Frozen identity lock integrity
+        run: uv run python scripts/check_identity_lock.py
+      - name: Phase A authority classification
+        run: uv run python scripts/check_phase_a_authority.py
+      - name: Clean engine boundary
+        run: uv run python scripts/check_clean_engine_boundary.py
+      - name: Legacy package is unavailable
+        run: |
+          if uv run python -c "import mtg_sim" 2>/dev/null; then exit 1; fi
+      - name: Formatting
+        run: uv run ruff format --check .
+      - name: Lint
+        run: uv run ruff check .
+      - name: Strict typing
+        run: uv run mypy src
+      - name: Full tests
+        run: uv run pytest -q
+      - name: Manifest integrity
+        run: uv run python scripts/check_manifest.py
+      - name: Phase A verifier
+        run: uv run mtg-engine verify-phase-a
+      - name: Durable Phase A certification
+        run: uv run python scripts/check_phase_a_certification.py
+      - name: Phase B verifier
+        run: uv run mtg-engine verify-phase-b
+      - name: Durable Phase B certification
+        run: uv run python scripts/check_phase_b_certification.py
+      - name: No-game Phase C dry run
+        run: uv run mtg-engine phase-c-dry-run
+      - name: Execute exactly the authorized 500/200 pilot
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          AUTHORIZED_COMMIT: ${{ inputs.authorized_commit }}
+          CONFIG_SHA256: ${{ inputs.config_sha256 }}
+          WORKFLOW_SHA256: ${{ inputs.workflow_sha256 }}
+        run: |
+          uv run mtg-engine phase-c-pilot \
+            --confirmation "${CONFIRMATION}" \
+            --authorized-commit "${AUTHORIZED_COMMIT}" \
+            --expected-config-sha256 "${CONFIG_SHA256}" \
+            --expected-workflow-sha256 "${WORKFLOW_SHA256}" \
+            --output-root artifacts/phase-c-pilot
+      - name: Upload immutable pilot artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-c-pilot-${{ inputs.authorized_commit }}
+          path: artifacts/phase-c-pilot
+          if-no-files-found: error
+          retention-days: 90
