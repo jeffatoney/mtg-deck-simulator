@@ -59,15 +59,15 @@ def apply_effect_mana(
     kind = str(effect.get("kind", "NONE"))
     if kind == "ADD_COMMANDER_COLOR_AND_MARK":
         allowed = commander_color_identity(self, action.actor_id)
-        selected = str(choices.get("mana_color", ""))
-        if selected not in allowed:
+        selected_color = str(choices.get("mana_color", ""))
+        if selected_color not in allowed:
             raise IllegalAction("commander-color mana requires an explicit legal color choice")
         source_permanent, trigger_ability = _marked_trigger_ability(self, action)
-        add_mana(self.state.players[action.actor_id].mana_pool, {selected: 1})
+        add_mana(self.state.players[action.actor_id].mana_pool, {selected_color: 1})
         event = self._event(
             "MANA_ADDED",
             action,
-            mana={selected: 1},
+            mana={selected_color: 1},
             source_kind=kind,
             marked=True,
         )
@@ -76,7 +76,7 @@ def apply_effect_mana(
                 "kind": MARKED_COMMANDER_MANA_KIND,
                 "player_id": action.actor_id,
                 "source_object_id": source_permanent.object_id,
-                "color": selected,
+                "color": selected_color,
                 "amount": 1,
                 "produced_event_id": event.event_id,
                 "trigger_ability": trigger_ability,
@@ -99,10 +99,10 @@ def apply_effect_mana(
     selected_raw = choices.get("mana_option")
     if not isinstance(selected_raw, Mapping):
         raise IllegalAction("filter-mana ability requires an explicit mana option")
-    selected = _normalize_option(selected_raw)
-    if selected not in options:
+    selected_option = _normalize_option(selected_raw)
+    if selected_option not in options:
         raise IllegalAction("selected filter-mana option is unavailable")
 
-    add_mana(self.state.players[action.actor_id].mana_pool, selected)
-    self._event("MANA_ADDED", action, mana=selected, source_kind="FILTER_MANA_OPTIONS")
+    add_mana(self.state.players[action.actor_id].mana_pool, selected_option)
+    self._event("MANA_ADDED", action, mana=selected_option, source_kind="FILTER_MANA_OPTIONS")
     return True
