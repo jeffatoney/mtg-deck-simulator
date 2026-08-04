@@ -63,9 +63,7 @@ def test_canonical_policy_executes_finite_visible_lethal_reserve() -> None:
         "Malcolm, Keen-Eyed Navigator",
         Zone.BATTLEFIELD,
     )
-    state.players["P0"].mana_pool.update(
-        {symbol: 0 for symbol in state.players["P0"].mana_pool}
-    )
+    state.players["P0"].mana_pool.update({symbol: 0 for symbol in state.players["P0"].mana_pool})
     state.players["P0"].mana_pool["R"] = 3
     state.players["P0"].mana_pool["C"] = 3
 
@@ -103,8 +101,7 @@ def test_canonical_policy_executes_finite_visible_lethal_reserve() -> None:
     ]
     assert all(
         choice["evaluator_id"] == "contextual_combo_v1"
-        and choice["diagnostics"]["adjudicator"]
-        == "VISIBLE_LIFE_AND_BLOCKER_RESERVE_V1"
+        and choice["diagnostics"]["adjudicator"] == "VISIBLE_LIFE_AND_BLOCKER_RESERVE_V1"
         and choice["diagnostics"]["required_tokens"] == 2
         and choice["diagnostics"]["maximum_tokens"] == 512
         for choice in choices
@@ -113,9 +110,7 @@ def test_canonical_policy_executes_finite_visible_lethal_reserve() -> None:
 
 def test_canonical_policy_fails_closed_above_bounded_reserve() -> None:
     policy = provider()
-    dualcaster = PublicCard(
-        "dual", "Dualcaster Mage", 3, ("Creature",), ("CREATE_SPELL_COPY",)
-    )
+    dualcaster = PublicCard("dual", "Dualcaster Mage", 3, ("Creature",), ("CREATE_SPELL_COPY",))
     other = PublicCard("other", "Malcolm", 3, ("Creature",), ())
     request = SpellCopyTargetRequest(
         "bounded-loop",
