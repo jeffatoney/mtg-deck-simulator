@@ -64,9 +64,7 @@ def active_objects(
     zone: Zone | None = None,
     controller: str | None = None,
 ) -> list[GameObject]:
-    values = [
-        obj for obj in state.objects.values() if not obj.retired and not obj.ceased_to_exist
-    ]
+    values = [obj for obj in state.objects.values() if not obj.retired and not obj.ceased_to_exist]
     if name is not None:
         values = [obj for obj in values if obj.current_characteristics.get("name") == name]
     if zone is not None:
@@ -103,9 +101,7 @@ def test_prismari_command_executes_damage_and_artifact_destruction() -> None:
     )
     assert mode_choice.selected == ["DESTROY_ARTIFACT", "DAMAGE"]
     target_choices = [
-        choice.selected
-        for choice in state.choices
-        if choice.kind == "PRISMARI_COMMAND_TARGET"
+        choice.selected for choice in state.choices if choice.kind == "PRISMARI_COMMAND_TARGET"
     ]
     assert [choice["mode"] for choice in target_choices] == ["DAMAGE", "DESTROY_ARTIFACT"]
 
@@ -142,8 +138,7 @@ def test_prismari_command_executes_target_player_draw_discard_and_treasure() -> 
     discard_choice = next(
         choice
         for choice in state.choices
-        if choice.kind == "CARD_SELECTION"
-        and choice.selected["purpose"] == "PRISMARI_DISCARD"
+        if choice.kind == "CARD_SELECTION" and choice.selected["purpose"] == "PRISMARI_DISCARD"
     )
     assert discard_choice.player_id == "P1"
     assert len(discard_choice.selected["selected_handles"]) == 2
