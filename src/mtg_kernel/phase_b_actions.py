@@ -31,6 +31,7 @@ def effect_execution_supported(effect: dict[str, Any]) -> bool:
         "DEMOLITION_FIELD",
         "DRAW_THEN_DISCARD_UNLESS_ATTACKED",
         "EXILE_AND_MANIFEST",
+        "PRISMARI_COMMAND",
     }:
         return True
     return _effect_execution_supported(effect)
