@@ -69,6 +69,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Mountain",
         "Muddle the Mixture",
         "Negate",
+        "Niv-Mizzet, the Firemind",
         "Opt",
         "Path of Ancestry",
         "Prismari Command",
