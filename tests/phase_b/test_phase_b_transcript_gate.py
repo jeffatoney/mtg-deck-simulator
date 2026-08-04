@@ -14,6 +14,7 @@ from mtg_verify.transcript_evidence import assert_event_subsequence, subsequence
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_phase_b_golden_transcripts import (  # noqa: E402
+    OWNER_APPROVAL_DOCUMENT_SHA256,
     approval_document_digest,
     validate_phase_b_transcripts,
 )
@@ -58,9 +59,29 @@ def test_required_event_order_is_a_real_observed_subsequence() -> None:
         assert_event_subsequence(("A", "C", "B"), observed, transcript_id="PB-TEST")
 
 
-def test_pending_owner_approval_blocks_strict_phase_b_gate() -> None:
-    with pytest.raises(ValueError, match="not owner-anchored|owner approval is pending"):
-        validate_phase_b_transcripts(execute=False, collected_nodes=_nodes(SOURCE))
+def test_owner_approved_anchor_passes_strict_phase_b_gate() -> None:
+    result = validate_phase_b_transcripts(execute=False, collected_nodes=_nodes(SOURCE))
+    assert result["status"] == "PASS"
+    assert result["count"] == 12
+    assert result["approval_document_sha256"] == OWNER_APPROVAL_DOCUMENT_SHA256
+
+
+def test_owner_approval_document_drift_is_rejected(tmp_path: Path) -> None:
+    sandbox = tmp_path / "repo"
+    destination = sandbox / "docs/audit/phase-b-golden-transcripts"
+    shutil.copytree(SOURCE, destination)
+    approvals_path = destination / "APPROVALS.json"
+    approvals = json.loads(approvals_path.read_text(encoding="utf-8"))
+    approvals["approvals"][0]["approval_statement"] += " Unapproved drift."
+    approvals_path.write_text(json.dumps(approvals, indent=2, sort_keys=True) + "\n")
+    with pytest.raises(ValueError, match="not owner-anchored"):
+        validate_phase_b_transcripts(
+            destination / "transcripts",
+            approvals_path,
+            root=sandbox,
+            collected_nodes=_nodes(SOURCE),
+            execute=False,
+        )
 
 
 def test_transcript_change_after_digest_binding_is_rejected(tmp_path: Path) -> None:
