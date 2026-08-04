@@ -28,8 +28,8 @@ TRANSCRIPT_SCHEMA = "phase-b-golden-transcript-v1"
 APPROVAL_SCHEMA = "phase-b-golden-transcript-approvals-v1"
 REQUIRED_COUNT = 12
 EXPECTED_OWNER = "Jeff Toney"
-# Replaced only after the owner approves the exact IDs and digests.
-OWNER_APPROVAL_DOCUMENT_SHA256 = "PENDING_OWNER_APPROVAL"
+# Owner-approved digest of the exact APPROVALS.json document.
+OWNER_APPROVAL_DOCUMENT_SHA256 = "242a43347f3d73405872b43820048497cf06101b4b02a637b009f0143200c53d"
 EVIDENCE_SCOPES = {
     "EXACT_DECK_INTEGRATION",
     "MECHANIC_ISOLATION",
