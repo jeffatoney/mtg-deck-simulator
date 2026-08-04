@@ -4,32 +4,36 @@
   "machine": {
     "event_source": "AUDIT_EVIDENCE",
     "ordered_operations": [
-      "attempt hidden-library field injection and capture the rejection",
-      "attempt one nine-sample request and capture the cap rejection",
-      "record the two negative security checkpoints without fabricating game events"
+      "attempt and reject an actual library_order field",
+      "attempt and reject an actual future_events field",
+      "attempt and reject an actual future_random_outcomes field",
+      "submit one nine-sample request through BoundedExplorer",
+      "prove the sample-cap rejection occurs before the expansion callback is invoked"
     ],
     "preconditions": [
       "Exploratory search receives only public observation fields and opaque legal actions."
     ],
     "required_assertions": [
-      "library_order is unavailable",
-      "future event fields are unavailable through the public SearchPosition schema",
+      "library_order is structurally rejected",
+      "future_events is structurally rejected",
+      "future_random_outcomes is structurally rejected",
       "one request with more than eight samples is rejected",
-      "zero successful samples are claimed by this negative test",
-      "no post-result replay attempt is performed"
+      "the invalid request performs zero successful sample expansions"
     ],
     "required_event_order": [
-      "HIDDEN_FIELD_REJECTED",
-      "BELIEF_SAMPLE_CAP_REJECTED"
+      "HIDDEN_LIBRARY_FIELD_REJECTED",
+      "FUTURE_EVENT_FIELD_REJECTED",
+      "FUTURE_RANDOM_OUTCOME_FIELD_REJECTED",
+      "BELIEF_SAMPLE_CAP_REJECTED_BEFORE_EXPANSION"
     ],
     "test_node": "tests/phase_b/transcripts/test_pb_t10_hidden_future.py::test_pb_t10_hidden_future_evidence"
   },
   "plain_english": [
-    "Constructing a search position with an actual library-order field is rejected structurally.",
-    "Submitting one request containing nine belief-sample seeds is rejected because the frozen maximum is eight.",
-    "The named test does not claim that eight samples were generated before the invalid nine-sample request was rejected."
+    "SearchPosition independently rejects actual library order, future event, and future random-outcome fields.",
+    "BoundedExplorer rejects a single request containing nine belief-sample seeds because the frozen maximum is eight.",
+    "A counted expansion callback proves that the invalid request is rejected before any sample position is generated."
   ],
   "schema_version": "phase-b-golden-transcript-v1",
-  "title": "Policy and search reject hidden library and future information",
+  "title": "Policy and search reject hidden library and future information before expansion",
   "transcript_id": "PB-T10-hidden-future"
 }
