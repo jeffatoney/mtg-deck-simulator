@@ -70,15 +70,12 @@ def test_dry_run_creates_no_game_result_and_discloses_engine_blockers() -> None:
     assert report.game_results_created == 0
     assert report.full_study_execution_allowed is False
     assert report.readiness_blockers == CURRENT_ENGINE_BLOCKERS
-    assert report.config_sha256 == hashlib.sha256(
-        DEFAULT_CONFIG.read_bytes()
-    ).hexdigest()
-    assert report.approval_record_sha256 == hashlib.sha256(
-        DEFAULT_APPROVAL.read_bytes()
-    ).hexdigest()
-    assert report.workflow_sha256 == hashlib.sha256(
-        DEFAULT_WORKFLOW.read_bytes()
-    ).hexdigest()
+    assert report.config_sha256 == hashlib.sha256(DEFAULT_CONFIG.read_bytes()).hexdigest()
+    assert (
+        report.approval_record_sha256
+        == hashlib.sha256(DEFAULT_APPROVAL.read_bytes()).hexdigest()
+    )
+    assert report.workflow_sha256 == hashlib.sha256(DEFAULT_WORKFLOW.read_bytes()).hexdigest()
 
 
 def test_config_rejects_count_future_information_and_full_study_drift(
@@ -109,12 +106,8 @@ def test_config_rejects_count_future_information_and_full_study_drift(
 def test_execution_refuses_wrong_token_and_locked_configuration() -> None:
     common = {
         "authorized_commit": "0" * 40,
-        "expected_config_sha256": hashlib.sha256(
-            DEFAULT_CONFIG.read_bytes()
-        ).hexdigest(),
-        "expected_workflow_sha256": hashlib.sha256(
-            DEFAULT_WORKFLOW.read_bytes()
-        ).hexdigest(),
+        "expected_config_sha256": hashlib.sha256(DEFAULT_CONFIG.read_bytes()).hexdigest(),
+        "expected_workflow_sha256": hashlib.sha256(DEFAULT_WORKFLOW.read_bytes()).hexdigest(),
     }
     with pytest.raises(PhaseCControlError, match="confirmation token"):
         validate_execution_authorization(confirmation="WRONG", **common)
@@ -130,12 +123,8 @@ def test_execution_checks_exact_counts_before_output() -> None:
         validate_execution_authorization(
             confirmation=CONFIRMATION_TOKEN,
             authorized_commit="0" * 40,
-            expected_config_sha256=hashlib.sha256(
-                DEFAULT_CONFIG.read_bytes()
-            ).hexdigest(),
-            expected_workflow_sha256=hashlib.sha256(
-                DEFAULT_WORKFLOW.read_bytes()
-            ).hexdigest(),
+            expected_config_sha256=hashlib.sha256(DEFAULT_CONFIG.read_bytes()).hexdigest(),
+            expected_workflow_sha256=hashlib.sha256(DEFAULT_WORKFLOW.read_bytes()).hexdigest(),
             requested_standard_games=20_000,
             requested_exploratory_games=5_000,
         )
