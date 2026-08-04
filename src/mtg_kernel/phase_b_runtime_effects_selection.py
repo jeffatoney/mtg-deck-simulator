@@ -135,6 +135,18 @@ def _draw_then_discard(
         executor._discard_card(action.actor_id, card.object_id, action)
 
 
+def _attacked_this_turn(executor: Any, player_id: str) -> bool:
+    """Return the exact-deck attack marker retained until cleanup."""
+
+    return any(
+        not obj.retired
+        and not obj.ceased_to_exist
+        and obj.controller == player_id
+        and bool(obj.current_characteristics.get("attacking", False))
+        for obj in executor.state.objects.values()
+    )
+
+
 def _look_select_rest_bottom(
     executor: Any,
     action: Action,
@@ -226,6 +238,16 @@ def apply_effect_selection(
             action,
             draw_count=int(effect.get("draw", 0)),
             discard_count=int(effect.get("discard", 0)),
+        )
+        return True
+    if kind == "DRAW_THEN_DISCARD_UNLESS_ATTACKED":
+        _draw_then_discard(
+            self,
+            action,
+            draw_count=int(effect.get("draw", 0)),
+            discard_count=(
+                0 if _attacked_this_turn(self, action.actor_id) else int(effect.get("discard", 0))
+            ),
         )
         return True
     if kind != "DRAW_DISCARD_UNTAP_LANDS":
