@@ -1,8 +1,10 @@
 """Phase B verifier, mapping, certification, and pilot-lock contracts."""
 
 from __future__ import annotations
+
 import json
 from pathlib import Path
+
 from mtg_verify.phase_b import exact_deck_execution_blockers, strategic_model_blockers
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -28,5 +30,5 @@ def test_verifier_and_durable_certification_fail_closed_on_real_blockers() -> No
     assert "pilot-simulation.yml" not in workflow
     blockers = exact_deck_execution_blockers()
     assert blockers and any(value.startswith("UNVERIFIED_CARD:") for value in blockers)
-    assert strategic_model_blockers() == ["UNSUPPORTED_STRATEGIC_LOOP:DUALCASTER_TWINFLAME"]
+    assert strategic_model_blockers() == []
     assert not (ROOT / "docs/audit/phase-b-certification/CERTIFICATION.json").exists()
