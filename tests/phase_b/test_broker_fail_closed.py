@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
 from mtg_cards.full_deck import load_full_deck_specs
-from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.models import Zone
 from mtg_policy import ContextualEvaluator, bind_policy_strategic_choices, load_evaluator_config
@@ -99,11 +96,11 @@ def test_verified_automatic_battlefield_behavior_allows_broker_refresh() -> None
     assert any(action.kind == "PASS_PRIORITY" for action in actions)
 
 
-def test_unverified_automatic_battlefield_behavior_remains_a_hard_failure() -> None:
-    _, executor, specs = scenario("unsafe-automatic")
+def test_verified_niv_automatic_battlefield_behavior_allows_broker_refresh() -> None:
+    _, executor, specs = scenario("verified-niv-automatic")
     add_card(executor, specs["Niv-Mizzet, the Firemind"], Zone.BATTLEFIELD)
-    with pytest.raises(UnsupportedCapability, match="unverified automatic behavior"):
-        ActionBroker(executor, "P0").refresh()
+    _, actions = ActionBroker(executor, "P0").refresh()
+    assert any(action.kind == "PASS_PRIORITY" for action in actions)
 
 
 def test_pending_commander_return_choice_suppresses_priority_actions() -> None:
