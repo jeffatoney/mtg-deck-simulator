@@ -14,7 +14,7 @@
       "approved_at": null,
       "approved_by": null,
       "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T02-league-mulligan.json",
-      "sha256": "a2ed7193cf125acbd2072bc95227ed3f354233f200b16f07a791cac764fcd6fc",
+      "sha256": "3b3e46358bd4c9cd1644438ddef4115cdf2fd36e6fd9c6a96c1d84cda2a9d290",
       "status": "PENDING_OWNER_APPROVAL",
       "transcript_id": "PB-T02-league-mulligan"
     },
@@ -59,7 +59,7 @@
       "approved_at": null,
       "approved_by": null,
       "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T07-tutor-one.json",
-      "sha256": "8c6a213337595ac8c266048cb9a077e48177694aad402b3f5c64aa9a1c1ec1cc",
+      "sha256": "e27423fe7f4f940fc289ce6d746195eeac438fcac78b465fed73223c2a2a7048",
       "status": "PENDING_OWNER_APPROVAL",
       "transcript_id": "PB-T07-tutor-one"
     },
@@ -77,7 +77,7 @@
       "approved_at": null,
       "approved_by": null,
       "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T09-fact-min.json",
-      "sha256": "23f2efdaed510ed685e4fdf3c4d1c5a9b43db91e907f42df0aecaebfece94786",
+      "sha256": "30564beedf7d1bc46055a9a237ee12894741a4450375718bbfeb7c418b3c2c3c",
       "status": "PENDING_OWNER_APPROVAL",
       "transcript_id": "PB-T09-fact-min"
     },
@@ -86,7 +86,7 @@
       "approved_at": null,
       "approved_by": null,
       "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T10-hidden-future.json",
-      "sha256": "8358d6f937fbf73604cecb8feb3615bed20d8da15bd7777b57532d0cb73ca27d",
+      "sha256": "b0c72009401b1c52924faed58a6b03a520d771b56e141c4523686c680129be69",
       "status": "PENDING_OWNER_APPROVAL",
       "transcript_id": "PB-T10-hidden-future"
     },
@@ -104,7 +104,7 @@
       "approved_at": null,
       "approved_by": null,
       "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T12-replay-invariance.json",
-      "sha256": "87cb72d546f7095eb720d4f8a55fb34b26c47110beb06de522f6a3d5ee3b0f45",
+      "sha256": "5947b2bec9db97a5ac441c26f4ec4f040fef1010b47b5a336f5cd80892c153b3",
       "status": "PENDING_OWNER_APPROVAL",
       "transcript_id": "PB-T12-replay-invariance"
     }
