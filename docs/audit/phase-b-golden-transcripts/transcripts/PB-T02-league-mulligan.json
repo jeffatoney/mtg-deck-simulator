@@ -4,37 +4,39 @@
   "machine": {
     "event_source": "AUDIT_EVIDENCE",
     "ordered_operations": [
-      "validate the candidate-size sequence 7, 7, 6, 5, 4",
-      "validate the rejected-hand return-and-shuffle requirement",
-      "exercise keeps at 7, 6, 5, and 4",
+      "execute the production league-mulligan procedure once for each legal keep attempt",
+      "draw candidate hands in the fixed 7, 7, 6, 5, 4 sequence",
+      "return every rejected hand to the remaining library and invoke the supplied shuffle",
+      "keep at 7, 7, 6, 5, and 4 across the five executions",
       "draw exactly seven minus kept-size refill cards",
-      "reject an attempted keep below four"
+      "reject an attempted keep after the four-card candidate"
     ],
     "preconditions": [
-      "The binding league override, not the London mulligan, controls this procedure."
+      "The binding league override, not the London mulligan, controls this procedure.",
+      "The test supplies a deterministic shuffle function so returned-card preservation and shuffle invocation are observable."
     ],
     "required_assertions": [
-      "candidate sizes are exactly 7, 7, 6, 5, and 4",
-      "rejected hands are returned and shuffled before the next candidate hand",
-      "legal keep levels are 7, 6, 5, and 4",
+      "the production procedure consumes candidate sizes exactly 7, 7, 6, 5, and 4",
+      "every rejected hand is returned to the remaining library before the shuffle function is invoked",
+      "each legal keep attempt produces the expected prefix of candidate hand sizes",
       "every kept hand is refilled to exactly seven cards",
-      "a keep below four is rejected"
+      "an attempted keep after the four-card candidate is rejected"
     ],
     "required_event_order": [
-      "LEAGUE_MULLIGAN_SEQUENCE_VALIDATED",
-      "REJECTED_HAND_SHUFFLE_POLICY_VALIDATED",
-      "LEAGUE_KEEP_LEVELS_VALIDATED",
-      "LEAGUE_REFILL_VALIDATED",
+      "LEAGUE_MULLIGAN_SEQUENCE_EXECUTED",
+      "REJECTED_HANDS_RETURNED_AND_SHUFFLED",
+      "LEAGUE_KEEP_LEVELS_EXECUTED",
+      "LEAGUE_REFILLS_EXECUTED",
       "FOUR_CARD_FLOOR_ENFORCED"
     ],
     "test_node": "tests/phase_b/transcripts/test_pb_t02_league_mulligan.py::test_pb_t02_league_mulligan_evidence"
   },
   "plain_english": [
-    "The league procedure presents an initial seven-card hand and, if rejected, one free replacement seven-card hand.",
-    "Later candidate hands contain six, five, and four cards; the simulator never mulligans below four.",
-    "Rejected hands return to the library and are shuffled before the next candidate hand, and a kept hand below seven is refilled to seven afterward."
+    "The production league procedure presents an initial seven-card hand, one free replacement seven-card hand, and then six-, five-, and four-card candidates.",
+    "Whenever a candidate is rejected, its cards are returned to the remaining library and the configured shuffle function is executed before the next candidate is drawn.",
+    "The test executes every legal keep point, refills each kept hand to seven, and proves that the procedure cannot continue below the four-card candidate."
   ],
   "schema_version": "phase-b-golden-transcript-v1",
-  "title": "League mulligan offers a free second seven, stops at four, and refills to seven",
+  "title": "League mulligan executes a free second seven, returned-hand shuffles, a four-card floor, and refill to seven",
   "transcript_id": "PB-T02-league-mulligan"
 }
