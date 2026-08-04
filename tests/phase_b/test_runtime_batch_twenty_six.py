@@ -98,7 +98,9 @@ def test_lazotep_plating_amasses_and_protects_until_cleanup() -> None:
     assert state_hash(state) == before
 
     executor.cleanup()
-    assert not any(record.get("kind") == HEXPROOF_EFFECT_KIND for record in state.continuous_effects)
+    assert not any(
+        record.get("kind") == HEXPROOF_EFFECT_KIND for record in state.continuous_effects
+    )
 
     state.turn.priority_holder_id = "P1"
     executor.cast(

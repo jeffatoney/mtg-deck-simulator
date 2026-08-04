@@ -226,8 +226,7 @@ def _cleanup_iteration(self: Any, discard_ids: tuple[str, ...]) -> None:
         record
         for record in self.state.continuous_effects
         if not (
-            record.get("kind") == HEXPROOF_EFFECT_KIND
-            and record.get("duration") == "END_OF_TURN"
+            record.get("kind") == HEXPROOF_EFFECT_KIND and record.get("duration") == "END_OF_TURN"
         )
     ]
 
