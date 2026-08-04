@@ -103,7 +103,7 @@ def test_path_of_ancestry_requires_explicit_scry_choice_atomically() -> None:
         executor.cast("P0", pirate.object_id)
 
     assert state_hash(state) == before
-    assert pirate.zone is Zone.HAND
+    assert state.objects[pirate.object_id].zone is Zone.HAND
     assert len(marked_records(state)) == 1
     assert state.players["P0"].mana_pool["U"] == 1
     assert state.players["P0"].mana_pool["R"] == 1
