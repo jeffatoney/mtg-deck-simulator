@@ -26,6 +26,7 @@ def effect_execution_supported(effect: dict[str, Any]) -> bool:
 
     if str(effect.get("kind", "NONE")) in {
         "COUNTER_WITH_DELAYED_DRAWS",
+        "DRAW_THEN_DISCARD_UNLESS_ATTACKED",
         "EXILE_AND_MANIFEST",
     }:
         return True
