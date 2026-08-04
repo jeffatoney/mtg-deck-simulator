@@ -149,8 +149,8 @@ def test_demolition_field_missing_provider_fails_closed_atomically() -> None:
     ):
         executor.pass_priority("P1")
 
-    assert not target.retired
     assert active_named(state, "Thriving Isle", Zone.BATTLEFIELD, "P1")
+    assert not active_named(state, "Thriving Isle", Zone.GRAVEYARD, "P1")
     assert active_named(state, "Island", Zone.LIBRARY, "P1")
     assert active_named(state, "Demolition Field", Zone.GRAVEYARD, "P0")
     assert ability.object_id in state.stack
