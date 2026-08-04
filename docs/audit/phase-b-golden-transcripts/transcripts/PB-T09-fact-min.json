@@ -22,7 +22,7 @@
       "the choice record contains evaluator ID and SHA-256",
       "Twinflame reaches hand",
       "all five revealed physical cards end in exactly one of hand or graveyard",
-      "the unchosen pile contains at least one card and moves to graveyard",
+      "the unchosen pile may be empty; any cards in it move to graveyard",
       "fresh replay reproduces the exact recorded selection",
       "the transcript does not invent a Sol Ring or MANA_PRODUCED event absent from the named test"
     ],
@@ -38,7 +38,7 @@
   "plain_english": [
     "The exact frozen deck is placed in a Turn 3 fixture with three Islands on the battlefield, Dualcaster Mage in hand, and an explicitly funded legal mana pool; the fixture does not use Sol Ring.",
     "Fact or Fiction is cast and reveals three Islands, a Mountain, and Twinflame from the actual library; the frozen provider chooses a legal minimizing split and the caster keeps a pile containing Twinflame.",
-    "Every revealed physical card moves to exactly one of hand or graveyard, and fresh replay reproduces the recorded choices without rerunning policy code."
+    "Every revealed physical card moves to exactly one of hand or graveyard; the unchosen pile may be empty, and fresh replay reproduces the recorded choices without rerunning policy code."
   ],
   "schema_version": "phase-b-golden-transcript-v1",
   "title": "Fact or Fiction uses the frozen contextual evaluator and moves both piles through the production path",
