@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 _COMMIT_SHA = re.compile(r"^[0-9a-f]{40}$")
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _COUNT_KEYS = ("pass", "fail", "skip", "xfail")
 
 
@@ -21,6 +22,11 @@ def _read_payload(path: Path) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError("verifier result must be a JSON object")
     return payload
+
+
+def _validate_digest(payload: Mapping[str, Any], key: str) -> None:
+    if _SHA256.fullmatch(str(payload.get(key, ""))) is None:
+        raise ValueError(f"verifier result has an invalid {key}")
 
 
 def _validate_common(payload: Mapping[str, Any]) -> None:
@@ -36,51 +42,99 @@ def _validate_common(payload: Mapping[str, Any]) -> None:
         raise ValueError("verifier result test counts must be nonnegative integers")
     if int(counts["pass"]) < 1 or any(int(counts[key]) for key in ("fail", "skip", "xfail")):
         raise ValueError("verifier result contains failed or excluded tests")
+    if not str(payload.get("run_id", "")):
+        raise ValueError("verifier result omits its run ID")
+    if payload.get("evidence_classification") != "CLEAN_ENGINE_PRODUCTION_PATH":
+        raise ValueError("verifier result has the wrong evidence classification")
+    if payload.get("legacy_evidence_used") is not False:
+        raise ValueError("verifier result used legacy evidence")
 
 
 def _validate_phase_a(payload: Mapping[str, Any]) -> None:
     required = {
-        "artifact",
-        "rules_source_sha256",
+        "architecture_boundary",
+        "authority_map",
+        "branch",
+        "golden_transcripts",
+        "mapping",
         "oracle_source_sha256",
         "pilot_lock",
+        "replay_and_hash",
+        "rules_source_sha256",
+        "schema_version",
+        "unsupported_behavior",
         "unsupported_capabilities",
     }
     missing = sorted(required.difference(payload))
     if missing:
         raise ValueError(f"result is not a Phase A verifier result; missing {missing}")
-    if payload.get("pilot_lock") != "PASS" or not isinstance(
-        payload.get("unsupported_capabilities"), list
+    if payload.get("schema_version") != "phase-a-result-v2":
+        raise ValueError("result has the wrong Phase A schema version")
+    for key in (
+        "architecture_boundary",
+        "authority_map",
+        "golden_transcripts",
+        "mapping",
+        "pilot_lock",
+        "replay_and_hash",
     ):
-        raise ValueError("Phase A verifier result has invalid control fields")
+        if payload.get(key) != "PASS":
+            raise ValueError(f"Phase A verifier result has a failed {key} gate")
+    if payload.get("unsupported_behavior") != "HARD_VALIDATION_FAILURE":
+        raise ValueError("Phase A verifier result does not fail closed")
+    if not isinstance(payload.get("unsupported_capabilities"), list):
+        raise ValueError("Phase A verifier result has malformed unsupported capabilities")
+    _validate_digest(payload, "rules_source_sha256")
+    _validate_digest(payload, "oracle_source_sha256")
 
 
 def _validate_phase_b(payload: Mapping[str, Any]) -> None:
     required = {
-        "artifact",
-        "mapping_complete",
+        "decklist_sha256",
+        "evaluator_snapshot_id",
+        "evaluator_snapshot_sha256",
         "golden_transcripts",
+        "learning_plan_sha256",
+        "mapping_complete",
+        "oracle_source_sha256",
         "pilot_lock",
+        "rules_source_sha256",
+        "schema_version",
+        "strategic_evaluator",
+        "strategic_model_blockers",
         "transcript_count",
         "transcript_approval_document_sha256",
-        "unsupported_capability_count",
-        "strategic_model_blocker_count",
+        "unsupported_capabilities",
     }
     missing = sorted(required.difference(payload))
     if missing:
         raise ValueError(f"result is not a Phase B verifier result; missing {missing}")
+    if payload.get("schema_version") != "phase-b-result-v2":
+        raise ValueError("result has the wrong Phase B schema version")
     if payload.get("mapping_complete") is not True:
         raise ValueError("Phase B verifier result does not have complete mapping")
     if payload.get("golden_transcripts") != "PASS" or payload.get("pilot_lock") != "PASS":
         raise ValueError("Phase B verifier result has a failed transcript or pilot-lock gate")
+    if payload.get("strategic_evaluator") != "PASS":
+        raise ValueError("Phase B verifier result has a failed strategic evaluator")
     if payload.get("transcript_count") != 12:
         raise ValueError("Phase B verifier result does not contain twelve approved transcripts")
-    digest = str(payload.get("transcript_approval_document_sha256", ""))
-    if re.fullmatch(r"[0-9a-f]{64}", digest) is None:
-        raise ValueError("Phase B verifier result has an invalid approval-document digest")
-    if payload.get("unsupported_capability_count") != 0:
+    for key in (
+        "decklist_sha256",
+        "evaluator_snapshot_sha256",
+        "learning_plan_sha256",
+        "oracle_source_sha256",
+        "rules_source_sha256",
+        "transcript_approval_document_sha256",
+    ):
+        _validate_digest(payload, key)
+    if not str(payload.get("evaluator_snapshot_id", "")):
+        raise ValueError("Phase B verifier result omits its evaluator identity")
+    unsupported = payload.get("unsupported_capabilities")
+    if not isinstance(unsupported, list) or unsupported:
         raise ValueError("Phase B verifier result contains unsupported capabilities")
-    if payload.get("strategic_model_blocker_count") != 0:
+    strategic = payload.get("strategic_model_blockers")
+    if not isinstance(strategic, list) or strategic:
         raise ValueError("Phase B verifier result contains strategic-model blockers")
 
 
