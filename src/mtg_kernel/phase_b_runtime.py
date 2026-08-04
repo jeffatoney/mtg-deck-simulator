@@ -25,7 +25,13 @@ from mtg_kernel.phase_b_runtime_helpers import (
     _cleanup_iteration as _base_cleanup_iteration,
     _draw_card,
 )
-from mtg_kernel.phase_b_runtime_support import _ORIGINALS, _is_permanent, _target_matches
+from mtg_kernel.phase_b_runtime_support import (
+    _ORIGINALS,
+    _ability_by_id,
+    _choose_trigger_targets,
+    _is_permanent,
+    _target_matches,
+)
 
 
 def _apply_effect(
@@ -244,6 +250,8 @@ def install_phase_b_runtime(executor_class: type[Any]) -> None:
         {
             "target_matches": executor_class._target_matches,
             "is_permanent": executor_class._is_permanent,
+            "ability_by_id": executor_class._ability_by_id,
+            "choose_trigger_targets": executor_class._choose_trigger_targets,
             "apply_effect": executor_class._apply_effect,
             "draw_card": executor_class.draw_card,
             "cast": executor_class.cast,
@@ -255,6 +263,8 @@ def install_phase_b_runtime(executor_class: type[Any]) -> None:
     )
     executor_class._target_matches = _target_matches
     executor_class._is_permanent = staticmethod(_is_permanent)
+    executor_class._ability_by_id = _ability_by_id
+    executor_class._choose_trigger_targets = _choose_trigger_targets
     executor_class._apply_effect = _apply_effect
     executor_class.draw_card = _draw_card
     executor_class.cast = cast_with_counter_predicate
