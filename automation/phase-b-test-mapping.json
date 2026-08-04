@@ -39,7 +39,10 @@
       "tests/phase_b/test_runtime_batch_twenty_two.py::test_reality_shift_with_empty_library_exiles_without_creating_a_permanent",
       "tests/phase_b/test_runtime_batch_twenty_three.py::test_arcane_denial_counters_and_executes_explicit_next_upkeep_draw_count",
       "tests/phase_b/test_runtime_batch_twenty_three.py::test_arcane_denial_waits_for_next_turn_upkeep_and_allows_zero_cards",
-      "tests/phase_b/test_runtime_batch_twenty_three.py::test_arcane_denial_missing_draw_choice_fails_closed_atomically"
+      "tests/phase_b/test_runtime_batch_twenty_three.py::test_arcane_denial_missing_draw_choice_fails_closed_atomically",
+      "tests/phase_b/test_runtime_batch_twenty_four.py::test_chart_a_course_draws_two_then_discards_when_controller_did_not_attack",
+      "tests/phase_b/test_runtime_batch_twenty_four.py::test_chart_a_course_draws_two_without_discard_after_attack_marker",
+      "tests/phase_b/test_runtime_batch_twenty_four.py::test_chart_a_course_missing_discard_provider_fails_closed_atomically"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
