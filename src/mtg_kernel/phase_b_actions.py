@@ -26,6 +26,7 @@ def effect_execution_supported(effect: dict[str, Any]) -> bool:
 
     if str(effect.get("kind", "NONE")) in {
         "COUNTER_WITH_DELAYED_DRAWS",
+        "DEMOLITION_FIELD",
         "DRAW_THEN_DISCARD_UNLESS_ATTACKED",
         "EXILE_AND_MANIFEST",
     }:
@@ -43,7 +44,13 @@ def apply_phase_b_effect(
 ) -> bool:
     """Apply the public Phase B primitive set without silent fallback."""
 
-    if str(effect.get("kind", "")) != "RECORD_UNKNOWN_BREECHES_EXILES":
+    kind = str(effect.get("kind", ""))
+    if kind == "DEMOLITION_FIELD":
+        from mtg_kernel.phase_b_runtime_effects_demolition import apply_demolition_field
+
+        apply_demolition_field(executor, action, targets)
+        return True
+    if kind != "RECORD_UNKNOWN_BREECHES_EXILES":
         from mtg_kernel.phase_b_actions_core import apply_phase_b_effect as apply_core
 
         return apply_core(executor, source, action, effect, targets, choices)
