@@ -96,6 +96,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Negate",
             "Opt",
             "Path of Ancestry",
+            "Prismari Command",
             "Prismatic Lens",
             "Psychosis Crawler",
             "Ravenform",
