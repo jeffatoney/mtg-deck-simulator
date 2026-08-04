@@ -18,6 +18,7 @@ from mtg_kernel.phase_b_actions import (
     automatic_ability_execution_supported,
     effect_execution_supported,
 )
+from mtg_policy.choices import dualcaster_loop_adjudication_supported
 from mtg_policy.evaluation import load_evaluator_config
 from mtg_policy.learning import load_learning_plan
 
@@ -82,7 +83,7 @@ def exact_deck_execution_blockers() -> list[str]:
 def strategic_model_blockers() -> list[str]:
     evaluator = load_evaluator_config()
     blockers: list[str] = []
-    if evaluator.dualcaster_loop_handling == "FAIL_CLOSED_UNTIL_DETERMINISTIC_LOOP_ADJUDICATOR":
+    if not dualcaster_loop_adjudication_supported(evaluator):
         blockers.append("UNSUPPORTED_STRATEGIC_LOOP:DUALCASTER_TWINFLAME")
     return blockers
 
