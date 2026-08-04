@@ -47,6 +47,18 @@ def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _canonical_json_sha(path: Path) -> str:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    body = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(body).hexdigest()
+
+
 def _artifact_root() -> Path:
     configured = os.environ.get("PHASE_B_ARTIFACT_ROOT", "").strip()
     if not configured:
@@ -135,6 +147,9 @@ def verify_phase_b_run() -> int:
     learning_plan = load_learning_plan()
     evaluator_status = "PASS" if commands[5]["exit_code"] == 0 else "FAIL"
     transcript_status = "PASS" if commands[6]["exit_code"] == 0 else "FAIL"
+    approval_document_sha = _canonical_json_sha(
+        ROOT / "docs/audit/phase-b-golden-transcripts/APPROVALS.json"
+    )
     passed = (
         clean
         and mapping_ok
@@ -173,6 +188,7 @@ def verify_phase_b_run() -> int:
         "learning_plan_sha256": learning_plan.plan_sha256,
         "golden_transcripts": transcript_status,
         "transcript_count": 12 if transcript_status == "PASS" else 0,
+        "transcript_approval_document_sha256": approval_document_sha,
         "pilot_lock": "PASS" if pilot_locked else "FAIL",
         "unsupported_capabilities": unsupported,
         "strategic_model_blockers": strategic_blockers,
@@ -195,6 +211,7 @@ def verify_phase_b_run() -> int:
                 "evaluator_snapshot_sha256": evaluator.config_sha256,
                 "learning_plan_sha256": learning_plan.plan_sha256,
                 "golden_transcripts": transcript_status,
+                "transcript_approval_document_sha256": approval_document_sha,
                 "unsupported_capability_count": len(unsupported),
                 "strategic_model_blocker_count": len(strategic_blockers),
                 "pilot_lock": result["pilot_lock"],
