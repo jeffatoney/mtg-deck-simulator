@@ -65,8 +65,7 @@ def _consume_markers(
     markers = [
         record
         for record in executor.state.continuous_effects
-        if record.get("kind") == MARKED_COMMANDER_MANA_KIND
-        and record.get("player_id") == actor_id
+        if record.get("kind") == MARKED_COMMANDER_MANA_KIND and record.get("player_id") == actor_id
     ]
     if not markers:
         return []
@@ -153,7 +152,11 @@ def process_marked_commander_mana(
     for record in consumed:
         source_id = str(record.get("source_object_id", ""))
         source = executor.state.objects.get(source_id)
-        if source is None or not executor._is_permanent(source) or source.controller != action.actor_id:
+        if (
+            source is None
+            or not executor._is_permanent(source)
+            or source.controller != action.actor_id
+        ):
             continue
         ability = record.get("trigger_ability")
         if not isinstance(ability, dict) or ability.get("trigger") != PATH_SHARED_TYPE_TRIGGER:
