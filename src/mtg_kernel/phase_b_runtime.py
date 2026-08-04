@@ -17,6 +17,7 @@ from mtg_kernel.phase_b_runtime_effects_demolition import apply_demolition_field
 from mtg_kernel.phase_b_runtime_effects_interaction import apply_effect_interaction
 from mtg_kernel.phase_b_runtime_effects_mana import apply_effect_mana
 from mtg_kernel.phase_b_runtime_effects_manifest import apply_effect_manifest
+from mtg_kernel.phase_b_runtime_effects_prismari import apply_prismari_command
 from mtg_kernel.phase_b_runtime_effects_search import apply_effect_search
 from mtg_kernel.phase_b_runtime_effects_selection import apply_effect_selection
 from mtg_kernel.phase_b_runtime_helpers import (
@@ -60,6 +61,9 @@ def _apply_effect(
         return
     if kind == "AMASS_AND_HEXPROOF":
         apply_amass_and_hexproof(self, action, effect, targets, choices)
+        return
+    if kind == "PRISMARI_COMMAND":
+        apply_prismari_command(self, source, action, choices)
         return
     if apply_effect_common(self, source, action, effect, targets, choices):
         return
