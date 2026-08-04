@@ -25,9 +25,7 @@ if TYPE_CHECKING:
 
 DUALCASTER_LOOP_ADJUDICATOR = "VISIBLE_LIFE_AND_BLOCKER_RESERVE_V1"
 MAX_DUALCASTER_LOOP_TOKENS = 512
-_SUPPORTED_DUALCASTER_LOOP_MODES = frozenset(
-    {"FAIL_CLOSED_UNTIL_DETERMINISTIC_LOOP_ADJUDICATOR"}
-)
+_SUPPORTED_DUALCASTER_LOOP_MODES = frozenset({"FAIL_CLOSED_UNTIL_DETERMINISTIC_LOOP_ADJUDICATOR"})
 
 
 def dualcaster_loop_adjudication_supported(config: EvaluatorConfig) -> bool:
@@ -70,11 +68,7 @@ def _dualcaster_loop_selection(
         controller = str(raw.get("controller", ""))
         identity = str(raw.get("identity", ""))
         card_types = raw.get("card_types", ())
-        types = (
-            {str(value) for value in card_types}
-            if isinstance(card_types, Sequence)
-            else set()
-        )
+        types = {str(value) for value in card_types} if isinstance(card_types, Sequence) else set()
         if controller == request.actor_id and identity == "Dualcaster Mage":
             visible_dualcasters += 1
         elif controller in opponent_life and "Creature" in types:
@@ -100,8 +94,7 @@ def _dualcaster_loop_selection(
         targets
         for targets in request.legal_target_sets
         if all(
-            handle in target_by_handle
-            and target_by_handle[handle].identity != "Dualcaster Mage"
+            handle in target_by_handle and target_by_handle[handle].identity != "Dualcaster Mage"
             for handle in targets
         )
     )
@@ -121,8 +114,7 @@ def _dualcaster_loop_selection(
             selected = min(stop_sets)
         else:
             raise UnsupportedCapability(
-                "canonical Dualcaster/Twinflame loop cannot stop on a legal "
-                "non-Dualcaster target"
+                "canonical Dualcaster/Twinflame loop cannot stop on a legal non-Dualcaster target"
             )
         strategy = "STOP_BOUNDED_DUALCASTER_LOOP"
 
@@ -192,8 +184,7 @@ class PolicyStrategicChoiceProvider:
                 "policy_config_id": self.bundle.policy_config_id,
                 "purpose": request.purpose,
                 "candidate_evaluation_microunits": {
-                    handle: score_to_microunits(value)
-                    for handle, value in evaluations.items()
+                    handle: score_to_microunits(value) for handle, value in evaluations.items()
                 },
             },
         )
@@ -211,9 +202,7 @@ class PolicyStrategicChoiceProvider:
             evaluations = {}
             for card in candidates:
                 value = self.evaluator.evaluate_pile((card,), request.observation).score
-                evaluations[card.identity] = max(
-                    evaluations.get(card.identity, value), value
-                )
+                evaluations[card.identity] = max(evaluations.get(card.identity, value), value)
                 scored.append((value, rank.get(card.identity, 0), card.identity))
             selected = max(scored)[2]
         return TutorChoiceSelection(
@@ -225,15 +214,12 @@ class PolicyStrategicChoiceProvider:
                 "tutor_priority": self.bundle.value("tutor_priority"),
                 "eligible_identities": list(request.eligible_identities),
                 "candidate_evaluation_microunits": {
-                    name: score_to_microunits(value)
-                    for name, value in evaluations.items()
+                    name: score_to_microunits(value) for name, value in evaluations.items()
                 },
             },
         )
 
-    def choose_fact_or_fiction(
-        self, request: FactOrFictionRequest
-    ) -> FactOrFictionSelection:
+    def choose_fact_or_fiction(self, request: FactOrFictionRequest) -> FactOrFictionSelection:
         if self.evaluator.config.opponent_choice_mode != "PERFECT_MINIMIZER":
             raise ValueError("unsupported opponent Fact or Fiction choice mode")
         cards = {card.handle: card for card in request.revealed_cards}
