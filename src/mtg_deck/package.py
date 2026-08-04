@@ -30,6 +30,7 @@ IMPLEMENTED_CARDS = frozenset(
         "By Force",
         "Cascade Bluffs",
         "Change the Equation",
+        "Chart a Course",
         "Command Tower",
         "Commit // Memory",
         "Crab Umbra",
