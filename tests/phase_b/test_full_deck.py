@@ -86,6 +86,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Island",
             "Izzet Boilerworks",
             "Izzet Signet",
+            "Lazotep Plating",
             "Lightning-Rig Crew",
             "Long-Term Plans",
             "Malcolm, Keen-Eyed Navigator",

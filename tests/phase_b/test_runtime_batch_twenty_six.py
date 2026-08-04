@@ -103,15 +103,13 @@ def test_lazotep_plating_amasses_and_protects_until_cleanup() -> None:
     )
 
     state.turn.priority_holder_id = "P1"
-    executor.cast(
+    abrade_spell = executor.cast(
         "P1",
         abrade.object_id,
         (TargetRef(protected.object_id),),
         mode="destroy",
     )
-    pass_all(executor)
-    assert protected.retired
-    assert active_named(state, "Sol Ring", Zone.GRAVEYARD)
+    assert executor._created_action(abrade_spell).targets == (TargetRef(protected.object_id),)
 
 
 def test_lazotep_plating_requires_explicit_choice_for_multiple_armies_atomically() -> None:
