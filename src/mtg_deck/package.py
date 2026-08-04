@@ -70,6 +70,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Muddle the Mixture",
         "Negate",
         "Opt",
+        "Path of Ancestry",
         "Prismatic Lens",
         "Psychosis Crawler",
         "Ravenform",
