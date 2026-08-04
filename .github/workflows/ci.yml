@@ -78,8 +78,9 @@ jobs:
         run: uv run mtg-engine verify-phase-a
       - name: Build CI certification candidate
         run: |
-          RESULT="$(find "${RUNNER_TEMP}/phase-a-result" -name result.json -type f -print -quit)"
-          test -n "${RESULT}"
+          RESULT="$(uv run python -m mtg_verify.result_selection \
+            --phase phase-a \
+            --root "${RUNNER_TEMP}/phase-a-result")"
           uv run python scripts/record_phase_a_certification.py \
             --verifier-result "${RESULT}" \
             --output "${RUNNER_TEMP}/phase-a-certification-candidate/CERTIFICATION.json"
@@ -105,8 +106,9 @@ jobs:
         run: uv run mtg-engine verify-phase-b
       - name: Build Phase B certification candidate
         run: |
-          RESULT="$(find "${RUNNER_TEMP}/phase-b-result" -mindepth 2 -maxdepth 2 -name result.json -type f -print -quit)"
-          test -n "${RESULT}"
+          RESULT="$(uv run python -m mtg_verify.result_selection \
+            --phase phase-b \
+            --root "${RUNNER_TEMP}/phase-b-result")"
           uv run python scripts/record_phase_b_certification.py \
             --verifier-result "${RESULT}" \
             --output "${RUNNER_TEMP}/phase-b-certification-candidate/CERTIFICATION.json"
