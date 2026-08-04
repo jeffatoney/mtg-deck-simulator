@@ -61,21 +61,21 @@ def test_path_of_ancestry_enters_tapped_and_marked_mana_triggers_scry() -> None:
     assert path.permanent_status["tap"] == "TAPPED"
 
     path.permanent_status["tap"] = "UNTAPPED"
-    state.players["P0"].mana_pool["R"] = 1
-    executor.activate("P0", path.object_id, "path:mana", choices={"mana_color": "U"})
+    state.players["P0"].mana_pool["C"] = 2
+    executor.activate("P0", path.object_id, "path:mana", choices={"mana_color": "R"})
     assert state.players["P0"].mana_pool == {
         "W": 0,
-        "U": 1,
+        "U": 0,
         "B": 0,
         "R": 1,
         "G": 0,
-        "C": 0,
+        "C": 2,
     }
     assert len(marked_records(state)) == 1
 
     bottom = add_card(executor, specs["Island"], Zone.LIBRARY, owner="P0")
     top = add_card(executor, specs["Opt"], Zone.LIBRARY, owner="P0")
-    pirate = add_card(executor, specs["Wily Goblin"], Zone.HAND, owner="P0")
+    pirate = add_card(executor, specs["Lightning-Rig Crew"], Zone.HAND, owner="P0")
     spell = executor.cast("P0", pirate.object_id, choices={"scry_to_bottom": True})
 
     assert state.stack[-1] != spell.object_id
@@ -94,9 +94,9 @@ def test_path_of_ancestry_enters_tapped_and_marked_mana_triggers_scry() -> None:
 def test_path_of_ancestry_requires_explicit_scry_choice_atomically() -> None:
     state, executor, specs = game_with_commanders("runtime-twenty-seven-path-atomic")
     path = add_card(executor, specs["Path of Ancestry"], Zone.BATTLEFIELD, owner="P0")
-    state.players["P0"].mana_pool["R"] = 1
-    executor.activate("P0", path.object_id, "path:mana", choices={"mana_color": "U"})
-    pirate = add_card(executor, specs["Wily Goblin"], Zone.HAND, owner="P0")
+    state.players["P0"].mana_pool["C"] = 2
+    executor.activate("P0", path.object_id, "path:mana", choices={"mana_color": "R"})
+    pirate = add_card(executor, specs["Lightning-Rig Crew"], Zone.HAND, owner="P0")
     before = state_hash(state)
 
     with pytest.raises(IllegalAction, match="explicit scry choice"):
@@ -105,7 +105,7 @@ def test_path_of_ancestry_requires_explicit_scry_choice_atomically() -> None:
     assert state_hash(state) == before
     assert state.objects[pirate.object_id].zone is Zone.HAND
     assert len(marked_records(state)) == 1
-    assert state.players["P0"].mana_pool["U"] == 1
+    assert state.players["P0"].mana_pool["C"] == 2
     assert state.players["P0"].mana_pool["R"] == 1
 
 
