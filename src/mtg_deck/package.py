@@ -71,6 +71,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Negate",
         "Opt",
         "Path of Ancestry",
+        "Prismari Command",
         "Prismatic Lens",
         "Psychosis Crawler",
         "Ravenform",
