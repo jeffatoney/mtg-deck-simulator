@@ -134,8 +134,8 @@ def test_manual_workflow_is_locked_and_uses_clean_verification_path() -> None:
     assert "workflow_dispatch:" in workflow
     assert CONFIRMATION_TOKEN in workflow
     assert "phase-c-dry-run" in workflow and "phase-c-pilot" in workflow
-    assert workflow.index("Phase A verifier") < workflow.index("phase-c-pilot")
-    assert workflow.index("Phase B verifier") < workflow.index("phase-c-pilot")
+    assert workflow.index("Phase A verifier") < workflow.index("uv run mtg-engine phase-c-pilot")
+    assert workflow.index("Phase B verifier") < workflow.index("uv run mtg-engine phase-c-pilot")
     assert "check_phase_a_certification.py" in workflow
     assert "check_phase_b_certification.py" in workflow
     assert "mtg_sim" in workflow and "import mtg_sim" in workflow
