@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Callable, cast
 
 from mtg_kernel.errors import IllegalAction
-from mtg_kernel.models import Choice, GameObject, ObjectKind, TargetRef, Zone
+from mtg_kernel.models import GameObject, ObjectKind, TargetRef, Zone
 
 SUPPORTED_EFFECTS = frozenset(
     {
