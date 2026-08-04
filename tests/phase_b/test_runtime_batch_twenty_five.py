@@ -61,9 +61,7 @@ def test_demolition_field_destroys_target_and_resolves_both_basic_searches() -> 
     target = add_card(executor, specs["Thriving Isle"], Zone.BATTLEFIELD, owner="P1")
     add_card(executor, specs["Island"], Zone.LIBRARY, owner="P1")
     add_card(executor, specs["Mountain"], Zone.LIBRARY, owner="P0")
-    executor.bind_strategic_choice_provider(
-        BasicLandProvider({"P1": "Island", "P0": "Mountain"})
-    )
+    executor.bind_strategic_choice_provider(BasicLandProvider({"P1": "Island", "P0": "Mountain"}))
 
     ability = executor.activate(
         "P0",
