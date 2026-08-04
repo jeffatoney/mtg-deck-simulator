@@ -10,8 +10,9 @@ from mtg_kernel.phase_b_actions_core import (
     foretell,
     legal_tutor_names,
 )
+from mtg_kernel.phase_b_marked_mana import PATH_SHARED_TYPE_TRIGGER
 from mtg_kernel.phase_b_runtime_support import (
-    automatic_ability_execution_supported,
+    automatic_ability_execution_supported as _automatic_ability_execution_supported,
     effect_execution_supported as _effect_execution_supported,
     object_automatic_execution_supported,
 )
@@ -25,6 +26,7 @@ def effect_execution_supported(effect: dict[str, Any]) -> bool:
     """Return whether one effect has a reviewed production implementation."""
 
     if str(effect.get("kind", "NONE")) in {
+        "ADD_COMMANDER_COLOR_AND_MARK",
         "COUNTER_WITH_DELAYED_DRAWS",
         "DEMOLITION_FIELD",
         "DRAW_THEN_DISCARD_UNLESS_ATTACKED",
@@ -32,6 +34,28 @@ def effect_execution_supported(effect: dict[str, Any]) -> bool:
     }:
         return True
     return _effect_execution_supported(effect)
+
+
+def automatic_ability_execution_supported(
+    ability: dict[str, Any], *, entering: bool
+) -> bool:
+    """Recognize automatic paths whose explicit choices are captured elsewhere."""
+
+    if (
+        ability.get("kind") == "TRIGGERED"
+        and ability.get("trigger") == PATH_SHARED_TYPE_TRIGGER
+        and not ability.get("optional")
+    ):
+        schema = dict(ability.get("target_schema", {}))
+        effect = dict(ability.get("effect", {}))
+        return bool(
+            str(schema.get("kind", "NONE")) == "NONE"
+            and int(schema.get("min", 0) or 0) == 0
+            and int(schema.get("max", 0) or 0) == 0
+            and effect.get("kind") == "SCRY"
+            and int(effect.get("count", 1)) == 1
+        )
+    return _automatic_ability_execution_supported(ability, entering=entering)
 
 
 def apply_phase_b_effect(
