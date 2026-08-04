@@ -82,8 +82,25 @@ def apply_effect_interaction(
     targets: list[GameObject],
     choices: dict[str, Any],
 ) -> bool:
-    del source
     kind = str(effect.get("kind", "NONE"))
+
+    if kind == "DAMAGE_ANY_TARGET":
+        if len(targets) != 1:
+            raise IllegalAction("damage-any-target effect requires one target")
+        target = targets[0]
+        amount = int(effect.get("amount", 1))
+        damage_source = self._rules_source(source)
+        if (
+            target.object_kind is ObjectKind.EXTERNAL_PUBLIC_OBJECT
+            and target.current_characteristics.get("target_kind") == "PLAYER"
+        ):
+            player_id = str(target.current_characteristics.get("player_id", ""))
+            if player_id not in self.state.players or not self.state.players[player_id].in_game:
+                raise IllegalAction("damage player target is unavailable")
+            self._damage_players(damage_source, [(player_id, amount)], action, combat=False)
+        else:
+            self._damage_batch(damage_source, [(target, amount)], action, combat=False)
+        return True
 
     if kind == "GRANT_HASTE":
         if len(targets) != 1:
