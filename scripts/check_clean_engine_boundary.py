@@ -14,8 +14,15 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STRICT_ROOTS = (ROOT / "src/mtg_kernel", ROOT / "src/mtg_cards")
-SUPPORT_ROOTS = (ROOT / "src/mtg_verify", ROOT / "src/mtg_sources")
+STRICT_ROOTS = (
+    ROOT / "src/mtg_kernel",
+    ROOT / "src/mtg_cards",
+    ROOT / "src/mtg_deck",
+    ROOT / "src/mtg_policy",
+    ROOT / "src/mtg_search",
+    ROOT / "src/mtg_measure",
+)
+SUPPORT_ROOTS = (ROOT / "src/mtg_verify", ROOT / "src/mtg_sources", ROOT / "src/mtg_runs")
 FORBIDDEN_ROOT = "mtg_sim"
 
 CODE_LOADERS = {
@@ -48,6 +55,9 @@ PROCESS_LOADERS = {
 DYNAMIC_MODULES = {"importlib", "pkgutil", "runpy", "subprocess", "os"}
 SUPPORT_PROCESS_ALLOWLIST: dict[str, set[str]] = {
     "src/mtg_verify/phase_a.py": {"subprocess.run", "subprocess.check_output"},
+    "src/mtg_verify/phase_b.py": {"subprocess.run", "subprocess.check_output"},
+    "src/mtg_runs/manifests.py": {"subprocess.check_output"},
+    "src/mtg_runs/replay_audit.py": {"subprocess.run"},
 }
 _FORBIDDEN_REFERENCE = re.compile(r"(?<![A-Za-z0-9_])mtg_sim(?![A-Za-z0-9_])")
 

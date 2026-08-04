@@ -1,0 +1,116 @@
+{
+  "requirements": {
+    "B-COMBO-001": [
+      "tests/phase_b/test_continuous_combo_access.py",
+      "tests/phase_b/test_strategic_evaluation.py::test_canonical_policy_fails_closed_on_unadjudicated_dualcaster_twinflame_loop",
+      "tests/phase_b/test_corrective_resolution_choices.py::test_actual_dualcaster_twinflame_line_is_bounded_by_policy_choice",
+      "tests/phase_b/test_dualcaster_canonical_adjudication.py::test_canonical_policy_executes_finite_visible_lethal_reserve",
+      "tests/phase_b/test_dualcaster_canonical_adjudication.py::test_canonical_policy_fails_closed_above_bounded_reserve"
+    ],
+    "B-COVERAGE-001": [
+      "tests/phase_b/test_full_deck.py::test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim",
+      "tests/phase_b/test_runtime_batch_eleven.py::test_izzet_boilerworks_executes_entry_trigger_and_mana",
+      "tests/phase_b/test_runtime_batch_eleven.py::test_sentinel_totem_scries_then_exiles_all_graveyards",
+      "tests/phase_b/test_runtime_batch_eleven.py::test_storm_fleet_sprinter_resolves_with_both_static_abilities",
+      "tests/phase_b/test_runtime_batch_eleven.py::test_temple_of_epiphany_scries_on_entry_and_produces_mana",
+      "tests/phase_b/test_runtime_batch_twelve.py::test_electroduplicate_normal_mode_creates_hasty_copy_then_sacrifices_it",
+      "tests/phase_b/test_runtime_batch_twelve.py::test_electroduplicate_flashback_mode_exiles_the_card_after_resolution",
+      "tests/phase_b/test_runtime_batch_twelve.py::test_scavenger_grounds_executes_mana_and_graveyard_exile_modes",
+      "tests/phase_b/test_runtime_batch_thirteen.py::test_cascade_bluffs_executes_each_declared_filter_option",
+      "tests/phase_b/test_runtime_batch_thirteen.py::test_cascade_bluffs_rejects_an_unlisted_option_atomically",
+      "tests/phase_b/test_runtime_batch_fourteen.py::test_faithless_looting_selects_discards_after_drawing_and_supports_flashback",
+      "tests/phase_b/test_runtime_batch_fourteen.py::test_frantic_search_draws_discards_then_untaps_three_selected_lands",
+      "tests/phase_b/test_runtime_batch_fourteen.py::test_resolution_time_card_selection_rejects_illegal_handles_atomically",
+      "tests/phase_b/test_runtime_batch_fifteen.py::test_look_select_rest_bottom_executes_exact_deck_cards",
+      "tests/phase_b/test_runtime_batch_fifteen.py::test_look_select_rejects_illegal_provider_output_atomically",
+      "tests/phase_b/test_runtime_batch_sixteen.py::test_invert_invent_executes_both_faces_and_type_tutor",
+      "tests/phase_b/test_runtime_batch_sixteen.py::test_long_term_plans_places_selected_card_third_from_top",
+      "tests/phase_b/test_runtime_batch_seventeen.py::test_choice_bearing_etb_shapes_are_registered_for_automatic_execution",
+      "tests/phase_b/test_runtime_batch_seventeen.py::test_soul_guide_lantern_executes_entry_and_both_activated_modes",
+      "tests/phase_b/test_runtime_batch_seventeen.py::test_vedalken_aethermage_executes_entry_bounce_and_wizardcycling",
+      "tests/phase_b/test_runtime_batch_eighteen.py::test_curiosity_requires_and_executes_each_explicit_optional_choice",
+      "tests/phase_b/test_runtime_batch_nineteen.py::test_into_the_roil_executes_normal_and_kicked_paths",
+      "tests/phase_b/test_runtime_batch_nineteen.py::test_into_the_roil_kicker_payment_failure_is_atomic",
+      "tests/phase_b/test_runtime_batch_twenty.py::test_reality_ripple_phases_target_and_attachments_without_changing_zones",
+      "tests/phase_b/test_runtime_batch_twenty.py::test_indirectly_phased_attachment_returns_with_target_not_its_controller",
+      "tests/phase_b/test_runtime_batch_twenty_one.py::test_spell_pierce_requires_qualifying_target_and_explicit_controller_decision",
+      "tests/phase_b/test_runtime_batch_twenty_one.py::test_spell_pierce_decline_counters_qualifying_spell_and_records_choice",
+      "tests/phase_b/test_runtime_batch_twenty_one.py::test_spell_pierce_controller_payment_preserves_target_and_records_mana",
+      "tests/phase_b/test_runtime_batch_twenty_one.py::test_syncopate_uses_x_for_payment_and_exiles_when_declined",
+      "tests/phase_b/test_runtime_batch_twenty_two.py::test_reality_shift_exiles_target_and_manifests_top_card_face_down",
+      "tests/phase_b/test_runtime_batch_twenty_two.py::test_reality_shift_with_empty_library_exiles_without_creating_a_permanent",
+      "tests/phase_b/test_runtime_batch_twenty_three.py::test_arcane_denial_counters_and_executes_explicit_next_upkeep_draw_count",
+      "tests/phase_b/test_runtime_batch_twenty_three.py::test_arcane_denial_waits_for_next_turn_upkeep_and_allows_zero_cards",
+      "tests/phase_b/test_runtime_batch_twenty_three.py::test_arcane_denial_missing_draw_choice_fails_closed_atomically",
+      "tests/phase_b/test_runtime_batch_twenty_four.py::test_chart_a_course_draws_two_then_discards_when_controller_did_not_attack",
+      "tests/phase_b/test_runtime_batch_twenty_four.py::test_chart_a_course_draws_two_without_discard_after_attack_marker",
+      "tests/phase_b/test_runtime_batch_twenty_four.py::test_chart_a_course_missing_discard_provider_fails_closed_atomically",
+      "tests/phase_b/test_runtime_batch_twenty_five.py::test_demolition_field_destroys_target_and_resolves_both_basic_searches",
+      "tests/phase_b/test_runtime_batch_twenty_five.py::test_demolition_field_allows_each_player_to_fail_to_find",
+      "tests/phase_b/test_runtime_batch_twenty_five.py::test_demolition_field_missing_provider_fails_closed_atomically",
+      "tests/phase_b/test_runtime_batch_twenty_six.py::test_lazotep_plating_amasses_and_protects_until_cleanup",
+      "tests/phase_b/test_runtime_batch_twenty_six.py::test_lazotep_plating_requires_explicit_choice_for_multiple_armies_atomically",
+      "tests/phase_b/test_runtime_batch_twenty_seven.py::test_path_of_ancestry_enters_tapped_and_marked_mana_triggers_scry",
+      "tests/phase_b/test_runtime_batch_twenty_seven.py::test_path_of_ancestry_requires_explicit_scry_choice_atomically",
+      "tests/phase_b/test_runtime_batch_twenty_seven.py::test_path_marked_mana_is_consumed_without_trigger_for_nonshared_creature",
+      "tests/phase_b/test_runtime_batch_twenty_eight.py::test_prismari_command_executes_damage_and_artifact_destruction",
+      "tests/phase_b/test_runtime_batch_twenty_eight.py::test_prismari_command_executes_target_player_draw_discard_and_treasure",
+      "tests/phase_b/test_runtime_batch_twenty_eight.py::test_prismari_command_duplicate_modes_fail_atomically_at_resolution"
+    ],
+    "B-DECK-001": [
+      "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
+    ],
+    "B-EVALUATOR-001": [
+      "tests/phase_b/test_strategic_evaluation.py",
+      "tests/phase_b/test_corrective_resolution_choices.py::test_exact_deck_fact_or_fiction_keeps_twinflame_over_excess_lands"
+    ],
+    "B-HIDDEN-001": [
+      "tests/phase_b/test_policy_broker.py::test_hidden_library_identity_never_enters_policy_observation_or_actions"
+    ],
+    "B-LEGALITY-001": [
+      "tests/phase_b/test_policy_broker.py::test_broker_probes_the_production_executor_without_mutating_live_state",
+      "tests/phase_b/test_policy_broker.py::test_broker_handles_are_one_shot_and_state_bound",
+      "tests/phase_b/test_corrective_resolution_choices.py::test_exact_deck_transmute_selects_singleton_at_resolution"
+    ],
+    "B-MANIFEST-001": [
+      "tests/phase_b/test_manifests.py"
+    ],
+    "B-MEASURE-001": [
+      "tests/phase_b/test_measurements.py",
+      "tests/phase_b/test_continuous_combo_access.py"
+    ],
+    "B-OPPONENT-001": [
+      "tests/phase_b/test_behavioral_scenarios.py::test_breeches_unknown_cards_are_recorded_but_never_deterministic_resources",
+      "tests/phase_b/test_hand_actions.py::test_fact_or_fiction_uses_contextual_policy_evaluation_and_records_both_choices"
+    ],
+    "B-PHASE-A-001": [
+      "tests/phase_b/test_phase_a_regression.py"
+    ],
+    "B-PILOT-LOCK-001": [
+      "tests/phase_b/test_pilot_lock.py"
+    ],
+    "B-POLICY-001": [
+      "tests/phase_b/test_policies.py",
+      "tests/phase_b/test_strategic_evaluation.py::test_content_addressed_learned_snapshot_can_be_selected_as_a_policy_button"
+    ],
+    "B-REPLAY-001": [
+      "tests/phase_b/test_replay_audit.py",
+      "tests/phase_b/test_behavioral_scenarios.py::test_fresh_process_replay_measurement_and_worker_invariance_with_terminal_short_circuit",
+      "tests/phase_b/test_corrective_resolution_choices.py::test_exact_deck_fact_or_fiction_keeps_twinflame_over_excess_lands"
+    ],
+    "B-RULES-001": [
+      "tests/phase_b/test_behavioral_scenarios.py::test_malcolm_treasure_count_uses_exact_damaged_opponent_set",
+      "tests/phase_b/test_behavioral_scenarios.py::test_modal_x_and_alternative_cost_legality_and_payment_share_executor"
+    ],
+    "B-SEARCH-001": [
+      "tests/phase_b/test_search.py"
+    ],
+    "B-SOURCE-001": [
+      "tests/phase_b/test_full_deck.py::test_all_frozen_oracle_records_and_physical_cards_resolve"
+    ],
+    "B-TRANSCRIPT-001": [
+      "tests/phase_b/test_phase_b_transcript_gate.py"
+    ]
+  },
+  "schema_version": "phase-b-test-mapping-v1"
+}

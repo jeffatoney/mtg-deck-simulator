@@ -51,8 +51,8 @@
     },
     {
       "path": "docs/spec/OPEN_DECISIONS.md",
-      "sha256": "0fda27debdf87f9505000fcb2e18ee406eeef85edcdab0a32b8a6687b651dabb",
-      "size_bytes": 2059,
+      "sha256": "149ed10c837dbb8213eb610b810d28a95d8eb823f2b76948c5b83d394c524adc",
+      "size_bytes": 5803,
       "source_category": "baseline_decisions",
       "status": "frozen"
     }

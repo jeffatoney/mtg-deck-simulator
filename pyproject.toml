@@ -40,7 +40,17 @@ build-backend = "hatchling.build"
 # every dynamic-import bypass of a static scanner still fails with ModuleNotFoundError.
 # Verification support is installed separately so subprocess-based CI tooling is not
 # part of either clean production package.
-packages = ["src/mtg_sources", "src/mtg_kernel", "src/mtg_cards", "src/mtg_verify"]
+packages = [
+  "src/mtg_sources",
+  "src/mtg_kernel",
+  "src/mtg_cards",
+  "src/mtg_verify",
+  "src/mtg_deck",
+  "src/mtg_policy",
+  "src/mtg_search",
+  "src/mtg_measure",
+  "src/mtg_runs",
+]
 
 [tool.pytest.ini_options]
 # `legacy/tests` is intentionally outside testpaths. Those tests exercise the legacy

@@ -1,0 +1,49 @@
+{
+  "evidence_scope": "EXACT_DECK_INTEGRATION",
+  "family_id": "dualcaster-twinflame-not-cast",
+  "machine": {
+    "event_source": "GAME_STATE_EVENTS",
+    "ordered_operations": [
+      "move the exact singleton Dualcaster Mage and Twinflame to hand and Malcolm to the battlefield",
+      "cast Twinflame targeting Malcolm",
+      "cast and resolve Dualcaster Mage",
+      "put the original Dualcaster ETB trigger on the stack",
+      "choose the legal new target before placing each Twinflame copy on the stack",
+      "resolve copied Twinflames and token Dualcaster ETB triggers",
+      "continue twice with the audit witness and then record an explicit stop choice"
+    ],
+    "preconditions": [
+      "The scenario is constructed with build_exact_game().",
+      "An audit-only loop-witness provider is fixed before the line starts and is not eligible as a canonical simulation policy."
+    ],
+    "required_assertions": [
+      "every Twinflame spell copy has was_cast false",
+      "spell copies have no physical-card components",
+      "copy-target decisions precede spell-copy creation and token creation",
+      "token Dualcasters receive their ETB triggers",
+      "both continue-loop and stop-loop audit decisions are recorded",
+      "the witness terminates after two token Dualcasters without treating two tokens as the canonical combo outcome"
+    ],
+    "required_event_order": [
+      "SPELL_CAST",
+      "SPELL_CAST",
+      "STACK_OBJECT_RESOLVED",
+      "ABILITY_TRIGGERED",
+      "TRIGGER_PUT_ON_STACK",
+      "COPY_TARGET_DECISION",
+      "SPELL_COPIED",
+      "TOKEN_COPY_CREATED",
+      "ABILITY_TRIGGERED",
+      "TRIGGER_PUT_ON_STACK"
+    ],
+    "test_node": "tests/phase_b/transcripts/test_pb_t05_dualcaster.py::test_pb_t05_dualcaster_twinflame_evidence"
+  },
+  "plain_english": [
+    "The exact frozen deck supplies the singleton Dualcaster Mage, Twinflame, and Malcolm used in the line.",
+    "Dualcaster resolves, enters the battlefield, and its ETB trigger creates a Twinflame spell copy after the new target is chosen.",
+    "Copied Twinflames were not cast and have no physical-card component; an audit-only witness continues twice and deliberately stops without claiming a canonical combo outcome."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "The actual Dualcaster and Twinflame line is legal, copied-not-cast, and policy-bounded",
+  "transcript_id": "PB-T05-dualcaster-twinflame"
+}

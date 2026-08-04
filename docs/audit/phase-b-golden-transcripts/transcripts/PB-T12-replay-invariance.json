@@ -1,0 +1,43 @@
+{
+  "evidence_scope": "REPLAY_AUDIT",
+  "family_id": "replay-measurement-manifest-terminal-invariance",
+  "machine": {
+    "event_source": "AUDIT_EVIDENCE",
+    "ordered_operations": [
+      "capture the initial state and record lethal damage",
+      "terminate the game and capture the rejected post-terminal priority attempt as audit evidence",
+      "replay in a fresh process and compare state hashes",
+      "construct two distinct measurement records and compare forward and reversed measurement digests",
+      "compare canonical supplied outputs labeled for worker counts one, two, and four"
+    ],
+    "preconditions": [
+      "A recorded terminal game is replayed in a fresh interpreter without policy code.",
+      "Worker-count evidence validates canonical supplied-output invariance and does not claim that this transcript starts worker processes."
+    ],
+    "required_assertions": [
+      "fresh-process state hash equals original",
+      "post-terminal priority action is rejected",
+      "the rejected action does not add a canonical game event",
+      "two distinct measurement records produce the same digest in forward and reversed order",
+      "the same two supplied raw records produce one canonical digest under worker-count labels one, two, and four",
+      "no thread-safety or worker-process-execution claim is made"
+    ],
+    "required_event_order": [
+      "DAMAGE_DEALT",
+      "GAME_TERMINATED",
+      "POST_TERMINAL_ACTION_REJECTED",
+      "REPLAY_STATE_HASH_VALIDATED",
+      "MEASUREMENT_ORDER_INVARIANCE_VALIDATED",
+      "WORKER_CONFIGURATION_OUTPUTS_VALIDATED"
+    ],
+    "test_node": "tests/phase_b/transcripts/test_pb_t12_replay.py::test_pb_t12_replay_measurement_worker_evidence"
+  },
+  "plain_english": [
+    "Lethal damage terminates a recorded game, and a later priority attempt is rejected without mutating the canonical game-event stream.",
+    "A fresh interpreter replays the recorded commands to the same state hash without policy code.",
+    "Two distinct measurement records are order-invariant, and the same supplied records produce one canonical digest under worker-count labels one, two, and four; this does not claim thread safety or actual worker-process execution."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Fresh replay, two-record order invariance, supplied worker-configuration invariance, and terminal short-circuit",
+  "transcript_id": "PB-T12-replay-invariance"
+}

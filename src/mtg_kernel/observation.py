@@ -26,7 +26,10 @@ class ObservationService:
 
     def _identity_known(self, obj: GameObject, player_id: str) -> bool:
         if self._face_down(obj):
-            return False
+            return bool(
+                obj.zone is Zone.EXILE
+                and obj.current_characteristics.get("foretold_by") == player_id
+            )
         if obj.zone is Zone.LIBRARY:
             return False
         return player_id in obj.identity_visible_to
@@ -104,6 +107,14 @@ class ObservationService:
 
     def observe_for_policy(self, player_id: str) -> dict[str, Any]:
         return self.observe(player_id)
+
+    def handle_for_object(self, player_id: str, generation: int, object_id: str) -> str | None:
+        """Return the current opaque handle for a visible object without exposing its ID."""
+        self.require_current_generation(generation)
+        for handle, binding in self._handles.items():
+            if binding == (player_id, object_id):
+                return handle
+        return None
 
     def resolve_handle(self, player_id: str, generation: int, handle: str) -> GameObject:
         self.require_current_generation(generation)

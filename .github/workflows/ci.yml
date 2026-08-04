@@ -33,6 +33,8 @@ jobs:
         run: uv run python scripts/check_identity_lock.py
       - name: Phase A authority classification
         run: uv run python scripts/check_phase_a_authority.py
+      - name: Phase B evaluator and learning boundary
+        run: uv run python scripts/check_phase_b_evaluator.py
       - name: Clean engine and support-package boundary
         run: uv run python scripts/check_clean_engine_boundary.py
       - name: Legacy package is not importable
@@ -43,7 +45,26 @@ jobs:
           fi
           echo "PASS: mtg_sim is not importable"
       - name: Format
-        run: uv run ruff format --check .
+        id: format
+        continue-on-error: true
+        run: uv run ruff format --check --diff .
+      - name: Prepare formatted-source suggestion
+        if: steps.format.outcome == 'failure'
+        run: |
+          uv run ruff format .
+          mkdir -p "${RUNNER_TEMP}/ruff-formatted"
+          git diff --name-only -z -- '*.py' | xargs -0 -r cp --parents -t "${RUNNER_TEMP}/ruff-formatted"
+      - name: Upload formatted-source suggestion
+        if: steps.format.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruff-formatted-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/ruff-formatted
+          if-no-files-found: error
+          retention-days: 7
+      - name: Enforce formatting
+        if: steps.format.outcome == 'failure'
+        run: exit 1
       - name: Lint
         run: uv run ruff check .
       - name: Type check
@@ -74,6 +95,40 @@ jobs:
         run: uv run python scripts/check_manifest.py
       - name: Durable Phase A certification is current
         run: uv run python scripts/check_phase_a_certification.py
+
+      # Phase B is a blocking gate. The exact deck, strategic model, owner-approved
+      # transcripts, and durable certification must all pass on the exact checked-out head.
+      - name: Phase B verifier
+        id: phase_b
+        env:
+          PHASE_B_ARTIFACT_ROOT: ${{ runner.temp }}/phase-b-result
+        run: uv run mtg-engine verify-phase-b
+      - name: Build Phase B certification candidate
+        run: |
+          RESULT="$(find "${RUNNER_TEMP}/phase-b-result" -name result.json -type f -print -quit)"
+          test -n "${RESULT}"
+          uv run python scripts/record_phase_b_certification.py \
+            --verifier-result "${RESULT}" \
+            --output "${RUNNER_TEMP}/phase-b-certification-candidate/CERTIFICATION.json"
+      - name: Durable Phase B certification is current
+        run: uv run python scripts/check_phase_b_certification.py
+      - name: Upload Phase B verification artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-b-result-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase-b-result
+          if-no-files-found: error
+          retention-days: 90
+      - name: Upload Phase B certification candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-b-certification-candidate-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase-b-certification-candidate
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Upload Phase A verification artifact
         if: always()
         uses: actions/upload-artifact@v4

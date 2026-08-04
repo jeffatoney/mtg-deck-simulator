@@ -14,9 +14,9 @@
     "ID-SYNTHETIC-001",
     "MODEL-HIDDEN-IDENTITY-001"
   ],
-  "certified_content_commit": "e45756c4ef2f938e23b9bcbafd292ff6b86f00cf",
-  "certified_repository_tree_sha": "a97b76a9e2701fb9668000831bda522d06a4453d",
-  "ci_artifact_name": "phase-a-result-e45756c4ef2f938e23b9bcbafd292ff6b86f00cf",
+  "certified_content_commit": "b8ff53874ab93bed1e97326f573464ac0ca39b4d",
+  "certified_repository_tree_sha": "1d875c89a56667d914a1ec80d04fcfdaec2c115c",
+  "ci_artifact_name": "phase-a-result-b8ff53874ab93bed1e97326f573464ac0ca39b4d",
   "clean_tree_before_run": true,
   "counts": {
     "fail": 0,
@@ -24,26 +24,26 @@
     "skip": 0,
     "xfail": 0
   },
-  "covered_content_sha256": "sha256:60cbfdaa919c42da5d9cd1c29f2b64a7fea0ae2b955ee320af44a3c65dc4b51a",
+  "covered_content_sha256": "sha256:ad1bfe438d8a92a84a67e4733c9968a5fb990d90f66d0648ac18b5727b653572",
   "covered_paths": {
-    ".github/workflows/ci.yml": "sha256:056a4370900eebf037472e1abf1ff3474db7a3f5da68ed3780bc86c3ef2f0515",
+    ".github/workflows/ci.yml": "sha256:49f9189f4600c57a20d5a8da00ccc31a736855c17f34a0f5e17c0987dac5b94a",
     "automation/phase-a-test-mapping.json": "sha256:f327a967b5fb384f547d7bb71afbc401111ad5bb93c07337842d7c119a378c98",
     "docs/audit/phase-a-golden-transcripts": "sha256:f5ad779ae5573ff0bb4fb9ad743eea16d4c0c56b83ab6da498d13faf24836545",
     "docs/source/oracle/snapshot_v1.json": "sha256:3a8c7043757f80faecb25ea75881c4730a20b604a794a124ef7a14112cf0a632",
-    "docs/source/source_inventory.json": "sha256:64cf4c8a6e829230628312aa755aece3afb190e964927c355857d847df1d5ede",
-    "pyproject.toml": "sha256:fbc940b034994ce1418362c74ab6d548fa67b8f607117c90601c1ee06cb5e717",
+    "docs/source/source_inventory.json": "sha256:8486ca4213d8598792b6a5345308509dcc1eb9e29337d47dbedce1092ddd0754",
+    "pyproject.toml": "sha256:cd110fe31a70cf051fbbd7c47cfa0a930026f2621855c3a690b3fe92fd1d3915",
     "scripts/_phase_a_paths.py": "sha256:0e47c8d4140561646f08453fe204b6d8ffa664f9d6bd23a00326c89f7eb48be4",
-    "scripts/check_clean_engine_boundary.py": "sha256:d64eb759bf8e373bde3d9c2fc84a317c70f20345fe2487c3ee2b8587298472ff",
+    "scripts/check_clean_engine_boundary.py": "sha256:cbf46687196c8078a6b7f0a46b0df574f786317999394b81cbfc4d6ab40b9b60",
     "scripts/check_identity_lock.py": "sha256:5cf71c02fd09656a5ede106a1d775030b87d3a4aeaa2a6ddf8eeadbb319dd5ce",
     "scripts/check_phase_a_authority.py": "sha256:b39a9db32c1c80b563e9dd2ee8574f3024ded5cf89c0f457b0014e2fcca600f8",
     "scripts/check_phase_a_certification.py": "sha256:0ae73eeb0b8afb6ea04b1ca5f9983da34c77a7d53c60f1b4e94e81277290c390",
     "scripts/check_phase_a_golden_transcripts.py": "sha256:e725911db29e0ae9e2d5962bf5b49e509868ede5b76a3a93f74cf210084de20e",
     "scripts/phase_a_verify_runner.py": "sha256:ea7f8f0b3e04a468310666a3ff1bd30dad556aedfacc1702035ea4b39d9aad61",
-    "scripts/record_phase_a_certification.py": "sha256:b03949440257e09a458e995b98393465f360c517c537e1d7a1558dc16684bc16",
-    "src/mtg_cards": "sha256:4d27bfc2f827607b6a841e3780c1638327cb8436cbd009b3ee1ff21e0a2c0b2d",
-    "src/mtg_kernel": "sha256:e357c0239023bbf9f015a27407ad0c3166a056534600884cc4fb5438916582b3",
+    "scripts/record_phase_a_certification.py": "sha256:988019fe525a20d0e2c809857b5093945df5527a9326762dde93c426834a849b",
+    "src/mtg_cards": "sha256:c1862de86d072a62cf8e40f689718b1543be1976b48e10e52493ff1b0f0c488b",
+    "src/mtg_kernel": "sha256:e9f5f4a7c5b15b851614b2d08bf1019a7544b245a34c1fa822e010bab5eaafba",
     "src/mtg_sources": "sha256:f793d7e84cafe333a6ee530c9986fc89d043d3107c82d35d7ca0b73fc80394d9",
-    "src/mtg_verify": "sha256:21cab38850f6c66aae1659c7a086ccdefd58979326371b59f8c95100dafb4167",
+    "src/mtg_verify": "sha256:23beb72d7e33cc1a40ea46c14f7efa12e955ad971bb4e6c8bceace19cb72c7ed",
     "tests/conftest.py": "sha256:792e475fea08dca3ddd4058f4b36aba31d5de32db8c529b64a80db55550fa4d4",
     "tests/phase_a": "sha256:ff9dabbf559a159ba606d21ff3d7742f0bb47bca115c73ac1908d1eb60517643",
     "tests/test_boundary_support_tier.py": "sha256:8327fffe612b673f57459ef066bd49edb605896380d79aeb4e4a3952ec5dd195",
@@ -53,8 +53,8 @@
     "tests/test_source_validation.py": "sha256:68e017c9d517e67ea37abc52eed2de6ac5694272be5a7e302f122cdd256392db"
   },
   "evidence_classification": "CLEAN_ENGINE_PRODUCTION_PATH",
-  "github_run_id": "30635394660",
-  "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/30635394660",
+  "github_run_id": "30889178244",
+  "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/30889178244",
   "golden_transcripts": "PASS",
   "identity_document_sha256": "c839c16aa08ed6053233745fd2a35c38cbe4aadb16423ecac3d5390999af3ce6",
   "legacy_evidence_used": false,
@@ -76,5 +76,5 @@
     "STICKER_RETENTION"
   ],
   "verification_environment": "GITHUB_ACTIONS",
-  "verifier_run_id": "20260731T134039Z-e45756c4ef2f"
+  "verifier_run_id": "20260804T074711Z-b8ff53874ab9"
 }

@@ -1,0 +1,41 @@
+{
+  "evidence_scope": "MECHANIC_ISOLATION",
+  "family_id": "modal-x-alternative-cost",
+  "machine": {
+    "event_source": "GAME_STATE_EVENTS",
+    "ordered_operations": [
+      "cast modal Abrade and deliberately counter the legal spell",
+      "attempt an illegal X=2 cast with one target and prove complete rollback",
+      "cast the legal X=2 spell with two targets and deliberately counter it",
+      "foretell Ravenform as a special action",
+      "cast Ravenform from exile on a later turn for one blue mana"
+    ],
+    "preconditions": [
+      "Abrade requires an explicit legal mode and target."
+    ],
+    "required_assertions": [
+      "Abrade records the selected mode",
+      "illegal X target count leaves the entire state unchanged",
+      "the legal X spell records x_value 2 and two generic mana in its cost",
+      "Ravenform’s later alternative casting payment is exactly one blue mana",
+      "no fabricated CASTING_ABORTED event is required for the rolled-back attempt"
+    ],
+    "required_event_order": [
+      "SPELL_CAST",
+      "STACK_OBJECT_COUNTERED",
+      "SPELL_CAST",
+      "STACK_OBJECT_COUNTERED",
+      "CARD_FORETOLD",
+      "SPELL_CAST"
+    ],
+    "test_node": "tests/phase_b/transcripts/test_pb_t08_modal_x.py::test_pb_t08_modal_x_foretell_evidence"
+  },
+  "plain_english": [
+    "Abrade requires an explicit legal mode and target and is legally cast before the test deliberately counters it.",
+    "A mismatched X target count is rejected atomically with no event or state mutation; a legal X=2 spell is then cast and deliberately countered for test cleanup.",
+    "Ravenform is foretold face down with the normal foretell special-action payment and is cast on a later turn for its one-blue alternative casting cost."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Modal, X, rollback, and foretell casting use the shared executor",
+  "transcript_id": "PB-T08-modal-x-alt"
+}

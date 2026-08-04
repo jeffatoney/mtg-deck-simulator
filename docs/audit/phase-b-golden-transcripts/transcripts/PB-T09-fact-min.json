@@ -1,0 +1,46 @@
+{
+  "evidence_scope": "POLICY_INTEGRATION",
+  "family_id": "fact-or-fiction-minimizing",
+  "fixture_scope": "EXACT_DECK",
+  "machine": {
+    "event_source": "GAME_STATE_EVENTS",
+    "ordered_operations": [
+      "cast Fact or Fiction",
+      "reveal three Islands, a Mountain, and Twinflame from the actual library",
+      "enumerate all legal unordered splits in the rules layer",
+      "ask the bound frozen provider for the minimizing split and caster pile",
+      "verify the selected record carries the provider evaluator ID and SHA-256",
+      "move the chosen pile to hand and the other pile to graveyard",
+      "replay the recorded choices without policy code"
+    ],
+    "preconditions": [
+      "The scenario is constructed with build_exact_game().",
+      "The contextual_combo_v1 evaluator ID and SHA-256 are bound before the choice.",
+      "Three Islands are already controlled on Turn 3, Dualcaster Mage is in hand, and the mana pool is explicitly funded for the test cast."
+    ],
+    "required_assertions": [
+      "the choice record contains the exact bound evaluator ID and 64-character SHA-256",
+      "Twinflame reaches hand",
+      "all five revealed physical cards end in exactly one of hand or graveyard",
+      "the unchosen pile may be empty; any cards in it move to graveyard",
+      "fresh replay reproduces the complete recorded selection",
+      "the transcript does not invent a Sol Ring or MANA_PRODUCED event absent from the named test"
+    ],
+    "required_event_order": [
+      "SPELL_CAST",
+      "FACT_OR_FICTION_REVEALED",
+      "FACT_OR_FICTION_SPLIT",
+      "FACT_OR_FICTION_PILE_CHOSEN",
+      "STACK_OBJECT_RESOLVED"
+    ],
+    "test_node": "tests/phase_b/transcripts/test_pb_t09_fact_or_fiction.py::test_pb_t09_fact_or_fiction_evidence"
+  },
+  "plain_english": [
+    "The exact frozen deck is placed in a Turn 3 fixture with three Islands on the battlefield, Dualcaster Mage in hand, and an explicitly funded legal mana pool; the fixture does not use Sol Ring.",
+    "Fact or Fiction reveals three Islands, a Mountain, and Twinflame, and the resulting choice record is explicitly bound to the frozen contextual evaluator ID and SHA-256.",
+    "Twinflame reaches hand, every revealed physical card reaches hand or graveyard, and fresh replay reproduces the complete recorded choice without rerunning policy code."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Fact or Fiction binds its contextual evaluator, moves both piles, and replays the exact choice",
+  "transcript_id": "PB-T09-fact-min"
+}

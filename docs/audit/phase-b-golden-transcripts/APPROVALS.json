@@ -1,0 +1,114 @@
+{
+  "approvals": [
+    {
+      "approval_statement": "Jeff Toney approves PB-T01-exact-deck at SHA-256 3bca7d2609587640fb61cca82672243c3b91cf3c65bf25a53465d680593306a5 after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T01-exact-deck.json",
+      "sha256": "3bca7d2609587640fb61cca82672243c3b91cf3c65bf25a53465d680593306a5",
+      "status": "APPROVED",
+      "transcript_id": "PB-T01-exact-deck"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T02-league-mulligan at SHA-256 3b3e46358bd4c9cd1644438ddef4115cdf2fd36e6fd9c6a96c1d84cda2a9d290 after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T02-league-mulligan.json",
+      "sha256": "3b3e46358bd4c9cd1644438ddef4115cdf2fd36e6fd9c6a96c1d84cda2a9d290",
+      "status": "APPROVED",
+      "transcript_id": "PB-T02-league-mulligan"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T03-malcolm-opponents at SHA-256 c242aa3876e7f601910b8ea251be164e559ff6f5764f656358b232ff5475d74d after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T03-malcolm-opponents.json",
+      "sha256": "c242aa3876e7f601910b8ea251be164e559ff6f5764f656358b232ff5475d74d",
+      "status": "APPROVED",
+      "transcript_id": "PB-T03-malcolm-opponents"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T04-breeches-unknown at SHA-256 8d7654e88b9cbd43270500e431cf6929af6d106653da9a7a4a00dd05308957c0 after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T04-breeches-unknown.json",
+      "sha256": "8d7654e88b9cbd43270500e431cf6929af6d106653da9a7a4a00dd05308957c0",
+      "status": "APPROVED",
+      "transcript_id": "PB-T04-breeches-unknown"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T05-dualcaster-twinflame at SHA-256 c07004dd8c62faa9a5d2e6bd61be84f24c8da06ff15e34b57ef2b6f054f9827c after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T05-dualcaster-twinflame.json",
+      "sha256": "c07004dd8c62faa9a5d2e6bd61be84f24c8da06ff15e34b57ef2b6f054f9827c",
+      "status": "APPROVED",
+      "transcript_id": "PB-T05-dualcaster-twinflame"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T06-glint-curiosity-terminal at SHA-256 5aa504ddf414fd8930f97a128418286a47eb3e35fa3e392f7b55edc5103795cb after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T06-glint-curiosity-terminal.json",
+      "sha256": "5aa504ddf414fd8930f97a128418286a47eb3e35fa3e392f7b55edc5103795cb",
+      "status": "APPROVED",
+      "transcript_id": "PB-T06-glint-curiosity-terminal"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T07-tutor-one at SHA-256 e27423fe7f4f940fc289ce6d746195eeac438fcac78b465fed73223c2a2a7048 after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T07-tutor-one.json",
+      "sha256": "e27423fe7f4f940fc289ce6d746195eeac438fcac78b465fed73223c2a2a7048",
+      "status": "APPROVED",
+      "transcript_id": "PB-T07-tutor-one"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T08-modal-x-alt at SHA-256 2bf3eb19c085fe2de9f9e7ee8268ffa46704460ec4d4a6308d1f0f5bb0599be4 after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T08-modal-x-alt.json",
+      "sha256": "2bf3eb19c085fe2de9f9e7ee8268ffa46704460ec4d4a6308d1f0f5bb0599be4",
+      "status": "APPROVED",
+      "transcript_id": "PB-T08-modal-x-alt"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T09-fact-min at SHA-256 30564beedf7d1bc46055a9a237ee12894741a4450375718bbfeb7c418b3c2c3c after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T09-fact-min.json",
+      "sha256": "30564beedf7d1bc46055a9a237ee12894741a4450375718bbfeb7c418b3c2c3c",
+      "status": "APPROVED",
+      "transcript_id": "PB-T09-fact-min"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T10-hidden-future at SHA-256 b0c72009401b1c52924faed58a6b03a520d771b56e141c4523686c680129be69 after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T10-hidden-future.json",
+      "sha256": "b0c72009401b1c52924faed58a6b03a520d771b56e141c4523686c680129be69",
+      "status": "APPROVED",
+      "transcript_id": "PB-T10-hidden-future"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T11-shared-broker at SHA-256 79ca0c100352bb24d414597b30e116b50d5fa544520cfb74250c6e44e0a9398f after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T11-shared-broker.json",
+      "sha256": "79ca0c100352bb24d414597b30e116b50d5fa544520cfb74250c6e44e0a9398f",
+      "status": "APPROVED",
+      "transcript_id": "PB-T11-shared-broker"
+    },
+    {
+      "approval_statement": "Jeff Toney approves PB-T12-replay-invariance at SHA-256 5947b2bec9db97a5ac441c26f4ec4f040fef1010b47b5a336f5cd80892c153b3 after review of the exact transcript, named test, and runtime-bound evidence contract.",
+      "approved_at": "2026-08-04T00:14:00-07:00",
+      "approved_by": "Jeff Toney",
+      "path": "docs/audit/phase-b-golden-transcripts/transcripts/PB-T12-replay-invariance.json",
+      "sha256": "5947b2bec9db97a5ac441c26f4ec4f040fef1010b47b5a336f5cd80892c153b3",
+      "status": "APPROVED",
+      "transcript_id": "PB-T12-replay-invariance"
+    }
+  ],
+  "required_count": 12,
+  "schema_version": "phase-b-golden-transcript-approvals-v1"
+}

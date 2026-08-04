@@ -1,0 +1,47 @@
+{
+  "evidence_scope": "EXACT_DECK_INTEGRATION",
+  "family_id": "tutor-exactly-one-target",
+  "machine": {
+    "event_source": "GAME_STATE_EVENTS",
+    "ordered_operations": [
+      "activate transmute through the shared ActionBroker without a tutor identity in the activation arguments",
+      "create the ability object and pay mana and discard costs atomically",
+      "capture the resolution-time eligible card set with a disclosed recording test provider",
+      "force Sol Ring only after proving every offered card has mana value one",
+      "reveal and move the selected singleton to hand and shuffle the library",
+      "repeat the exact-deck activation with an explicit FAIL_TO_FIND selection"
+    ],
+    "preconditions": [
+      "Both scenarios are constructed with build_exact_game().",
+      "Dizzy Spell is placed in hand as test setup.",
+      "The positive scenario uses a recording provider that discloses test_override and delegates evaluator identity to the frozen production provider.",
+      "The second scenario deliberately selects FAIL_TO_FIND to prove that hidden-zone fail-to-find remains legal."
+    ],
+    "required_assertions": [
+      "the broker exposes one activation with choice timing RESOLUTION",
+      "no tutor choice is recorded before resolution",
+      "every offered tutor candidate has mana value one and Twinflame is not offered",
+      "exactly one singleton Sol Ring enters hand in the positive scenario",
+      "the selected record contains the frozen evaluator ID and exact SHA-256",
+      "the disclosed override is recorded in diagnostics",
+      "FAIL_TO_FIND resolves legally without moving Sol Ring to hand"
+    ],
+    "required_event_order": [
+      "ABILITY_ACTIVATED",
+      "CARD_DISCARDED",
+      "LIBRARY_SEARCH_CHOICE",
+      "SEARCH_CARD_REVEALED",
+      "LIBRARY_SHUFFLED",
+      "STACK_OBJECT_RESOLVED"
+    ],
+    "test_node": "tests/phase_b/transcripts/test_pb_t07_transmute.py::test_pb_t07_transmute_resolution_evidence"
+  },
+  "plain_english": [
+    "The exact deck activates Dizzy Spell through the shared broker, with the identity choice deferred until resolution.",
+    "A disclosed recording test provider proves that only mana-value-one cards are offered, records the frozen evaluator identity, and selects the singleton Sol Ring for the positive case.",
+    "A second exact-deck execution selects FAIL_TO_FIND and proves that the hidden-zone search may legally find no card even while eligible cards exist."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Exact-deck transmute filters by mana value, records the evaluator, and permits fail-to-find at resolution",
+  "transcript_id": "PB-T07-tutor-one"
+}
