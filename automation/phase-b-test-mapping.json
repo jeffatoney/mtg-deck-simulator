@@ -49,7 +49,10 @@
       "tests/phase_b/test_runtime_batch_twenty_five.py::test_demolition_field_allows_each_player_to_fail_to_find",
       "tests/phase_b/test_runtime_batch_twenty_five.py::test_demolition_field_missing_provider_fails_closed_atomically",
       "tests/phase_b/test_runtime_batch_twenty_six.py::test_lazotep_plating_amasses_and_protects_until_cleanup",
-      "tests/phase_b/test_runtime_batch_twenty_six.py::test_lazotep_plating_requires_explicit_choice_for_multiple_armies_atomically"
+      "tests/phase_b/test_runtime_batch_twenty_six.py::test_lazotep_plating_requires_explicit_choice_for_multiple_armies_atomically",
+      "tests/phase_b/test_runtime_batch_twenty_seven.py::test_path_of_ancestry_enters_tapped_and_marked_mana_triggers_scry",
+      "tests/phase_b/test_runtime_batch_twenty_seven.py::test_path_of_ancestry_requires_explicit_scry_choice_atomically",
+      "tests/phase_b/test_runtime_batch_twenty_seven.py::test_path_marked_mana_is_consumed_without_trigger_for_nonshared_creature"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
