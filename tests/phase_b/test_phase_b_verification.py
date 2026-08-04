@@ -32,7 +32,7 @@ def test_verifier_and_durable_certification_fail_closed_without_fabricated_block
     candidate_step = workflow.split("- name: Build Phase B certification candidate", 1)[1].split(
         "- name: Durable Phase B certification is current", 1
     )[0]
-    assert '-mindepth 2 -maxdepth 2 -name result.json' in candidate_step
+    assert "-mindepth 2 -maxdepth 2 -name result.json" in candidate_step
     assert "standing-phase-a" not in candidate_step
     assert (
         "Build Phase B certification candidate" in workflow
