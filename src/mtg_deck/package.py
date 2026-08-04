@@ -36,6 +36,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Crab Umbra",
         "Curiosity",
         "Curse of the Swine",
+        "Demolition Field",
         "Dispel",
         "Dizzy Spell",
         "Drift of Phantasms",
