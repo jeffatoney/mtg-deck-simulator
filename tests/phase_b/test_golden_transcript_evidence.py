@@ -350,7 +350,9 @@ def test_pb_t05_dualcaster_twinflame_evidence() -> None:
         and obj.current_characteristics.get("name") == "Twinflame"
     ]
     assert len(tokens) == 2
-    assert copies and all(copy.was_cast is False and not copy.component_card_instance_ids for copy in copies)
+    assert copies and all(
+        copy.was_cast is False and not copy.component_card_instance_ids for copy in copies
+    )
     strategies = [
         choice.selected.get("diagnostics", {}).get("strategy")
         for choice in state.choices
@@ -359,8 +361,10 @@ def test_pb_t05_dualcaster_twinflame_evidence() -> None:
     assert "CONTINUE_BOUNDED_DUALCASTER_LOOP" in strategies
     assert "STOP_BOUNDED_DUALCASTER_LOOP" in strategies
     kinds = [event.kind for event in state.events]
-    assert kinds.index("COPY_TARGET_DECISION") < kinds.index("SPELL_COPIED") < kinds.index(
-        "TOKEN_COPY_CREATED"
+    assert (
+        kinds.index("COPY_TARGET_DECISION")
+        < kinds.index("SPELL_COPIED")
+        < kinds.index("TOKEN_COPY_CREATED")
     )
     record_game_state_evidence(
         "PB-T05-dualcaster-twinflame",
@@ -399,12 +403,15 @@ def test_pb_t06_glint_curiosity_terminal_evidence() -> None:
         if event.kind == "STACK_OBJECT_RESOLVED"
         and event.payload.get("object_id") == damage_trigger_id
     )
-    terminal = next(index for index, event in enumerate(state.events) if event.kind == "GAME_TERMINATED")
+    terminal = next(
+        index for index, event in enumerate(state.events) if event.kind == "GAME_TERMINATED"
+    )
     assert resolved < terminal == len(state.events) - 1
     curiosity_triggers = [
         event
         for event in state.events
-        if event.kind == "ABILITY_TRIGGERED" and event.payload.get("ability_id") == "curiosity:damage"
+        if event.kind == "ABILITY_TRIGGERED"
+        and event.payload.get("ability_id") == "curiosity:damage"
     ]
     assert len(curiosity_triggers) == 3
     assert any(event.kind == "SBA_SYNTHETIC_CEASE" for event in state.events)
@@ -449,7 +456,9 @@ def test_pb_t07_transmute_resolution_evidence() -> None:
     state.players["P0"].mana_pool["C"] = 1
     broker = ActionBroker(executor, "P0")
     observation, actions = broker.refresh()
-    action = next(item for item in actions if item.kind == "ACTIVATE_HAND" and item.identity == "Dizzy Spell")
+    action = next(
+        item for item in actions if item.kind == "ACTIVATE_HAND" and item.identity == "Dizzy Spell"
+    )
     assert action.metadata["choice_timing"] == "RESOLUTION"
     broker.execute(int(observation["generation"]), action.handle)
     assert not any(choice.kind == "TRANSMUTE" for choice in state.choices)
@@ -478,11 +487,15 @@ def test_pb_t07_transmute_resolution_evidence() -> None:
 
 def test_pb_t08_modal_x_foretell_evidence() -> None:
     state, executor, specs = funded_game("golden-t08")
-    creature = add_card(executor, specs["Malcolm, Keen-Eyed Navigator"], Zone.BATTLEFIELD, owner="P1")
+    creature = add_card(
+        executor, specs["Malcolm, Keen-Eyed Navigator"], Zone.BATTLEFIELD, owner="P1"
+    )
     artifact_a = add_card(executor, specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
     artifact_b = add_card(executor, specs["Arcane Signet"], Zone.BATTLEFIELD, owner="P2")
     abrade = add_card(executor, specs["Abrade"], Zone.HAND)
-    abrade_spell = executor.cast("P0", abrade.object_id, (TargetRef(creature.object_id),), mode="damage")
+    abrade_spell = executor.cast(
+        "P0", abrade.object_id, (TargetRef(creature.object_id),), mode="damage"
+    )
     assert executor._created_action(abrade_spell).modes == ("damage",)
     executor.counter(abrade_spell.object_id)
     by_force = add_card(executor, specs["By Force"], Zone.HAND)
@@ -557,9 +570,12 @@ def test_pb_t09_fact_or_fiction_evidence() -> None:
     ]
     assert graveyard_names.count("Island") >= 3
     replayed = validate_replay(transcript(state, seed="golden-t09"))
-    assert next(
-        choice for choice in replayed.choices if choice.kind == "FACT_OR_FICTION_PILE"
-    ).selected == chosen.selected
+    assert (
+        next(
+            choice for choice in replayed.choices if choice.kind == "FACT_OR_FICTION_PILE"
+        ).selected
+        == chosen.selected
+    )
     record_game_state_evidence(
         "PB-T09-fact-min",
         state,
@@ -658,7 +674,9 @@ def test_pb_t11_shared_broker_divergence_evidence() -> None:
     record_audit_evidence(
         "PB-T11-shared-broker",
         (
-            audit_event("BROKER_ACTION_SET_VALIDATED", generation=generation, action_count=len(actions)),
+            audit_event(
+                "BROKER_ACTION_SET_VALIDATED", generation=generation, action_count=len(actions)
+            ),
             audit_event("STANDARD_SELECTION_VALIDATED", handle=standard),
             audit_event(
                 "EXPLORATORY_SELECTION_VALIDATED",
