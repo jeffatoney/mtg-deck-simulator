@@ -55,6 +55,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "By Force",
             "Cascade Bluffs",
             "Change the Equation",
+            "Chart a Course",
             "Command Tower",
             "Commit // Memory",
             "Crab Umbra",
