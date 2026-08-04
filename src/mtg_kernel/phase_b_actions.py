@@ -24,7 +24,10 @@ if TYPE_CHECKING:
 def effect_execution_supported(effect: dict[str, Any]) -> bool:
     """Return whether one effect has a reviewed production implementation."""
 
-    if str(effect.get("kind", "NONE")) == "EXILE_AND_MANIFEST":
+    if str(effect.get("kind", "NONE")) in {
+        "COUNTER_WITH_DELAYED_DRAWS",
+        "EXILE_AND_MANIFEST",
+    }:
         return True
     return _effect_execution_supported(effect)
 

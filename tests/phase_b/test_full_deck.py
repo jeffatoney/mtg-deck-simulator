@@ -47,6 +47,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
         == {
             "Abrade",
             "Aetherize",
+            "Arcane Denial",
             "Arcane Signet",
             "Ash Barrens",
             "Breeches, Brazen Plunderer",

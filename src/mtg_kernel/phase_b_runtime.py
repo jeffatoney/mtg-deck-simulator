@@ -8,6 +8,7 @@ from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.models import Action, GameObject, ObjectKind, TargetRef, Zone
 from mtg_kernel.phase_b_counter_validation import cast_with_counter_predicate
 from mtg_kernel.phase_b_runtime_effects_common import apply_effect_common
+from mtg_kernel.phase_b_runtime_effects_delayed import apply_effect_delayed
 from mtg_kernel.phase_b_runtime_effects_interaction import apply_effect_interaction
 from mtg_kernel.phase_b_runtime_effects_mana import apply_effect_mana
 from mtg_kernel.phase_b_runtime_effects_manifest import apply_effect_manifest
@@ -50,6 +51,8 @@ def _apply_effect(
                 )
         return
     if apply_effect_common(self, source, action, effect, targets, choices):
+        return
+    if apply_effect_delayed(self, source, action, effect, targets, choices):
         return
     if apply_effect_interaction(self, source, action, effect, targets, choices):
         return
@@ -119,6 +122,14 @@ def _copy_permanent_token(
     return token
 
 
+def _trigger_name(self: Any, object_id: str) -> str:
+    trigger = self.state.objects.get(object_id)
+    if trigger is None:
+        return ""
+    ability = trigger.current_characteristics.get("ability", {})
+    return str(ability.get("trigger", "")) if isinstance(ability, dict) else ""
+
+
 def _begin_step(
     self: Any,
     step: str,
@@ -126,10 +137,62 @@ def _begin_step(
     *,
     _record: bool = True,
 ) -> None:
-    """Preserve indirect phasing until the directly phased permanent returns."""
+    """Schedule exact delayed triggers and preserve indirect phasing."""
 
     original_begin_step = _ORIGINALS["begin_step"]
-    original_begin_step(self, step, choices, _record=_record)
+    step_choices = dict(choices or {})
+
+    if step == "END":
+        before = self._begin_atomic()
+        delayed = list(self.state.delayed_triggers)
+        due = [object_id for object_id in delayed if _trigger_name(self, object_id) == "NEXT_END_STEP"]
+        withheld = [object_id for object_id in delayed if object_id not in due]
+        try:
+            self.state.delayed_triggers = due
+            original_begin_step(self, step, step_choices, _record=_record)
+            self.state.delayed_triggers.extend(withheld)
+        except Exception:
+            self._rollback(before)
+            raise
+        return
+
+    original_begin_step(self, step, step_choices, _record=_record)
+
+    if step == "UPKEEP":
+        due: list[str] = []
+        remaining: list[str] = []
+        for object_id in self.state.delayed_triggers:
+            trigger = self.state.objects.get(object_id)
+            context = (
+                trigger.current_characteristics.get("trigger_context", {})
+                if trigger is not None
+                else {}
+            )
+            not_before_turn = (
+                int(context.get("not_before_turn", self.state.turn.number))
+                if isinstance(context, dict)
+                else self.state.turn.number
+            )
+            if (
+                _trigger_name(self, object_id) == "NEXT_UPKEEP"
+                and self.state.turn.number >= not_before_turn
+            ):
+                due.append(object_id)
+            else:
+                remaining.append(object_id)
+        self.state.delayed_triggers = remaining
+        per_trigger = step_choices.get("delayed_trigger_choices", {})
+        choice_map = per_trigger if isinstance(per_trigger, dict) else {}
+        for object_id in due:
+            trigger = self.state.objects[object_id]
+            selected = choice_map.get(object_id, {})
+            trigger.current_characteristics["choice_hints"] = (
+                dict(selected) if isinstance(selected, dict) else {}
+            )
+            self.state.waiting_triggers.append(object_id)
+        self.put_waiting_triggers_on_stack()
+        return
+
     if step != "UNTAP":
         return
     for obj in self.state.objects.values():

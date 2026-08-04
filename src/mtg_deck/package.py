@@ -22,6 +22,7 @@ IMPLEMENTED_CARDS = frozenset(
     {
         "Abrade",
         "Aetherize",
+        "Arcane Denial",
         "Arcane Signet",
         "Ash Barrens",
         "Breeches, Brazen Plunderer",

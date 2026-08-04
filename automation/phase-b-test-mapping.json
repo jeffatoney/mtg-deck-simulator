@@ -36,7 +36,10 @@
       "tests/phase_b/test_runtime_batch_twenty_one.py::test_spell_pierce_controller_payment_preserves_target_and_records_mana",
       "tests/phase_b/test_runtime_batch_twenty_one.py::test_syncopate_uses_x_for_payment_and_exiles_when_declined",
       "tests/phase_b/test_runtime_batch_twenty_two.py::test_reality_shift_exiles_target_and_manifests_top_card_face_down",
-      "tests/phase_b/test_runtime_batch_twenty_two.py::test_reality_shift_with_empty_library_exiles_without_creating_a_permanent"
+      "tests/phase_b/test_runtime_batch_twenty_two.py::test_reality_shift_with_empty_library_exiles_without_creating_a_permanent",
+      "tests/phase_b/test_runtime_batch_twenty_three.py::test_arcane_denial_counters_and_executes_explicit_next_upkeep_draw_count",
+      "tests/phase_b/test_runtime_batch_twenty_three.py::test_arcane_denial_waits_for_next_turn_upkeep_and_allows_zero_cards",
+      "tests/phase_b/test_runtime_batch_twenty_three.py::test_arcane_denial_missing_draw_choice_fails_closed_atomically"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
