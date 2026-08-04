@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
 from mtg_kernel.errors import UnsupportedCapability
@@ -16,10 +17,125 @@ from mtg_kernel.strategic_choices import (
     TutorChoiceSelection,
 )
 from mtg_policy.config import PolicyBundle
-from mtg_policy.evaluation import ContextualEvaluator, score_to_microunits
+from mtg_policy.evaluation import ContextualEvaluator, EvaluatorConfig, score_to_microunits
 
 if TYPE_CHECKING:
     from mtg_kernel.engine import GameExecutor
+
+
+DUALCASTER_LOOP_ADJUDICATOR = "VISIBLE_LIFE_AND_BLOCKER_RESERVE_V1"
+MAX_DUALCASTER_LOOP_TOKENS = 512
+_SUPPORTED_DUALCASTER_LOOP_MODES = frozenset(
+    {"FAIL_CLOSED_UNTIL_DETERMINISTIC_LOOP_ADJUDICATOR"}
+)
+
+
+def dualcaster_loop_adjudication_supported(config: EvaluatorConfig) -> bool:
+    """Return whether the frozen evaluator mode has a production policy adjudicator."""
+
+    return config.dualcaster_loop_handling in _SUPPORTED_DUALCASTER_LOOP_MODES
+
+
+def _dualcaster_loop_selection(
+    request: SpellCopyTargetRequest,
+) -> tuple[tuple[str, ...], dict[str, Any]]:
+    """Choose a finite Twinflame loop bound from current public combat information."""
+
+    life = request.observation.get("life")
+    objects = request.observation.get("objects")
+    if not isinstance(life, Mapping) or not isinstance(objects, Sequence):
+        raise UnsupportedCapability(
+            "canonical Dualcaster/Twinflame loop adjudication is not implemented for "
+            "observations without complete visible life and battlefield state"
+        )
+
+    opponent_life: dict[str, int] = {}
+    for player_id, raw_life in life.items():
+        player = str(player_id)
+        if player == request.actor_id:
+            continue
+        if isinstance(raw_life, bool) or not isinstance(raw_life, int) or raw_life < 0:
+            raise UnsupportedCapability(
+                "canonical Dualcaster/Twinflame loop adjudication is not implemented for "
+                "malformed visible life state"
+            )
+        if raw_life > 0:
+            opponent_life[player] = raw_life
+
+    visible_dualcasters = 0
+    visible_opponent_blockers = 0
+    for raw in objects:
+        if not isinstance(raw, Mapping) or raw.get("zone") != "BATTLEFIELD":
+            continue
+        controller = str(raw.get("controller", ""))
+        identity = str(raw.get("identity", ""))
+        card_types = raw.get("card_types", ())
+        types = (
+            {str(value) for value in card_types}
+            if isinstance(card_types, Sequence)
+            else set()
+        )
+        if controller == request.actor_id and identity == "Dualcaster Mage":
+            visible_dualcasters += 1
+        elif controller in opponent_life and "Creature" in types:
+            visible_opponent_blockers += 1
+
+    required_tokens = sum((value + 1) // 2 for value in opponent_life.values())
+    required_tokens += visible_opponent_blockers
+    if required_tokens > MAX_DUALCASTER_LOOP_TOKENS:
+        raise UnsupportedCapability(
+            "canonical Dualcaster/Twinflame visible lethal reserve exceeds the bounded "
+            f"policy limit of {MAX_DUALCASTER_LOOP_TOKENS} tokens"
+        )
+
+    target_by_handle = {card.handle: card for card in request.legal_targets}
+    continue_sets = tuple(
+        targets
+        for targets in request.legal_target_sets
+        if len(targets) == 1
+        and targets[0] in target_by_handle
+        and target_by_handle[targets[0]].identity == "Dualcaster Mage"
+    )
+    stop_sets = tuple(
+        targets
+        for targets in request.legal_target_sets
+        if all(
+            handle in target_by_handle
+            and target_by_handle[handle].identity != "Dualcaster Mage"
+            for handle in targets
+        )
+    )
+    token_count = max(0, visible_dualcasters - 1)
+    if token_count < required_tokens:
+        if not continue_sets:
+            raise UnsupportedCapability(
+                "canonical Dualcaster/Twinflame loop cannot continue through a legal "
+                "Dualcaster target"
+            )
+        selected = min(continue_sets)
+        strategy = "CONTINUE_BOUNDED_DUALCASTER_LOOP"
+    else:
+        if request.original_target_handles in stop_sets:
+            selected = request.original_target_handles
+        elif stop_sets:
+            selected = min(stop_sets)
+        else:
+            raise UnsupportedCapability(
+                "canonical Dualcaster/Twinflame loop cannot stop on a legal "
+                "non-Dualcaster target"
+            )
+        strategy = "STOP_BOUNDED_DUALCASTER_LOOP"
+
+    diagnostics: dict[str, Any] = {
+        "adjudicator": DUALCASTER_LOOP_ADJUDICATOR,
+        "strategy": strategy,
+        "token_count": token_count,
+        "required_tokens": required_tokens,
+        "visible_opponent_life": dict(sorted(opponent_life.items())),
+        "visible_opponent_blockers": visible_opponent_blockers,
+        "maximum_tokens": MAX_DUALCASTER_LOOP_TOKENS,
+    }
+    return selected, diagnostics
 
 
 class PolicyStrategicChoiceProvider:
@@ -57,7 +173,11 @@ class PolicyStrategicChoiceProvider:
                 card.handle
                 for card in sorted(
                     request.candidates,
-                    key=lambda card: (-evaluations[card.handle], card.identity, card.handle),
+                    key=lambda card: (
+                        -evaluations[card.handle],
+                        card.identity,
+                        card.handle,
+                    ),
                 )[: request.maximum]
             )
         else:
@@ -72,7 +192,8 @@ class PolicyStrategicChoiceProvider:
                 "policy_config_id": self.bundle.policy_config_id,
                 "purpose": request.purpose,
                 "candidate_evaluation_microunits": {
-                    handle: score_to_microunits(value) for handle, value in evaluations.items()
+                    handle: score_to_microunits(value)
+                    for handle, value in evaluations.items()
                 },
             },
         )
@@ -90,7 +211,9 @@ class PolicyStrategicChoiceProvider:
             evaluations = {}
             for card in candidates:
                 value = self.evaluator.evaluate_pile((card,), request.observation).score
-                evaluations[card.identity] = max(evaluations.get(card.identity, value), value)
+                evaluations[card.identity] = max(
+                    evaluations.get(card.identity, value), value
+                )
                 scored.append((value, rank.get(card.identity, 0), card.identity))
             selected = max(scored)[2]
         return TutorChoiceSelection(
@@ -102,12 +225,15 @@ class PolicyStrategicChoiceProvider:
                 "tutor_priority": self.bundle.value("tutor_priority"),
                 "eligible_identities": list(request.eligible_identities),
                 "candidate_evaluation_microunits": {
-                    name: score_to_microunits(value) for name, value in evaluations.items()
+                    name: score_to_microunits(value)
+                    for name, value in evaluations.items()
                 },
             },
         )
 
-    def choose_fact_or_fiction(self, request: FactOrFictionRequest) -> FactOrFictionSelection:
+    def choose_fact_or_fiction(
+        self, request: FactOrFictionRequest
+    ) -> FactOrFictionSelection:
         if self.evaluator.config.opponent_choice_mode != "PERFECT_MINIMIZER":
             raise ValueError("unsupported opponent Fact or Fiction choice mode")
         cards = {card.handle: card for card in request.revealed_cards}
@@ -165,10 +291,13 @@ class PolicyStrategicChoiceProvider:
             request.source_identity == "Dualcaster Mage"
             and request.copied_spell_identity == "Twinflame"
         ):
-            raise UnsupportedCapability(
-                "canonical Dualcaster/Twinflame loop adjudication is not implemented; "
-                "audit witnesses may use an explicit bounded test provider"
-            )
+            if not dualcaster_loop_adjudication_supported(self.evaluator.config):
+                raise UnsupportedCapability(
+                    "canonical Dualcaster/Twinflame loop adjudication is not implemented "
+                    "for the selected evaluator mode"
+                )
+            selected, loop_diagnostics = _dualcaster_loop_selection(request)
+            diagnostics.update(loop_diagnostics)
         if selected not in request.legal_target_sets:
             raise ValueError("policy selected a copy target set outside the legal choices")
         return SpellCopyTargetSelection(
