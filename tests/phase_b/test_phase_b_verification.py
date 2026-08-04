@@ -22,6 +22,8 @@ def test_phase_b_mapping_has_no_slice_placeholders_and_covers_all_blockers() -> 
 def test_verifier_and_durable_certification_fail_closed_without_fabricated_blockers() -> None:
     cli = (ROOT / "src/mtg_kernel/cli.py").read_text(encoding="utf-8")
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    verifier = (ROOT / "src/mtg_verify/phase_b.py").read_text(encoding="utf-8")
+    recorder = (ROOT / "scripts/record_phase_b_certification.py").read_text(encoding="utf-8")
     assert "verify-phase-b" in cli and "- name: Phase B verifier" in workflow
     phase_b_step = workflow.split("- name: Phase B verifier", 1)[1].split(
         "- name: Build Phase B certification candidate", 1
@@ -31,6 +33,8 @@ def test_verifier_and_durable_certification_fail_closed_without_fabricated_block
         "Build Phase B certification candidate" in workflow
         and "Durable Phase B certification is current" in workflow
     )
+    assert "transcript_approval_document_sha256" in verifier
+    assert 'verifier["transcript_approval_document_sha256"]' in recorder
     assert "pilot-simulation.yml" not in workflow
     assert exact_deck_execution_blockers() == []
     assert strategic_model_blockers() == []
