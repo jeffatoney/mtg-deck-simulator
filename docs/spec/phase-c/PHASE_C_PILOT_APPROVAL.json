@@ -7,7 +7,7 @@
     "exploratory": 200,
     "standard": 500
   },
-  "confirmation_token_sha256": "19040d128a77395144216906f6bf42e1cbabe95e40a8818f58753676f3325faf",
+  "confirmation_token_sha256": "1ffb5460831ae8725d40b72bc754e5104fcdc797b64e43d562c346632f3de448",
   "pilot_config_sha256": null,
   "schema_version": "phase-c-pilot-approval-v1",
   "status": "PENDING_OWNER_APPROVAL",
