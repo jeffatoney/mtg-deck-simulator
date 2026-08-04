@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from mtg_kernel.errors import IllegalAction
 from mtg_kernel.models import Action, Choice, GameObject, Zone
@@ -122,7 +122,7 @@ def _target_permanent(
         raise IllegalAction("Prismari Command permanent target is illegal")
     if _permanent_has_hexproof_from(executor, action.actor_id, obj):
         raise IllegalAction("Prismari Command permanent target has hexproof")
-    return obj
+    return cast(GameObject, obj)
 
 
 def _hand_objects(executor: Any, player_id: str) -> list[GameObject]:
