@@ -63,7 +63,8 @@ def test_pb_t09_fact_or_fiction_evidence() -> None:
     hand_cards = [obj for obj in resolved_revealed if obj.zone is Zone.HAND]
     graveyard_cards = [obj for obj in resolved_revealed if obj.zone is Zone.GRAVEYARD]
     assert len(hand_cards) + len(graveyard_cards) == 5
-    assert hand_cards and graveyard_cards
+    assert len(hand_cards) == len(chosen.selected["cards"])
+    assert len(graveyard_cards) == 5 - len(hand_cards)
     assert any(obj.current_characteristics.get("name") == "Twinflame" for obj in hand_cards)
     replayed = validate_replay(transcript(state, seed="golden-t09"))
     assert (
@@ -79,6 +80,7 @@ def test_pb_t09_fact_or_fiction_evidence() -> None:
             "twinflame_reached_hand": True,
             "revealed_cards_to_hand": len(hand_cards),
             "revealed_cards_to_graveyard": len(graveyard_cards),
+            "unchosen_pile_may_be_empty": True,
             "fresh_replay_reproduced_selection": True,
             "test_fixture_uses_sol_ring": False,
         },
