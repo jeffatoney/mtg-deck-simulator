@@ -8,22 +8,22 @@
       "cast Fact or Fiction",
       "reveal three Islands, a Mountain, and Twinflame from the actual library",
       "enumerate all legal unordered splits in the rules layer",
-      "ask the frozen provider for the minimizing split and caster pile",
+      "ask the bound frozen provider for the minimizing split and caster pile",
+      "verify the selected record carries the provider evaluator ID and SHA-256",
       "move the chosen pile to hand and the other pile to graveyard",
       "replay the recorded choices without policy code"
     ],
     "preconditions": [
       "The scenario is constructed with build_exact_game().",
-      "The contextual_combo_v1 evaluator ID and SHA-256 are frozen before the choice.",
+      "The contextual_combo_v1 evaluator ID and SHA-256 are bound before the choice.",
       "Three Islands are already controlled on Turn 3, Dualcaster Mage is in hand, and the mana pool is explicitly funded for the test cast."
     ],
     "required_assertions": [
-      "the kernel does not contain card-value weights",
-      "the choice record contains evaluator ID and SHA-256",
+      "the choice record contains the exact bound evaluator ID and 64-character SHA-256",
       "Twinflame reaches hand",
       "all five revealed physical cards end in exactly one of hand or graveyard",
       "the unchosen pile may be empty; any cards in it move to graveyard",
-      "fresh replay reproduces the exact recorded selection",
+      "fresh replay reproduces the complete recorded selection",
       "the transcript does not invent a Sol Ring or MANA_PRODUCED event absent from the named test"
     ],
     "required_event_order": [
@@ -37,10 +37,10 @@
   },
   "plain_english": [
     "The exact frozen deck is placed in a Turn 3 fixture with three Islands on the battlefield, Dualcaster Mage in hand, and an explicitly funded legal mana pool; the fixture does not use Sol Ring.",
-    "Fact or Fiction is cast and reveals three Islands, a Mountain, and Twinflame from the actual library; the frozen provider chooses a legal minimizing split and the caster keeps a pile containing Twinflame.",
-    "Every revealed physical card moves to exactly one of hand or graveyard; the unchosen pile may be empty, and fresh replay reproduces the recorded choices without rerunning policy code."
+    "Fact or Fiction reveals three Islands, a Mountain, and Twinflame, and the resulting choice record is explicitly bound to the frozen contextual evaluator ID and SHA-256.",
+    "Twinflame reaches hand, every revealed physical card reaches hand or graveyard, and fresh replay reproduces the complete recorded choice without rerunning policy code."
   ],
   "schema_version": "phase-b-golden-transcript-v1",
-  "title": "Fact or Fiction uses the frozen contextual evaluator and moves both piles through the production path",
+  "title": "Fact or Fiction binds its contextual evaluator, moves both piles, and replays the exact choice",
   "transcript_id": "PB-T09-fact-min"
 }
