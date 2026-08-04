@@ -1,1 +1,40 @@
-{"evidence_scope":"REPLAY_AUDIT","family_id":"replay-measurement-manifest-terminal-invariance","machine":{"event_source":"AUDIT_EVIDENCE","ordered_operations":["capture the initial state and record lethal damage","terminate the game and capture the rejected post-terminal priority attempt as audit evidence","replay in a fresh process and compare state hashes","hash the same raw measurement twice","compare canonical outputs for worker counts one, two, and four"],"preconditions":["A recorded terminal game is replayed in a fresh interpreter without policy code."],"required_assertions":["fresh-process state hash equals original","post-terminal priority action is rejected","the rejected action does not add a canonical game event","measurement digest is deterministic","worker counts one, two, and four produce the same canonical digest","no thread-safety claim is made"],"required_event_order":["DAMAGE_DEALT","GAME_TERMINATED","POST_TERMINAL_ACTION_REJECTED","REPLAY_STATE_HASH_VALIDATED","MEASUREMENT_DIGEST_VALIDATED","WORKER_INVARIANCE_VALIDATED"],"test_node":"tests/phase_b/test_golden_transcript_evidence.py::test_pb_t12_replay_measurement_worker_evidence"},"plain_english":["Lethal damage terminates a recorded game and a later priority attempt is rejected without mutating the canonical game-event stream.","A fresh interpreter replays the recorded commands to the same state hash without policy code.","The raw measurement digest and canonical aggregation output are invariant across the tested worker-count configurations; this is deterministic aggregation evidence, not a claim of thread safety."],"schema_version":"phase-b-golden-transcript-v1","title":"Fresh replay, deterministic measurements, worker invariance, and terminal short-circuit","transcript_id":"PB-T12-replay-invariance"}
+{
+  "evidence_scope": "REPLAY_AUDIT",
+  "family_id": "replay-measurement-manifest-terminal-invariance",
+  "machine": {
+    "ordered_operations": [
+      "capture initial state",
+      "record lethal damage command",
+      "terminate game",
+      "reject later priority action",
+      "replay in fresh process",
+      "hash raw measurement",
+      "compare worker-count outputs"
+    ],
+    "preconditions": [
+      "A recorded terminal game is replayed in a fresh interpreter without policy code."
+    ],
+    "required_assertions": [
+      "fresh-process state hash equals original",
+      "post-terminal action is rejected",
+      "measurement digest is deterministic",
+      "worker counts one, two, and four produce the same canonical digest"
+    ],
+    "required_event_order": [
+      "DAMAGE_DEALT",
+      "GAME_TERMINATED",
+      "REPLAY_VALIDATED",
+      "MEASUREMENT_HASHED",
+      "WORKER_INVARIANCE_VALIDATED"
+    ],
+    "test_node": "tests/phase_b/test_behavioral_scenarios.py::test_fresh_process_replay_measurement_and_worker_invariance_with_terminal_short_circuit"
+  },
+  "plain_english": [
+    "A recorded terminal game is replayed in a fresh interpreter without policy code.",
+    "Terminal state rejects further actions.",
+    "Raw measurements and worker-count ordering produce invariant canonical digests."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Fresh replay, measurements, manifests, worker invariance, and terminal short-circuit",
+  "transcript_id": "PB-T12-replay-invariance"
+}

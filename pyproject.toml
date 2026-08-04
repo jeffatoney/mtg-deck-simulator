@@ -63,11 +63,6 @@ addopts = "--strict-markers --strict-config"
 target-version = "py312"
 line-length = 100
 
-[tool.ruff.lint.per-file-ignores]
-# The transcript evidence module imports the public executor explicitly so collection
-# exercises the same public executor surface named by the transcript contracts.
-"tests/phase_b/test_golden_transcript_evidence.py" = ["F401"]
-
 [tool.mypy]
 python_version = "3.12"
 strict = true

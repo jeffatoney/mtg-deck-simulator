@@ -1,1 +1,20 @@
-{"evidence_scope":"MECHANIC_ISOLATION","family_id":"malcolm-damaged-opponents-treasures","machine":{"event_source":"GAME_STATE_EVENTS","ordered_operations":["activate Glint-Horn while attacking","discard a card as the activation cost","put the discard trigger on the stack at the next checkpoint","resolve damage to all active opponents","put and resolve Malcolm’s trigger","resolve the original Glint-Horn draw ability"],"preconditions":["Glint-Horn damages all three active opponents in one resolving trigger."],"required_assertions":["trigger context identifies P1, P2, and P3","exactly three Treasure tokens exist","no undamaged player contributes a Treasure","Treasure creation precedes the original loot draw"],"required_event_order":["ABILITY_ACTIVATED","CARD_DISCARDED","ABILITY_TRIGGERED","TRIGGER_PUT_ON_STACK","DAMAGE_DEALT","ABILITY_TRIGGERED","TRIGGER_PUT_ON_STACK","TREASURE_CREATED","CARD_DRAWN","STACK_OBJECT_RESOLVED"],"test_node":"tests/phase_b/test_golden_transcript_evidence.py::test_pb_t03_malcolm_opponent_set_evidence"},"plain_english":["Glint-Horn is attacking when its loot ability is activated, and discarding the card as a cost triggers its damage ability.","At the next rules checkpoint the damage trigger is put above the original draw ability and resolves first, damaging all three opponents.","Malcolm records that exact opponent set, creates exactly three Treasures, and the original Glint-Horn ability draws afterward."],"schema_version":"phase-b-golden-transcript-v1","title":"Malcolm creates one Treasure for each actually damaged opponent before the loot draw resolves","transcript_id":"PB-T03-malcolm-opponents"}
+{
+  "evidence_scope": "MECHANIC_ISOLATION",
+  "family_id": "malcolm-damaged-opponents-treasures",
+  "machine": {
+    "ordered_operations": [
+      "activate Glint-Horn while attacking",
+      "discard a card as cost",
+      "resolve damage-each-opponent trigger",
+      "resolve Malcolm trigger"
+    ],
+    "preconditions": ["Glint-Horn damages all three active opponents in one resolving trigger."],
+    "required_assertions": ["trigger context identifies P1, P2, and P3", "exactly three Treasure tokens exist", "no undamaged player contributes a Treasure"],
+    "required_event_order": ["CARD_DISCARDED", "DAMAGE_DEALT", "ABILITY_TRIGGERED", "TOKEN_CREATED"],
+    "test_node": "tests/phase_b/test_behavioral_scenarios.py::test_malcolm_treasure_count_uses_exact_damaged_opponent_set"
+  },
+  "plain_english": ["Glint-Horn damages all three active opponents in one resolving trigger.", "Malcolm records the exact damaged-opponent set.", "Malcolm creates exactly three Treasures."],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Malcolm creates one Treasure for each actually damaged opponent",
+  "transcript_id": "PB-T03-malcolm-opponents"
+}

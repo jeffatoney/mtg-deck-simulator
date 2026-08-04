@@ -1,1 +1,36 @@
-{"evidence_scope":"POLICY_INTEGRATION","family_id":"hidden-future-denial-policy-search","machine":{"event_source":"AUDIT_EVIDENCE","ordered_operations":["attempt hidden-library field injection and capture the rejection","attempt one nine-sample request and capture the cap rejection","record the two negative security checkpoints without fabricating game events"],"preconditions":["Exploratory search receives only public observation fields and opaque legal actions."],"required_assertions":["library_order is unavailable","future event fields are unavailable through the public SearchPosition schema","one request with more than eight samples is rejected","zero successful samples are claimed by this negative test","no post-result replay attempt is performed"],"required_event_order":["HIDDEN_FIELD_REJECTED","BELIEF_SAMPLE_CAP_REJECTED"],"test_node":"tests/phase_b/test_golden_transcript_evidence.py::test_pb_t10_hidden_future_evidence"},"plain_english":["Constructing a search position with an actual library-order field is rejected structurally.","Submitting one request containing nine belief-sample seeds is rejected because the frozen maximum is eight.","The named test does not claim that eight samples were generated before the invalid nine-sample request was rejected."],"schema_version":"phase-b-golden-transcript-v1","title":"Policy and search reject hidden library and future information","transcript_id":"PB-T10-hidden-future"}
+{
+  "evidence_scope": "POLICY_INTEGRATION",
+  "family_id": "hidden-future-denial-policy-search",
+  "machine": {
+    "ordered_operations": [
+      "construct public search position",
+      "attempt hidden-library field injection",
+      "reject hidden field",
+      "attempt nine belief samples",
+      "reject excess samples"
+    ],
+    "preconditions": [
+      "Exploratory search receives only public observation fields and opaque legal actions."
+    ],
+    "required_assertions": [
+      "library_order is unavailable",
+      "future event fields are unavailable",
+      "more than eight samples are rejected",
+      "no post-result replay attempt is permitted"
+    ],
+    "required_event_order": [
+      "PUBLIC_OBSERVATION_CREATED",
+      "HIDDEN_FIELD_REJECTED",
+      "BELIEF_SAMPLE_CAP_REJECTED"
+    ],
+    "test_node": "tests/phase_b/test_search.py::test_search_rejects_hidden_future_fields_and_more_than_eight_samples"
+  },
+  "plain_english": [
+    "Exploratory search receives only public observation fields and opaque legal actions.",
+    "Actual library order and future outcomes are rejected structurally.",
+    "Belief sampling is capped at eight precommitted unique seeds."
+  ],
+  "schema_version": "phase-b-golden-transcript-v1",
+  "title": "Policy and search reject hidden library and future information",
+  "transcript_id": "PB-T10-hidden-future"
+}
