@@ -105,7 +105,7 @@ jobs:
         run: uv run mtg-engine verify-phase-b
       - name: Build Phase B certification candidate
         run: |
-          RESULT="$(find "${RUNNER_TEMP}/phase-b-result" -name result.json -type f -print -quit)"
+          RESULT="$(find "${RUNNER_TEMP}/phase-b-result" -mindepth 2 -maxdepth 2 -name result.json -type f -print -quit)"
           test -n "${RESULT}"
           uv run python scripts/record_phase_b_certification.py \
             --verifier-result "${RESULT}" \
