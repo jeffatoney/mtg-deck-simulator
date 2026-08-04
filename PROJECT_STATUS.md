@@ -1,81 +1,83 @@
 # Phase B Project Status
 
-> **Last synchronized:** 2026-08-03 22:30 PT  
+> **Last synchronized:** 2026-08-04 01:04 PT  
 > **Repository:** `jeffatoney/mtg-deck-simulator`  
 > **Pull request:** #37 — open draft, mergeable, unmerged  
 > **Branch:** `engine/phase-b-full-deck-policy`  
-> **Latest evaluated implementation head:** `c87eb2ca36f62b26b8d2cf18946285ee08714626`  
-> **Latest evaluated CI:** run 686 / `30880585231` — SUCCESS  
-> **Phase B candidate result:** FAIL
+> **Certified exact head:** `47179414ee0de4b06e9353d4c2d40f2434069a93`  
+> **Certified CI:** run 712 / `30890042832` — SUCCESS  
+> **Phase B verdict:** **GO — DURABLY CERTIFIED**
 
-This file is the executive mirror of the issue-backed GitHub task records. Update the task records and this dashboard together whenever verified evidence, blockers, approval state, or certification state changes. A successful workflow does not establish Phase B acceptance when the Phase B verifier result remains FAIL.
+This file is the executive mirror of the issue-backed GitHub task records. Completion claims below are tied to the exact commit, CI run, immutable result artifact, approved transcript anchor, and durable certification record. Phase B completion does not authorize Phase C execution.
 
 ## Overview
 
-**Phase B core milestone progress:** `[██████░░░░] 57%` — **4 of 7 core milestones verified complete**
+**Phase B core milestone progress:** `[██████████] 100%` — **7 of 7 core milestones verified complete**
 
-- Verified complete: Slice 1 framework, Slice 2 framework, Slice 3 framework, and exact-head CI restoration.
-- Technical exact-deck runtime coverage now reports **0 unsupported or unverified capabilities**, but issue #43 remains open because its completion rule requires an exact-head Phase B PASS.
-- Human review required: all 12 mandatory golden-transcript approvals under issue #44.
-- Blocked: final Phase B verifier PASS and durable Phase B certification under issue #45.
-- Strategic model blockers: **0**.
-- Transcript approvals: **0 of 12**.
-- Pilot-lock gate: **PASS**.
-- No GO, locked, Phase B certified, complete, pilot-authorized, or full-study-authorized status is recorded.
+- Exact 98-card library and both commanders: verified.
+- Complete reviewed execution coverage: verified, with zero unsupported capabilities.
+- Policy, broker, search, measurement, replay, and manifest framework: verified.
+- Strategic-model blockers: zero.
+- Golden transcripts: 12 of 12 corrected, technically executed, digest-bound, and owner-approved.
+- Phase B verifier: PASS.
+- Durable Phase B certification-current: PASS.
+- Phase C pilot and the full study remain **not authorized**.
 
-The percentage measures seven tracked project milestones, not card coverage or certification readiness.
+## Phase Summary Table
 
-## Milestone Table
-
-| Milestone | Status | Exact evidence | Task |
+| Phase or milestone | Status | Exact evidence | Task |
 |---|---|---|---|
-| Phase A clean-engine foundation | Current and passing | Head `c87eb2ca36f62b26b8d2cf18946285ee08714626`; Phase A verifier 27/27 PASS; durable Phase A certification-current PASS | PR #35 / #38 |
-| Phase B Slice 1 framework | Verified complete | Head `8f7727026b0fee20a7f1ff242f9ee2cb73f8a16b`; CI `30685183470` PASS | #39 |
-| Phase B Slice 2 framework | Verified complete | Head `6964f231e22b7a116e10a4c4e988552e8d861608`; CI `30693534094` PASS | #40 |
-| Phase B Slice 3 framework | Verified complete for framework scope | Head `2b4a25514c440cd96a147a488e2a6ab13679f6e6`; CI `30696609808` PASS | #41 |
-| Restore current exact-head CI | Verified complete | Head `0bb6606cfa57097c698ce820efb5d56175259c06`; run `30804677571` SUCCESS | #42 |
-| Complete exact-deck runtime coverage | **Technical gate satisfied; task open** | Phase B verifier reports 0 unsupported capabilities; exact-head Phase B result remains FAIL because transcript approval is 0/12 | #43 |
-| Approve 12 mandatory transcripts | **Human review required** | Technical transcript evidence passes; explicit owner approval remains 0 of 12 | #44 |
-| Phase B verifier PASS and durable certification | **Blocked** | Golden-transcript gate remains FAIL; no Phase B certification candidate exists | #45 |
-| Phase C pilot | Not authorized | Pilot-lock gate passes, but no pilot authorization exists | — |
+| Phase A clean-engine foundation | **Current and passing** | Phase A verifier 27/27 PASS; durable Phase A certification-current PASS | PR #35 / #38 |
+| Phase B Slice 1 — deck construction and coverage framework | **Verified complete** | Head `8f7727026b0fee20a7f1ff242f9ee2cb73f8a16b`; CI `30685183470` PASS | #39 |
+| Phase B Slice 2 — policy and shared legal-action broker | **Verified complete** | Head `6964f231e22b7a116e10a4c4e988552e8d861608`; CI `30693534094` PASS | #40 |
+| Phase B Slice 3 — search, measurement, replay, manifests, verifier tooling | **Verified complete** | Head `2b4a25514c440cd96a147a488e2a6ab13679f6e6`; CI `30696609808` PASS | #41 |
+| Restore exact-head CI | **Verified complete** | Head `0bb6606cfa57097c698ce820efb5d56175259c06`; CI `30804677571` PASS | #42 |
+| Complete exact-deck runtime coverage | **Verified complete** | Zero unsupported capabilities; all 100 physical cards reviewed as `IMPLEMENTED` | #43 |
+| Approve 12 mandatory golden transcripts | **Verified complete** | Strict transcript gate PASS; approval-document SHA recorded below | #44 |
+| Phase B verifier and durable certification | **Verified complete** | Exact head `47179414ee0de4b06e9353d4c2d40f2434069a93`; run 712; durable gate PASS | #45 |
+| Phase C pilot | **Not authorized** | Pilot-lock gate PASS; no pilot authorization issued | — |
 
-## Changes Verified in Run 686
+## Current Sprint or Focus
 
-### Prismari Command and Niv-Mizzet coverage
+Phase B engineering and certification work is complete. The next controlled focus is Phase C readiness:
 
-- Prismari Command is included in the production `IMPLEMENTED_CARDS` set and its anti-overclaim expected set after direct execution evidence for all four printed modes.
-- Niv-Mizzet now uses explicit shared production paths for its activated draw ability, mandatory draw trigger, legal any-target selection, player targeting, permanent targeting, and atomic failure when the required target choice is missing.
-- Direct mapped evidence verifies player damage, permanent damage, and fail-closed missing-choice behavior.
-- Niv-Mizzet is included in the production `IMPLEMENTED_CARDS` set only after that direct evidence was added.
-- Exact-deck capability entries decreased from **2 to 0**.
+1. Preserve the certified Phase B content and approval anchor.
+2. Resolve repository-governance risks before merge or pilot execution.
+3. Define and authorize the separate Phase C pilot transition.
+4. Do not execute the 500/200 pilot or 20,000/5,000 study until the Phase C authorization gate is explicitly opened.
 
-### Verification movement
+## Completed This Session
 
-- Exact evaluated head advanced to `c87eb2ca36f62b26b8d2cf18946285ee08714626`.
-- Workflow run 686 completed successfully.
-- Phase B mapped suite: **184 passed, 0 failed, 0 skipped, 0 xfailed**.
-- Full repository suite: **281 passed**.
-- Standing Phase A verifier: **27 passed**.
-- Durable Phase A certification-current: **PASS**, renewed from CI run 685 evidence for implementation commit `b90126f54c0857df54f74b20e8429126a68234fd`.
-- Requirement mapping, strategic evaluator, strategic model, and pilot-lock gates: **PASS**.
-- Unsupported capability count: **0**.
-- Strategic model blocker count: **0**.
-- Golden transcript gate: **FAIL**, with explicit owner approval still **0 of 12**.
-- Overall Phase B candidate result: **FAIL**.
-- No Phase B certification candidate was generated, and the durable Phase B certification-current gate was skipped.
+- Corrected all five held transcripts: PB-T02, PB-T07, PB-T09, PB-T10, and PB-T12.
+- Added a production league-mulligan executor covering 7/7/6/5/4, returned-hand shuffle invocation, refill, and four-card floor.
+- Added transmute evidence for mana-value filtering, evaluator identity, disclosed override use, and legal fail-to-find.
+- Restored Fact or Fiction evaluator ID and SHA-256 evidence.
+- Added independent hidden-future field rejections and proved sample-cap rejection occurs before expansion.
+- Replaced the one-record invariance fixture with two distinct measurements and narrowed the worker-configuration claim.
+- Re-reviewed all 12 transcript contracts against their named evidence tests.
+- Populated the exact owner approval anchor for all 12 transcript digests.
+- Anchored the canonical approval document in the strict checker.
+- Removed `continue-on-error` from the Phase B verifier so it is a blocking CI gate.
+- Bound the Phase B result and certification to the approval-document SHA-256.
+- Renewed durable Phase A certification after covered verifier and workflow changes.
+- Generated and committed the CI-produced durable Phase B certification.
+- Closed issues #43, #44, and #45 as verified complete.
 
 ## Current Blockers
 
-| Blocker | Exact current evidence | Required resolution | Task |
-|---|---|---|---|
-| Transcript approval not owner-anchored | 12 revised transcript packages and named evidence tests exist, but explicit approval is 0 of 12 | Jeff approves or requests correction for each exact digest | #44 |
-| Durable Phase B certification unavailable | Phase B result status is FAIL solely at the golden-transcript gate; no Phase B certification candidate was generated | Complete all 12 digest-bound owner approvals, rerun exact-head verification, then record and validate the Phase B certification candidate | #45 |
+**No open Phase B engineering, transcript, verifier, or certification blockers remain.**
 
-There is no remaining non-human-review exact-deck capability or strategic-model blocker in the current Phase B artifact.
+Items outside the completed Phase B scope:
+
+| Item | State | Required action |
+|---|---|---|
+| Repository protection | Open risk under #46 | Enable and verify branch protection or a repository ruleset |
+| GitHub Project board-field automation | Open governance limitation under #47 | Use automatic issue inclusion or a Projects-capable connection |
+| Phase C pilot authorization | Not granted | Complete a separate reviewed transition and authorization decision |
 
 ## Quality Dashboard
 
-| Gate | Status at evaluated head | Evidence |
+| Gate | Final status | Evidence |
 |---|---|---|
 | Frozen identity lock | PASS | Approved SHA-256 matched |
 | Phase A authority classification | PASS | Clean production-path authority checks passed |
@@ -86,53 +88,70 @@ There is no remaining non-human-review exact-deck capability or strategic-model 
 | Ruff lint | PASS | All checks passed |
 | Strict mypy | PASS | 71 source files, no issues |
 | Standing Phase A verifier | PASS | 27 passed, 0 failed, 0 skipped, 0 xfailed |
-| Full pytest suite | PASS | 281 passed |
+| Full repository suite | PASS | 282 passed |
 | Manifest integrity | PASS | 34 frozen files and 18 required paths verified |
-| Durable Phase A certification current | PASS | CI-produced record matches current covered content |
-| Phase B mapped tests | PASS | 184 passed, 0 failed, 0 skipped, 0 xfailed |
-| Phase B requirement mapping | PASS | Complete |
+| Durable Phase A certification current | PASS | Covered content SHA verified |
+| Phase B mapped suite | PASS | 185 passed, 0 failed, 0 skipped, 0 xfailed |
+| Requirement mapping | PASS | All 17 blocking requirements mapped |
 | Strategic evaluator | PASS | Frozen evaluator and learning-plan identities verified |
 | Strategic model | PASS | 0 blockers |
-| Pilot-lock gate | PASS | `pilot_lock: PASS` |
 | Exact-deck capability coverage | PASS | 0 unsupported or unverified capabilities |
-| Golden transcripts | **FAIL** | Explicit owner approval remains 0 of 12; strict `transcript_count` is 0 |
-| Phase B candidate verdict | **FAIL** | Golden-transcript gate remains open |
-| Durable Phase B certification | BLOCKED | No Phase B certification candidate generated |
+| Golden transcripts | PASS | 12 named tests, 12 approved exact digests |
+| Owner approval anchor | PASS | Canonical approval document matches checker anchor |
+| Pilot-lock gate | PASS | Phase C execution remains disabled |
+| Phase B verifier | PASS | Exact-head result status PASS |
+| Phase B certification generation | PASS | CI candidate produced successfully |
+| Durable Phase B certification current | PASS | Committed record matches covered content |
+| Overall CI | PASS | Run 712 completed successfully |
 
-## Evidence Record
+## Risks
 
-- Evaluated implementation head: `c87eb2ca36f62b26b8d2cf18946285ee08714626`.
-- CI workflow: run 686 / `30880585231` — SUCCESS.
-- Phase B result artifact: `phase-b-result-c87eb2ca36f62b26b8d2cf18946285ee08714626`.
-- Artifact ID: `8881160959`.
-- Artifact ZIP SHA-256: `7e86fe7c067b8c61248f157c713aae8927c8bcf80d13cccdad7a513631ad893c`.
-- Phase B mapped result: 184 passed, 0 failed, 0 skipped, 0 xfailed.
-- Full repository result: 281 passed.
-- Standing Phase A result: 27 passed, 0 failed, 0 skipped, 0 xfailed.
-- Phase B result status: FAIL.
-- Unsupported capability count: 0.
-- Strategic model blockers: 0.
-- Golden transcripts: FAIL.
-- Transcript count: 0 approved of 12 required.
-- Pilot lock: PASS.
-- Phase B certification candidate: not generated.
-- Durable Phase B certification: not available.
+- Branch protection or a repository ruleset is still not verified as enabled; issue #46 remains open.
+- PR #37 is large and remains draft and unmerged, so merge review and repository governance still matter.
+- Five transcript families use explicit `AUDIT_EVIDENCE`; those evidence sources are disclosed inside their signed digests and must not be confused with canonical kernel events.
+- The durable certification does not authorize statistical claims, pilot execution, or the full study.
+- Any change to a Phase B covered path, transcript, approval record, evaluator snapshot, or certification contract invalidates the current content digest and requires recertification.
 
-## Task Synchronization
+## Decisions Made
 
-- Issue #43 remains open. Its technical capability backlog is zero, but it is not marked complete because its recorded completion rule requires an exact-head Phase B PASS.
-- Issue #44 remains **Human Review Required / Blocked** and records 0 of 12 owner approvals.
-- Issue #45 remains **Blocked** by issue #44 and records the Phase B FAIL result and absence of durable Phase B certification.
-- PR #37 remains open, draft, mergeable, and unmerged.
-- No task was closed or marked complete beyond its evidence-supported state.
+- Owner approval applies to the exact 12 transcript digests recorded in `APPROVALS.json`, not to future edits.
+- The canonical transcript approval-document SHA-256 is part of the Phase B verifier result and durable certification.
+- The Phase B verifier is now blocking CI; advisory `continue-on-error` behavior was removed.
+- T02 uses an executable production mulligan path rather than constant-only audit claims.
+- T07 discloses its positive-case test override and separately proves fail-to-find.
+- T09 no longer claims an unrelated kernel-weight boundary; it directly proves evaluator binding.
+- T10 proves hidden/future-field rejection before expansion instead of recording unfalsifiable facts.
+- T12 claims deterministic canonicalization of supplied outputs, not worker-process execution or thread safety.
+- Phase B completion does not change the locked status of the pilot and full study.
 
-## Risks and Constraints
+## Next Recommended Tasks
 
-- Automation cannot approve transcript content or exact digests on Jeff's behalf.
-- A successful GitHub Actions workflow does not override the internal Phase B verifier's FAIL result.
-- Branch protection or a repository ruleset remains an open risk under issue #46.
-- The available GitHub connection maintains issue-backed task records and repository files but does not directly mutate GitHub Projects board fields; this remains recorded under issue #47.
+1. Enable and verify the repository protection/ruleset controls tracked in #46.
+2. Review PR #37 for merge readiness and resolve any remaining conversations.
+3. Create the explicit Phase C authorization record and pilot execution checklist.
+4. Preserve the certified Phase B branch until merge and avoid covered-path changes without recertification.
+5. After authorization, execute only the approved 500 standard and 200 exploratory pilot before considering the full study.
 
-## Next Required Action
+## Repo Health
 
-Jeff reviews each of the 12 exact transcript packages and either approves its digest-bound record or identifies a correction. After all 12 approvals are recorded, rerun exact-head CI, require a Phase B verifier PASS, generate the Phase B certification candidate, and validate durable Phase B certification-current before closing issues #43–#45 or changing the project verdict.
+| Item | Current state |
+|---|---|
+| Repository | `jeffatoney/mtg-deck-simulator` |
+| Active PR | #37 — `Phase B: migrate full deck and policy framework` |
+| PR state | Open, draft, mergeable, unmerged |
+| Certified exact head | `47179414ee0de4b06e9353d4c2d40f2434069a93` |
+| Certified CI | Run 712 / `30890042832` — SUCCESS |
+| Full tests | 282 passed |
+| Phase B mapped tests | 185 passed |
+| Unsupported capabilities | 0 |
+| Strategic-model blockers | 0 |
+| Transcript approvals | 12 of 12 |
+| Approval-document SHA-256 | `242a43347f3d73405872b43820048497cf06101b4b02a637b009f0143200c53d` |
+| Phase B result artifact | ID `8884688219`; ZIP SHA-256 `8a1f12a1fa435f8d1566833f7b9803f9823d7686c1511a8dd793301f9181fe44` |
+| Phase B certification artifact | ID `8884688696`; ZIP SHA-256 `7f2031bce4bf17b91bde47994efdb62e301b4ae9d17670c638db6f8d9b1977ea` |
+| Durable Phase B certification | PASS; committed at `docs/audit/phase-b-certification/CERTIFICATION.json` |
+| Phase B issues | #43, #44, #45 closed as completed |
+| Pilot | Locked; not authorized |
+| Full study | Locked; not authorized |
+| Repository protection | Open risk #46 |
+| Project synchronization governance | Standing item #47 |
