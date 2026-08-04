@@ -94,6 +94,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Mountain",
             "Muddle the Mixture",
             "Negate",
+            "Niv-Mizzet, the Firemind",
             "Opt",
             "Path of Ancestry",
             "Prismari Command",
