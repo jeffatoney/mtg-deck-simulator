@@ -9,6 +9,7 @@ from mtg_kernel.models import Action, GameObject, ObjectKind, TargetRef, Zone
 from mtg_kernel.phase_b_counter_validation import cast_with_counter_predicate
 from mtg_kernel.phase_b_runtime_effects_common import apply_effect_common
 from mtg_kernel.phase_b_runtime_effects_delayed import apply_effect_delayed
+from mtg_kernel.phase_b_runtime_effects_demolition import apply_demolition_field
 from mtg_kernel.phase_b_runtime_effects_interaction import apply_effect_interaction
 from mtg_kernel.phase_b_runtime_effects_mana import apply_effect_mana
 from mtg_kernel.phase_b_runtime_effects_manifest import apply_effect_manifest
@@ -49,6 +50,9 @@ def _apply_effect(
                     "DELAYED_SACRIFICE",
                     self._event("PERMANENT_SACRIFICED", action, object_id=resolved.object_id),
                 )
+        return
+    if kind == "DEMOLITION_FIELD":
+        apply_demolition_field(self, action, targets)
         return
     if apply_effect_common(self, source, action, effect, targets, choices):
         return
