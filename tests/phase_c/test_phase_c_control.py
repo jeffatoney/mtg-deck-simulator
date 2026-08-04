@@ -72,8 +72,7 @@ def test_dry_run_creates_no_game_result_and_discloses_engine_blockers() -> None:
     assert report.readiness_blockers == CURRENT_ENGINE_BLOCKERS
     assert report.config_sha256 == hashlib.sha256(DEFAULT_CONFIG.read_bytes()).hexdigest()
     assert (
-        report.approval_record_sha256
-        == hashlib.sha256(DEFAULT_APPROVAL.read_bytes()).hexdigest()
+        report.approval_record_sha256 == hashlib.sha256(DEFAULT_APPROVAL.read_bytes()).hexdigest()
     )
     assert report.workflow_sha256 == hashlib.sha256(DEFAULT_WORKFLOW.read_bytes()).hexdigest()
 
