@@ -145,12 +145,12 @@ def _begin_step(
     if step == "END":
         before = self._begin_atomic()
         delayed = list(self.state.delayed_triggers)
-        due = [
+        end_step_due = [
             object_id for object_id in delayed if _trigger_name(self, object_id) == "NEXT_END_STEP"
         ]
-        withheld = [object_id for object_id in delayed if object_id not in due]
+        withheld = [object_id for object_id in delayed if object_id not in end_step_due]
         try:
-            self.state.delayed_triggers = due
+            self.state.delayed_triggers = end_step_due
             original_begin_step(self, step, step_choices, _record=_record)
             self.state.delayed_triggers.extend(withheld)
         except Exception:
@@ -161,7 +161,7 @@ def _begin_step(
     original_begin_step(self, step, step_choices, _record=_record)
 
     if step == "UPKEEP":
-        due: list[str] = []
+        upkeep_due: list[str] = []
         remaining: list[str] = []
         for object_id in self.state.delayed_triggers:
             trigger = self.state.objects.get(object_id)
@@ -179,13 +179,13 @@ def _begin_step(
                 _trigger_name(self, object_id) == "NEXT_UPKEEP"
                 and self.state.turn.number >= not_before_turn
             ):
-                due.append(object_id)
+                upkeep_due.append(object_id)
             else:
                 remaining.append(object_id)
         self.state.delayed_triggers = remaining
         per_trigger = step_choices.get("delayed_trigger_choices", {})
         choice_map = per_trigger if isinstance(per_trigger, dict) else {}
-        for object_id in due:
+        for object_id in upkeep_due:
             trigger = self.state.objects[object_id]
             selected = choice_map.get(object_id, {})
             trigger.current_characteristics["choice_hints"] = (
