@@ -145,7 +145,9 @@ def _begin_step(
     if step == "END":
         before = self._begin_atomic()
         delayed = list(self.state.delayed_triggers)
-        due = [object_id for object_id in delayed if _trigger_name(self, object_id) == "NEXT_END_STEP"]
+        due = [
+            object_id for object_id in delayed if _trigger_name(self, object_id) == "NEXT_END_STEP"
+        ]
         withheld = [object_id for object_id in delayed if object_id not in due]
         try:
             self.state.delayed_triggers = due

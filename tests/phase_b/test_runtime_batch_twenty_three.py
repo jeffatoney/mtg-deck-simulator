@@ -58,9 +58,7 @@ def test_arcane_denial_counters_and_executes_explicit_next_upkeep_draw_count() -
         "UPKEEP",
         choices={
             "delayed_trigger_choices": {
-                trigger_id: {
-                    "arcane_denial_draw_count": {"player_id": "P1", "count": 2}
-                }
+                trigger_id: {"arcane_denial_draw_count": {"player_id": "P1", "count": 2}}
             }
         },
     )
@@ -95,9 +93,7 @@ def test_arcane_denial_waits_for_next_turn_upkeep_and_allows_zero_cards() -> Non
         "UPKEEP",
         choices={
             "delayed_trigger_choices": {
-                trigger_id: {
-                    "arcane_denial_draw_count": {"player_id": "P1", "count": 0}
-                }
+                trigger_id: {"arcane_denial_draw_count": {"player_id": "P1", "count": 0}}
             }
         },
     )
