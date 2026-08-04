@@ -19,7 +19,7 @@ def test_phase_b_mapping_has_no_slice_placeholders_and_covers_all_blockers() -> 
     )
 
 
-def test_verifier_and_durable_certification_fail_closed_on_real_blockers() -> None:
+def test_verifier_and_durable_certification_fail_closed_without_fabricated_blockers() -> None:
     cli = (ROOT / "src/mtg_kernel/cli.py").read_text(encoding="utf-8")
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert "verify-phase-b" in cli and "Phase B candidate verifier" in workflow
@@ -28,7 +28,6 @@ def test_verifier_and_durable_certification_fail_closed_on_real_blockers() -> No
         and "Durable Phase B certification is current" in workflow
     )
     assert "pilot-simulation.yml" not in workflow
-    blockers = exact_deck_execution_blockers()
-    assert blockers and any(value.startswith("UNVERIFIED_CARD:") for value in blockers)
+    assert exact_deck_execution_blockers() == []
     assert strategic_model_blockers() == []
     assert not (ROOT / "docs/audit/phase-b-certification/CERTIFICATION.json").exists()
