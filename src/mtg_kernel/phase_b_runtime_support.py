@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
-from mtg_kernel.models import GameObject, ObjectKind, Zone
+from mtg_kernel.errors import IllegalAction
+from mtg_kernel.models import Choice, GameObject, ObjectKind, TargetRef, Zone
 
 SUPPORTED_EFFECTS = frozenset(
     {
@@ -36,6 +37,7 @@ SUPPORTED_EFFECTS = frozenset(
         "DAMAGE",
         "DAMAGE_ALL_CREATURES_PLANESWALKERS",
         "DAMAGE_ALL_NON_SUBTYPE",
+        "DAMAGE_ANY_TARGET",
         "DAMAGE_EACH_OPPONENT",
         "DESTROY",
         "DESTROY_ALL_OPPONENT_ARTIFACTS",
@@ -169,6 +171,18 @@ def automatic_ability_execution_supported(ability: dict[str, Any], *, entering: 
         and effect_execution_supported(effect)
     ):
         return True
+    # Niv-Mizzet's mandatory draw trigger is executable only with an explicit
+    # legal any-target choice recorded on the action that caused the draw.
+    if (
+        trigger in SUPPORTED_NO_CHOICE_TRIGGERS
+        and not ability.get("optional")
+        and str(schema.get("kind", "NONE")) == "ANY_TARGET"
+        and minimum == 1
+        and maximum == 1
+        and effect_execution_supported(effect)
+        and not _effect_requires_explicit_choice(effect)
+    ):
+        return True
     # Optional triggers are executable only through an explicit recorded yes/no
     # choice. The trigger path enforces that choice before the ability is put on
     # the stack, so their optionality is not a silent default.
@@ -233,6 +247,21 @@ def _target_matches(self: Any, actor: str, obj: GameObject, kind: str) -> bool:
     subtypes = _subtypes(obj)
     supertypes = set(str(value) for value in obj.current_characteristics.get("supertypes", ()))
     permanent = bool(self._is_permanent(obj))
+    if kind == "ANY_TARGET":
+        if (
+            obj.object_kind is ObjectKind.EXTERNAL_PUBLIC_OBJECT
+            and obj.zone is Zone.NONE
+            and obj.current_characteristics.get("target_kind") == "PLAYER"
+        ):
+            player_id = str(obj.current_characteristics.get("player_id", ""))
+            return bool(
+                player_id in self.state.players
+                and self.state.players[player_id].in_game
+                and (player_id == actor or not _player_has_hexproof(self, player_id))
+            )
+        if permanent and _permanent_has_hexproof_from(self, actor, obj):
+            return False
+        return permanent and bool(types.intersection({"Creature", "Planeswalker", "Battle"}))
     if permanent and _permanent_has_hexproof_from(self, actor, obj):
         return False
     if kind == "SPELL":
@@ -259,3 +288,82 @@ def _target_matches(self: Any, actor: str, obj: GameObject, kind: str) -> bool:
     if kind == "SLIVER":
         return permanent and "Sliver" in subtypes
     return bool(_ORIGINALS["target_matches"](self, actor, obj, kind))
+
+
+def _ability_by_id(self: Any, source: GameObject, ability_id: str) -> dict[str, Any]:
+    """Select the unique activated ability even when a trigger reuses its ID."""
+
+    matches = [
+        dict(ability)
+        for ability in source.current_characteristics.get("abilities", ())
+        if ability.get("ability_id") == ability_id and ability.get("kind") == "ACTIVATED"
+    ]
+    if len(matches) != 1:
+        raise IllegalAction("activated ability is unavailable")
+    return matches[0]
+
+
+def _ensure_player_target_objects(self: Any) -> dict[str, GameObject]:
+    proxies: dict[str, GameObject] = {}
+    for obj in self.state.objects.values():
+        if (
+            not obj.retired
+            and not obj.ceased_to_exist
+            and obj.object_kind is ObjectKind.EXTERNAL_PUBLIC_OBJECT
+            and obj.zone is Zone.NONE
+            and obj.current_characteristics.get("target_kind") == "PLAYER"
+        ):
+            player_id = str(obj.current_characteristics.get("player_id", ""))
+            if player_id in self.state.players:
+                proxies[player_id] = obj
+    for player_id, player in self.state.players.items():
+        if not player.in_game or player_id in proxies:
+            continue
+        proxy = GameObject(
+            self.identity.new_id("object"),
+            ObjectKind.EXTERNAL_PUBLIC_OBJECT,
+            Zone.NONE,
+            player_id,
+            None,
+            current_characteristics={
+                "name": f"Player {player_id}",
+                "target_kind": "PLAYER",
+                "player_id": player_id,
+            },
+            identity_visible_to=set(self.state.players),
+        )
+        self.state.objects[proxy.object_id] = proxy
+        self.zones.register(proxy)
+        proxies[player_id] = proxy
+    return proxies
+
+
+def _choose_trigger_targets(
+    self: Any, trigger: GameObject, ability: dict[str, Any]
+) -> tuple[TargetRef, ...]:
+    schema = dict(
+        ability.get("target_schema", {"kind": "NONE", "min": 0, "max": 0, "unique": True})
+    )
+    if str(schema.get("kind", "NONE")) != "ANY_TARGET":
+        return cast(
+            tuple[TargetRef, ...],
+            _ORIGINALS["choose_trigger_targets"](self, trigger, ability),
+        )
+
+    proxies = _ensure_player_target_objects(self)
+    hints = dict(trigger.current_characteristics.get("choice_hints", {}))
+    target_hints = dict(hints.get("trigger_targets", {}))
+    selected = target_hints.get(ability["ability_id"])
+    if isinstance(selected, str) and selected in proxies:
+        target_hints[ability["ability_id"]] = proxies[selected].object_id
+    elif isinstance(selected, list):
+        target_hints[ability["ability_id"]] = [
+            proxies[str(value)].object_id if str(value) in proxies else str(value)
+            for value in selected
+        ]
+    hints["trigger_targets"] = target_hints
+    trigger.current_characteristics["choice_hints"] = hints
+    return cast(
+        tuple[TargetRef, ...],
+        _ORIGINALS["choose_trigger_targets"](self, trigger, ability),
+    )
