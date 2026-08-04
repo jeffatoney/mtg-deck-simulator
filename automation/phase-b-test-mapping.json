@@ -3,7 +3,9 @@
     "B-COMBO-001": [
       "tests/phase_b/test_continuous_combo_access.py",
       "tests/phase_b/test_strategic_evaluation.py::test_canonical_policy_fails_closed_on_unadjudicated_dualcaster_twinflame_loop",
-      "tests/phase_b/test_corrective_resolution_choices.py::test_actual_dualcaster_twinflame_line_is_bounded_by_policy_choice"
+      "tests/phase_b/test_corrective_resolution_choices.py::test_actual_dualcaster_twinflame_line_is_bounded_by_policy_choice",
+      "tests/phase_b/test_dualcaster_canonical_adjudication.py::test_canonical_policy_executes_finite_visible_lethal_reserve",
+      "tests/phase_b/test_dualcaster_canonical_adjudication.py::test_canonical_policy_fails_closed_above_bounded_reserve"
     ],
     "B-COVERAGE-001": [
       "tests/phase_b/test_full_deck.py::test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim",
