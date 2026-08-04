@@ -2,47 +2,69 @@ import pytest
 
 from mtg_policy.mulligan import (
     LEAGUE_CANDIDATE_HAND_SIZES,
-    REJECTED_HANDS_RETURN_TO_LIBRARY_AND_SHUFFLE,
-    LeagueMulliganResult,
-    draw_back_to_seven,
+    execute_league_mulligan,
 )
 from mtg_verify.transcript_evidence import audit_event, record_audit_evidence
 
 
+def _rotate(cards: tuple[str, ...]) -> tuple[str, ...]:
+    return cards[1:] + cards[:1] if cards else cards
+
+
 def test_pb_t02_league_mulligan_evidence() -> None:
-    assert LEAGUE_CANDIDATE_HAND_SIZES == (7, 7, 6, 5, 4)
-    assert REJECTED_HANDS_RETURN_TO_LIBRARY_AND_SHUFFLE is True
-    results: list[LeagueMulliganResult] = []
-    for keep_size in (7, 6, 5, 4):
-        result = draw_back_to_seven(
-            tuple(f"kept-{index}" for index in range(keep_size)),
-            tuple(f"refill-{index}" for index in range(7 - keep_size)),
-            nominal_keep_size=keep_size,
+    runs = []
+    for keep_attempt in range(len(LEAGUE_CANDIDATE_HAND_SIZES)):
+        library = tuple(f"run-{keep_attempt}-card-{index}" for index in range(80))
+        result = execute_league_mulligan(
+            library,
+            keep_attempt=keep_attempt,
+            shuffle=_rotate,
         )
-        assert len(result.final_hand) == 7
-        results.append(result)
-    with pytest.raises(ValueError, match="stop at four") as floor_error:
-        draw_back_to_seven(("a", "b", "c"), ("d",) * 4, nominal_keep_size=3)
+        expected_sizes = LEAGUE_CANDIDATE_HAND_SIZES[: keep_attempt + 1]
+        assert tuple(len(hand) for hand in result.presented_hands) == expected_sizes
+        assert result.shuffle_count == keep_attempt
+        assert len(result.rejected_hands) == keep_attempt
+        assert len(result.keep_result.final_hand) == 7
+        assert result.keep_result.nominal_keep_size == expected_sizes[-1]
+        for rejected, shuffled_library in zip(
+            result.rejected_hands, result.shuffled_libraries, strict=True
+        ):
+            assert set(rejected).issubset(set(shuffled_library))
+        runs.append(result)
+
+    with pytest.raises(ValueError, match="identify one candidate hand"):
+        execute_league_mulligan(
+            tuple(f"card-{index}" for index in range(80)),
+            keep_attempt=5,
+            shuffle=_rotate,
+        )
+
     record_audit_evidence(
         "PB-T02-league-mulligan",
         (
             audit_event(
-                "LEAGUE_MULLIGAN_SEQUENCE_VALIDATED",
-                candidate_sizes=list(LEAGUE_CANDIDATE_HAND_SIZES),
+                "LEAGUE_MULLIGAN_SEQUENCE_EXECUTED",
+                candidate_sequences=[
+                    [len(hand) for hand in result.presented_hands] for result in runs
+                ],
             ),
             audit_event(
-                "REJECTED_HAND_SHUFFLE_POLICY_VALIDATED",
-                returned_to_library=True,
-                shuffled_before_next_hand=True,
+                "REJECTED_HANDS_RETURNED_AND_SHUFFLED",
+                shuffle_counts=[result.shuffle_count for result in runs],
             ),
             audit_event(
-                "LEAGUE_KEEP_LEVELS_VALIDATED",
-                keep_sizes=[result.nominal_keep_size for result in results],
+                "LEAGUE_KEEP_LEVELS_EXECUTED",
+                keep_sizes=[result.keep_result.nominal_keep_size for result in runs],
             ),
             audit_event(
-                "LEAGUE_REFILL_VALIDATED",
-                final_sizes=[len(result.final_hand) for result in results],
+                "LEAGUE_REFILLS_EXECUTED",
+                final_sizes=[len(result.keep_result.final_hand) for result in runs],
             ),
-            audit_event("FOUR_CARD_FLOOR_ENFORCED", reason=str(floor_error.value)),
+            audit_event("FOUR_CARD_FLOOR_ENFORCED", maximum_keep_attempt=4),
         ),
+        facts={
+            "production_procedure_executed": True,
+            "candidate_sizes": list(LEAGUE_CANDIDATE_HAND_SIZES),
+            "total_shuffle_operations": sum(result.shuffle_count for result in runs),
+        },
     )
