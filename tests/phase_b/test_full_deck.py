@@ -61,6 +61,7 @@ def test_complete_reviewed_composition_has_no_fallback_or_execution_overclaim() 
             "Crab Umbra",
             "Curiosity",
             "Curse of the Swine",
+            "Demolition Field",
             "Dispel",
             "Dizzy Spell",
             "Drift of Phantasms",
