@@ -64,9 +64,7 @@ def _mapping(value: object, label: str) -> Mapping[str, Any]:
 
 def _exact(value: object, expected: object, label: str) -> None:
     if value != expected:
-        raise PhaseCControlError(
-            f"{label} must be {expected!r}, received {value!r}"
-        )
+        raise PhaseCControlError(f"{label} must be {expected!r}, received {value!r}")
 
 
 def _is_sha256(value: str) -> bool:
@@ -88,13 +86,9 @@ class PilotSeedPlan:
         if len(set(self.standard)) != len(self.standard):
             raise PhaseCControlError("standard pilot seed plan contains duplicates")
         if len(set(self.exploratory)) != len(self.exploratory):
-            raise PhaseCControlError(
-                "exploratory pilot seed plan contains duplicates"
-            )
+            raise PhaseCControlError("exploratory pilot seed plan contains duplicates")
         if set(self.standard).intersection(self.exploratory):
-            raise PhaseCControlError(
-                "standard and exploratory pilot seed plans overlap"
-            )
+            raise PhaseCControlError("standard and exploratory pilot seed plans overlap")
 
 
 @dataclass(frozen=True)
@@ -253,10 +247,7 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
     learning_hash = str(policy.get("learning_plan_sha256", ""))
     if not policy_id or not evaluator_id:
         raise PhaseCControlError("Phase C policy identity is incomplete")
-    if not all(
-        _is_sha256(value)
-        for value in (policy_hash, evaluator_hash, learning_hash)
-    ):
+    if not all(_is_sha256(value) for value in (policy_hash, evaluator_hash, learning_hash)):
         raise PhaseCControlError("Phase C policy digests are incomplete")
     _exact(policy.get("policy_mutation_allowed"), False, "policy mutation")
     _exact(
@@ -356,11 +347,7 @@ def dry_run_phase_c(
     approval = load_phase_c_approval(approval_path)
     seeds = build_pilot_seed_plan(config)
     full_study = _mapping(config.payload.get("full_study"), "full_study")
-    status = (
-        "READY_FOR_OWNER_REVIEW"
-        if not CURRENT_ENGINE_BLOCKERS
-        else "LOCKED_ENGINE_INCOMPLETE"
-    )
+    status = "READY_FOR_OWNER_REVIEW" if not CURRENT_ENGINE_BLOCKERS else "LOCKED_ENGINE_INCOMPLETE"
     return PhaseCDryRunReport(
         schema_version="phase-c-dry-run-v1",
         status=status,
