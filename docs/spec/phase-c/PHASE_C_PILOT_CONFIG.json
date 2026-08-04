@@ -1,0 +1,105 @@
+{
+  "authorization": {
+    "approved_at": null,
+    "approved_by": null,
+    "confirmation_token": "AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY",
+    "execution_allowed": false,
+    "status": "LOCKED_PENDING_OWNER_APPROVAL"
+  },
+  "deck": {
+    "commanders": [
+      "Malcolm, Keen-Eyed Navigator",
+      "Breeches, Brazen Plunderer"
+    ],
+    "exact_library_count": 98,
+    "physical_card_count": 100,
+    "source": "docs/source/decklist.txt"
+  },
+  "exploratory_search": {
+    "bounded": true,
+    "future_information_allowed": false,
+    "post_result_optimization_allowed": false,
+    "reported_separately": true,
+    "rules_validation_required": true
+  },
+  "full_study": {
+    "authorization_status": "LOCKED_PENDING_POST_PILOT_REVIEW",
+    "exploratory_games": 5000,
+    "execution_allowed": false,
+    "standard_games": 20000
+  },
+  "game_model": {
+    "blocking_modeled": false,
+    "breeches_unknown_cards_added_as_deterministic_resources": false,
+    "controlled_player_draws_on_turn_one": true,
+    "end_after_controlled_turn": 10,
+    "glint_horn_may_attack_when_legal": true,
+    "malcolm_may_connect_when_legal": true,
+    "opponent_interaction_modeled": false,
+    "opponent_wins_modeled": false,
+    "opponents": 3,
+    "players": 4
+  },
+  "measurement": {
+    "additional_checkpoints": [
+      5,
+      6,
+      10
+    ],
+    "objective": "MAXIMIZE_LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS",
+    "primary_checkpoint": 8,
+    "required_outputs": [
+      "opening_hand_records",
+      "mulligan_depth",
+      "checkpoint_table_win_access",
+      "combo_access",
+      "earliest_legal_attempt_turn",
+      "actual_first_attempt_turn",
+      "failure_labels",
+      "card_measurements",
+      "terminal_status",
+      "replay_transcript",
+      "immutable_run_manifest",
+      "aggregation_digest"
+    ]
+  },
+  "mulligan": {
+    "candidate_hand_sizes": [
+      7,
+      7,
+      6,
+      5,
+      4
+    ],
+    "refill_kept_hand_to": 7,
+    "rejected_hands_returned_and_shuffled": true,
+    "stop_below_four": true
+  },
+  "pilot": {
+    "exploratory_games": 200,
+    "exploratory_seed_namespace": "phase-c-pilot-exploratory-v1",
+    "standard_games": 500,
+    "standard_seed_namespace": "phase-c-pilot-standard-v1"
+  },
+  "prerequisites": {
+    "clean_engine_only": true,
+    "legacy_import_allowed": false,
+    "phase_a_verifier_required": "PASS",
+    "phase_b_certification_required": "PASS",
+    "phase_b_verifier_required": "PASS",
+    "post_merge_main_ci_required": "PASS"
+  },
+  "schema_version": "phase-c-pilot-config-v1",
+  "stop_conditions": [
+    "PHASE_A_OR_PHASE_B_GATE_FAILURE",
+    "SOURCE_OR_CONFIGURATION_DIGEST_DRIFT",
+    "UNSUPPORTED_CAPABILITY_OR_STRATEGIC_BLOCKER",
+    "HIDDEN_FUTURE_ACCESS",
+    "POST_RESULT_POLICY_OPTIMIZATION",
+    "LEGACY_EXECUTION_OR_IMPORT",
+    "GAME_COUNT_OR_SEED_ASSIGNMENT_MISMATCH",
+    "STANDARD_EXPLORATORY_MODE_MIXING",
+    "MANIFEST_REPLAY_OR_AGGREGATION_MISMATCH",
+    "FULL_STUDY_ATTEMPT_BEFORE_SEPARATE_AUTHORIZATION"
+  ]
+}
