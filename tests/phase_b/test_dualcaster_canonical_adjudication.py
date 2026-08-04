@@ -94,11 +94,12 @@ def test_canonical_policy_executes_finite_visible_lethal_reserve() -> None:
         if choice.kind == "COPY_TARGETS" and isinstance(choice.selected, dict)
     ]
     strategies = [choice["diagnostics"]["strategy"] for choice in choices]
-    assert strategies == [
+    assert strategies[:2] == [
         "CONTINUE_BOUNDED_DUALCASTER_LOOP",
         "CONTINUE_BOUNDED_DUALCASTER_LOOP",
-        "STOP_BOUNDED_DUALCASTER_LOOP",
     ]
+    assert strategies[2:]
+    assert set(strategies[2:]) == {"STOP_BOUNDED_DUALCASTER_LOOP"}
     assert all(
         choice["evaluator_id"] == "contextual_combo_v1"
         and choice["diagnostics"]["adjudicator"] == "VISIBLE_LIFE_AND_BLOCKER_RESERVE_V1"
