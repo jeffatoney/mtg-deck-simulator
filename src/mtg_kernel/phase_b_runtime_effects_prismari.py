@@ -156,8 +156,7 @@ def _select_discards(
             identity=str(candidate.current_characteristics.get("name", "")),
             mana_value=int(candidate.current_characteristics.get("mana_value", 0)),
             card_types=tuple(
-                str(value)
-                for value in candidate.current_characteristics.get("card_types", ())
+                str(value) for value in candidate.current_characteristics.get("card_types", ())
             ),
             effect_kinds=executor._strategic_effect_kinds(candidate),
         )
