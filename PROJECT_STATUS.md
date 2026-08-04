@@ -1,11 +1,11 @@
 # Phase B Project Status
 
-> **Last verified:** 2026-08-03 20:45 PT  
+> **Last verified:** 2026-08-03 21:17 PT  
 > **Repository:** `jeffatoney/mtg-deck-simulator`  
 > **Pull request:** #37 — open draft  
 > **Branch:** `engine/phase-b-full-deck-policy`  
-> **Latest evaluated implementation head:** `a36ed3d5f7a407207ebba2fffe536fbcbdc3a20f`  
-> **Latest evaluated CI:** run 645 / `30875586844` — SUCCESS
+> **Latest evaluated implementation head:** `09eb91f89148af6a63fb54ba6f7ea980e7bc964b`  
+> **Latest evaluated CI:** run 661 / `30877054919` — SUCCESS
 
 This file is the executive mirror of the issue-backed GitHub task records. Update the task record and this dashboard in the same run whenever work is created, completed, blocked, reopened, reprioritized, or moved to human review. Completion requires exact commit, CI, verifier, review, and certification evidence. A green workflow does not establish Phase B acceptance when the Phase B candidate result remains FAIL.
 
@@ -28,35 +28,35 @@ The percentage measures seven tracked core milestones, not card coverage or cert
 
 | Milestone | Status | Exact evidence | Task |
 |---|---|---|---|
-| Phase A clean-engine foundation | Current and passing | Head `a36ed3d5f7a407207ebba2fffe536fbcbdc3a20f`; Phase A verifier 27/27 PASS; durable Phase A certification-current PASS | PR #35 / #38 |
+| Phase A clean-engine foundation | Current and passing | Head `09eb91f89148af6a63fb54ba6f7ea980e7bc964b`; Phase A verifier 27/27 PASS; durable Phase A certification-current PASS | PR #35 / #38 |
 | Phase B Slice 1 framework | Verified complete | Head `8f7727026b0fee20a7f1ff242f9ee2cb73f8a16b`; CI `30685183470` PASS | #39 |
 | Phase B Slice 2 framework | Verified complete | Head `6964f231e22b7a116e10a4c4e988552e8d861608`; CI `30693534094` PASS | #40 |
 | Phase B Slice 3 framework | Verified complete for framework scope | Head `2b4a25514c440cd96a147a488e2a6ab13679f6e6`; CI `30696609808` PASS | #41 |
 | Restore current exact-head CI | Verified complete | Head `0bb6606cfa57097c698ce820efb5d56175259c06`; run `30804677571` SUCCESS | #42 |
-| Complete exact-deck runtime coverage | **In progress** | 7 unsupported or unverified exact-deck capabilities remain | #43 |
+| Complete exact-deck runtime coverage | **In progress** | 4 unsupported or unverified exact-deck capabilities remain | #43 |
 | Approve 12 mandatory transcripts | **Human review required** | Technical transcript tests pass; explicit approval remains 0 of 12 | #44 |
 | Phase B verifier PASS and durable certification | **Blocked** | Requires #43 and #44 to pass on one exact commit | #45 |
 | Phase C pilot | Not authorized | Pilot-lock gate passes, but no pilot authorization exists | — |
 
 ## Changes Verified in This Run
 
-### Lazotep Plating and shared amass/hexproof support
+### Path of Ancestry marked mana and shared-type trigger support
 
-- Implemented the shared `AMASS_AND_HEXPROOF` production primitive.
-- If the controller has no Army, the runtime creates a black 0/0 Zombie Army token before adding the amass counter.
-- If multiple Armies are available, the runtime requires and records an explicit Army selection; omission fails atomically.
-- The runtime adds the correct `+1/+1` counter and updates numeric power and toughness.
-- The controller and controlled permanents receive temporary targeting protection through cleanup; cleanup removes the exact duration-bound effect.
-- Added two direct production-path tests covering token creation, counter placement, temporary protection, cleanup expiry, explicit multiple-Army selection, and atomic failure.
-- Added those tests to `B-COVERAGE-001` only after direct execution evidence existed.
+- Implemented legal commander-color mana selection through the production mana path.
+- Added source- and event-anchored marked-mana provenance, including fail-closed handling when a payment could use either marked or unmarked mana without an explicit choice.
+- Added production casting integration that consumes marked mana atomically and preserves rollback on any unsupported or missing choice.
+- Implemented the shared-creature-type cast trigger through the normal waiting-trigger and stack path.
+- Required and recorded an explicit scry decision before the trigger is queued.
+- Added three direct tests covering enters-tapped behavior, marked-mana trigger execution, scry-to-bottom resolution, atomic failure when the scry choice is missing, and no trigger for a creature that shares no type with a commander.
+- Added the tests to `B-COVERAGE-001` only after direct execution passed.
 - Updated exact-deck anti-overclaim credit only after the mapped tests passed.
 - Renewed durable Phase A certification from the CI-produced candidate because covered kernel content changed.
 
 ### Measured movement
 
-- Exact-deck capability entries decreased from 9 to 7.
-- Full repository tests increased from 273 to 275.
-- Mapped Phase B tests increased from 176 to 178.
+- Exact-deck capability entries decreased from 7 to 4.
+- Full repository tests increased from 275 to 278.
+- Mapped Phase B tests increased from 178 to 181.
 - Strategic model blockers remain 0.
 - Transcript approval remains 0 of 12.
 
@@ -64,21 +64,18 @@ The percentage measures seven tracked core milestones, not card coverage or cert
 
 | Blocker | Exact current evidence | Required resolution | Task |
 |---|---|---|---|
-| Exact-deck runtime coverage incomplete | 3 unverified cards, 2 unsupported effects, 2 unsupported automatic abilities; 7 total | Reach zero capability entries and complete direct `IMPLEMENTED` evidence | #43 |
+| Exact-deck runtime coverage incomplete | 2 unverified cards, 1 unsupported effect, 1 unsupported automatic ability; 4 total | Reach zero capability entries and complete direct `IMPLEMENTED` evidence | #43 |
 | Transcript approval not owner-anchored | 12 transcript packages and named tests exist, but explicit approval is 0 of 12 | Jeff approves or requests correction for each exact digest | #44 |
 | Durable Phase B certification unavailable | Phase B result status is FAIL; no Phase B candidate was generated | Pass the verifier and commit a current CI-produced certification | #45 |
 
 ### Remaining exact-deck capability families
 
-- Unsupported automatic abilities:
+- Unsupported automatic ability:
   - Niv-Mizzet, the Firemind — triggered ability
-  - Path of Ancestry — triggered ability
-- Unsupported effects:
-  - Path of Ancestry — `ADD_COMMANDER_COLOR_AND_MARK`
+- Unsupported effect:
   - Prismari Command — `PRISMARI_COMMAND`
 - Unverified cards:
   - Niv-Mizzet, the Firemind
-  - Path of Ancestry
   - Prismari Command
 
 ## Quality Dashboard
@@ -88,35 +85,37 @@ The percentage measures seven tracked core milestones, not card coverage or cert
 | Frozen identity lock | PASS | Approved SHA-256 matched |
 | Phase A authority classification | PASS | Clean production-path authority checks passed |
 | Phase B evaluator and learning boundary | PASS | 77 classified effect kinds; 14 policy bundles |
-| Clean-engine and support-package boundary | PASS | 69 Python files scanned; no forbidden findings |
+| Clean-engine and support-package boundary | PASS | 70 Python files scanned; no forbidden findings |
 | Legacy package isolation | PASS | `mtg_sim` is not importable |
-| Ruff formatting | PASS | 192 files already formatted |
+| Ruff formatting | PASS | 194 files already formatted |
 | Ruff lint | PASS | All checks passed |
-| Strict mypy | PASS | 69 source files, no issues |
+| Strict mypy | PASS | 70 source files, no issues |
 | Standing Phase A verifier | PASS | 27 passed, 0 failed, 0 skipped, 0 xfailed |
-| Full pytest suite | PASS | 275 passed |
+| Full pytest suite | PASS | 278 passed |
 | Manifest integrity | PASS | 34 frozen files and 18 required paths verified |
 | Durable Phase A certification current | PASS | CI-produced record matches current covered content |
-| Phase B mapped tests | PASS | 178 passed, 0 failed, 0 skipped, 0 xfailed |
+| Phase B mapped tests | PASS | 181 passed, 0 failed, 0 skipped, 0 xfailed |
 | Phase B requirement mapping | PASS | Complete |
 | Strategic evaluator | PASS | Frozen evaluator and learning-plan identities verified |
 | Strategic model | PASS | 0 blockers |
 | Pilot-lock gate | PASS | `pilot_lock: PASS` |
 | Golden transcripts | **FAIL** | Explicit owner approval remains 0 of 12 |
-| Exact-deck capability coverage | **FAIL** | 7 capability entries remain |
+| Exact-deck capability coverage | **FAIL** | 4 capability entries remain |
 | Phase B candidate verdict | **FAIL** | Coverage and transcript gates remain open |
 | Durable Phase B certification | BLOCKED | No Phase B certification candidate generated |
 
 ## Evidence Record
 
-- Evaluated implementation head: `a36ed3d5f7a407207ebba2fffe536fbcbdc3a20f`.
-- CI workflow: run 645 / `30875586844` — SUCCESS.
-- Phase B result artifact: `phase-b-result-a36ed3d5f7a407207ebba2fffe536fbcbdc3a20f`.
-- Artifact ID: `8879421085`.
-- Artifact ZIP SHA-256: `0757f508050ef002dc722b82508cc0ea8c3004241320822f84496f3be8649afd`.
-- Phase B mapped result: 178 passed, 0 failed, 0 skipped, 0 xfailed.
-- Full repository result: 275 passed.
+- Evaluated implementation head: `09eb91f89148af6a63fb54ba6f7ea980e7bc964b`.
+- CI workflow: run 661 / `30877054919` — SUCCESS.
+- Commit-anchored PR review: review `4850585482` — COMMENT; no acceptance approval.
+- Phase B result artifact: `phase-b-result-09eb91f89148af6a63fb54ba6f7ea980e7bc964b`.
+- Artifact ID: `8879911117`.
+- Artifact ZIP SHA-256: `39871a9b714f603d56fa4db9ca2adbd3b239488f621bb4be841333da94295f92`.
+- Phase B mapped result: 181 passed, 0 failed, 0 skipped, 0 xfailed.
+- Full repository result: 278 passed.
 - Phase B result status: FAIL.
+- Unsupported capability count: 4.
 - Strategic model blockers: 0.
 - Transcript count: 0 approved of 12 required.
 - Phase B certification candidate: not generated.
@@ -124,7 +123,7 @@ The percentage measures seven tracked core milestones, not card coverage or cert
 
 ## Task Synchronization
 
-- Issue #43 remains **In Progress** and records the 7-item capability backlog and Lazotep evidence.
+- Issue #43 remains **In Progress** and records the 4-item capability backlog and Path of Ancestry evidence.
 - Issue #44 remains **Human Review Required / Blocked** and records 0 of 12 owner approvals.
 - Issue #45 remains **Blocked** and records the failed Phase B candidate and absence of durable Phase B certification.
 - No task was closed, marked complete, reopened, or moved out of its evidence-supported state.
@@ -139,7 +138,7 @@ The percentage measures seven tracked core milestones, not card coverage or cert
 
 ## Next Engineering Focus
 
-1. Implement the next shared primitive from the 7-item capability list with direct exact-deck tests.
+1. Implement the next shared primitive from the 4-item capability list with direct exact-deck tests.
 2. Prefer a batch that clears an unsupported effect or automatic ability and its matching unverified card together.
 3. Preserve zero strategic blockers and all currently passing standing gates.
 4. Rerun the exact Phase B verifier after each bounded batch.
