@@ -60,10 +60,7 @@ def active_zone_names(state, zone: Zone, owner: str = "P0") -> list[str]:
     return sorted(
         str(obj.current_characteristics.get("name", ""))
         for obj in state.objects.values()
-        if not obj.retired
-        and not obj.ceased_to_exist
-        and obj.zone is zone
-        and obj.owner == owner
+        if not obj.retired and not obj.ceased_to_exist and obj.zone is zone and obj.owner == owner
     )
 
 
