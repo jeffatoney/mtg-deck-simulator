@@ -1,3 +1,4 @@
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -36,7 +37,8 @@ def test_pb_t12_replay_measurement_worker_evidence() -> None:
     replay = replay_in_fresh_process(transcript(state, seed="golden-t12"), cwd=ROOT)
     original_hash = state_hash(state)
     assert replay.state_hash == original_hash
-    measurement = GameMeasurement(
+
+    first = GameMeasurement(
         schema_version="phase-b-game-measurement-v1",
         game_index=1,
         seed=11,
@@ -64,12 +66,31 @@ def test_pb_t12_replay_measurement_worker_evidence() -> None:
         terminal_status="WIN",
         terminal_turn=10,
     )
-    digest = measurement_digest((measurement,))
-    assert measurement_digest((measurement,)) == digest
-    raw = ({"game_index": 1, "seed": 11, "measurement_sha256": digest},)
-    workers_a = verify_worker_invariance({1: raw, 4: tuple(reversed(raw))})
-    workers_b = verify_worker_invariance({2: raw})
-    assert workers_a == workers_b
+    second = replace(
+        first,
+        game_index=2,
+        seed=12,
+        earliest_legal_attempt_turn=9,
+        actual_first_attempt_turn=9,
+        terminal_turn=9,
+    )
+    records = (first, second)
+    forward_digest = measurement_digest(records)
+    reverse_digest = measurement_digest(tuple(reversed(records)))
+    assert forward_digest == reverse_digest
+
+    raw = tuple(
+        {
+            "game_index": record.game_index,
+            "seed": record.seed,
+            "measurement_sha256": measurement_digest((record,)),
+        }
+        for record in records
+    )
+    workers_one_and_four = verify_worker_invariance({1: raw, 4: tuple(reversed(raw))})
+    workers_two = verify_worker_invariance({2: raw})
+    assert workers_one_and_four == workers_two
+
     damage_event = next(event for event in state.events if event.kind == "DAMAGE_DEALT")
     terminal_event = next(event for event in state.events if event.kind == "GAME_TERMINATED")
     record_audit_evidence(
@@ -83,8 +104,23 @@ def test_pb_t12_replay_measurement_worker_evidence() -> None:
                 original=original_hash,
                 replayed=replay.state_hash,
             ),
-            audit_event("MEASUREMENT_DIGEST_VALIDATED", sha256=digest),
-            audit_event("WORKER_INVARIANCE_VALIDATED", canonical_digest=workers_a),
+            audit_event(
+                "MEASUREMENT_ORDER_INVARIANCE_VALIDATED",
+                forward=forward_digest,
+                reversed=reverse_digest,
+                record_count=len(records),
+            ),
+            audit_event(
+                "WORKER_CONFIGURATION_OUTPUTS_VALIDATED",
+                canonical_digest=workers_one_and_four,
+                worker_counts=[1, 2, 4],
+                record_count=len(raw),
+            ),
         ),
-        facts={"thread_safety_claimed": False, "worker_configurations": [1, 2, 4]},
+        facts={
+            "thread_safety_claimed": False,
+            "worker_process_execution_claimed": False,
+            "worker_configurations": [1, 2, 4],
+            "distinct_measurement_count": len(records),
+        },
     )
