@@ -15,6 +15,7 @@ SUPPORTED_EFFECTS = frozenset(
         "ADD_COMMANDER_COLOR",
         "ADD_MANA",
         "ADD_OPPONENT_PROFILE_COLOR",
+        "AMASS_AND_HEXPROOF",
         "ATTACH_AURA",
         "BOUNCE_ALL_ARTIFACTS",
         "BOUNCE_AND_CONDITIONAL_SCRY",
@@ -206,11 +207,34 @@ def _is_permanent(obj: GameObject) -> bool:
     return status.get("phase", "PHASED_IN") != "PHASED_OUT"
 
 
+def _player_has_hexproof(self: Any, player_id: str) -> bool:
+    return any(
+        record.get("kind") == "PLAYER_AND_CONTROLLED_PERMANENTS_HEXPROOF"
+        and record.get("player_id") == player_id
+        and record.get("protect_player") is True
+        for record in self.state.continuous_effects
+    )
+
+
+def _permanent_has_hexproof_from(self: Any, actor: str, obj: GameObject) -> bool:
+    controller = obj.controller
+    if controller is None or controller == actor:
+        return False
+    return any(
+        record.get("kind") == "PLAYER_AND_CONTROLLED_PERMANENTS_HEXPROOF"
+        and record.get("player_id") == controller
+        and record.get("protect_controlled_permanents") is True
+        for record in self.state.continuous_effects
+    )
+
+
 def _target_matches(self: Any, actor: str, obj: GameObject, kind: str) -> bool:
     types = _types(obj)
     subtypes = _subtypes(obj)
     supertypes = set(str(value) for value in obj.current_characteristics.get("supertypes", ()))
     permanent = bool(self._is_permanent(obj))
+    if permanent and _permanent_has_hexproof_from(self, actor, obj):
+        return False
     if kind == "SPELL":
         return obj.zone is Zone.STACK and obj.object_kind in {
             ObjectKind.SPELL,

@@ -7,6 +7,10 @@ from typing import Any, cast
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.models import Action, GameObject, ObjectKind, TargetRef, Zone
 from mtg_kernel.phase_b_counter_validation import cast_with_counter_predicate
+from mtg_kernel.phase_b_runtime_effects_amass import (
+    HEXPROOF_EFFECT_KIND,
+    apply_amass_and_hexproof,
+)
 from mtg_kernel.phase_b_runtime_effects_common import apply_effect_common
 from mtg_kernel.phase_b_runtime_effects_delayed import apply_effect_delayed
 from mtg_kernel.phase_b_runtime_effects_demolition import apply_demolition_field
@@ -17,7 +21,7 @@ from mtg_kernel.phase_b_runtime_effects_search import apply_effect_search
 from mtg_kernel.phase_b_runtime_effects_selection import apply_effect_selection
 from mtg_kernel.phase_b_runtime_helpers import (
     _check_state_based_actions,
-    _cleanup_iteration,
+    _cleanup_iteration as _base_cleanup_iteration,
     _draw_card,
 )
 from mtg_kernel.phase_b_runtime_support import _ORIGINALS, _is_permanent, _target_matches
@@ -53,6 +57,9 @@ def _apply_effect(
         return
     if kind == "DEMOLITION_FIELD":
         apply_demolition_field(self, action, targets)
+        return
+    if kind == "AMASS_AND_HEXPROOF":
+        apply_amass_and_hexproof(self, action, effect, targets, choices)
         return
     if apply_effect_common(self, source, action, effect, targets, choices):
         return
@@ -211,6 +218,18 @@ def _begin_step(
         obj.permanent_status["phase"] = "PHASED_OUT" if root_phased_out else "PHASED_IN"
         if not root_phased_out:
             obj.current_characteristics.pop("phased_out_with", None)
+
+
+def _cleanup_iteration(self: Any, discard_ids: tuple[str, ...]) -> None:
+    _base_cleanup_iteration(self, discard_ids)
+    self.state.continuous_effects = [
+        record
+        for record in self.state.continuous_effects
+        if not (
+            record.get("kind") == HEXPROOF_EFFECT_KIND
+            and record.get("duration") == "END_OF_TURN"
+        )
+    ]
 
 
 def install_phase_b_runtime(executor_class: type[Any]) -> None:

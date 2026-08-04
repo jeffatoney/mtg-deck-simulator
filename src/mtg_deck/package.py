@@ -61,6 +61,7 @@ IMPLEMENTED_CARDS = frozenset(
         "Island",
         "Izzet Boilerworks",
         "Izzet Signet",
+        "Lazotep Plating",
         "Lightning-Rig Crew",
         "Long-Term Plans",
         "Malcolm, Keen-Eyed Navigator",

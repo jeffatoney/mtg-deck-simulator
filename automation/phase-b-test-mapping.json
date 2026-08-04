@@ -47,7 +47,9 @@
       "tests/phase_b/test_runtime_batch_twenty_four.py::test_chart_a_course_missing_discard_provider_fails_closed_atomically",
       "tests/phase_b/test_runtime_batch_twenty_five.py::test_demolition_field_destroys_target_and_resolves_both_basic_searches",
       "tests/phase_b/test_runtime_batch_twenty_five.py::test_demolition_field_allows_each_player_to_fail_to_find",
-      "tests/phase_b/test_runtime_batch_twenty_five.py::test_demolition_field_missing_provider_fails_closed_atomically"
+      "tests/phase_b/test_runtime_batch_twenty_five.py::test_demolition_field_missing_provider_fails_closed_atomically",
+      "tests/phase_b/test_runtime_batch_twenty_six.py::test_lazotep_plating_amasses_and_protects_until_cleanup",
+      "tests/phase_b/test_runtime_batch_twenty_six.py::test_lazotep_plating_requires_explicit_choice_for_multiple_armies_atomically"
     ],
     "B-DECK-001": [
       "tests/phase_b/test_full_deck.py::test_exact_deck_has_98_library_cards_and_two_commanders"
