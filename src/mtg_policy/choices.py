@@ -98,6 +98,7 @@ def _dualcaster_loop_selection(
             for handle in targets
         )
     )
+    selected: tuple[str, ...]
     token_count = max(0, visible_dualcasters - 1)
     if token_count < required_tokens:
         if not continue_sets:
