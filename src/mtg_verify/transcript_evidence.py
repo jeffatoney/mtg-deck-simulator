@@ -59,9 +59,7 @@ def evidence_digest(value: Mapping[str, Any]) -> str:
     return hashlib.sha256(canonical_bytes(value)).hexdigest()
 
 
-def subsequence_indexes(
-    required: Sequence[str], observed: Sequence[str]
-) -> tuple[int, ...] | None:
+def subsequence_indexes(required: Sequence[str], observed: Sequence[str]) -> tuple[int, ...] | None:
     """Return indexes proving ``required`` occurs in order within ``observed``."""
 
     indexes: list[int] = []
@@ -162,9 +160,7 @@ def record_transcript_evidence(
         output_dir = Path(output_root)
         output_dir.mkdir(parents=True, exist_ok=True)
         path = output_dir / f"{transcript_id}.json"
-        path.write_text(
-            json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-        )
+        path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return evidence
 
 
