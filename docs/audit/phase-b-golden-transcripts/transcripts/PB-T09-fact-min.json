@@ -3,41 +3,44 @@
   "family_id": "fact-or-fiction-minimizing",
   "fixture_scope": "EXACT_DECK",
   "machine": {
+    "event_source": "GAME_STATE_EVENTS",
     "ordered_operations": [
       "cast Fact or Fiction",
-      "reveal three Islands, Mountain, and Twinflame from the actual library",
+      "reveal three Islands, a Mountain, and Twinflame from the actual library",
       "enumerate all legal unordered splits in the rules layer",
-      "ask the frozen opponent policy for a minimizing split",
-      "ask the frozen caster policy for a pile using current observation and combo context",
+      "ask the frozen provider for the minimizing split and caster pile",
       "move the chosen pile to hand and the other pile to graveyard",
       "replay the recorded choices without policy code"
     ],
     "preconditions": [
       "The scenario is constructed with build_exact_game().",
       "The contextual_combo_v1 evaluator ID and SHA-256 are frozen before the choice.",
-      "Three lands are already controlled on Turn 3 and Dualcaster Mage is available."
+      "Three Islands are already controlled on Turn 3, Dualcaster Mage is in hand, and the mana pool is explicitly funded for the test cast."
     ],
     "required_assertions": [
       "the kernel does not contain card-value weights",
       "the choice record contains evaluator ID and SHA-256",
       "Twinflame reaches hand",
-      "the three-excess-Island pile is not selected",
-      "fresh replay reproduces the exact recorded selection"
+      "all five revealed physical cards end in exactly one of hand or graveyard",
+      "the unchosen pile contains at least one card and moves to graveyard",
+      "fresh replay reproduces the exact recorded selection",
+      "the transcript does not invent a Sol Ring or MANA_PRODUCED event absent from the named test"
     ],
     "required_event_order": [
+      "SPELL_CAST",
       "FACT_OR_FICTION_REVEALED",
       "FACT_OR_FICTION_SPLIT",
       "FACT_OR_FICTION_PILE_CHOSEN",
-      "REPLAY_VALIDATED"
+      "STACK_OBJECT_RESOLVED"
     ],
-    "test_node": "tests/phase_b/test_corrective_resolution_choices.py::test_exact_deck_fact_or_fiction_keeps_twinflame_over_excess_lands"
+    "test_node": "tests/phase_b/transcripts/test_pb_t09_fact_or_fiction.py::test_pb_t09_fact_or_fiction_evidence"
   },
   "plain_english": [
-    "The exact frozen deck is placed in a Turn 3 state with three lands already on the battlefield and Dualcaster Mage available.",
-    "Fact or Fiction reveals three Islands, a Mountain, and Twinflame; the opponent selects a minimizing legal split using the frozen evaluator.",
-    "The caster's contextual policy keeps the pile containing Twinflame instead of selecting three excess Islands, and replay consumes the recorded choices without rerunning policy code."
+    "The exact frozen deck is placed in a Turn 3 fixture with three Islands on the battlefield, Dualcaster Mage in hand, and an explicitly funded legal mana pool; the fixture does not use Sol Ring.",
+    "Fact or Fiction is cast and reveals three Islands, a Mountain, and Twinflame from the actual library; the frozen provider chooses a legal minimizing split and the caster keeps a pile containing Twinflame.",
+    "Every revealed physical card moves to exactly one of hand or graveyard, and fresh replay reproduces the recorded choices without rerunning policy code."
   ],
   "schema_version": "phase-b-golden-transcript-v1",
-  "title": "Fact or Fiction uses a versioned contextual policy and keeps a missing combo piece over excess lands",
+  "title": "Fact or Fiction uses the frozen contextual evaluator and moves both piles through the production path",
   "transcript_id": "PB-T09-fact-min"
 }

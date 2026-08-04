@@ -2,16 +2,17 @@
   "evidence_scope": "EXACT_DECK_INTEGRATION",
   "family_id": "tutor-exactly-one-target",
   "machine": {
+    "event_source": "GAME_STATE_EVENTS",
     "ordered_operations": [
-      "move the exact Dizzy Spell to hand",
       "activate transmute through the shared ActionBroker without a tutor identity in the activation arguments",
-      "pay mana and discard the source as costs",
+      "create the ability object and pay mana and discard costs atomically",
       "resolve the ability by selecting zero or one eligible identity",
       "reveal and move the selected singleton to hand if found",
       "shuffle the library"
     ],
     "preconditions": [
       "The scenario is constructed with build_exact_game().",
+      "Dizzy Spell is placed in hand as test setup.",
       "The exact deck contains one Sol Ring.",
       "The strategic choice provider is frozen before activation."
     ],
@@ -27,14 +28,15 @@
       "CARD_DISCARDED",
       "LIBRARY_SEARCH_CHOICE",
       "SEARCH_CARD_REVEALED",
-      "LIBRARY_SHUFFLED"
+      "LIBRARY_SHUFFLED",
+      "STACK_OBJECT_RESOLVED"
     ],
-    "test_node": "tests/phase_b/test_corrective_resolution_choices.py::test_exact_deck_transmute_selects_singleton_at_resolution"
+    "test_node": "tests/phase_b/transcripts/test_pb_t07_transmute.py::test_pb_t07_transmute_resolution_evidence"
   },
   "plain_english": [
     "The exact frozen deck contains one Dizzy Spell and one Sol Ring.",
-    "Transmute is activated at sorcery speed and discards Dizzy Spell as a cost without precommitting a card identity.",
-    "During resolution, the frozen policy selects at most one eligible identity, the selected card is revealed and moved to hand, and the library is shuffled; failing to find remains legal."
+    "The engine’s ABILITY_ACTIVATED event marks announcement and stack-object creation; the discard-cost event follows within one atomic activation transaction.",
+    "During resolution the frozen provider selects at most one eligible identity, the selected card is revealed and moved to hand, and the library is shuffled; failing to find remains legal."
   ],
   "schema_version": "phase-b-golden-transcript-v1",
   "title": "Exact-deck transmute chooses one singleton card during resolution",

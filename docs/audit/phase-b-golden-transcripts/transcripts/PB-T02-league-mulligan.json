@@ -2,14 +2,39 @@
   "evidence_scope": "MECHANIC_ISOLATION",
   "family_id": "league-mulligan-draw-back-seven",
   "machine": {
-    "ordered_operations": ["present successive candidate hands", "record the keep level", "draw exactly seven minus kept-size refill cards"],
-    "preconditions": ["The league mulligan examines hands at seven, six, five, and four."],
-    "required_assertions": ["kept level is one of 7, 6, 5, or 4", "final hand size is seven", "refill count equals seven minus keep level"],
-    "required_event_order": ["MULLIGAN_HAND_PRESENTED", "MULLIGAN_KEEP_RECORDED", "MULLIGAN_REFILL_DRAWN"],
-    "test_node": "tests/phase_b/test_league_mulligan.py::test_league_mulligan_keeps_at_7_6_5_or_4_then_draws_back_to_seven"
+    "event_source": "AUDIT_EVIDENCE",
+    "ordered_operations": [
+      "validate the candidate-size sequence 7, 7, 6, 5, 4",
+      "validate the rejected-hand return-and-shuffle requirement",
+      "exercise keeps at 7, 6, 5, and 4",
+      "draw exactly seven minus kept-size refill cards",
+      "reject an attempted keep below four"
+    ],
+    "preconditions": [
+      "The binding league override, not the London mulligan, controls this procedure."
+    ],
+    "required_assertions": [
+      "candidate sizes are exactly 7, 7, 6, 5, and 4",
+      "rejected hands are returned and shuffled before the next candidate hand",
+      "legal keep levels are 7, 6, 5, and 4",
+      "every kept hand is refilled to exactly seven cards",
+      "a keep below four is rejected"
+    ],
+    "required_event_order": [
+      "LEAGUE_MULLIGAN_SEQUENCE_VALIDATED",
+      "REJECTED_HAND_SHUFFLE_POLICY_VALIDATED",
+      "LEAGUE_KEEP_LEVELS_VALIDATED",
+      "LEAGUE_REFILL_VALIDATED",
+      "FOUR_CARD_FLOOR_ENFORCED"
+    ],
+    "test_node": "tests/phase_b/transcripts/test_pb_t02_league_mulligan.py::test_pb_t02_league_mulligan_evidence"
   },
-  "plain_english": ["The league mulligan examines hands at seven, six, five, and four.", "The player never goes below four.", "After a keep below seven, refill cards restore a seven-card hand."],
+  "plain_english": [
+    "The league procedure presents an initial seven-card hand and, if rejected, one free replacement seven-card hand.",
+    "Later candidate hands contain six, five, and four cards; the simulator never mulligans below four.",
+    "Rejected hands return to the library and are shuffled before the next candidate hand, and a kept hand below seven is refilled to seven afterward."
+  ],
   "schema_version": "phase-b-golden-transcript-v1",
-  "title": "League mulligan keeps at 7, 6, 5, or 4 then refills to seven",
+  "title": "League mulligan offers a free second seven, stops at four, and refills to seven",
   "transcript_id": "PB-T02-league-mulligan"
 }

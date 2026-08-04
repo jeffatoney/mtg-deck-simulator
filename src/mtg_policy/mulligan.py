@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+LEAGUE_CANDIDATE_HAND_SIZES = (7, 7, 6, 5, 4)
+LEGAL_KEEP_SIZES = frozenset({7, 6, 5, 4})
+REJECTED_HANDS_RETURN_TO_LIBRARY_AND_SHUFFLE = True
+
 
 @dataclass(frozen=True)
 class LeagueMulliganResult:
@@ -20,7 +24,7 @@ def draw_back_to_seven(
     nominal_keep_size: int,
 ) -> LeagueMulliganResult:
     """Validate a 7/6/5/4 keep and apply the league refill after the keep."""
-    if nominal_keep_size not in {7, 6, 5, 4}:
+    if nominal_keep_size not in LEGAL_KEEP_SIZES:
         raise ValueError("league mulligans stop at four")
     if len(kept_cards) != nominal_keep_size:
         raise ValueError("kept-card count does not match the nominal keep size")
