@@ -29,6 +29,15 @@ jobs:
           python-version-file: .python-version
       - name: Install dependencies
         run: uv sync --frozen --all-extras
+      - name: Prepare temporary exact-head source snapshot
+        run: git archive --format=tar.gz --output "${RUNNER_TEMP}/phase-c-source.tar.gz" HEAD
+      - name: Upload temporary exact-head source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-c-source-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase-c-source.tar.gz
+          if-no-files-found: error
+          retention-days: 1
       - name: Frozen identity lock integrity
         run: uv run python scripts/check_identity_lock.py
       - name: Phase A authority classification
