@@ -117,6 +117,16 @@ def test_execution_refuses_wrong_token_and_locked_configuration() -> None:
         )
 
 
+def test_execution_rejects_sha256_value_as_git_commit() -> None:
+    with pytest.raises(PhaseCControlError, match="Git object ID"):
+        validate_execution_authorization(
+            confirmation=CONFIRMATION_TOKEN,
+            authorized_commit="a" * 64,
+            expected_config_sha256=hashlib.sha256(DEFAULT_CONFIG.read_bytes()).hexdigest(),
+            expected_workflow_sha256=hashlib.sha256(DEFAULT_WORKFLOW.read_bytes()).hexdigest(),
+        )
+
+
 def test_execution_checks_exact_counts_before_output() -> None:
     with pytest.raises(PhaseCControlError, match="exactly 500 standard"):
         validate_execution_authorization(

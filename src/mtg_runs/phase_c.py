@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
@@ -69,6 +70,14 @@ def _exact(value: object, expected: object, label: str) -> None:
 
 def _is_sha256(value: str) -> bool:
     return len(value) == 64 and all(char in "0123456789abcdef" for char in value)
+
+
+def _is_git_object_id(value: str) -> bool:
+    return len(value) == 40 and all(char in "0123456789abcdef" for char in value)
+
+
+def _is_rfc3339_utc(value: str) -> bool:
+    return re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", value) is not None
 
 
 @dataclass(frozen=True)
@@ -405,6 +414,8 @@ def validate_execution_authorization(
     workflow_sha = file_sha256(workflow_path)
     if workflow_sha != expected_workflow_sha256:
         raise PhaseCControlError("Phase C workflow digest differs")
+    if not _is_git_object_id(authorized_commit):
+        raise PhaseCControlError("authorized commit must be a lowercase 40-character Git object ID")
     if _git_head(root) != authorized_commit:
         raise PhaseCControlError("checked-out commit differs from authorization")
     if not config.execution_allowed:
@@ -415,8 +426,24 @@ def validate_execution_authorization(
         raise PhaseCControlError("Phase C owner approval remains pending")
     if not approval.approved_by or not approval.approved_at:
         raise PhaseCControlError("Phase C owner approval metadata is incomplete")
+    if approval.approved_by != "Jeff Toney":
+        raise PhaseCControlError("Phase C approval must be from Jeff Toney")
+    if not _is_rfc3339_utc(approval.approved_at):
+        raise PhaseCControlError("Phase C approval timestamp must be RFC3339 UTC")
     if not approval.approval_statement:
         raise PhaseCControlError("Phase C approval statement is missing")
+    required_statement_terms = (
+        authorized_commit,
+        config.sha256,
+        workflow_sha,
+        approval.confirmation_token_sha256,
+    )
+    if not all(term in approval.approval_statement for term in required_statement_terms):
+        raise PhaseCControlError("Phase C approval statement must name commit and digests")
+    if approval.authorized_commit is None or not _is_git_object_id(approval.authorized_commit):
+        raise PhaseCControlError(
+            "approval authorized commit must be a lowercase 40-character Git object ID"
+        )
     if approval.authorized_commit != authorized_commit:
         raise PhaseCControlError("approval is bound to a different commit")
     if approval.pilot_config_sha256 != config.sha256:
