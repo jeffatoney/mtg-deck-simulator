@@ -17,7 +17,9 @@ from mtg_runs.phase_c import (
     build_pilot_seed_plan,
     dry_run_phase_c,
     load_phase_c_config,
+    build_phase_c_technical_fixture,
     validate_execution_authorization,
+    validate_phase_c_aggregate,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -64,12 +66,14 @@ def test_seed_plan_is_deterministic_exact_and_disjoint() -> None:
 
 def test_dry_run_creates_no_game_result_and_discloses_engine_blockers() -> None:
     report = dry_run_phase_c()
-    assert report.status == "LOCKED_ENGINE_INCOMPLETE"
+    assert report.status == "READY_FOR_OWNER_REVIEW"
     assert report.execution_allowed is False
     assert report.authorization_status == "LOCKED_PENDING_OWNER_APPROVAL"
     assert report.game_results_created == 0
     assert report.full_study_execution_allowed is False
-    assert report.readiness_blockers == CURRENT_ENGINE_BLOCKERS
+    assert report.readiness_blockers == CURRENT_ENGINE_BLOCKERS == ()
+    assert report.exploratory_production_decision_layers == 1
+    assert len(report.technical_fixture_digest) == 64
     assert report.config_sha256 == hashlib.sha256(DEFAULT_CONFIG.read_bytes()).hexdigest()
     assert (
         report.approval_record_sha256 == hashlib.sha256(DEFAULT_APPROVAL.read_bytes()).hexdigest()
@@ -141,3 +145,35 @@ def test_manual_workflow_is_locked_and_uses_clean_verification_path() -> None:
     assert "mtg_sim" in workflow and "import mtg_sim" in workflow
     assert "20,000" not in workflow and "5000" not in workflow
     assert not (ROOT / ".github/workflows/pilot-simulation.yml").exists()
+
+
+def test_technical_fixture_records_turn_ten_replay_and_separate_modes() -> None:
+    config = load_phase_c_config()
+    seeds = build_pilot_seed_plan(config)
+    fixture = build_phase_c_technical_fixture(config, seeds)
+    assert fixture.game_results_created == 0
+    assert fixture.standard_shard.mode == "STANDARD"
+    assert fixture.exploratory_shard.mode == "EXPLORATORY"
+    assert fixture.standard_shard.record_count == 2
+    assert fixture.exploratory_shard.record_count == 2
+    summary = validate_phase_c_aggregate((fixture.standard_shard, fixture.exploratory_shard))
+    assert summary["status"] == "PASS"
+    assert summary["summaries"]["standard"]["game_count"] == 2
+    assert summary["summaries"]["exploratory"]["game_count"] == 2
+
+
+def test_authorization_rejects_git_object_and_sha256_domain_mixing() -> None:
+    with pytest.raises(PhaseCControlError, match="Git object ID"):
+        validate_execution_authorization(
+            confirmation=CONFIRMATION_TOKEN,
+            authorized_commit="0" * 64,
+            expected_config_sha256=hashlib.sha256(DEFAULT_CONFIG.read_bytes()).hexdigest(),
+            expected_workflow_sha256=hashlib.sha256(DEFAULT_WORKFLOW.read_bytes()).hexdigest(),
+        )
+    with pytest.raises(PhaseCControlError, match="SHA-256"):
+        validate_execution_authorization(
+            confirmation=CONFIRMATION_TOKEN,
+            authorized_commit="0" * 40,
+            expected_config_sha256="0" * 40,
+            expected_workflow_sha256=hashlib.sha256(DEFAULT_WORKFLOW.read_bytes()).hexdigest(),
+        )

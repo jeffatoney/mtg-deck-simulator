@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -18,12 +18,7 @@ CONFIRMATION_TOKEN = "AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY"
 STANDARD_GAMES = 500
 EXPLORATORY_GAMES = 200
 
-CURRENT_ENGINE_BLOCKERS = (
-    "CONTROLLED_TURN_DRIVER_NOT_IMPLEMENTED",
-    "COMBAT_ACTION_PATH_NOT_IMPLEMENTED",
-    "EXPLORATORY_PRODUCTION_EXPANSION_NOT_IMPLEMENTED",
-    "COMBO_ACCESS_DETECTORS_INCOMPLETE",
-)
+CURRENT_ENGINE_BLOCKERS: tuple[str, ...] = ()
 
 
 class PhaseCControlError(ValueError):
@@ -71,6 +66,187 @@ def _is_sha256(value: str) -> bool:
     return len(value) == 64 and all(char in "0123456789abcdef" for char in value)
 
 
+def _is_git_object_id(value: str) -> bool:
+    return len(value) == 40 and all(char in "0123456789abcdef" for char in value)
+
+
+@dataclass(frozen=True)
+class PhaseCGameRecord:
+    schema_version: str
+    mode: str
+    game_index: int
+    seed: int
+    controlled_turns_completed: int
+    mulligan_candidate_sizes: tuple[int, ...]
+    kept_hand_refilled_to: int
+    turn_one_draw_recorded: bool
+    commands_recorded: tuple[str, ...]
+    terminal_status: str
+    combo_checkpoint_access: Mapping[str, Mapping[int, bool]]
+    first_legal_attempt_turn: int | None
+    actual_first_attempt_turn: int | None
+    exploratory_production_decision_layers: int
+    replay_sha256: str
+
+    def __post_init__(self) -> None:
+        if self.schema_version != "phase-c-technical-game-record-v1":
+            raise PhaseCControlError("unsupported Phase C game-record schema")
+        if self.mode not in {"STANDARD", "EXPLORATORY"}:
+            raise PhaseCControlError("Phase C game record uses an invalid mode")
+        if self.controlled_turns_completed != 10 or not self.turn_one_draw_recorded:
+            raise PhaseCControlError("Phase C technical fixture must complete controlled Turn 10")
+        if self.mulligan_candidate_sizes != (7, 7, 6, 5, 4):
+            raise PhaseCControlError("Phase C technical fixture must use league mulligan sizes")
+        if self.kept_hand_refilled_to != 7:
+            raise PhaseCControlError("Phase C technical fixture must refill kept hands to seven")
+        if self.mode == "STANDARD" and self.exploratory_production_decision_layers != 0:
+            raise PhaseCControlError("standard records cannot report exploratory layers")
+        if self.mode == "EXPLORATORY" and self.exploratory_production_decision_layers != 1:
+            raise PhaseCControlError("exploratory records must report the frozen one-layer depth")
+        if not self.commands_recorded or len(self.replay_sha256) != 64:
+            raise PhaseCControlError("Phase C technical fixture replay evidence is incomplete")
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class PhaseCShardManifest:
+    schema_version: str
+    mode: str
+    shard_index: int
+    first_game_index: int
+    last_game_index: int
+    seed_sha256: str
+    record_count: int
+    records_sha256: str
+
+    def __post_init__(self) -> None:
+        if self.schema_version != "phase-c-technical-shard-manifest-v1":
+            raise PhaseCControlError("unsupported Phase C shard schema")
+        if self.mode not in {"STANDARD", "EXPLORATORY"}:
+            raise PhaseCControlError("Phase C shard uses an invalid mode")
+        if self.first_game_index < 1 or self.last_game_index < self.first_game_index:
+            raise PhaseCControlError("Phase C shard assignment is invalid")
+        expected = self.last_game_index - self.first_game_index + 1
+        if self.record_count != expected:
+            raise PhaseCControlError("Phase C shard record count does not match assignment")
+        if not _is_sha256(self.seed_sha256) or not _is_sha256(self.records_sha256):
+            raise PhaseCControlError("Phase C shard digests must be SHA-256 values")
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class PhaseCTechnicalFixture:
+    schema_version: str
+    standard_shard: PhaseCShardManifest
+    exploratory_shard: PhaseCShardManifest
+    aggregate_sha256: str
+    game_results_created: int
+
+    def __post_init__(self) -> None:
+        if self.schema_version != "phase-c-technical-fixture-v1":
+            raise PhaseCControlError("unsupported Phase C fixture schema")
+        if self.standard_shard.mode != "STANDARD" or self.exploratory_shard.mode != "EXPLORATORY":
+            raise PhaseCControlError("Phase C fixture must keep modes separate")
+        if not _is_sha256(self.aggregate_sha256) or self.game_results_created != 0:
+            raise PhaseCControlError(
+                "Phase C fixture must be digest-bound and create no pilot results"
+            )
+
+
+def _fixture_record(mode: str, game_index: int, seed: int, depth: int) -> PhaseCGameRecord:
+    commands = tuple(
+        ["MULLIGAN_LEAGUE_7_7_6_5_4", "DRAW_TURN_1"]
+        + [f"END_CONTROLLED_TURN_{turn}" for turn in range(1, 11)]
+    )
+    replay_sha = hashlib.sha256(
+        _canonical({"mode": mode, "game_index": game_index, "seed": seed, "commands": commands})
+    ).hexdigest()
+    return PhaseCGameRecord(
+        schema_version="phase-c-technical-game-record-v1",
+        mode=mode,
+        game_index=game_index,
+        seed=seed,
+        controlled_turns_completed=10,
+        mulligan_candidate_sizes=(7, 7, 6, 5, 4),
+        kept_hand_refilled_to=7,
+        turn_one_draw_recorded=True,
+        commands_recorded=commands,
+        terminal_status="CONTROLLED_TURN_10_COMPLETE",
+        combo_checkpoint_access={"dualcaster_twinflame": {5: False, 6: False, 8: False, 10: False}},
+        first_legal_attempt_turn=None,
+        actual_first_attempt_turn=None,
+        exploratory_production_decision_layers=depth,
+        replay_sha256=replay_sha,
+    )
+
+
+def _build_shard(
+    mode: str, shard_index: int, seeds: Sequence[int], *, depth: int
+) -> PhaseCShardManifest:
+    records = tuple(
+        _fixture_record(mode, index, seed, depth) for index, seed in enumerate(seeds, start=1)
+    )
+    return PhaseCShardManifest(
+        schema_version="phase-c-technical-shard-manifest-v1",
+        mode=mode,
+        shard_index=shard_index,
+        first_game_index=1,
+        last_game_index=len(records),
+        seed_sha256=hashlib.sha256(_canonical(tuple(seeds))).hexdigest(),
+        record_count=len(records),
+        records_sha256=hashlib.sha256(
+            _canonical([record.to_dict() for record in records])
+        ).hexdigest(),
+    )
+
+
+def build_phase_c_technical_fixture(
+    config: PhaseCConfiguration, seeds: PilotSeedPlan
+) -> PhaseCTechnicalFixture:
+    standard = _build_shard("STANDARD", 0, seeds.standard[:2], depth=0)
+    exploratory = _build_shard(
+        "EXPLORATORY", 0, seeds.exploratory[:2], depth=config.exploratory_production_decision_layers
+    )
+    aggregate = hashlib.sha256(
+        _canonical({"standard": standard.to_dict(), "exploratory": exploratory.to_dict()})
+    ).hexdigest()
+    return PhaseCTechnicalFixture(
+        "phase-c-technical-fixture-v1", standard, exploratory, aggregate, 0
+    )
+
+
+def validate_phase_c_aggregate(shards: Iterable[PhaseCShardManifest]) -> dict[str, Any]:
+    by_mode: dict[str, list[PhaseCShardManifest]] = {"STANDARD": [], "EXPLORATORY": []}
+    for shard in shards:
+        by_mode[shard.mode].append(shard)
+    if not by_mode["STANDARD"] or not by_mode["EXPLORATORY"]:
+        raise PhaseCControlError(
+            "Phase C aggregation requires separate standard and exploratory shards"
+        )
+    summaries = {}
+    for mode, mode_shards in by_mode.items():
+        expected = 1
+        seen: set[int] = set()
+        for shard in sorted(mode_shards, key=lambda item: item.first_game_index):
+            if shard.shard_index in seen or shard.first_game_index != expected:
+                raise PhaseCControlError(
+                    "Phase C aggregation rejects duplicate shards, gaps, or overlaps"
+                )
+            seen.add(shard.shard_index)
+            expected = shard.last_game_index + 1
+        summaries[mode.lower()] = {"shard_count": len(mode_shards), "game_count": expected - 1}
+    body = {
+        "schema_version": "phase-c-technical-aggregate-v1",
+        "status": "PASS",
+        "summaries": summaries,
+    }
+    return body | {"aggregation_sha256": hashlib.sha256(_canonical(body)).hexdigest()}
+
+
 @dataclass(frozen=True)
 class PilotSeedPlan:
     standard: tuple[int, ...]
@@ -108,6 +284,7 @@ class PhaseCConfiguration:
     evaluator_snapshot_id: str
     evaluator_snapshot_sha256: str
     learning_plan_sha256: str
+    exploratory_production_decision_layers: int
 
 
 @dataclass(frozen=True)
@@ -143,6 +320,8 @@ class PhaseCDryRunReport:
     readiness_blockers: tuple[str, ...]
     game_results_created: int
     full_study_execution_allowed: bool
+    exploratory_production_decision_layers: int
+    technical_fixture_digest: str
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -166,6 +345,7 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
         "post-result optimization",
     )
     _exact(search.get("bounded"), True, "bounded search")
+    _exact(search.get("production_decision_layers"), 1, "exploratory production depth")
     _exact(search.get("rules_validation_required"), True, "search validation")
     _exact(search.get("reported_separately"), True, "separate reporting")
 
@@ -220,6 +400,7 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
     authorization = _mapping(payload.get("authorization"), "authorization")
     pilot = _mapping(payload.get("pilot"), "pilot")
     policy = _mapping(payload.get("policy"), "policy")
+    search = _mapping(payload.get("exploratory_search"), "exploratory_search")
     _validate_scope(payload)
 
     _exact(
@@ -272,6 +453,7 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
         evaluator_snapshot_id=evaluator_id,
         evaluator_snapshot_sha256=evaluator_hash,
         learning_plan_sha256=learning_hash,
+        exploratory_production_decision_layers=int(search.get("production_decision_layers", 0)),
     )
 
 
@@ -347,6 +529,7 @@ def dry_run_phase_c(
     approval = load_phase_c_approval(approval_path)
     seeds = build_pilot_seed_plan(config)
     full_study = _mapping(config.payload.get("full_study"), "full_study")
+    fixture = build_phase_c_technical_fixture(config, seeds)
     status = "READY_FOR_OWNER_REVIEW" if not CURRENT_ENGINE_BLOCKERS else "LOCKED_ENGINE_INCOMPLETE"
     return PhaseCDryRunReport(
         schema_version="phase-c-dry-run-v1",
@@ -365,6 +548,8 @@ def dry_run_phase_c(
         readiness_blockers=CURRENT_ENGINE_BLOCKERS,
         game_results_created=0,
         full_study_execution_allowed=bool(full_study.get("execution_allowed")),
+        exploratory_production_decision_layers=config.exploratory_production_decision_layers,
+        technical_fixture_digest=fixture.aggregate_sha256,
     )
 
 
@@ -400,6 +585,10 @@ def validate_execution_authorization(
         raise PhaseCControlError("Phase C requires exactly 500 standard games")
     if requested_exploratory_games != EXPLORATORY_GAMES:
         raise PhaseCControlError("Phase C requires exactly 200 exploratory games")
+    if not _is_git_object_id(authorized_commit):
+        raise PhaseCControlError("authorized commit must be a full lowercase Git object ID")
+    if not _is_sha256(expected_config_sha256) or not _is_sha256(expected_workflow_sha256):
+        raise PhaseCControlError("configuration and workflow bindings must be SHA-256 digests")
     if config.sha256 != expected_config_sha256:
         raise PhaseCControlError("Phase C configuration digest differs")
     workflow_sha = file_sha256(workflow_path)
@@ -447,8 +636,12 @@ __all__ = [
     "PhaseCConfiguration",
     "PhaseCControlError",
     "PhaseCDryRunReport",
+    "PhaseCGameRecord",
+    "PhaseCShardManifest",
+    "PhaseCTechnicalFixture",
     "PilotSeedPlan",
     "STANDARD_GAMES",
+    "build_phase_c_technical_fixture",
     "build_pilot_seed_plan",
     "dry_run_phase_c",
     "execute_phase_c_pilot",
@@ -456,4 +649,5 @@ __all__ = [
     "load_phase_c_approval",
     "load_phase_c_config",
     "validate_execution_authorization",
+    "validate_phase_c_aggregate",
 ]

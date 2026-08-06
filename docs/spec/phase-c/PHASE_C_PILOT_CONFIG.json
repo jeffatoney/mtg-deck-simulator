@@ -19,13 +19,14 @@
     "bounded": true,
     "future_information_allowed": false,
     "post_result_optimization_allowed": false,
+    "production_decision_layers": 1,
     "reported_separately": true,
     "rules_validation_required": true
   },
   "full_study": {
     "authorization_status": "LOCKED_PENDING_POST_PILOT_REVIEW",
-    "exploratory_games": 5000,
     "execution_allowed": false,
+    "exploratory_games": 5000,
     "standard_games": 20000
   },
   "game_model": {

@@ -28,9 +28,9 @@
     "skip": 0,
     "xfail": 0
   },
-  "covered_content_sha256": "sha256:5459d27d204c35969598a4b08355e24b0299bc8986380a79b104b2a32ab6efa8",
+  "covered_content_sha256": "sha256:6a47625f27f8f1eaed43f4dd6020be923b2f4f420b023ca7b1b128f15f895a7f",
   "covered_paths": {
-    ".github/workflows/ci.yml": "sha256:19fadb8c9dd4c4e45305de7963559622a016366b0ffd39af0d96b66115520491",
+    ".github/workflows/ci.yml": "sha256:7488cc591024894d21bebf0d3931c6d5f419e4b5a01bbff576f8256ccbc2148d",
     "automation/phase-b-authority-map.json": "sha256:e5eb8507e4db5ad09b0ae38a0b08a7ea19e4cab0f949c313cffce9c74027cc9f",
     "automation/phase-b-test-mapping.json": "sha256:03f1b4556f664696a7863679a665fb0a7cb30e0c163ed19be6ddcfa45673824e",
     "configs/baseline.toml": "sha256:20d54af9c38ca0f84af0f8426501811c9a01131aa3373e38f52030c8eaa76134",
@@ -64,7 +64,7 @@
     "src/mtg_kernel": "sha256:01b3b540ce8c34e384ab82b2f3a928924b61a2cca13f7e16b86d2903415931c7",
     "src/mtg_measure": "sha256:a9cf050091dc893c7264a4a2be9e500de81d2179b159816585d6bcf80fb68bac",
     "src/mtg_policy": "sha256:7c241629d958b511ec578ce34eb607fb05a57cf297e8023d6be14dd7452bd32a",
-    "src/mtg_runs": "sha256:7ec6eb818296faf7657956eead45f23b63d27aa13922deda9bab1f2ef193ad9d",
+    "src/mtg_runs": "sha256:31f59193b6e985eb59ed571b0f998dd04699516cbcab19bdf1d54b69abb8ea1a",
     "src/mtg_search": "sha256:c4d3f9608a042f0ad440f3d8678abb06e1bdfa41c30676cf5b42d93968254d13",
     "src/mtg_verify": "sha256:e1ae67c5efe6828a7d9d969c029dddc4abe3cbe53d2e09d72e6bb03b66fd24db",
     "tests/phase_a": "sha256:23e81b77f923956f4660309fd62011e1bc13ce44823183dd34c72e041ac6c443",

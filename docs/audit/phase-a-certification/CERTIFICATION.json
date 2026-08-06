@@ -24,9 +24,9 @@
     "skip": 0,
     "xfail": 0
   },
-  "covered_content_sha256": "sha256:5c5863f0d759ac906a6fee86b443556f4c205d368e486f2dab6312201af69f02",
+  "covered_content_sha256": "sha256:5a5f8d692fe958861802e0e345f8a6e1b698ff5a16b8a47f2833b6fdf2a6d265",
   "covered_paths": {
-    ".github/workflows/ci.yml": "sha256:19fadb8c9dd4c4e45305de7963559622a016366b0ffd39af0d96b66115520491",
+    ".github/workflows/ci.yml": "sha256:7488cc591024894d21bebf0d3931c6d5f419e4b5a01bbff576f8256ccbc2148d",
     "automation/phase-a-test-mapping.json": "sha256:f327a967b5fb384f547d7bb71afbc401111ad5bb93c07337842d7c119a378c98",
     "docs/audit/phase-a-golden-transcripts": "sha256:f5ad779ae5573ff0bb4fb9ad743eea16d4c0c56b83ab6da498d13faf24836545",
     "docs/source/oracle/snapshot_v1.json": "sha256:3a8c7043757f80faecb25ea75881c4730a20b604a794a124ef7a14112cf0a632",
