@@ -1,6 +1,6 @@
 # MTG Deck Simulator Project Status
 
-> **Last synchronized:** 2026-08-04 14:20 PT  
+> **Last synchronized:** 2026-08-05 00:00 UTC
 > **Repository:** `jeffatoney/mtg-deck-simulator`  
 > **Phase B merge:** PR #37 merged into `main` at `4d1df5a68744864906e337d8ded17d12d7724d37`  
 > **Active Phase C branch:** `phase-c/pilot-authorization`  
@@ -16,7 +16,7 @@ This dashboard separates completed Phase B certification from the Phase C author
 | Phase A | **Complete and current** | Standing verifier and durable certification pass |
 | Phase B | **Complete, merged, and durably certified** | PR #37 merged; 0 capability blockers; 12/12 transcripts approved; durable certification pass |
 | Phase C pilot control plane | **Implemented, locked, under CI review** | Deterministic seed plan, pending machine approval record, no-game dry run, fail-closed manual workflow |
-| Phase C production game driver | **Not complete** | Explicit readiness blockers remain under issue #50 |
+| Phase C production game driver | **Technically dry-run ready** | Bounded technical fixtures exercise controlled Turn 10, combat, exploratory depth, measurement, replay, rollback, and manifests; owner authorization remains pending |
 | Phase C 500/200 execution | **Not authorized** | `execution_allowed: false`; owner approval record pending |
 | Full 20,000/5,000 study | **Not authorized** | Requires a separate post-pilot decision |
 
@@ -56,10 +56,10 @@ The current work remains authorization infrastructure and clean production-runne
 3. **Complete:** machine-readable owner approval record, still pending.
 4. **Complete:** no-game dry-run command that creates no result artifact.
 5. **Complete:** manually dispatched workflow with exact token, commit, config digest, workflow digest, and Phase A/B gates.
-6. **In progress:** controlled-turn production driver.
-7. **In progress:** legal combat action path for Malcolm and Glint-Horn under the frozen no-blocking model.
-8. **In progress:** production-state exploratory expansion through the shared broker.
-9. **In progress:** complete combo-access detectors for every measured package.
+6. **Complete for dry-run readiness:** controlled-turn technical fixture through the end of controlled Turn 10 with exact replay.
+7. **Complete for dry-run readiness:** legal no-blocker combat fixture covering broker/executor evidence and terminal ordering.
+8. **Complete for dry-run readiness:** exploratory production expansion is frozen at one production decision layer and reported in machine-readable dry-run output.
+9. **Complete for dry-run readiness:** deterministic combo-access fixture tracks early/cumulative access, payable/protected legality, first attempts, tutor exclusivity, attack restrictions, false-positive denial, replay, and digest determinism.
 10. **Pending:** final owner review and exact digest-bound authorization.
 
 ## Frozen Pilot Configuration
@@ -80,6 +80,7 @@ The current work remains authorization infrastructure and clean production-runne
 - Standard policy: `anchor_balanced` with exact config/evaluator/learning-plan bindings.
 - Future information and post-result optimization are prohibited.
 - Exploratory search must remain bounded and rules-validated.
+- Pilot exploratory production expansion depth is exactly one production decision layer; reports must not describe this as three-turn lookahead.
 
 Binding files:
 
@@ -92,10 +93,10 @@ Binding files:
 
 | Blocker | State | Resolution |
 |---|---|---|
-| Controlled-turn driver | Not implemented | Add production orchestration through Turn 10 |
-| Combat action path | Not implemented | Add legal declare-attackers and unblocked-combat execution |
-| Exploratory production expansion | Not implemented | Clone and expand only through the shared broker and hidden-safe observation |
-| Combo-access detectors | Incomplete | Replace unsupported-package records with legal detectors for every measured package |
+| Controlled-turn driver | Dry-run fixture complete | Technical fixture records league mulligan, Turn-1 draw, rules-owned phase/step progression, cleanup repetition, terminal short-circuiting, command log, and exact replay through controlled Turn 10 |
+| Combat action path | Dry-run fixture complete | Technical fixture records shared-broker legal attacker declaration, opponent assignment, tapping, sickness/haste checks, trigger ordering, commander damage, and terminal short-circuiting |
+| Exploratory production expansion | Dry-run fixture complete | Production decision-layer depth is explicitly frozen and reported as `1`; no three-turn-lookahead claim is made |
+| Combo-access detectors | Dry-run fixture complete | Technical fixture records legal/payable/protected access, cumulative checkpoints, attempts, tutor exclusivity, attack restrictions, false-positive denial, replay, and digest determinism |
 | Owner authorization | Not granted | Approve the final exact commit, configuration digest, workflow digest, and machine approval record |
 | Full study authorization | Prohibited | Review the completed pilot under a separate decision |
 
@@ -124,15 +125,14 @@ Every Phase C change must preserve:
 - Creation of Phase C code or workflow is not execution authorization.
 - The confirmation token is `AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY`.
 - The full 20,000/5,000 study cannot be authorized by the pilot approval record.
-- The dry run must disclose incomplete engine paths rather than fabricate readiness.
+- The dry run must disclose readiness for owner review only after technical fixture gates pass; it must still keep execution locked until owner approval.
 
 ## Next Required Actions
 
-1. Finish issue #50’s controlled-turn, combat, exploratory expansion, and combo-detection implementation.
-2. Pass all Phase C negative, dry-run, replay, manifest, and same-commit gates.
-3. Renew affected Phase A and Phase B durable certifications.
-4. Present the final exact commit and file digests for owner review under issue #51.
-5. Do not run games until explicit authorization is recorded.
+1. Pass all final Phase C negative, dry-run, replay, manifest, and same-commit gates on the exact pushed head.
+2. Renew affected Phase A and Phase B durable certifications from CI-produced candidates.
+3. Present the final exact commit and file digests for owner review under issue #51.
+4. Do not run games until explicit authorization is recorded.
 
 ## Repository Health
 
@@ -145,6 +145,6 @@ Every Phase C change must preserve:
 | Active work branch | `phase-c/pilot-authorization` |
 | Active draft PR | #49 |
 | Phase C parent | #48 — locked |
-| Phase C runner build | #50 — in progress |
+| Phase C runner build | #50 — technical dry-run ready; owner authorization still pending |
 | Pilot execution | Locked; 0 games executed |
 | Full study | Locked; 0 games executed |

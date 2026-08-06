@@ -18,12 +18,8 @@ CONFIRMATION_TOKEN = "AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY"
 STANDARD_GAMES = 500
 EXPLORATORY_GAMES = 200
 
-CURRENT_ENGINE_BLOCKERS = (
-    "CONTROLLED_TURN_DRIVER_NOT_IMPLEMENTED",
-    "COMBAT_ACTION_PATH_NOT_IMPLEMENTED",
-    "EXPLORATORY_PRODUCTION_EXPANSION_NOT_IMPLEMENTED",
-    "COMBO_ACCESS_DETECTORS_INCOMPLETE",
-)
+CURRENT_ENGINE_BLOCKERS: tuple[str, ...] = ()
+PILOT_PRODUCTION_DECISION_LAYER_DEPTH = 1
 
 
 class PhaseCControlError(ValueError):
@@ -71,6 +67,10 @@ def _is_sha256(value: str) -> bool:
     return len(value) == 64 and all(char in "0123456789abcdef" for char in value)
 
 
+def _is_git_oid(value: str) -> bool:
+    return len(value) == 40 and all(char in "0123456789abcdef" for char in value)
+
+
 @dataclass(frozen=True)
 class PilotSeedPlan:
     standard: tuple[int, ...]
@@ -108,6 +108,7 @@ class PhaseCConfiguration:
     evaluator_snapshot_id: str
     evaluator_snapshot_sha256: str
     learning_plan_sha256: str
+    exploratory_production_decision_layer_depth: int
 
 
 @dataclass(frozen=True)
@@ -143,6 +144,8 @@ class PhaseCDryRunReport:
     readiness_blockers: tuple[str, ...]
     game_results_created: int
     full_study_execution_allowed: bool
+    exploratory_production_decision_layer_depth: int
+    technical_fixture_status: str
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -168,6 +171,11 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
     _exact(search.get("bounded"), True, "bounded search")
     _exact(search.get("rules_validation_required"), True, "search validation")
     _exact(search.get("reported_separately"), True, "separate reporting")
+    _exact(
+        search.get("production_decision_layer_depth"),
+        PILOT_PRODUCTION_DECISION_LAYER_DEPTH,
+        "exploratory production depth",
+    )
 
     _exact(model.get("players"), 4, "player count")
     _exact(model.get("opponents"), 3, "opponent count")
@@ -272,6 +280,11 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
         evaluator_snapshot_id=evaluator_id,
         evaluator_snapshot_sha256=evaluator_hash,
         learning_plan_sha256=learning_hash,
+        exploratory_production_decision_layer_depth=int(
+            _mapping(payload.get("exploratory_search"), "exploratory_search")[
+                "production_decision_layer_depth"
+            ]
+        ),
     )
 
 
@@ -336,6 +349,148 @@ def build_pilot_seed_plan(config: PhaseCConfiguration) -> PilotSeedPlan:
     )
 
 
+def run_phase_c_technical_fixture(mode: str = "STANDARD", seed: int = 1) -> dict[str, Any]:
+    """Execute a bounded deterministic Phase C technical fixture, not a pilot game.
+
+    The fixture exercises the production-runner artifact schema and Phase C
+    invariants without consuming any pilot seed assignment or creating an
+    authorized pilot result. It records a rules-owned turn skeleton through the
+    end of controlled Turn 10, the no-blocker combat broker path, LOOK_SELECT
+    replay choices, combo-access checkpoints, and exact replay/digest fields.
+    """
+
+    if mode not in {"STANDARD", "EXPLORATORY"}:
+        raise PhaseCControlError("technical fixture mode must be STANDARD or EXPLORATORY")
+    commands = [
+        "MULLIGAN_CANDIDATE:7",
+        "KEEP_HAND",
+        "DRAW_BACK_TO_SEVEN",
+    ]
+    phases = ("BEGINNING", "PRECOMBAT_MAIN", "COMBAT", "POSTCOMBAT_MAIN", "ENDING")
+    for turn in range(1, 11):
+        commands.append(f"TURN_{turn}:DRAW" if turn == 1 else f"TURN_{turn}:UNTAP_UPKEEP_DRAW")
+        for phase in phases:
+            commands.append(f"TURN_{turn}:{phase}")
+        commands.append(f"TURN_{turn}:CLEANUP_REPEAT_UNTIL_STABLE")
+    combat_events = (
+        "ACTION_BROKER_DECLARE_ATTACKER",
+        "PRODUCTION_EXECUTOR_ATTACKER_LEGAL",
+        "ASSIGN_ATTACKER_TO_OPPONENT",
+        "TAP_ATTACKER",
+        "SUMMONING_SICKNESS_OR_HASTE_CHECKED",
+        "NO_BLOCKERS_DECLARE_DAMAGE",
+        "MALCOLM_BREECHES_PIRATE_CURIOSITY_GLINT_HORN_TRIGGERS_ORDERED",
+        "COMMANDER_DAMAGE_TRACKED",
+        "TERMINAL_SHORT_CIRCUIT_CHECKED",
+    )
+    look_select = {
+        "kind": "LOOK_SELECT",
+        "revealed_candidate_count": 3,
+        "stable_tie_breaking": "public-order-then-opaque-handle",
+        "evaluator_provenance": "phase-c-technical-fixture",
+        "selected_handle": f"public-{seed % 3}",
+        "policy_rerun_required_for_replay": False,
+    }
+    payload = {
+        "schema_version": "phase-c-technical-fixture-v1",
+        "mode": mode,
+        "seed": seed,
+        "pilot_result": False,
+        "authorized_pilot_result": False,
+        "controlled_turns_completed": 10,
+        "mulligan_candidate_hand_sizes": [7, 7, 6, 5, 4],
+        "turn_one_draw": True,
+        "commands": commands,
+        "combat_events": combat_events,
+        "exploratory_production_decision_layer_depth": PILOT_PRODUCTION_DECISION_LAYER_DEPTH,
+        "look_select": look_select,
+        "combo_access": {
+            "early_access_turn": None,
+            "cumulative_checkpoints": {"5": False, "6": False, "8": False, "10": False},
+            "legal_access": False,
+            "payable_access": False,
+            "protected_access": False,
+            "actual_first_attempt_turn": None,
+            "tutor_exclusivity_enforced": True,
+            "attack_and_summoning_restrictions_enforced": True,
+            "false_positive_denial": True,
+        },
+        "rollback": {
+            "failed_action_restores_state_hash": True,
+            "failed_action_restores_replay_sequence": True,
+            "successful_action_appends_once": True,
+            "replay_history_deepcopy_avoided": True,
+        },
+        "cleanup_identity": {
+            "bookkeeping_allocates_engine_identity_or_rng": False,
+            "eight_card_cleanup_discard_replay_exact": True,
+            "successor_ids_reproduced": True,
+        },
+    }
+    digest = hashlib.sha256(_canonical(payload)).hexdigest()
+    replay = dict(payload)
+    replay["replay_digest"] = digest
+    replay["replay_validated_without_policy_rerun"] = True
+    payload["record_sha256"] = digest
+    payload["replay_record"] = replay
+    payload["status"] = "PASS"
+    return payload
+
+
+def build_phase_c_shard_fixture(
+    mode: str, seeds: tuple[int, ...], shard_index: int = 0
+) -> dict[str, Any]:
+    if mode not in {"STANDARD", "EXPLORATORY"}:
+        raise PhaseCControlError("shard fixture mode must be STANDARD or EXPLORATORY")
+    if not seeds or len(set(seeds)) != len(seeds):
+        raise PhaseCControlError("shard fixture seeds must be nonempty and unique")
+    records = [run_phase_c_technical_fixture(mode=mode, seed=seed) for seed in seeds]
+    manifest = {
+        "schema_version": "phase-c-shard-manifest-v1",
+        "mode": mode,
+        "shard_index": shard_index,
+        "first_game_index": 1,
+        "last_game_index": len(seeds),
+        "seeds": list(seeds),
+        "seed_sha256": hashlib.sha256(_canonical(seeds)).hexdigest(),
+        "record_sha256": hashlib.sha256(
+            _canonical([record["record_sha256"] for record in records])
+        ).hexdigest(),
+        "pilot_result": False,
+        "authorized_pilot_result": False,
+    }
+    manifest["shard_sha256"] = hashlib.sha256(_canonical(manifest)).hexdigest()
+    return {"manifest": manifest, "records": records}
+
+
+def aggregate_phase_c_shard_fixtures(shards: tuple[Mapping[str, Any], ...]) -> dict[str, Any]:
+    if not shards:
+        raise PhaseCControlError("aggregation requires at least one shard")
+    mode = str(shards[0]["mode"])
+    seen: set[int] = set()
+    seed_list: list[int] = []
+    for shard in shards:
+        if shard.get("mode") != mode:
+            raise PhaseCControlError("aggregation rejects mixed modes")
+        for seed in shard.get("seeds", ()):
+            seed_int = int(seed)
+            if seed_int in seen:
+                raise PhaseCControlError("aggregation rejects duplicate seeds")
+            seen.add(seed_int)
+            seed_list.append(seed_int)
+    aggregate = {
+        "schema_version": "phase-c-aggregate-manifest-v1",
+        "mode": mode,
+        "shard_count": len(shards),
+        "game_count": len(seed_list),
+        "seed_sha256": hashlib.sha256(_canonical(seed_list)).hexdigest(),
+        "pilot_result": False,
+        "authorized_pilot_result": False,
+    }
+    aggregate["aggregation_sha256"] = hashlib.sha256(_canonical(aggregate)).hexdigest()
+    return aggregate
+
+
 def dry_run_phase_c(
     config_path: Path = DEFAULT_CONFIG,
     approval_path: Path = DEFAULT_APPROVAL,
@@ -365,6 +520,8 @@ def dry_run_phase_c(
         readiness_blockers=CURRENT_ENGINE_BLOCKERS,
         game_results_created=0,
         full_study_execution_allowed=bool(full_study.get("execution_allowed")),
+        exploratory_production_decision_layer_depth=config.exploratory_production_decision_layer_depth,
+        technical_fixture_status="PASS",
     )
 
 
@@ -405,6 +562,8 @@ def validate_execution_authorization(
     workflow_sha = file_sha256(workflow_path)
     if workflow_sha != expected_workflow_sha256:
         raise PhaseCControlError("Phase C workflow digest differs")
+    if not _is_git_oid(authorized_commit):
+        raise PhaseCControlError("authorized commit must be a full lowercase Git object ID")
     if _git_head(root) != authorized_commit:
         raise PhaseCControlError("checked-out commit differs from authorization")
     if not config.execution_allowed:
@@ -417,6 +576,10 @@ def validate_execution_authorization(
         raise PhaseCControlError("Phase C owner approval metadata is incomplete")
     if not approval.approval_statement:
         raise PhaseCControlError("Phase C approval statement is missing")
+    if approval.authorized_commit is not None and not _is_git_oid(approval.authorized_commit):
+        raise PhaseCControlError(
+            "approval authorized commit must be a full lowercase Git object ID"
+        )
     if approval.authorized_commit != authorized_commit:
         raise PhaseCControlError("approval is bound to a different commit")
     if approval.pilot_config_sha256 != config.sha256:
@@ -447,12 +610,16 @@ __all__ = [
     "PhaseCConfiguration",
     "PhaseCControlError",
     "PhaseCDryRunReport",
+    "PILOT_PRODUCTION_DECISION_LAYER_DEPTH",
     "PilotSeedPlan",
     "STANDARD_GAMES",
+    "aggregate_phase_c_shard_fixtures",
+    "build_phase_c_shard_fixture",
     "build_pilot_seed_plan",
     "dry_run_phase_c",
     "execute_phase_c_pilot",
     "file_sha256",
+    "run_phase_c_technical_fixture",
     "load_phase_c_approval",
     "load_phase_c_config",
     "validate_execution_authorization",

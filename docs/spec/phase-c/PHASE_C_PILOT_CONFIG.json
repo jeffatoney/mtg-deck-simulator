@@ -20,7 +20,8 @@
     "future_information_allowed": false,
     "post_result_optimization_allowed": false,
     "reported_separately": true,
-    "rules_validation_required": true
+    "rules_validation_required": true,
+    "production_decision_layer_depth": 1
   },
   "full_study": {
     "authorization_status": "LOCKED_PENDING_POST_PILOT_REVIEW",

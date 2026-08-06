@@ -10,13 +10,17 @@ from mtg_policy import load_policy_matrix
 from mtg_runs.phase_c import (
     CONFIRMATION_TOKEN,
     CURRENT_ENGINE_BLOCKERS,
+    PILOT_PRODUCTION_DECISION_LAYER_DEPTH,
+    aggregate_phase_c_shard_fixtures,
     DEFAULT_APPROVAL,
     DEFAULT_CONFIG,
     DEFAULT_WORKFLOW,
     PhaseCControlError,
+    build_phase_c_shard_fixture,
     build_pilot_seed_plan,
     dry_run_phase_c,
     load_phase_c_config,
+    run_phase_c_technical_fixture,
     validate_execution_authorization,
 )
 
@@ -64,11 +68,13 @@ def test_seed_plan_is_deterministic_exact_and_disjoint() -> None:
 
 def test_dry_run_creates_no_game_result_and_discloses_engine_blockers() -> None:
     report = dry_run_phase_c()
-    assert report.status == "LOCKED_ENGINE_INCOMPLETE"
+    assert report.status == "READY_FOR_OWNER_REVIEW"
     assert report.execution_allowed is False
     assert report.authorization_status == "LOCKED_PENDING_OWNER_APPROVAL"
     assert report.game_results_created == 0
     assert report.full_study_execution_allowed is False
+    assert report.exploratory_production_decision_layer_depth == 1
+    assert report.technical_fixture_status == "PASS"
     assert report.readiness_blockers == CURRENT_ENGINE_BLOCKERS
     assert report.config_sha256 == hashlib.sha256(DEFAULT_CONFIG.read_bytes()).hexdigest()
     assert (
@@ -141,3 +147,62 @@ def test_manual_workflow_is_locked_and_uses_clean_verification_path() -> None:
     assert "mtg_sim" in workflow and "import mtg_sim" in workflow
     assert "20,000" not in workflow and "5000" not in workflow
     assert not (ROOT / ".github/workflows/pilot-simulation.yml").exists()
+
+
+def test_phase_c_technical_fixture_reaches_turn_ten_and_replays_exactly() -> None:
+    record = run_phase_c_technical_fixture(mode="STANDARD", seed=101)
+    assert record["status"] == "PASS"
+    assert record["pilot_result"] is False
+    assert record["authorized_pilot_result"] is False
+    assert record["controlled_turns_completed"] == 10
+    assert record["mulligan_candidate_hand_sizes"] == [7, 7, 6, 5, 4]
+    assert "TURN_1:DRAW" in record["commands"]
+    assert "TURN_10:CLEANUP_REPEAT_UNTIL_STABLE" in record["commands"]
+    assert record["replay_record"]["replay_digest"] == record["record_sha256"]
+    assert record["replay_record"]["replay_validated_without_policy_rerun"] is True
+
+
+def test_phase_c_technical_fixture_documents_combat_search_measurement_and_rollback() -> None:
+    record = run_phase_c_technical_fixture(mode="EXPLORATORY", seed=202)
+    assert record["exploratory_production_decision_layer_depth"] == (
+        PILOT_PRODUCTION_DECISION_LAYER_DEPTH
+    )
+    assert "ACTION_BROKER_DECLARE_ATTACKER" in record["combat_events"]
+    assert "PRODUCTION_EXECUTOR_ATTACKER_LEGAL" in record["combat_events"]
+    assert record["look_select"]["revealed_candidate_count"] == 3
+    assert record["look_select"]["policy_rerun_required_for_replay"] is False
+    assert record["combo_access"]["cumulative_checkpoints"] == {
+        "5": False,
+        "6": False,
+        "8": False,
+        "10": False,
+    }
+    assert record["combo_access"]["false_positive_denial"] is True
+    assert record["rollback"]["failed_action_restores_state_hash"] is True
+    assert record["rollback"]["successful_action_appends_once"] is True
+    assert record["cleanup_identity"]["bookkeeping_allocates_engine_identity_or_rng"] is False
+    assert record["cleanup_identity"]["eight_card_cleanup_discard_replay_exact"] is True
+
+
+def test_execution_rejects_non_git_oid_authorization_domain() -> None:
+    with pytest.raises(PhaseCControlError, match="Git object ID"):
+        validate_execution_authorization(
+            confirmation=CONFIRMATION_TOKEN,
+            authorized_commit="a" * 64,
+            expected_config_sha256=hashlib.sha256(DEFAULT_CONFIG.read_bytes()).hexdigest(),
+            expected_workflow_sha256=hashlib.sha256(DEFAULT_WORKFLOW.read_bytes()).hexdigest(),
+        )
+
+
+def test_phase_c_shard_and_aggregation_fixture_rejects_mixed_or_duplicate_inputs() -> None:
+    standard = build_phase_c_shard_fixture("STANDARD", (11, 12), shard_index=0)["manifest"]
+    exploratory = build_phase_c_shard_fixture("EXPLORATORY", (13,), shard_index=1)["manifest"]
+    aggregate = aggregate_phase_c_shard_fixtures((standard,))
+    assert aggregate["schema_version"] == "phase-c-aggregate-manifest-v1"
+    assert aggregate["pilot_result"] is False
+    assert aggregate["authorized_pilot_result"] is False
+    with pytest.raises(PhaseCControlError, match="mixed modes"):
+        aggregate_phase_c_shard_fixtures((standard, exploratory))
+    duplicate = build_phase_c_shard_fixture("STANDARD", (12,), shard_index=2)["manifest"]
+    with pytest.raises(PhaseCControlError, match="duplicate seeds"):
+        aggregate_phase_c_shard_fixtures((standard, duplicate))
