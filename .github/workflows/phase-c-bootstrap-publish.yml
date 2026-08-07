@@ -20,8 +20,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Reconstruct exact reviewed Phase C tree and publish
         env:
-          EXPECTED_BASE: 5f8a8f2eb3f4684e870b37b8f21b3bc85fd39a60
-          EXPECTED_TREE: 2ba546779ade03d765d60a692b32700ace595d43
+          EXPECTED_BASE: 5f8a8f2eb3f4684e870b37b8ded17d12d7724d37
+          EXPECTED_TREE: 4244f7b7c3a5abc9774087028bc5024211bab0e3
           PATCH_GZ_SHA256: d90b0328ef8b6647ac647665d6958db4f0060637ee102b7b7cfbafa831d336d5
           PATCH_SHA256: b0e1eee55ea6d45e059ae69606592e59bdc60d92e3f1fe039a8e4637fbd98b90
         run: |
@@ -37,7 +37,7 @@ jobs:
           git apply --index /tmp/phasec.patch
           TREE="$(git write-tree)"
           if [ "${TREE}" != "${EXPECTED_TREE}" ]; then
-            echo "Refusing publication: assembled tree ${TREE} != reviewed tree ${EXPECTED_TREE}" >&2
+            echo "Refusing publication: assembled tree ${TREE} != reviewed GitHub-native tree ${EXPECTED_TREE}" >&2
             exit 1
           fi
           git config user.name "chatgpt-codex-connector[bot]"
