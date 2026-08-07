@@ -29,8 +29,7 @@ def test_failed_standard_seed_records_arcane_denial_delayed_draw_choice() -> Non
 
     assert arcane_choices
     assert all(
-        choice["count"] == (2 if choice["player_id"] == "P0" else 0)
-        for choice in arcane_choices
+        choice["count"] == (2 if choice["player_id"] == "P0" else 0) for choice in arcane_choices
     )
     assert execution.technical_game.controlled_turns_completed == 10
     assert (
