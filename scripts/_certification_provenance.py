@@ -101,9 +101,15 @@ def verify_github_actions_candidate(
 ) -> list[str]:
     """Return provenance errors; do nothing outside GitHub Actions.
 
-    The exact candidate artifact check is best-effort only for artifact expiry:
-    if the artifact is listed and not expired it must exactly match the committed
-    record.  Run/head and producer-step checks are always mandatory in CI.
+    A candidate being validated inside its own still-running workflow cannot rely on
+    GitHub's jobs API for the immediately preceding step conclusions: that endpoint is
+    eventually consistent while the job is active.  The CI-only recorder already
+    requires checked-out HEAD, this exact GITHUB_RUN_ID, a passing clean verifier, and
+    acceptable evidence before it can create the candidate.  Therefore current-run
+    candidate validation checks the run/head binding but defers producer-step/artifact
+    verification until the candidate is committed as the durable record.  Durable
+    records always require the completed producer steps and, when unexpired, exact
+    equality with the uploaded candidate artifact.
     """
 
     if os.environ.get("GITHUB_ACTIONS") != "true":
@@ -115,20 +121,25 @@ def verify_github_actions_candidate(
 
     run_id = str(record.get("github_run_id", ""))
     commit = str(record.get("certified_content_commit", ""))
+    current_run_id = os.environ.get("GITHUB_RUN_ID", "").strip()
+    current_run_candidate = allow_unpublished_current_run and run_id == current_run_id
     api = os.environ.get("GITHUB_API_URL", "https://api.github.com").rstrip("/")
     try:
         run = _request_json(f"{api}/repos/{repository}/actions/runs/{run_id}", token)
         if str(run.get("head_sha", "")) != commit:
             return ["recorded GitHub Actions run did not execute the certified content commit"]
-        jobs = _request_json(
-            f"{api}/repos/{repository}/actions/runs/{run_id}/jobs?per_page=100", token
-        )
-        steps = _job_steps(jobs)
-        errors = [
-            f"recorded GitHub Actions run lacks successful producer step: {name}"
-            for name in required_steps
-            if steps.get(name) != "success"
-        ]
+
+        errors: list[str] = []
+        if not current_run_candidate:
+            jobs = _request_json(
+                f"{api}/repos/{repository}/actions/runs/{run_id}/jobs?per_page=100", token
+            )
+            steps = _job_steps(jobs)
+            errors.extend(
+                f"recorded GitHub Actions run lacks successful producer step: {name}"
+                for name in required_steps
+                if steps.get(name) != "success"
+            )
 
         artifacts = _request_json(
             f"{api}/repos/{repository}/actions/runs/{run_id}/artifacts?per_page=100", token
@@ -145,11 +156,10 @@ def verify_github_actions_candidate(
                 ),
                 None,
             )
-        current_run_id = os.environ.get("GITHUB_RUN_ID", "").strip()
         if candidate is None:
-            if not (allow_unpublished_current_run and run_id == current_run_id):
+            if not current_run_candidate:
                 errors.append("certification candidate artifact is missing from the recorded run")
-        elif not bool(candidate.get("expired")):
+        elif not bool(candidate.get("expired")) and not current_run_candidate:
             archive_url = str(candidate.get("archive_download_url", ""))
             if not archive_url:
                 errors.append("certification candidate artifact has no download URL")
