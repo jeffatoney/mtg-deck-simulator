@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - phase-c/arcane-denial-delayed-choice
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   patch:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
