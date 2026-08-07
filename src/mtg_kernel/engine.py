@@ -38,9 +38,10 @@ class HardenedGameExecutor(_CoreGameExecutor):
         seed: str = "phase-a",
         *,
         replaying: bool = False,
+        probing: bool = False,
         strategic_choice_provider: StrategicChoiceProvider | None = None,
     ) -> None:
-        super().__init__(state, seed, replaying=replaying)
+        super().__init__(state, seed, replaying=replaying, probing=probing)
         self.strategic_choice_provider = strategic_choice_provider
 
     def bind_strategic_choice_provider(
@@ -380,13 +381,14 @@ def _guarded_core_initializer(
     seed: str = "phase-a",
     *,
     replaying: bool = False,
+    probing: bool = False,
 ) -> None:
     if type(self) is _CoreGameExecutor:
         raise UnsupportedCapability(
             "internal executor core cannot be instantiated directly; "
             "use mtg_kernel.engine.GameExecutor"
         )
-    _CORE_INITIALIZER(self, state, seed, replaying=replaying)
+    _CORE_INITIALIZER(self, state, seed, replaying=replaying, probing=probing)
 
 
 setattr(_CoreGameExecutor, "__init__", _guarded_core_initializer)

@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   checks:
@@ -29,15 +30,6 @@ jobs:
           python-version-file: .python-version
       - name: Install dependencies
         run: uv sync --frozen --all-extras
-      - name: Prepare temporary exact-head source snapshot
-        run: git archive --format=tar.gz --output "${RUNNER_TEMP}/phase-c-source.tar.gz" HEAD
-      - name: Upload temporary exact-head source snapshot
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase-c-source-${{ github.event.pull_request.head.sha || github.sha }}
-          path: ${{ runner.temp }}/phase-c-source.tar.gz
-          if-no-files-found: error
-          retention-days: 1
       - name: Frozen identity lock integrity
         run: uv run python scripts/check_identity_lock.py
       - name: Phase A authority classification
@@ -78,6 +70,8 @@ jobs:
         run: uv run ruff check .
       - name: Type check
         run: uv run mypy src
+      - name: Phase C exact-deck Turn-10 production policy and replay smoke
+        run: uv run python scripts/check_phase_c_turn10.py
 
       # Phase A is a standing regression contract. Every later branch and every push to
       # main must continue to pass it; it is not restricted to the original Phase A branch.
@@ -93,6 +87,11 @@ jobs:
           uv run python scripts/record_phase_a_certification.py \
             --verifier-result "${RESULT}" \
             --output "${RUNNER_TEMP}/phase-a-certification-candidate/CERTIFICATION.json"
+      - name: Validate Phase A certification candidate
+        env:
+          PHASE_A_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-a-certification-candidate/CERTIFICATION.json
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run python scripts/check_phase_a_certification.py
 
       # Certification-negative tests need to validate the newly generated candidate when
       # covered content changed. The committed record still must pass the separate durable
@@ -100,18 +99,18 @@ jobs:
       - name: Tests
         env:
           PHASE_A_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-a-certification-candidate/CERTIFICATION.json
+          GITHUB_TOKEN: ${{ github.token }}
         run: uv run pytest -q
       - name: Manifest integrity
         run: uv run python scripts/check_manifest.py
-      - name: Durable Phase A certification is current
-        run: uv run python scripts/check_phase_a_certification.py
-
       # Phase B is a blocking gate. The exact deck, strategic model, owner-approved
       # transcripts, and durable certification must all pass on the exact checked-out head.
       - name: Phase B verifier
         id: phase_b
         env:
+          PHASE_A_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-a-certification-candidate/CERTIFICATION.json
           PHASE_B_ARTIFACT_ROOT: ${{ runner.temp }}/phase-b-result
+          GITHUB_TOKEN: ${{ github.token }}
         run: uv run mtg-engine verify-phase-b
       - name: Build Phase B certification candidate
         run: |
@@ -121,7 +120,24 @@ jobs:
           uv run python scripts/record_phase_b_certification.py \
             --verifier-result "${RESULT}" \
             --output "${RUNNER_TEMP}/phase-b-certification-candidate/CERTIFICATION.json"
+      - name: Validate Phase B certification candidate
+        env:
+          PHASE_B_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-b-certification-candidate/CERTIFICATION.json
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run python scripts/check_phase_b_certification.py
+      - name: Phase C no-game dry run
+        run: uv run mtg-engine phase-c-dry-run
+      # These two tracked-record gates intentionally run only after both exact-head
+      # candidates exist. A covered technical change can therefore produce legitimate
+      # renewal artifacts in one CI run while still keeping the PR red until those
+      # unmodified CI-produced candidates are committed.
+      - name: Durable Phase A certification is current
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run python scripts/check_phase_a_certification.py
       - name: Durable Phase B certification is current
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: uv run python scripts/check_phase_b_certification.py
       - name: Upload Phase B verification artifact
         if: always()

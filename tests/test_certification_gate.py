@@ -66,9 +66,23 @@ def sandbox(tmp_path: Path) -> Path:
         check=True,
     )
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=tmp_path, text=True).strip()
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "sandbox_phase_a_paths_fixture", tmp_path / "scripts/_phase_a_paths.py"
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
     record = json.loads(record_target.read_text(encoding="utf-8"))
     record["certified_content_commit"] = head
+    record["certified_repository_tree_sha"] = subprocess.check_output(
+        ["git", "rev-parse", "HEAD^{tree}"], cwd=tmp_path, text=True
+    ).strip()
     record["ci_artifact_name"] = f"phase-a-result-{head}"
+    current = module.all_digests()
+    record["covered_paths"] = current
+    record["covered_content_sha256"] = module.aggregate_digest(current)
     record_target.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return tmp_path
 
@@ -144,3 +158,36 @@ def test_forged_record_is_rejected(sandbox: Path, changes: dict[str, object], me
     result = _run(sandbox)
     assert result.returncode == 1
     assert message in result.stdout
+
+
+def test_hand_patched_current_hashes_do_not_rewrite_certified_provenance(sandbox: Path) -> None:
+    certified = json.loads((sandbox / RECORD).read_text(encoding="utf-8"))[
+        "certified_content_commit"
+    ]
+    target = sandbox / ".github/workflows/ci.yml"
+    target.write_text(target.read_text(encoding="utf-8") + "\n# later covered change\n", encoding="utf-8")
+    subprocess.run(["git", "add", ".github/workflows/ci.yml"], cwd=sandbox, check=True)
+    subprocess.run(
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "later"],
+        cwd=sandbox,
+        check=True,
+    )
+    sys.path.insert(0, str(sandbox / "scripts"))
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "sandbox_phase_a_paths", sandbox / "scripts/_phase_a_paths.py"
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    record_path = sandbox / RECORD
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    current = module.all_digests()
+    record["covered_paths"] = current
+    record["covered_content_sha256"] = module.aggregate_digest(current)
+    record_path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    result = _run(sandbox)
+    assert result.returncode == 1
+    assert "provenance mismatch" in result.stdout
+    assert record["certified_content_commit"] == certified

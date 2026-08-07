@@ -173,6 +173,42 @@ class PolicyStrategicChoiceProvider:
                     ),
                 )[: request.maximum]
             )
+        elif request.purpose == "LOOK_SELECT":
+            if request.minimum != request.maximum:
+                raise UnsupportedCapability(
+                    "LOOK_SELECT requires one exact legal selection count"
+                )
+            ordered = sorted(
+                request.candidates,
+                key=lambda card: (
+                    -evaluations[card.handle],
+                    card.identity,
+                    card.handle,
+                ),
+            )
+            selected = tuple(card.handle for card in ordered[: request.minimum])
+        elif request.purpose.startswith("TUTOR_"):
+            # Search effects expose only the rules-eligible candidate set through
+            # opaque handles.  Rank those candidates with the same frozen tutor
+            # preference and contextual evaluator used by choose_tutor().  Hidden
+            # object IDs/library positions never cross the policy boundary.
+            priority_name = str(self.bundle.value("tutor_priority"))
+            priority_order = self.evaluator.config.tutor_priority_orders.get(priority_name, ())
+            rank = {name: len(priority_order) - index for index, name in enumerate(priority_order)}
+            ordered = sorted(
+                request.candidates,
+                key=lambda card: (
+                    -rank.get(card.identity, 0),
+                    -evaluations[card.handle],
+                    card.identity,
+                    card.handle,
+                ),
+            )
+            # A hidden-zone search may legally fail to find when minimum is zero,
+            # but the frozen maximizing policy chooses the best eligible card when
+            # one exists.  Exact-minimum searches (Long-Term Plans) remain exact.
+            choose_count = request.minimum if request.minimum == request.maximum else request.maximum
+            selected = tuple(card.handle for card in ordered[:choose_count])
         else:
             raise UnsupportedCapability(
                 f"policy card-selection purpose is unsupported: {request.purpose}"

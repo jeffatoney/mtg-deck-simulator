@@ -9,7 +9,10 @@ and uncommitted edits invalidate certification.
 from __future__ import annotations
 
 import hashlib
+import io
 import json
+import subprocess
+import tarfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +33,7 @@ COVERED_PATHS = (
     "tests/test_source_validation.py",
     "automation/phase-a-test-mapping.json",
     "scripts/_phase_a_paths.py",
+    "scripts/_certification_provenance.py",
     "scripts/check_phase_a_certification.py",
     "scripts/check_phase_a_golden_transcripts.py",
     "scripts/record_phase_a_certification.py",
@@ -78,6 +82,61 @@ def content_digest(relative: str) -> str:
 def all_digests() -> dict[str, str]:
     return {relative: content_digest(relative) for relative in COVERED_PATHS}
 
+
+
+def _archived_files(commit: str) -> dict[str, bytes]:
+    """Read the complete certification surface from one exact Git tree in one process."""
+    command = ["git", "archive", "--format=tar", commit, "--", *COVERED_PATHS]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        message = completed.stderr.decode("utf-8", errors="replace").strip()
+        raise FileNotFoundError(f"unable to archive certification surface at commit {commit}: {message}")
+    files: dict[str, bytes] = {}
+    with tarfile.open(fileobj=io.BytesIO(completed.stdout), mode="r:") as archive:
+        for member in archive.getmembers():
+            if not member.isfile():
+                continue
+            if any(part in _IGNORED_DIRECTORIES for part in Path(member.name).parts):
+                continue
+            extracted = archive.extractfile(member)
+            if extracted is None:
+                raise FileNotFoundError(f"unable to read {member.name} at commit {commit}")
+            files[member.name] = extracted.read()
+    return files
+
+
+def _digest_archived_path(relative: str, files: dict[str, bytes], commit: str) -> str:
+    exact = [(relative, files[relative])] if relative in files else []
+    prefix = f"{relative.rstrip('/')}/"
+    nested = sorted((name, data) for name, data in files.items() if name.startswith(prefix))
+    selected = exact or nested
+    if not selected:
+        raise FileNotFoundError(f"covered path is missing at commit {commit}: {relative}")
+    digest = hashlib.sha256()
+    for repo_path, data in selected:
+        digest.update(repo_path.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(str(len(data)).encode("ascii"))
+        digest.update(b"\0")
+        digest.update(data)
+        digest.update(b"\0")
+    return f"sha256:{digest.hexdigest()}"
+
+
+def content_digest_at_commit(relative: str, commit: str) -> str:
+    files = _archived_files(commit)
+    return _digest_archived_path(relative, files, commit)
+
+
+def all_digests_at_commit(commit: str) -> dict[str, str]:
+    """Return every covered digest from one exact Git archive."""
+    files = _archived_files(commit)
+    return {relative: _digest_archived_path(relative, files, commit) for relative in COVERED_PATHS}
 
 def aggregate_digest(digests: dict[str, str] | None = None) -> str:
     payload = all_digests() if digests is None else digests

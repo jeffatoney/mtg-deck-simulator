@@ -48,6 +48,34 @@ def test_broker_enumerates_both_explicit_opt_scry_choices() -> None:
     assert len(opt) == 2 and {a.metadata.get("scry_to_bottom") for a in opt} == {False, True}
 
 
+def test_broker_x_spells_expose_only_exact_payable_target_counts() -> None:
+    state, executor, specs = scenario("x-enumeration")
+    state.players["P0"].mana_pool.clear()
+    state.players["P0"].mana_pool.update({"R": 1, "U": 2, "C": 2})
+    for name in ("Arcane Signet", "Izzet Signet", "Sol Ring"):
+        add_card(executor, specs[name], Zone.BATTLEFIELD)
+    for name in ("Malcolm, Keen-Eyed Navigator", "Glint-Horn Buccaneer", "Dualcaster Mage"):
+        obj = add_card(executor, specs[name], Zone.BATTLEFIELD)
+        if obj.permanent_status is not None:
+            obj.permanent_status["controller_since_turn"] = "1"
+    add_card(executor, specs["By Force"], Zone.HAND)
+    add_card(executor, specs["Curse of the Swine"], Zone.HAND)
+
+    _, actions = ActionBroker(executor, "P0").refresh()
+
+    by_force = [a for a in actions if a.kind == "CAST" and a.identity == "By Force"]
+    assert by_force
+    assert {int(a.metadata["x_value"]) for a in by_force} == {0, 1, 2, 3}
+    assert all(a.target_count == int(a.metadata["x_value"]) for a in by_force)
+    assert sum(a.target_count == 0 for a in by_force) == 1
+
+    curse = [a for a in actions if a.kind == "CAST" and a.identity == "Curse of the Swine"]
+    assert curse
+    assert {int(a.metadata["x_value"]) for a in curse} == {0, 1, 2, 3}
+    assert all(a.target_count == int(a.metadata["x_value"]) for a in curse)
+    assert sum(a.target_count == 0 for a in curse) == 1
+
+
 def tutor_actions(zone: Zone):
     state, executor, specs = scenario(f"tutor-{zone.value}")
     add_card(executor, specs["Dizzy Spell"], Zone.HAND)

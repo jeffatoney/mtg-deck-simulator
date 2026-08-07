@@ -1,14 +1,16 @@
-"""Fail-closed Phase C pilot configuration and authorization controls."""
+"""Fail-closed Phase C pilot configuration, readiness, and authorization controls."""
 
 from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
+import sys
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = ROOT / "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json"
@@ -17,13 +19,13 @@ DEFAULT_WORKFLOW = ROOT / ".github/workflows/phase-c-pilot.yml"
 CONFIRMATION_TOKEN = "AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY"
 STANDARD_GAMES = 500
 EXPLORATORY_GAMES = 200
-
-CURRENT_ENGINE_BLOCKERS = (
-    "CONTROLLED_TURN_DRIVER_NOT_IMPLEMENTED",
-    "COMBAT_ACTION_PATH_NOT_IMPLEMENTED",
-    "EXPLORATORY_PRODUCTION_EXPANSION_NOT_IMPLEMENTED",
-    "COMBO_ACCESS_DETECTORS_INCOMPLETE",
-)
+STANDARD_SHARDS = 10
+EXPLORATORY_SHARDS = 10
+PILOT_PRODUCTION_DECISION_LAYER_DEPTH = 1
+_ACTIVATION_ALLOWLIST = {
+    "docs/spec/phase-c/PHASE_C_PILOT_APPROVAL.json",
+    "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json",
+}
 
 
 class PhaseCControlError(ValueError):
@@ -71,6 +73,55 @@ def _is_sha256(value: str) -> bool:
     return len(value) == 64 and all(char in "0123456789abcdef" for char in value)
 
 
+def _is_git_object_id(value: str) -> bool:
+    return len(value) == 40 and all(char in "0123456789abcdef" for char in value)
+
+
+def _is_rfc3339_utc(value: str) -> bool:
+    return re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", value) is not None
+
+
+def _git(root: Path, *args: str) -> str:
+    try:
+        return subprocess.check_output(["git", *args], cwd=root, text=True).strip()
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        raise PhaseCControlError(f"Git validation failed: {' '.join(args)}") from exc
+
+
+def _git_file(root: Path, commit: str, path: Path) -> bytes:
+    relative = path.resolve().relative_to(root.resolve()).as_posix()
+    try:
+        return subprocess.check_output(["git", "show", f"{commit}:{relative}"], cwd=root)
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        raise PhaseCControlError(f"required file is unavailable at implementation commit: {relative}") from exc
+
+
+def _git_file_sha256(root: Path, commit: str, path: Path) -> str:
+    return hashlib.sha256(_git_file(root, commit, path)).hexdigest()
+
+
+@dataclass(frozen=True)
+class PilotShardAssignment:
+    mode: str
+    shard_index: int
+    shard_count: int
+    first_game_index: int
+    last_game_index: int
+    seeds: tuple[int, ...]
+
+    def __post_init__(self) -> None:
+        if self.mode not in {"STANDARD", "EXPLORATORY"}:
+            raise PhaseCControlError("pilot shard mode must be STANDARD or EXPLORATORY")
+        if self.shard_count < 1 or not (0 <= self.shard_index < self.shard_count):
+            raise PhaseCControlError("pilot shard index/count is invalid")
+        if self.first_game_index < 1 or self.last_game_index < self.first_game_index:
+            raise PhaseCControlError("pilot shard game-index range is invalid")
+        if len(self.seeds) != self.last_game_index - self.first_game_index + 1:
+            raise PhaseCControlError("pilot shard seed assignment does not match its range")
+        if len(self.seeds) != len(set(self.seeds)):
+            raise PhaseCControlError("pilot shard contains duplicate seeds")
+
+
 @dataclass(frozen=True)
 class PilotSeedPlan:
     standard: tuple[int, ...]
@@ -108,6 +159,9 @@ class PhaseCConfiguration:
     evaluator_snapshot_id: str
     evaluator_snapshot_sha256: str
     learning_plan_sha256: str
+    exploratory_production_decision_layer_depth: int
+    standard_shards: int
+    exploratory_shards: int
 
 
 @dataclass(frozen=True)
@@ -118,11 +172,35 @@ class PhaseCApproval:
     status: str
     approved_by: str | None
     approved_at: str | None
-    authorized_commit: str | None
-    pilot_config_sha256: str | None
+    implementation_commit: str | None
+    implementation_tree: str | None
+    locked_pilot_config_sha256: str | None
     workflow_sha256: str | None
     confirmation_token_sha256: str
+    production_decision_layer_depth: int
+    standard_shards: int
+    exploratory_shards: int
     approval_statement: str | None
+
+
+@dataclass(frozen=True)
+class PhaseCAuthorizationContext:
+    implementation_commit: str
+    implementation_tree: str
+    activation_commit: str
+    locked_config_sha256: str
+    workflow_sha256: str
+
+    def __post_init__(self) -> None:
+        for label, value in (
+            ("implementation commit", self.implementation_commit),
+            ("implementation tree", self.implementation_tree),
+            ("activation commit", self.activation_commit),
+        ):
+            if not _is_git_object_id(value):
+                raise PhaseCControlError(f"{label} must be a lowercase 40-character Git object ID")
+        if not _is_sha256(self.locked_config_sha256) or not _is_sha256(self.workflow_sha256):
+            raise PhaseCControlError("authorization content bindings must be SHA-256 digests")
 
 
 @dataclass(frozen=True)
@@ -141,6 +219,8 @@ class PhaseCDryRunReport:
     execution_allowed: bool
     authorization_status: str
     readiness_blockers: tuple[str, ...]
+    readiness_evidence: Mapping[str, Mapping[str, Any]]
+    exploratory_production_decision_layer_depth: int
     game_results_created: int
     full_study_execution_allowed: bool
 
@@ -160,14 +240,15 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
     _exact(full_study.get("standard_games"), 20_000, "full-study count")
     _exact(full_study.get("exploratory_games"), 5_000, "full-study count")
     _exact(search.get("future_information_allowed"), False, "future information")
-    _exact(
-        search.get("post_result_optimization_allowed"),
-        False,
-        "post-result optimization",
-    )
+    _exact(search.get("post_result_optimization_allowed"), False, "post-result optimization")
     _exact(search.get("bounded"), True, "bounded search")
     _exact(search.get("rules_validation_required"), True, "search validation")
     _exact(search.get("reported_separately"), True, "separate reporting")
+    _exact(
+        search.get("production_decision_layer_depth"),
+        PILOT_PRODUCTION_DECISION_LAYER_DEPTH,
+        "exploratory production decision-layer depth",
+    )
 
     _exact(model.get("players"), 4, "player count")
     _exact(model.get("opponents"), 3, "opponent count")
@@ -192,26 +273,14 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
     _exact(mulligan.get("candidate_hand_sizes"), [7, 7, 6, 5, 4], "mulligan")
     _exact(mulligan.get("refill_kept_hand_to"), 7, "mulligan refill")
     _exact(mulligan.get("stop_below_four"), True, "mulligan floor")
-    _exact(
-        mulligan.get("rejected_hands_returned_and_shuffled"),
-        True,
-        "mulligan shuffle",
-    )
+    _exact(mulligan.get("rejected_hands_returned_and_shuffled"), True, "mulligan shuffle")
 
     _exact(prerequisites.get("clean_engine_only"), True, "clean engine")
     _exact(prerequisites.get("legacy_import_allowed"), False, "legacy import")
     _exact(prerequisites.get("phase_a_verifier_required"), "PASS", "Phase A")
     _exact(prerequisites.get("phase_b_verifier_required"), "PASS", "Phase B")
-    _exact(
-        prerequisites.get("phase_b_certification_required"),
-        "PASS",
-        "Phase B certification",
-    )
-    _exact(
-        prerequisites.get("post_merge_main_ci_required"),
-        "PASS",
-        "post-merge main CI",
-    )
+    _exact(prerequisites.get("phase_b_certification_required"), "PASS", "Phase B certification")
+    _exact(prerequisites.get("post_merge_main_ci_required"), "PASS", "post-merge main CI")
 
 
 def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
@@ -220,19 +289,14 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
     authorization = _mapping(payload.get("authorization"), "authorization")
     pilot = _mapping(payload.get("pilot"), "pilot")
     policy = _mapping(payload.get("policy"), "policy")
+    search = _mapping(payload.get("exploratory_search"), "exploratory_search")
     _validate_scope(payload)
 
-    _exact(
-        authorization.get("confirmation_token"),
-        CONFIRMATION_TOKEN,
-        "confirmation token",
-    )
+    _exact(authorization.get("confirmation_token"), CONFIRMATION_TOKEN, "confirmation token")
     _exact(pilot.get("standard_games"), STANDARD_GAMES, "standard pilot count")
-    _exact(
-        pilot.get("exploratory_games"),
-        EXPLORATORY_GAMES,
-        "exploratory pilot count",
-    )
+    _exact(pilot.get("exploratory_games"), EXPLORATORY_GAMES, "exploratory pilot count")
+    _exact(pilot.get("standard_shards"), STANDARD_SHARDS, "standard pilot shard count")
+    _exact(pilot.get("exploratory_shards"), EXPLORATORY_SHARDS, "exploratory pilot shard count")
     standard_namespace = str(pilot.get("standard_seed_namespace", ""))
     exploratory_namespace = str(pilot.get("exploratory_seed_namespace", ""))
     if not standard_namespace or not exploratory_namespace:
@@ -272,22 +336,29 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
         evaluator_snapshot_id=evaluator_id,
         evaluator_snapshot_sha256=evaluator_hash,
         learning_plan_sha256=learning_hash,
+        exploratory_production_decision_layer_depth=int(search["production_decision_layer_depth"]),
+        standard_shards=int(pilot["standard_shards"]),
+        exploratory_shards=int(pilot["exploratory_shards"]),
     )
 
 
 def load_phase_c_approval(path: Path = DEFAULT_APPROVAL) -> PhaseCApproval:
     payload = _load_object(path, "Phase C pilot approval")
-    _exact(payload.get("schema_version"), "phase-c-pilot-approval-v1", "schema")
+    _exact(payload.get("schema_version"), "phase-c-pilot-approval-v2", "schema")
     token_digest = str(payload.get("confirmation_token_sha256", ""))
     expected = hashlib.sha256(CONFIRMATION_TOKEN.encode()).hexdigest()
     if token_digest != expected:
         raise PhaseCControlError("approval uses a different confirmation token")
     counts = _mapping(payload.get("authorized_counts"), "authorized_counts")
     _exact(counts.get("standard"), STANDARD_GAMES, "approved standard count")
+    _exact(counts.get("exploratory"), EXPLORATORY_GAMES, "approved exploratory count")
+    shards = _mapping(payload.get("authorized_shards"), "authorized_shards")
+    _exact(shards.get("standard"), STANDARD_SHARDS, "approved standard shard count")
+    _exact(shards.get("exploratory"), EXPLORATORY_SHARDS, "approved exploratory shard count")
     _exact(
-        counts.get("exploratory"),
-        EXPLORATORY_GAMES,
-        "approved exploratory count",
+        payload.get("production_decision_layer_depth"),
+        PILOT_PRODUCTION_DECISION_LAYER_DEPTH,
+        "approved exploratory production depth",
     )
 
     def optional_text(key: str) -> str | None:
@@ -301,33 +372,28 @@ def load_phase_c_approval(path: Path = DEFAULT_APPROVAL) -> PhaseCApproval:
         status=str(payload.get("status", "")),
         approved_by=optional_text("approved_by"),
         approved_at=optional_text("approved_at"),
-        authorized_commit=optional_text("authorized_commit"),
-        pilot_config_sha256=optional_text("pilot_config_sha256"),
+        implementation_commit=optional_text("implementation_commit"),
+        implementation_tree=optional_text("implementation_tree"),
+        locked_pilot_config_sha256=optional_text("locked_pilot_config_sha256"),
         workflow_sha256=optional_text("workflow_sha256"),
         confirmation_token_sha256=token_digest,
+        production_decision_layer_depth=int(payload["production_decision_layer_depth"]),
+        standard_shards=int(shards["standard"]),
+        exploratory_shards=int(shards["exploratory"]),
         approval_statement=optional_text("approval_statement"),
     )
 
 
 def _derive_seeds(namespace: str, count: int) -> tuple[int, ...]:
     return tuple(
-        int.from_bytes(
-            hashlib.sha256(f"{namespace}:{index}".encode()).digest()[:8],
-            "big",
-        )
+        int.from_bytes(hashlib.sha256(f"{namespace}:{index}".encode()).digest()[:8], "big")
         for index in range(1, count + 1)
     )
 
 
 def build_pilot_seed_plan(config: PhaseCConfiguration) -> PilotSeedPlan:
-    standard = _derive_seeds(
-        config.standard_seed_namespace,
-        config.standard_games,
-    )
-    exploratory = _derive_seeds(
-        config.exploratory_seed_namespace,
-        config.exploratory_games,
-    )
+    standard = _derive_seeds(config.standard_seed_namespace, config.standard_games)
+    exploratory = _derive_seeds(config.exploratory_seed_namespace, config.exploratory_games)
     return PilotSeedPlan(
         standard=standard,
         exploratory=exploratory,
@@ -336,20 +402,154 @@ def build_pilot_seed_plan(config: PhaseCConfiguration) -> PilotSeedPlan:
     )
 
 
+def build_pilot_shard_assignment(
+    config: PhaseCConfiguration,
+    seeds: PilotSeedPlan,
+    *,
+    mode: str,
+    shard_index: int,
+) -> PilotShardAssignment:
+    if mode == "STANDARD":
+        values = seeds.standard
+        shard_count = config.standard_shards
+    elif mode == "EXPLORATORY":
+        values = seeds.exploratory
+        shard_count = config.exploratory_shards
+    else:
+        raise PhaseCControlError("pilot shard mode must be STANDARD or EXPLORATORY")
+    if len(values) % shard_count:
+        raise PhaseCControlError("pilot game count must divide evenly across frozen shards")
+    if shard_index < 0 or shard_index >= shard_count:
+        raise PhaseCControlError("pilot shard index is outside the frozen shard range")
+    size = len(values) // shard_count
+    start = shard_index * size
+    selected = tuple(values[start : start + size])
+    return PilotShardAssignment(
+        mode=mode,
+        shard_index=shard_index,
+        shard_count=shard_count,
+        first_game_index=start + 1,
+        last_game_index=start + size,
+        seeds=selected,
+    )
+
+
+def _combo_detector_smoke() -> Mapping[str, Any]:
+    from mtg_cards.full_deck import load_full_deck_specs
+    from mtg_kernel.factory import add_card, new_game
+    from mtg_kernel.models import Zone
+    from mtg_measure import bind_combo_access_tracker
+    from mtg_policy import load_evaluator_config
+
+    state, executor = new_game(("P0", "P1", "P2", "P3"), seed="phase-c-combo-readiness")
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    state.turn.number = 3
+    state.turn.phase = "PRECOMBAT_MAIN"
+    state.turn.step = "PRECOMBAT_MAIN"
+    state.turn.priority_holder_id = "P0"
+    state.players["P0"].mana_pool.update({"R": 4, "U": 3, "C": 8})
+    for name in (
+        "Dualcaster Mage",
+        "Twinflame",
+        "Electroduplicate",
+        "Glint-Horn Buccaneer",
+        "Curiosity",
+        "Psychosis Crawler",
+    ):
+        add_card(executor, specs[name], Zone.HAND)
+    for name in (
+        "Malcolm, Keen-Eyed Navigator",
+        "Lightning-Rig Crew",
+        "Niv-Mizzet, the Firemind",
+    ):
+        obj = add_card(executor, specs[name], Zone.BATTLEFIELD)
+        if obj.permanent_status is not None:
+            obj.permanent_status["controller_since_turn"] = "1"
+    add_card(executor, specs["Crab Umbra"], Zone.HAND)
+    tracker = bind_combo_access_tracker(executor, "P0", load_evaluator_config().combo_packages)
+    records = tracker.observe(executor)
+    expected = set(load_evaluator_config().combo_packages)
+    actual = {record.package for record in records}
+    if actual != expected:
+        raise PhaseCControlError(f"combo detector registry mismatch: {sorted(expected - actual)}")
+    if any("UNIMPLEMENTED" in blocker for record in records for blocker in record.blockers):
+        raise PhaseCControlError("combo detector still reports unimplemented package logic")
+    return {
+        "status": "PASS",
+        "package_count": len(records),
+        "packages": sorted(actual),
+    }
+
+
+def evaluate_phase_c_readiness() -> tuple[tuple[str, ...], dict[str, Mapping[str, Any]]]:
+    """Derive readiness from bounded executable production checks, never a mutable label list."""
+    from mtg_runs.phase_c_runner import (
+        run_phase_c_combat_smoke,
+        run_phase_c_exploratory_smoke,
+    )
+
+    evidence: dict[str, Mapping[str, Any]] = {}
+    blockers: list[str] = []
+
+    def run(blocker: str, check: Callable[[], Mapping[str, Any]]) -> None:
+        try:
+            evidence[blocker] = dict(check())
+        except Exception as exc:  # fail closed and expose the exact bounded check failure
+            blockers.append(blocker)
+            evidence[blocker] = {
+                "status": "FAIL",
+                "error_type": type(exc).__name__,
+                "reason": str(exc),
+            }
+
+    def controlled_turn() -> Mapping[str, Any]:
+        # Run the full policy-driven exact-deck smoke in a fresh process. This keeps
+        # the readiness signal bound to real strategic choices and fresh replay while
+        # avoiding retained game/replay state inside long pytest sessions.
+        completed = subprocess.run(
+            [sys.executable, str(ROOT / "scripts/check_phase_c_turn10.py")],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if completed.returncode != 0:
+            diagnostic = (completed.stdout + completed.stderr).strip()
+            raise PhaseCControlError(f"policy-driven Turn-10 smoke failed: {diagnostic}")
+        try:
+            result = json.loads(completed.stdout)
+        except json.JSONDecodeError as exc:
+            raise PhaseCControlError("policy-driven Turn-10 smoke returned malformed JSON") from exc
+        if not isinstance(result, Mapping) or result.get("status") != "PASS":
+            raise PhaseCControlError("policy-driven Turn-10 smoke did not report PASS")
+        return dict(result)
+
+    run("CONTROLLED_TURN_DRIVER_NOT_IMPLEMENTED", controlled_turn)
+    run("COMBAT_ACTION_PATH_NOT_IMPLEMENTED", run_phase_c_combat_smoke)
+    run("EXPLORATORY_PRODUCTION_EXPANSION_NOT_IMPLEMENTED", run_phase_c_exploratory_smoke)
+    run("COMBO_ACCESS_DETECTORS_INCOMPLETE", _combo_detector_smoke)
+    return tuple(blockers), evidence
+
+
+def current_engine_blockers() -> tuple[str, ...]:
+    blockers, _ = evaluate_phase_c_readiness()
+    return blockers
+
+
 def dry_run_phase_c(
     config_path: Path = DEFAULT_CONFIG,
     approval_path: Path = DEFAULT_APPROVAL,
     workflow_path: Path = DEFAULT_WORKFLOW,
 ) -> PhaseCDryRunReport:
-    """Validate the locked control plane without creating a game result."""
-
+    """Validate the locked control plane and bounded production smokes without pilot results."""
     config = load_phase_c_config(config_path)
     approval = load_phase_c_approval(approval_path)
     seeds = build_pilot_seed_plan(config)
     full_study = _mapping(config.payload.get("full_study"), "full_study")
-    status = "READY_FOR_OWNER_REVIEW" if not CURRENT_ENGINE_BLOCKERS else "LOCKED_ENGINE_INCOMPLETE"
+    blockers, evidence = evaluate_phase_c_readiness()
+    status = "READY_FOR_OWNER_REVIEW" if not blockers else "LOCKED_ENGINE_INCOMPLETE"
     return PhaseCDryRunReport(
-        schema_version="phase-c-dry-run-v1",
+        schema_version="phase-c-dry-run-v2",
         status=status,
         config_sha256=config.sha256,
         approval_record_sha256=approval.sha256,
@@ -362,25 +562,83 @@ def dry_run_phase_c(
         exploratory_seed_sha256=seeds.exploratory_sha256,
         execution_allowed=config.execution_allowed,
         authorization_status=config.authorization_status,
-        readiness_blockers=CURRENT_ENGINE_BLOCKERS,
+        readiness_blockers=blockers,
+        readiness_evidence=evidence,
+        exploratory_production_decision_layer_depth=config.exploratory_production_decision_layer_depth,
         game_results_created=0,
         full_study_execution_allowed=bool(full_study.get("execution_allowed")),
     )
 
 
-def _git_head(root: Path = ROOT) -> str:
-    return subprocess.check_output(
-        ["git", "rev-parse", "HEAD"],
-        cwd=root,
-        text=True,
-    ).strip()
+def _validate_governance_only_activation(
+    *,
+    root: Path,
+    implementation_commit: str,
+    activation_commit: str,
+    current_config: Mapping[str, Any],
+    current_approval: Mapping[str, Any],
+    config_path: Path,
+    approval_path: Path,
+) -> None:
+    try:
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", implementation_commit, activation_commit],
+            cwd=root,
+            check=True,
+            capture_output=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        raise PhaseCControlError("activation commit is not a descendant of the reviewed implementation") from exc
+    changed = {
+        value
+        for value in _git(root, "diff", "--name-only", implementation_commit, activation_commit).splitlines()
+        if value
+    }
+    unexpected = changed - _ACTIVATION_ALLOWLIST
+    if unexpected:
+        raise PhaseCControlError(f"activation commit changes non-governance files: {sorted(unexpected)}")
+
+    locked_config = json.loads(_git_file(root, implementation_commit, config_path).decode("utf-8"))
+    if not isinstance(locked_config, dict):
+        raise PhaseCControlError("locked implementation config is malformed")
+    locked_non_auth = {key: value for key, value in locked_config.items() if key != "authorization"}
+    current_non_auth = {key: value for key, value in current_config.items() if key != "authorization"}
+    if locked_non_auth != current_non_auth:
+        raise PhaseCControlError("activation changed the study configuration outside authorization fields")
+    locked_auth = _mapping(locked_config.get("authorization"), "locked authorization")
+    current_auth = _mapping(current_config.get("authorization"), "current authorization")
+    _exact(set(current_auth), set(locked_auth), "activation authorization field set")
+    _exact(locked_auth.get("execution_allowed"), False, "implementation execution lock")
+    _exact(locked_auth.get("status"), "LOCKED_PENDING_OWNER_APPROVAL", "implementation status")
+    _exact(current_auth.get("confirmation_token"), locked_auth.get("confirmation_token"), "activation confirmation token")
+    _exact(current_auth.get("execution_allowed"), True, "activation execution flag")
+    _exact(current_auth.get("status"), "AUTHORIZED", "activation status")
+    _exact(current_auth.get("approved_by"), current_approval.get("approved_by"), "activation approved_by")
+    _exact(current_auth.get("approved_at"), current_approval.get("approved_at"), "activation approved_at")
+
+    pending_approval = json.loads(_git_file(root, implementation_commit, approval_path).decode("utf-8"))
+    if not isinstance(pending_approval, dict):
+        raise PhaseCControlError("implementation approval record is malformed")
+    _exact(set(current_approval), set(pending_approval), "activation approval field set")
+    _exact(pending_approval.get("status"), "PENDING_OWNER_APPROVAL", "implementation approval status")
+    immutable_approval_keys = {
+        "authorized_counts",
+        "authorized_shards",
+        "confirmation_token_sha256",
+        "production_decision_layer_depth",
+        "schema_version",
+    }
+    for key in immutable_approval_keys:
+        if pending_approval.get(key) != current_approval.get(key):
+            raise PhaseCControlError(f"activation changed immutable approval field: {key}")
 
 
 def validate_execution_authorization(
     *,
     confirmation: str,
-    authorized_commit: str,
-    expected_config_sha256: str,
+    implementation_commit: str,
+    activation_commit: str,
+    expected_locked_config_sha256: str,
     expected_workflow_sha256: str,
     requested_standard_games: int = STANDARD_GAMES,
     requested_exploratory_games: int = EXPLORATORY_GAMES,
@@ -388,70 +646,305 @@ def validate_execution_authorization(
     approval_path: Path = DEFAULT_APPROVAL,
     workflow_path: Path = DEFAULT_WORKFLOW,
     root: Path = ROOT,
-) -> tuple[PhaseCConfiguration, PhaseCApproval, PilotSeedPlan]:
-    """Require exact approval before any output path is created."""
-
-    config = load_phase_c_config(config_path)
-    approval = load_phase_c_approval(approval_path)
-    seeds = build_pilot_seed_plan(config)
+) -> tuple[PhaseCConfiguration, PhaseCApproval, PilotSeedPlan, PhaseCAuthorizationContext]:
+    """Require a reviewed implementation plus governance-only owner activation."""
     if confirmation != CONFIRMATION_TOKEN:
         raise PhaseCControlError("Phase C confirmation token does not match")
     if requested_standard_games != STANDARD_GAMES:
         raise PhaseCControlError("Phase C requires exactly 500 standard games")
     if requested_exploratory_games != EXPLORATORY_GAMES:
         raise PhaseCControlError("Phase C requires exactly 200 exploratory games")
-    if config.sha256 != expected_config_sha256:
-        raise PhaseCControlError("Phase C configuration digest differs")
-    workflow_sha = file_sha256(workflow_path)
-    if workflow_sha != expected_workflow_sha256:
-        raise PhaseCControlError("Phase C workflow digest differs")
-    if _git_head(root) != authorized_commit:
-        raise PhaseCControlError("checked-out commit differs from authorization")
-    if not config.execution_allowed:
+    if not _is_git_object_id(implementation_commit) or not _is_git_object_id(activation_commit):
+        raise PhaseCControlError("implementation and activation commits must be lowercase 40-character Git object IDs")
+    if not _is_sha256(expected_locked_config_sha256) or not _is_sha256(expected_workflow_sha256):
+        raise PhaseCControlError("configuration and workflow bindings must be SHA-256 digests")
+    if _git(root, "rev-parse", "HEAD") != activation_commit:
+        raise PhaseCControlError("checked-out commit differs from the activation commit")
+
+    implementation_tree = _git(root, "rev-parse", f"{implementation_commit}^{{tree}}")
+    context = PhaseCAuthorizationContext(
+        implementation_commit,
+        implementation_tree,
+        activation_commit,
+        expected_locked_config_sha256,
+        expected_workflow_sha256,
+    )
+    config = load_phase_c_config(config_path)
+    approval = load_phase_c_approval(approval_path)
+    seeds = build_pilot_seed_plan(config)
+    locked_config_sha = _git_file_sha256(root, implementation_commit, config_path)
+    if locked_config_sha != expected_locked_config_sha256:
+        raise PhaseCControlError("reviewed locked configuration digest differs")
+    implementation_workflow_sha = _git_file_sha256(root, implementation_commit, workflow_path)
+    if implementation_workflow_sha != expected_workflow_sha256:
+        raise PhaseCControlError("reviewed workflow digest differs")
+    if file_sha256(workflow_path) != expected_workflow_sha256:
+        raise PhaseCControlError("activation commit changed the reviewed workflow")
+
+    _validate_governance_only_activation(
+        root=root,
+        implementation_commit=implementation_commit,
+        activation_commit=activation_commit,
+        current_config=config.payload,
+        current_approval=approval.payload,
+        config_path=config_path,
+        approval_path=approval_path,
+    )
+    if not config.execution_allowed or config.authorization_status != "AUTHORIZED":
         raise PhaseCControlError("Phase C configuration remains locked")
-    if config.authorization_status != "AUTHORIZED":
-        raise PhaseCControlError("Phase C configuration is not authorized")
     if approval.status != "APPROVED":
         raise PhaseCControlError("Phase C owner approval remains pending")
-    if not approval.approved_by or not approval.approved_at:
-        raise PhaseCControlError("Phase C owner approval metadata is incomplete")
+    if approval.approved_by != "Jeff Toney" or not approval.approved_at:
+        raise PhaseCControlError("Phase C approval must contain the exact owner identity and timestamp")
+    if not _is_rfc3339_utc(approval.approved_at):
+        raise PhaseCControlError("Phase C approval timestamp must be RFC3339 UTC")
+    if approval.implementation_commit != implementation_commit:
+        raise PhaseCControlError("approval is bound to a different implementation commit")
+    if approval.implementation_tree != implementation_tree:
+        raise PhaseCControlError("approval is bound to a different implementation tree")
+    if approval.locked_pilot_config_sha256 != locked_config_sha:
+        raise PhaseCControlError("approval is bound to a different locked pilot config")
+    if approval.workflow_sha256 != expected_workflow_sha256:
+        raise PhaseCControlError("approval is bound to a different workflow")
     if not approval.approval_statement:
         raise PhaseCControlError("Phase C approval statement is missing")
-    if approval.authorized_commit != authorized_commit:
-        raise PhaseCControlError("approval is bound to a different commit")
-    if approval.pilot_config_sha256 != config.sha256:
-        raise PhaseCControlError("approval is bound to a different config")
-    if approval.workflow_sha256 != workflow_sha:
-        raise PhaseCControlError("approval is bound to a different workflow")
-    if CURRENT_ENGINE_BLOCKERS:
-        blockers = ", ".join(CURRENT_ENGINE_BLOCKERS)
-        raise PhaseCControlError(f"Phase C engine remains incomplete: {blockers}")
-    return config, approval, seeds
+    required_statement_terms = (
+        implementation_commit,
+        implementation_tree,
+        locked_config_sha,
+        expected_workflow_sha256,
+        approval.confirmation_token_sha256,
+        str(STANDARD_GAMES),
+        str(EXPLORATORY_GAMES),
+        str(PILOT_PRODUCTION_DECISION_LAYER_DEPTH),
+        f"standard_shards={STANDARD_SHARDS}",
+        f"exploratory_shards={EXPLORATORY_SHARDS}",
+    )
+    if not all(term in approval.approval_statement for term in required_statement_terms):
+        raise PhaseCControlError("Phase C approval statement must name implementation, tree, counts, depth, and digests")
+    blockers = current_engine_blockers()
+    if blockers:
+        raise PhaseCControlError(f"Phase C engine remains incomplete: {', '.join(blockers)}")
+    return config, approval, seeds, context
 
 
-def execute_phase_c_pilot(**arguments: Any) -> None:
-    """Fail before mutation until the production game driver is complete."""
+def _require_durable_certification_gates(root: Path = ROOT) -> None:
+    for script in ("scripts/check_phase_a_certification.py", "scripts/check_phase_b_certification.py"):
+        try:
+            subprocess.check_output(
+                [sys.executable, script], cwd=root, text=True, stderr=subprocess.STDOUT
+            )
+        except subprocess.CalledProcessError as exc:
+            raise PhaseCControlError(
+                f"durable certification gate failed before Phase C execution: {script}: "
+                f"{exc.output.strip()}"
+            ) from exc
 
-    validate_execution_authorization(**arguments)
-    raise PhaseCControlError("Phase C game execution adapter is not installed")
+
+def execute_phase_c_shard(
+    *,
+    confirmation: str,
+    implementation_commit: str,
+    activation_commit: str,
+    expected_locked_config_sha256: str,
+    expected_workflow_sha256: str,
+    mode: str,
+    shard_index: int,
+    output_root: Path,
+    config_path: Path = DEFAULT_CONFIG,
+    approval_path: Path = DEFAULT_APPROVAL,
+    workflow_path: Path = DEFAULT_WORKFLOW,
+    root: Path = ROOT,
+) -> Mapping[str, Any]:
+    """Execute exactly one frozen, owner-authorized Phase C pilot shard."""
+    config, approval, seeds, context = validate_execution_authorization(
+        confirmation=confirmation,
+        implementation_commit=implementation_commit,
+        activation_commit=activation_commit,
+        expected_locked_config_sha256=expected_locked_config_sha256,
+        expected_workflow_sha256=expected_workflow_sha256,
+        config_path=config_path,
+        approval_path=approval_path,
+        workflow_path=workflow_path,
+        root=root,
+    )
+    _require_durable_certification_gates(root)
+    assignment = build_pilot_shard_assignment(
+        config, seeds, mode=mode, shard_index=shard_index
+    )
+    if output_root.exists() and not output_root.is_dir():
+        raise PhaseCControlError("Phase C output root exists but is not a directory")
+
+    from dataclasses import asdict, replace
+
+    from mtg_measure import aggregate_measurements
+    from mtg_runs.phase_c_artifacts import (
+        build_shard_manifest,
+        make_game_artifact,
+        write_phase_c_shard,
+    )
+    from mtg_runs.phase_c_runner import run_phase_c_game_execution
+
+    technical_records = []
+    game_records = []
+    replay_records = []
+    measurements = []
+    for offset, seed in enumerate(assignment.seeds):
+        global_index = assignment.first_game_index + offset
+        execution = run_phase_c_game_execution(
+            seed=seed,
+            mode=mode,
+            policy_config_id=config.policy_config_id,
+            through_turn=10,
+            validate_fresh_replay=True,
+            policy_actions=True,
+        )
+        measurement = replace(execution.measurement, game_index=global_index)
+        technical = execution.technical_game.to_dict()
+        replay = dict(execution.replay_transcript)
+        technical_records.append(technical)
+        game_records.append(
+            make_game_artifact(
+                mode=mode,
+                game_index=global_index,
+                seed=seed,
+                technical_game=technical,
+                replay=replay,
+                measurement=measurement,
+            )
+        )
+        replay_records.append(replay)
+        measurements.append(measurement)
+    summary = asdict(aggregate_measurements(measurements))
+    manifest = build_shard_manifest(
+        mode=mode,
+        shard_index=assignment.shard_index,
+        shard_count=assignment.shard_count,
+        first_game_index=assignment.first_game_index,
+        seeds=assignment.seeds,
+        implementation_commit=context.implementation_commit,
+        implementation_tree=context.implementation_tree,
+        activation_commit=context.activation_commit,
+        locked_config_sha256=context.locked_config_sha256,
+        workflow_sha256=context.workflow_sha256,
+        approval_record_sha256=approval.sha256,
+        policy_config_id=config.policy_config_id,
+        policy_config_sha256=config.policy_config_hash,
+        evaluator_snapshot_id=config.evaluator_snapshot_id,
+        evaluator_snapshot_sha256=config.evaluator_snapshot_sha256,
+        learning_plan_sha256=config.learning_plan_sha256,
+        technical_games=technical_records,
+        game_records=game_records,
+        replays=replay_records,
+        measurements=measurements,
+        summary=summary,
+    )
+    output_root.mkdir(parents=True, exist_ok=True)
+    shard_dir = write_phase_c_shard(
+        output_root,
+        manifest,
+        technical_records,
+        game_records,
+        replay_records,
+        measurements,
+        summary,
+    )
+    return {
+        "status": "PASS",
+        "mode": mode,
+        "shard_index": shard_index,
+        "game_count": len(assignment.seeds),
+        "first_game_index": assignment.first_game_index,
+        "last_game_index": assignment.last_game_index,
+        "shard_sha256": manifest.shard_sha256,
+        "output": str(shard_dir),
+    }
+
+
+def aggregate_phase_c_pilot_artifacts(
+    *,
+    confirmation: str,
+    implementation_commit: str,
+    activation_commit: str,
+    expected_locked_config_sha256: str,
+    expected_workflow_sha256: str,
+    shard_root: Path,
+    output_root: Path,
+    config_path: Path = DEFAULT_CONFIG,
+    approval_path: Path = DEFAULT_APPROVAL,
+    workflow_path: Path = DEFAULT_WORKFLOW,
+    root: Path = ROOT,
+) -> Mapping[str, Any]:
+    """Validate all 500/200 shard artifacts and write one immutable aggregate."""
+    config, _approval, seeds, _context = validate_execution_authorization(
+        confirmation=confirmation,
+        implementation_commit=implementation_commit,
+        activation_commit=activation_commit,
+        expected_locked_config_sha256=expected_locked_config_sha256,
+        expected_workflow_sha256=expected_workflow_sha256,
+        config_path=config_path,
+        approval_path=approval_path,
+        workflow_path=workflow_path,
+        root=root,
+    )
+    _require_durable_certification_gates(root)
+    from mtg_runs.phase_c_artifacts import validate_phase_c_aggregate, write_phase_c_aggregate
+
+    shard_dirs = sorted(
+        path
+        for path in shard_root.rglob("*")
+        if path.is_dir() and (path / "manifest.json").is_file()
+    )
+    manifest, standard_summary, exploratory_summary = validate_phase_c_aggregate(
+        shard_dirs,
+        expected_standard_seeds=seeds.standard,
+        expected_exploratory_seeds=seeds.exploratory,
+        expected_standard_shards=config.standard_shards,
+        expected_exploratory_shards=config.exploratory_shards,
+    )
+    output_root.mkdir(parents=True, exist_ok=True)
+    aggregate_dir = write_phase_c_aggregate(
+        output_root, manifest, standard_summary, exploratory_summary
+    )
+    return {
+        "status": "PASS",
+        "standard_game_count": manifest.standard_game_count,
+        "exploratory_game_count": manifest.exploratory_game_count,
+        "aggregation_sha256": manifest.aggregation_sha256,
+        "output": str(aggregate_dir),
+    }
+
+
+def execute_phase_c_pilot(**arguments: Any) -> Mapping[str, Any]:
+    """Compatibility alias: Phase C execution is always one exact frozen shard."""
+    return execute_phase_c_shard(**arguments)
 
 
 __all__ = [
     "CONFIRMATION_TOKEN",
-    "CURRENT_ENGINE_BLOCKERS",
     "DEFAULT_APPROVAL",
     "DEFAULT_CONFIG",
     "DEFAULT_WORKFLOW",
     "EXPLORATORY_GAMES",
+    "EXPLORATORY_SHARDS",
+    "PILOT_PRODUCTION_DECISION_LAYER_DEPTH",
+    "STANDARD_SHARDS",
     "PhaseCApproval",
+    "PhaseCAuthorizationContext",
     "PhaseCConfiguration",
     "PhaseCControlError",
     "PhaseCDryRunReport",
     "PilotSeedPlan",
+    "PilotShardAssignment",
     "STANDARD_GAMES",
+    "aggregate_phase_c_pilot_artifacts",
     "build_pilot_seed_plan",
+    "build_pilot_shard_assignment",
+    "current_engine_blockers",
     "dry_run_phase_c",
+    "evaluate_phase_c_readiness",
     "execute_phase_c_pilot",
+    "execute_phase_c_shard",
     "file_sha256",
     "load_phase_c_approval",
     "load_phase_c_config",

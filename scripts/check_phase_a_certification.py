@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -12,10 +13,15 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _phase_a_paths import aggregate_digest, all_digests  # noqa: E402
+from _certification_provenance import verify_github_actions_candidate  # noqa: E402
+from _phase_a_paths import aggregate_digest, all_digests, all_digests_at_commit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-RECORD_PATH = ROOT / "docs/audit/phase-a-certification/CERTIFICATION.json"
+TRACKED_RECORD_PATH = ROOT / "docs/audit/phase-a-certification/CERTIFICATION.json"
+_configured_record = os.environ.get("PHASE_A_CERTIFICATION_RECORD", "").strip()
+RECORD_PATH = Path(_configured_record) if _configured_record else TRACKED_RECORD_PATH
+if not RECORD_PATH.is_absolute():
+    RECORD_PATH = ROOT / RECORD_PATH
 APPROVAL_PATH = ROOT / "docs/spec/identity/IDENTITY_MODEL_V2.0.0_APPROVAL_RECORD.json"
 MAPPING_PATH = ROOT / "automation/phase-a-test-mapping.json"
 RULES_PATH = ROOT / "docs/source/MagicCompRules_2026-06-19.txt"
@@ -31,10 +37,17 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
-        raise ValueError(f"{path.relative_to(ROOT)} must contain a JSON object")
+        raise ValueError(f"{_display_path(path)} must contain a JSON object")
     return value
 
 
@@ -48,11 +61,15 @@ def _commit_exists(commit: str) -> bool:
     return completed.returncode == 0
 
 
+def _git(*args: str) -> str:
+    return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
+
+
 def main() -> int:
     if not RECORD_PATH.is_file():
         print(
             "Phase A certification check failed:\n"
-            f"- no durable certification at {RECORD_PATH.relative_to(ROOT)}",
+            f"- no durable certification at {_display_path(RECORD_PATH)}",
             file=sys.stderr,
         )
         return 1
@@ -94,6 +111,13 @@ def main() -> int:
     if artifact != f"phase-a-result-{commit}":
         errors.append("ci_artifact_name does not match certified_content_commit")
 
+    certified_tree = record.get("certified_repository_tree_sha")
+    if not isinstance(certified_tree, str) or _COMMIT.fullmatch(certified_tree) is None:
+        errors.append("certified_repository_tree_sha is missing or invalid")
+    elif isinstance(commit, str) and _COMMIT.fullmatch(commit) is not None and _commit_exists(commit):
+        if certified_tree != _git("rev-parse", f"{commit}^{{tree}}"):
+            errors.append("certified repository tree does not match certified content commit")
+
     counts = record.get("counts")
     if not isinstance(counts, dict):
         errors.append("counts are missing")
@@ -130,12 +154,26 @@ def main() -> int:
     if record.get("golden_transcripts") != "PASS":
         errors.append("five digest-bound owner-approved golden transcripts are not certified")
 
+    recorded_paths = record.get("covered_paths")
+    certified_paths: dict[str, str] = {}
+    if isinstance(commit, str) and _COMMIT.fullmatch(commit) is not None and _commit_exists(commit):
+        try:
+            certified_paths = all_digests_at_commit(commit)
+        except (FileNotFoundError, subprocess.CalledProcessError) as error:
+            errors.append(f"unable to reconstruct certified content: {error}")
+        else:
+            if recorded_paths != certified_paths:
+                errors.append(
+                    "certification provenance mismatch: covered_paths do not match "
+                    "certified_content_commit"
+                )
+            elif record.get("covered_content_sha256") != aggregate_digest(certified_paths):
+                errors.append("covered_content_sha256 does not match certified commit content")
     try:
         actual_paths = all_digests()
     except FileNotFoundError as error:
         errors.append(str(error))
         actual_paths = {}
-    recorded_paths = record.get("covered_paths")
     if recorded_paths != actual_paths:
         recorded_keys = set(recorded_paths) if isinstance(recorded_paths, dict) else set()
         actual_keys = set(actual_paths)
@@ -151,6 +189,26 @@ def main() -> int:
         )
     elif record.get("covered_content_sha256") != aggregate_digest(actual_paths):
         errors.append("covered_content_sha256 does not match covered_paths")
+
+    candidate_record = RECORD_PATH.resolve() != TRACKED_RECORD_PATH.resolve()
+    required_producer_steps = (
+        ("Phase A production verifier", "Build CI certification candidate")
+        if candidate_record
+        else (
+            "Phase A production verifier",
+            "Build CI certification candidate",
+            "Tests",
+            "Manifest integrity",
+        )
+    )
+    errors.extend(
+        verify_github_actions_candidate(
+            record,
+            phase="phase-a",
+            allow_unpublished_current_run=candidate_record,
+            required_steps=required_producer_steps,
+        )
+    )
 
     if errors:
         print("Phase A certification check failed:")
