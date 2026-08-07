@@ -62,6 +62,7 @@
       "replay_transcript",
       "immutable_run_manifest",
       "paired_turn8_analysis",
+      "paired_earliest_access_timing",
       "aggregation_digest"
     ]
   },
@@ -82,12 +83,16 @@
     "checkpoint_turn": 8,
     "confidence_interval_method": "DETERMINISTIC_PAIRED_BOOTSTRAP_PERCENTILE_V1",
     "confidence_level": 0.95,
+    "effect_threshold_rule": "NO_NUMERIC_ACTION_THRESHOLD_PRECOMMITTED",
     "mcnemar_test": "EXACT_TWO_SIDED",
     "outcome_name": "LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS",
     "paired_game_count": 200,
     "pairs_per_standard_shard": 20,
     "pair_selection_rule": "FIRST_20_OF_EACH_STANDARD_SHARD",
-    "required_reporting_sentence": "These figures measure combo assembly speed against opponents who take no actions. They are not win rates and do not predict performance against interactive opponents."
+    "primary_outcome": "LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS_BY_TURN_8",
+    "required_reporting_sentence": "These figures measure combo assembly speed against opponents who take no actions. They are not win rates and do not predict performance against interactive opponents.",
+    "secondary_censoring_rule": "NO_IMPUTATION_BOTH_ACCESS_TURN_SHIFT_ONLY",
+    "secondary_outcome": "EARLIEST_LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS_TURN"
   },
   "pilot": {
     "environment_seed_namespace": "phase-c-pilot-standard-v1",
@@ -114,7 +119,7 @@
     "phase_b_verifier_required": "PASS",
     "post_merge_main_ci_required": "PASS"
   },
-  "schema_version": "phase-c-pilot-config-v2",
+  "schema_version": "phase-c-pilot-config-v3",
   "stop_conditions": [
     "PHASE_A_OR_PHASE_B_GATE_FAILURE",
     "SOURCE_OR_CONFIGURATION_DIGEST_DRIFT",
