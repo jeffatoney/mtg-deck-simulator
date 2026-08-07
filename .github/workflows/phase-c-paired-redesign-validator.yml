@@ -42,7 +42,7 @@ jobs:
         run: uv sync --frozen --all-extras
       - name: Apply paired redesign
         run: python "$RUNNER_TEMP/apply_phase_c_pairing.py"
-      - name: Normalize generated source
+      - name: Normalize generated source and runtime choice support
         run: |
           python - <<'PY'
           import json
@@ -86,10 +86,31 @@ jobs:
           if text.count(old) != 1:
               raise SystemExit("unexpected generated explorer construction")
           path.write_text(text.replace(old, new, 1))
+
+          # Issue #78: public remainder cards from LOOK_SELECT_REST_BOTTOM must be
+          # ordered deterministically. Lower evaluator value is bottommost first;
+          # higher value remains closer to the top of the library.
+          path = Path("src/mtg_policy/choices.py")
+          text = path.read_text()
+          marker = '''        elif request.purpose.startswith("TUTOR_"):\n'''
+          block = '''        elif request.purpose == "ORDER_LIBRARY_BOTTOM":\n            if request.minimum != request.maximum or request.minimum != len(request.candidates):\n                raise UnsupportedCapability(\n                    "ORDER_LIBRARY_BOTTOM requires an exact ordering of every public candidate"\n                )\n            ordered = sorted(\n                request.candidates,\n                key=lambda card: (\n                    evaluations[card.handle],\n                    card.identity,\n                    card.handle,\n                ),\n            )\n            selected = tuple(card.handle for card in ordered)\n        elif request.purpose.startswith("TUTOR_"):\n'''
+          if text.count(marker) != 1:
+              raise SystemExit("unexpected strategic choice provider shape")
+          path.write_text(text.replace(marker, block, 1))
+
+          test_path = Path("tests/phase_c/test_phase_c_control.py")
+          test_text = test_path.read_text()
+          import_old = "from mtg_kernel.errors import IllegalAction\n"
+          import_new = "from mtg_kernel.errors import IllegalAction, UnsupportedCapability\n"
+          if test_text.count(import_old) != 1:
+              raise SystemExit("unexpected Phase C error import shape")
+          test_text = test_text.replace(import_old, import_new, 1)
+          test_text += '''\n\ndef test_order_library_bottom_is_exact_deterministic_and_evaluator_bound() -> None:\n    bundle = next(\n        item for item in load_policy_matrix() if item.policy_config_id == "anchor_balanced"\n    )\n    evaluator = ContextualEvaluator(load_evaluator_config())\n    provider = PolicyStrategicChoiceProvider(bundle, evaluator)\n    cards = (\n        PublicCard("bottom-a", "Island", 0, ("Land",), ()),\n        PublicCard("bottom-b", "Twinflame", 2, ("Sorcery",), ()),\n        PublicCard("bottom-c", "Opt", 1, ("Instant",), ()),\n    )\n    request = CardSelectionRequest(\n        request_id="order-library-bottom",\n        actor_id="P0",\n        ability_id="impulse",\n        purpose="ORDER_LIBRARY_BOTTOM",\n        turn_number=3,\n        observation={"generation": 1, "player": "P0", "objects": [], "turn": {"number": 3}},\n        candidates=cards,\n        minimum=3,\n        maximum=3,\n    )\n    evaluations = {\n        card.handle: evaluator.evaluate_pile((card,), request.observation).score for card in cards\n    }\n    expected = tuple(\n        card.handle\n        for card in sorted(\n            cards,\n            key=lambda card: (evaluations[card.handle], card.identity, card.handle),\n        )\n    )\n    first = provider.choose_cards(request)\n    second = provider.choose_cards(request)\n    assert first == second\n    assert first.selected_handles == expected\n    assert set(first.selected_handles) == {card.handle for card in cards}\n    assert first.evaluator_id == evaluator.config.evaluator_id\n    assert first.evaluator_sha256 == evaluator.config.config_sha256\n    assert first.diagnostics["purpose"] == "ORDER_LIBRARY_BOTTOM"\n    with pytest.raises(UnsupportedCapability, match="exact ordering"):\n        provider.choose_cards(\n            CardSelectionRequest(\n                request_id="bad-bottom-order",\n                actor_id="P0",\n                ability_id="impulse",\n                purpose="ORDER_LIBRARY_BOTTOM",\n                turn_number=3,\n                observation=request.observation,\n                candidates=cards,\n                minimum=2,\n                maximum=3,\n            )\n        )\n'''
+          test_path.write_text(test_text)
           PY
       - name: Format changed Python
         run: |
-          uv run ruff format src/mtg_runs/phase_c.py src/mtg_runs/phase_c_runner.py src/mtg_runs/phase_c_artifacts.py src/mtg_runs/phase_c_pairing.py tests/phase_c/test_phase_c_control.py tests/phase_c/test_phase_c_artifacts.py
+          uv run ruff format src/mtg_policy/choices.py src/mtg_runs/phase_c.py src/mtg_runs/phase_c_runner.py src/mtg_runs/phase_c_artifacts.py src/mtg_runs/phase_c_pairing.py tests/phase_c/test_phase_c_control.py tests/phase_c/test_phase_c_artifacts.py
       - name: Lint
         run: uv run ruff check .
       - name: Strict type check
@@ -112,7 +133,7 @@ jobs:
           git status --short
           git config user.name "chatgpt-codex-connector[bot]"
           git config user.email "199175422+chatgpt-codex-connector[bot]@users.noreply.github.com"
-          git add docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json docs/spec/phase-c/PHASE_C_PILOT_AUTHORIZATION.md src/mtg_runs/phase_c.py src/mtg_runs/phase_c_runner.py src/mtg_runs/phase_c_artifacts.py src/mtg_runs/phase_c_pairing.py tests/phase_c/test_phase_c_control.py tests/phase_c/test_phase_c_artifacts.py
+          git add docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json docs/spec/phase-c/PHASE_C_PILOT_AUTHORIZATION.md src/mtg_policy/choices.py src/mtg_runs/phase_c.py src/mtg_runs/phase_c_runner.py src/mtg_runs/phase_c_artifacts.py src/mtg_runs/phase_c_pairing.py tests/phase_c/test_phase_c_control.py tests/phase_c/test_phase_c_artifacts.py
           git commit -m "Pair exploratory pilot to frozen standard environment subset"
           git push --force origin HEAD:refs/heads/bridge/phase-c-paired-redesign
           echo "BRIDGE_COMMIT=$(git rev-parse HEAD)"
