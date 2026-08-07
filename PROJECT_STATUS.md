@@ -1,70 +1,102 @@
 # MTG Deck Simulator Project Status
 
-> **Last synchronized:** 2026-08-06 18:10 PT
+> **Last synchronized:** 2026-08-07 05:26 UTC
 > **Repository:** `jeffatoney/mtg-deck-simulator`
 > **Phase B merge:** PR #37 merged into `main` at `4d1df5a68744864906e337d8ded17d12d7724d37`
 > **Active Phase C branch:** `phase-c/pilot-authorization`
 > **Active Phase C draft PR:** #49
-> **Published technical implementation:** `8549f5e270a4def2c5e41521104bde72dc3770c8`; exact-head CI is being triggered from this uncovered status-only descendant
-> **Phase C execution status:** **LOCKED — NOT AUTHORIZED**
+> **Certified Phase C implementation:** `ec7ce0ad841917fcc8d687db831a8d6db6755535`
+> **Certified implementation tree:** `8849363ff5b7e3b678e65b151c4c00b6bef532cb`
+> **Green certification-current head before this dashboard-only update:** `a83ae55712b7704959824f1a3bf0f76850c5393e`
+> **Final technical/certification CI:** run 775 / `31149836580` — **SUCCESS**
+> **Phase C execution status:** **LOCKED — OWNER DECISION REQUIRED**
 
-This dashboard distinguishes technical implementation readiness from execution authorization. No pilot or full-study game is authorized by code, tests, a dry run, CI, certification renewal, or an owner-review package. `execution_allowed` remains false until a separate explicit owner decision under issue #51.
+Phase C technical implementation is complete and durably certified. The pilot and full study remain locked. No pilot or full-study game has been executed. `execution_allowed` remains `false`; the machine owner approval record remains pending. The next action is the explicit owner decision under issue #51.
 
 ## Overview
 
 | Phase | Status | Evidence or control |
 |---|---|---|
-| Phase A foundation | **Implemented; renewal required for covered Phase C changes** | Standing verifier remains the authority; exact-head durable certification must be renewed from CI candidate |
-| Phase B deck/policy foundation | **Merged; renewal required for covered Phase C changes** | PR #37 merged with zero exact-deck blockers and 12 approved transcripts; Phase C covered changes require exact-head recertification |
-| Phase C production runner | **Technical implementation candidate published; exact-head CI pending** | Real Turn-10 policy/replay path, combat, exploratory expansion, combo detection, replay/rollback, and immutable artifacts have executable tests |
-| Phase C authorization controls | **Implemented and locked; exact-head CI pending** | Reviewed implementation identity separated from later governance-only activation identity |
-| Phase C 500/200 execution | **Not authorized** | `execution_allowed: false`; owner approval record pending; zero pilot games run |
-| Full 20,000/5,000 study | **Not authorized** | Separate post-pilot owner decision required; zero full-study games run |
+| Phase A foundation | **Current and durably certified** | 33/33 verifier tests; durable certification-current PASS |
+| Phase B deck/policy foundation | **Current and durably certified** | 190/190 mapped tests; 0 unsupported capabilities; 0 strategic-model blockers; 12/12 transcripts; durable certification-current PASS |
+| Phase C production runner | **Technically complete** | Real Turn-10 policy/replay path, combat, exploratory expansion, combo detection, replay/rollback, and immutable artifacts pass executable gates |
+| Phase C authorization controls | **Technically complete and locked** | Owner binds reviewed implementation commit/tree; later activation must be a governance-only descendant with an allowlisted diff |
+| Phase C 500/200 pilot | **Not authorized** | `execution_allowed: false`; owner approval pending; 0 pilot games run |
+| Full 20,000/5,000 study | **Not authorized** | Separate post-pilot owner decision under #52; 0 full-study games run |
 
-## Phase B handoff
+## Certified implementation identity
 
-- PR #37 merged through protected `main` at `4d1df5a68744864906e337d8ded17d12d7724d37`.
-- At Phase B closeout, unsupported exact-deck capabilities were zero, strategic-model blockers were zero, all 12 golden transcripts were approved, the mapped suite was 185/185, and durable Phase B certification passed.
-- Phase C now touches covered engine, policy, run, workflow, and certification surfaces. Those changes do not reopen the completed Phase B design work, but they do require new exact-head durable Phase A and Phase B certification records before owner review.
+- Implementation commit: `ec7ce0ad841917fcc8d687db831a8d6db6755535`.
+- Implementation tree: `8849363ff5b7e3b678e65b151c4c00b6bef532cb`.
+- The certification-current head `a83ae55712b7704959824f1a3bf0f76850c5393e` is three descendants after the implementation commit and changes only the Phase A and Phase B durable certification records.
+- No engine, policy, workflow, pilot-config, or approval-config code changed after the certified implementation commit.
 
-## Current Phase C technical candidate
+## Final CI evidence
 
-The implementation candidate now includes:
+Final technical/certification run: **775 / `31149836580` — SUCCESS**.
 
-1. Exact clean-engine 98-card library plus Malcolm/Breeches command-zone construction.
-2. Replayable league 7 / free 7 / 6 / 5 / 4 draw-back-to-seven mulligan and Turn-1 draw.
-3. Rules-owned progression through controlled Turn 10, including cleanup repetition and terminal short-circuiting.
-4. Shared-ActionBroker legal combat with no blockers, opponent assignment, tapping, commander damage, and trigger timing.
-5. Deterministic public-only `LOOK_SELECT` and `TUTOR_THIRD_FROM_TOP` strategic choices with recorded evaluator provenance and replayed choices.
-6. Correct exact-X action enumeration for X spells rather than probing impossible target combinations at X=0.
-7. Six frozen combo-access detectors with early/cumulative access, payable/protected legality, actual first attempt, tutor exclusivity, attack restrictions, and false-positive denial.
-8. One audited exploratory production decision layer through the same broker/executor, with the existing hard upper bounds preserved and actual depth/node reporting.
-9. Replay-safe atomic rollback that avoids recursively deep-copying replay history.
-10. Cleanup policy bookkeeping derived without consuming engine identity or RNG.
-11. Derived Phase C readiness blockers: readiness comes from executable production smokes rather than a hand-maintained tuple that can be emptied.
-12. Strict Git-object-ID versus SHA-256 domain separation.
-13. Implementation-commit/tree owner binding plus a later governance-only activation descendant with an allowlisted diff.
-14. Deterministic 500/200 seed plan frozen into 10×50 standard and 10×20 exploratory shards.
-15. Immutable raw technical-game, replay, measurement, per-game, shard-summary, shard-manifest, and final aggregate records with cross-file digest checks.
-16. Hardened durable-certification provenance: covered hashes must come from the recorded certified commit/tree and GitHub Actions run, not hand-patched current content.
-17. The temporary one-day exact-source export has been removed from ordinary CI in the candidate.
+- Frozen identity lock: PASS.
+- Phase A authority: PASS.
+- Phase B evaluator/learning boundary: PASS.
+- Clean-engine boundary: PASS; no forbidden findings.
+- Legacy `mtg_sim`: not importable.
+- Ruff formatting: PASS; 206 files formatted.
+- Ruff lint: PASS.
+- Strict mypy: PASS; 75 source files.
+- Exact-deck Turn-10 production policy/replay smoke: PASS.
+  - controlled turns completed: 10;
+  - command count: 458;
+  - fresh-process replay equality: true;
+  - actual first combo attempt: Turn 10;
+  - attempted package: `malcolm_glint_horn`;
+  - errors: none.
+- Full repository pytest: **311 passed**.
+- Manifest integrity: PASS; 34 frozen files / 18 required paths.
+- Phase A verifier: **33 pass, 0 fail, 0 skip, 0 xfail**.
+- Phase B verifier: **190 pass, 0 fail, 0 skip, 0 xfail**.
+  - unsupported capability count: 0;
+  - strategic-model blocker count: 0;
+  - golden transcripts: PASS, 12 approved;
+  - pilot lock: PASS.
+- Phase C no-game dry run: `READY_FOR_OWNER_REVIEW`.
+  - `readiness_blockers: []`;
+  - `game_results_created: 0`;
+  - `execution_allowed: false`;
+  - full-study execution allowed: false.
+- Durable Phase A certification-current: PASS.
+- Durable Phase B certification-current: PASS.
+
+## Executable Phase C readiness evidence
+
+The four former hand-maintained blocker labels are now derived from executable checks and all pass:
+
+1. Controlled Turn-10 driver: PASS with exact fresh-process replay.
+2. Legal combat path: PASS through shared `DECLARE_ATTACKERS` broker/executor path, including Malcolm commander damage.
+3. Exploratory production expansion: PASS at one audited production decision layer; 6 branches/nodes in the dry-run smoke, first standard/exploratory divergence recorded, exact replay digest recorded.
+4. Combo-access detection: PASS for all six frozen deterministic packages.
+
+Technical issue #50 and child issues #54–#63 and #67–#70 are completed and closed.
 
 ## Frozen pilot definition
 
-- Standard games: 500, 10 shards of 50.
-- Exploratory games: 200, 10 shards of 20.
-- Deterministic disjoint standard/exploratory seed namespaces and exact seed digests.
-- Controlled horizon: through end of Turn 10.
-- Checkpoints: Turns 5, 6, 8, 10; Turn 8 primary.
+- Exact 98-card library plus Malcolm and Breeches in the command zone.
+- Three opponents.
+- Controlled player draws on Turn 1.
+- League mulligan: 7, free 7, 6, 5, 4; never below four; refill to seven.
+- Simulate through the end of controlled Turn 10.
+- Primary checkpoint: Turn 8; additional checkpoints: Turns 5, 6, and 10.
 - Opponent interaction: none modeled.
 - Blocking: none modeled.
 - Opponent wins: none modeled.
 - Malcolm may connect and Glint-Horn may attack when legal.
-- Unknown Breeches cards are excluded from deterministic resources.
-- Standard policy: `anchor_balanced` with exact evaluator and learning-plan binding.
+- Unknown Breeches cards do not become deterministic resources.
+- Objective: maximize legal deterministic table-win access.
+- Standard pilot: 500 games, 10 shards of 50.
+- Exploratory pilot: 200 games, 10 shards of 20, reported separately.
+- Standard policy: `anchor_balanced` with exact evaluator and learning-plan bindings.
 - Future information: prohibited.
 - Post-result optimization/policy mutation: prohibited.
-- Exploratory production decision-layer depth: exactly 1 for this pilot definition; existing hard branch/depth/node/beam/belief caps remain upper bounds and actual depth/nodes must be reported honestly.
+- Exploratory production decision-layer depth: exactly 1; existing hard search caps remain upper bounds and actual depth/nodes are reported honestly.
 
 Binding files:
 
@@ -73,48 +105,36 @@ Binding files:
 - `docs/spec/phase-c/PHASE_C_PILOT_APPROVAL.json`
 - `.github/workflows/phase-c-pilot.yml`
 
-## Remaining gates before owner review
+## Locked owner-review values
 
-| Gate | Current state | Required next action |
-|---|---|---|
-| Local focused Phase C/Phase B/certification regressions | Passing | Preserve through publication and CI |
-| Real policy-driven Turn-10/fresh replay smoke | Passing in isolated exact-source execution | Run as a mandatory CI step on pushed head |
-| Formatting / lint / strict mypy | Awaiting GitHub CI | Must pass on exact pushed head |
-| Full repository pytest | Awaiting GitHub CI | Must pass on exact pushed head |
-| Phase A durable certification | Renewal pending | Generate exact-head CI candidate, commit it unmodified, rerun CI |
-| Phase B durable certification | Renewal pending | Generate exact-head CI candidate, commit it unmodified, rerun CI |
-| Second-pass exact-head review | Pending | Review final diff/tests/CI and repair any issue found |
-| Owner authorization under #51 | **Not requested yet** | Request only after every technical/CI/certification gate is green |
-
-## Active focused issues
-
-Technical work remains tracked under #50 and #54–#63. Additional defects discovered by the real production path are tracked separately:
-
-- #67 — deterministic `TUTOR_THIRD_FROM_TOP` choice support.
-- #68 — durable Phase A/B certification provenance binding.
-- #69 — X-spell enumeration and optional-trigger replay choices.
-- #70 — cross-binding raw technical games, replay, measurements, and shard manifests.
-
-Issues are closed only after their acceptance criteria are satisfied on the exact pushed/certified head.
+- Pilot config SHA-256: `9911d4cd328d0970a316fbdf164124f87fc8e593a27240f165d17eaf6d55d0e2`.
+- Pilot workflow SHA-256: `1b94e613e870904f139d4dc2f9a4641e097f791bb6cdff7c28acec0679819680`.
+- Pending approval-record SHA-256: `8bbd61f813e1fefa4cf60ae96fa1d409dbb612a645d4bca2b970ad661c2e3287`.
+- Confirmation token: `AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY`.
+- Standard seed-plan SHA-256: `177086231a5e5e8a489cf1433929a092febc761d2d5865ab3bdd663381a3adff`.
+- Exploratory seed-plan SHA-256: `2e7c78fbc9ff6c4d2eb9bbce8da54bf75d2afabd48d6f24f36fbadabe5691f06`.
+- Evaluator: `contextual_combo_v1` / `86c5e07daaa86362a38fad7a66d712443e32ba8af743bcaaa15576207264eca2`.
+- Learning-plan SHA-256: `4884586c492c62cfd009c0a53c6d4ddd888274771c10efddc2b1853745a685e2`.
+- Transcript approval-document SHA-256: `242a43347f3d73405872b43820048497cf06101b4b02a637b009f0143200c53d`.
 
 ## Authorization model
 
-The owner does not approve the activation commit in advance. The owner approves the exact green **implementation commit/tree** and its locked configuration/workflow/count/shard/depth/token/seed evidence. A later activation commit may change only the allowlisted Phase C config and approval files. The activation workflow proves ancestry and the governance-only diff before any output is created.
+The owner approves or holds/rejects the exact certified implementation package under issue #51. Approval does **not** retroactively approve an unknown future code commit. If approved, a later activation commit may change only the allowlisted Phase C pilot config and approval record. The activation workflow proves that the activation commit descends from the reviewed implementation and contains no unexpected code changes before any output path or game result can be created.
 
-The machine owner record remains pending, and the pilot config remains:
+Until the owner explicitly approves:
 
-- `execution_allowed: false`;
-- `status: LOCKED_PENDING_OWNER_APPROVAL`.
+- `execution_allowed` stays `false`;
+- approval status stays pending;
+- no 500/200 pilot is run;
+- no 20,000/5,000 full study is run.
 
-## Next required actions
+## Remaining work
 
-1. Run exact-head GitHub CI and repair any formatting, typing, test, verifier, readiness, or provenance failure.
-2. Retrieve the exact Phase A and Phase B CI-produced certification candidates from that run.
-3. Commit those candidates unmodified in a separate certification-renewal commit.
-4. Rerun exact-head CI and continue repairing until all blocking gates are green.
-5. Conduct a second-pass diff/test/audit review and close only acceptance-complete technical issues.
-6. Present a digest-bound `OWNER DECISION REQUIRED` package under issue #51.
-7. Do not run the pilot or full study until the owner explicitly approves the final package and a governance-only activation commit is created.
+1. Require this dashboard-only PR head to pass CI without changing the certified implementation surface.
+2. Present the complete digest-bound **OWNER DECISION REQUIRED** package under issue #51.
+3. Stop for the owner's APPROVE / HOLD / REJECT decision.
+4. Only after an explicit APPROVE: create the governance-only activation commit and use the locked manual workflow for the 500/200 pilot.
+5. After the pilot is audited, handle the separate full-study decision under issue #52.
 
 ## Repository health
 
@@ -123,7 +143,11 @@ The machine owner record remains pending, and the pilot config remains:
 | `main` protection | Active `Protect main`; redundant Phase A ruleset disabled |
 | Phase B PR | #37 merged |
 | Active Phase C PR | #49 draft |
-| Recovery PRs | #64, #65, #66 preserved until consolidation is verified; none should be merged as final Phase C completion |
-| Phase C runner issue | #50 in progress until exact-head CI/certification closeout |
+| Recovery PRs | #64, #65, #66 closed as superseded; none merged |
+| Phase C runner issue | #50 closed as technically complete |
+| Technical child issues | #54–#63 and #67–#70 closed as completed |
+| Phase C parent authorization | #48 remains open until the authorized pilot is executed and audited |
+| Owner decision | #51 open and next |
+| Full-study decision | #52 open and post-pilot only |
 | Pilot execution | Locked; 0 games executed |
 | Full study | Locked; 0 games executed |
