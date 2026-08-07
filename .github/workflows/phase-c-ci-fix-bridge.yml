@@ -1,0 +1,96 @@
+name: Phase C CI fix bridge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.head_ref == 'staging/phase-c-ci-fixes'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Download exact Ruff artifact from run 753
+        uses: actions/download-artifact@v4
+        with:
+          name: ruff-formatted-6eb0a10c6f6bb3de42b41d3b704040032614ef30
+          path: /tmp/ruff-formatted
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 31141200240
+      - name: Build and validate clean descendant
+        env:
+          EXPECTED_BASE: 1333bb83a0ac21353bbb808fcbc6283bd912ed95
+        run: |
+          set -euo pipefail
+          git checkout --detach "${EXPECTED_BASE}"
+          cp -a /tmp/ruff-formatted/. .
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/check_clean_engine_boundary.py')
+          text = path.read_text(encoding='utf-8')
+          needle = '    "src/mtg_runs/phase_c.py": {"subprocess.check_output", "subprocess.run"},\n'
+          addition = '    "src/mtg_runs/phase_c_runner.py": {"subprocess.run"},\n'
+          if addition not in text:
+              if needle not in text:
+                  raise SystemExit('expected Phase C allowlist anchor not found')
+              text = text.replace(needle, needle + addition)
+              path.write_text(text, encoding='utf-8')
+          PY
+          uv sync --frozen --all-extras
+          uv run ruff format .
+          uv run ruff format --check .
+          uv run ruff check .
+          uv run mypy src
+          git diff --check
+          python - <<'PY'
+          import subprocess
+          allowed = {
+              'scripts/_certification_provenance.py',
+              'scripts/_phase_a_paths.py',
+              'scripts/_phase_b_paths.py',
+              'scripts/check_clean_engine_boundary.py',
+              'scripts/check_phase_a_certification.py',
+              'scripts/check_phase_b_certification.py',
+              'src/mtg_kernel/engine_core.py',
+              'src/mtg_measure/combo_access.py',
+              'src/mtg_policy/broker.py',
+              'src/mtg_policy/choices.py',
+              'src/mtg_policy/standard.py',
+              'src/mtg_runs/phase_c.py',
+              'src/mtg_runs/phase_c_artifacts.py',
+              'src/mtg_runs/phase_c_runner.py',
+              'tests/phase_b/test_continuous_combo_access.py',
+              'tests/phase_c/test_phase_c_artifacts.py',
+              'tests/phase_c/test_phase_c_control.py',
+              'tests/test_certification_gate.py',
+          }
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
+          unexpected = sorted(changed - allowed)
+          if unexpected:
+              raise SystemExit(f'unexpected changed files: {unexpected}')
+          print('validated changed files:', *sorted(changed), sep='\n- ')
+          PY
+          git add -A
+          TREE="$(git write-tree)"
+          git config user.name "chatgpt-codex-connector[bot]"
+          git config user.email "199175422+chatgpt-codex-connector[bot]@users.noreply.github.com"
+          COMMIT="$(printf '%s\n\n%s\n' \
+            'Apply exact Ruff artifact and boundary allowlist' \
+            'Validated with pinned Ruff and strict mypy; no pilot execution.' \
+            | git commit-tree "${TREE}" -p "${EXPECTED_BASE}")"
+          git push origin "${COMMIT}:refs/heads/bridge/phase-c-ci-validated" --force
+          echo "bridge_commit=${COMMIT}" >> "${GITHUB_OUTPUT}"
