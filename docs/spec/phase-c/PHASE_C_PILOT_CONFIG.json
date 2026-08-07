@@ -119,7 +119,7 @@
     "phase_b_verifier_required": "PASS",
     "post_merge_main_ci_required": "PASS"
   },
-  "schema_version": "phase-c-pilot-config-v3",
+  "schema_version": "phase-c-pilot-config-v2",
   "stop_conditions": [
     "PHASE_A_OR_PHASE_B_GATE_FAILURE",
     "SOURCE_OR_CONFIGURATION_DIGEST_DRIFT",
