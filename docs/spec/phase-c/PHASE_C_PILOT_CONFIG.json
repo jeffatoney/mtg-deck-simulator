@@ -1,10 +1,10 @@
 {
   "authorization": {
-    "approved_at": null,
-    "approved_by": null,
+    "approved_at": "2026-08-07T17:53:59Z",
+    "approved_by": "Jeff Toney",
     "confirmation_token": "AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY",
-    "execution_allowed": false,
-    "status": "LOCKED_PENDING_OWNER_APPROVAL"
+    "execution_allowed": true,
+    "status": "AUTHORIZED"
   },
   "deck": {
     "commanders": [
