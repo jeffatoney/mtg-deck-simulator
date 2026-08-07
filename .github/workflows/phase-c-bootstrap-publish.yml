@@ -1,3 +1,4 @@
+# Triggered after staging ref creation; this workflow deletes itself before publication.
 name: Phase C bootstrap publish
 
 on:
