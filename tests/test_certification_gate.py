@@ -165,7 +165,9 @@ def test_hand_patched_current_hashes_do_not_rewrite_certified_provenance(sandbox
         "certified_content_commit"
     ]
     target = sandbox / ".github/workflows/ci.yml"
-    target.write_text(target.read_text(encoding="utf-8") + "\n# later covered change\n", encoding="utf-8")
+    target.write_text(
+        target.read_text(encoding="utf-8") + "\n# later covered change\n", encoding="utf-8"
+    )
     subprocess.run(["git", "add", ".github/workflows/ci.yml"], cwd=sandbox, check=True)
     subprocess.run(
         ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "later"],

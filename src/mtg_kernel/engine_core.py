@@ -1721,9 +1721,7 @@ class GameExecutor:
             self.state.actions.append(action)
             for object_id, opponent_id in sorted(assignments.items()):
                 obj = self.state.objects[object_id]
-                keywords = {
-                    str(value) for value in obj.current_characteristics.get("keywords", ())
-                }
+                keywords = {str(value) for value in obj.current_characteristics.get("keywords", ())}
                 if "Vigilance" not in keywords and obj.permanent_status is not None:
                     obj.permanent_status["tap"] = "TAPPED"
                 obj.current_characteristics["attacking"] = True
@@ -1767,7 +1765,9 @@ class GameExecutor:
             for attacker in attackers:
                 attacker.current_characteristics["unblocked"] = True
             self._event(
-                "NO_BLOCKERS_DECLARED", action, attacker_ids=sorted(obj.object_id for obj in attackers)
+                "NO_BLOCKERS_DECLARED",
+                action,
+                attacker_ids=sorted(obj.object_id for obj in attackers),
             )
             if _record:
                 self._record_command("declare_no_blockers")
@@ -1801,7 +1801,9 @@ class GameExecutor:
         """
         self._ensure_active()
         before = self._begin_atomic()
-        choices_by_source = {str(key): dict(value) for key, value in (choices_by_source or {}).items()}
+        choices_by_source = {
+            str(key): dict(value) for key, value in (choices_by_source or {}).items()
+        }
         try:
             if self.state.turn.step != "COMBAT_DAMAGE":
                 raise IllegalAction("combat damage may be dealt only in combat damage")
@@ -1866,9 +1868,7 @@ class GameExecutor:
                 )
             self.check_state_based_actions()
             self.put_waiting_triggers_on_stack()
-            self._event(
-                "COMBAT_DAMAGE_RESOLVED", action, attacker_count=len(assignments)
-            )
+            self._event("COMBAT_DAMAGE_RESOLVED", action, attacker_count=len(assignments))
             if _record:
                 self._record_command(
                     "resolve_no_blocker_combat_damage",
@@ -1994,9 +1994,7 @@ class GameExecutor:
             self._rollback(before)
             raise
 
-    def start_next_controlled_turn(
-        self, player_id: str, *, _record: bool = True
-    ) -> None:
+    def start_next_controlled_turn(self, player_id: str, *, _record: bool = True) -> None:
         """Advance from a stable cleanup to the next modeled controlled turn."""
         self._ensure_active()
         before = self._begin_atomic()
@@ -2131,7 +2129,10 @@ class GameExecutor:
             self.declare_no_blockers(_record=False)
         elif operation == "resolve_no_blocker_combat_damage":
             self.resolve_no_blocker_combat_damage(
-                {str(key): dict(value) for key, value in arguments.get("choices_by_source", {}).items()},
+                {
+                    str(key): dict(value)
+                    for key, value in arguments.get("choices_by_source", {}).items()
+                },
                 _record=False,
             )
         elif operation == "begin_step":

@@ -61,6 +61,7 @@ SUPPORT_PROCESS_ALLOWLIST: dict[str, set[str]] = {
     # Phase C reads exact Git objects and performs a no-shell ancestry check before
     # any authorized shard can create an output directory or game result.
     "src/mtg_runs/phase_c.py": {"subprocess.check_output", "subprocess.run"},
+    "src/mtg_runs/phase_c_runner.py": {"subprocess.run"},
 }
 _FORBIDDEN_REFERENCE = re.compile(r"(?<![A-Za-z0-9_])mtg_sim(?![A-Za-z0-9_])")
 

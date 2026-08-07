@@ -20,7 +20,7 @@ from mtg_deck import build_exact_game
 from mtg_kernel.engine import GameExecutor
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.hashing import state_hash
-from mtg_kernel.models import GameObject, Zone
+from mtg_kernel.models import Zone
 from mtg_kernel.replay import transcript, validate_replay
 from mtg_kernel.strategic_choices import CardSelectionRequest, PublicCard
 from mtg_measure import (
@@ -125,7 +125,9 @@ class PhaseCTechnicalGame:
         if self.mode == "STANDARD" and self.exploratory_decision_layer_depth != 0:
             raise ValueError("standard technical games cannot report exploratory depth")
         if self.mode == "EXPLORATORY" and self.exploratory_decision_layer_depth != 1:
-            raise ValueError("exploratory technical games must report one production decision layer")
+            raise ValueError(
+                "exploratory technical games must report one production decision layer"
+            )
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -214,13 +216,13 @@ class _GameMeasurementCapture:
             self.checkpoint_snapshots[turn] = tracker.observe(executor)
 
 
-def _policy_bundle(policy_config_id: str):
+def _policy_bundle(policy_config_id: str) -> Any:
     return next(
         bundle for bundle in load_policy_matrix() if bundle.policy_config_id == policy_config_id
     )
 
 
-def _bound_policy(executor: GameExecutor, policy_config_id: str):
+def _bound_policy(executor: GameExecutor, policy_config_id: str) -> tuple[StandardPolicy, Any, Any]:
     bundle = _policy_bundle(policy_config_id)
     evaluator_config = load_evaluator_config()
     if (
@@ -547,7 +549,9 @@ class _OneLayerExplorer:
             )
         )
         if result.log.depth_reached != PILOT_PRODUCTION_DECISION_LAYER_DEPTH:
-            raise UnsupportedCapability("exploratory search did not execute exactly one production layer")
+            raise UnsupportedCapability(
+                "exploratory search did not execute exactly one production layer"
+            )
         return result.selected_action
 
 
@@ -569,7 +573,10 @@ def _combat_optional_trigger_choices(
         for permanent in executor.state.objects.values():
             if permanent.retired or permanent.zone is not Zone.BATTLEFIELD:
                 continue
-            if permanent.attached_to_ref is None or permanent.attached_to_ref.object_id != attacker.object_id:
+            if (
+                permanent.attached_to_ref is None
+                or permanent.attached_to_ref.object_id != attacker.object_id
+            ):
                 continue
             for raw_ability in permanent.current_characteristics.get("abilities", ()):
                 ability = dict(raw_ability)
@@ -612,9 +619,7 @@ _FAILURE_BLOCKER_MAP: tuple[tuple[str, str], ...] = (
 )
 
 
-def _failure_labels_for_checkpoint(
-    tracker: ComboAccessTracker, checkpoint: int
-) -> tuple[str, ...]:
+def _failure_labels_for_checkpoint(tracker: ComboAccessTracker, checkpoint: int) -> tuple[str, ...]:
     if any(
         record.turn <= checkpoint and record.legally_executable and record.full_table_kill
         for record in tracker.records
@@ -697,7 +702,11 @@ def _drawn_card_counts(executor: GameExecutor) -> Counter[str]:
 def _cast_card_counts(executor: GameExecutor) -> Counter[str]:
     counts: Counter[str] = Counter()
     for action in executor.state.actions:
-        if action.kind != "CAST" or action.actor_id != CONTROLLED_PLAYER or not action.source_object_id:
+        if (
+            action.kind != "CAST"
+            or action.actor_id != CONTROLLED_PLAYER
+            or not action.source_object_id
+        ):
             continue
         obj = executor.state.objects.get(action.source_object_id)
         if obj is None:
@@ -766,7 +775,9 @@ def _build_game_measurement(
             snapshot = _best_combo_snapshot(tracker, package, checkpoint)
             if snapshot is None:
                 combo_records.append(
-                    ComboMeasurement(package, checkpoint, False, False, False, False, False, False, False, False)
+                    ComboMeasurement(
+                        package, checkpoint, False, False, False, False, False, False, False, False
+                    )
                 )
                 continue
             attempted = bool(
@@ -833,13 +844,16 @@ def _build_game_measurement(
         str(executor.state.objects[object_id].current_characteristics.get("name", ""))
         for object_id in executor.state.zones.get(hand_key, ())
     )
-    all_names = sorted(set(drawn) | set(cast) | set(capture.hand_turn_counts) | set(stranded_counts))
+    all_names = sorted(
+        set(drawn) | set(cast) | set(capture.hand_turn_counts) | set(stranded_counts)
+    )
     card_records: list[CardMeasurement] = []
     for name in all_names:
         contributions = tuple(
             f"combo_access:{package}"
             for package, cards in sorted(package_cards.items())
-            if name in cards and any(
+            if name in cards
+            and any(
                 record.package == package and record.legally_executable
                 for record in tracker.records
             )
@@ -960,7 +974,9 @@ def run_phase_c_game_execution(
     seed_text = f"phase-c:{mode.lower()}:{seed}"
     state, executor, _ = build_exact_game(seed_text, PLAYER_IDS)
     policy, provider, evaluator_config = _bound_policy(executor, policy_config_id)
-    tracker = bind_combo_access_tracker(executor, CONTROLLED_PLAYER, evaluator_config.combo_packages)
+    tracker = bind_combo_access_tracker(
+        executor, CONTROLLED_PLAYER, evaluator_config.combo_packages
+    )
     capture = _GameMeasurementCapture()
 
     initial_state = deepcopy(state)
@@ -994,7 +1010,9 @@ def run_phase_c_game_execution(
                     # next cleanup iteration may require a new deterministic discard.
                     while state.stack and state.terminal.status == "ACTIVE":
                         (
-                            _priority_window(executor, policy, exploratory=explorer, measurement=capture)
+                            _priority_window(
+                                executor, policy, exploratory=explorer, measurement=capture
+                            )
                             if policy_actions and _policy_window_required("CLEANUP", executor)
                             else _resolve_required_stack(executor)
                         )
@@ -1156,10 +1174,7 @@ def run_phase_c_combat_smoke(*, seed: int = 303) -> dict[str, Any]:
         if action.kind == "DECLARE_ATTACKERS"
         and action.identity is None
         and action.metadata.get("attacker_count") == 1
-        and any(
-            item.get("opponent") == "P1"
-            for item in action.metadata.get("assignments", ())
-        )
+        and any(item.get("opponent") == "P1" for item in action.metadata.get("assignments", ()))
     )
     broker.execute(int(observation["generation"]), attack.handle)
     executor.begin_step("DECLARE_BLOCKERS")
@@ -1183,7 +1198,9 @@ def run_phase_c_combat_smoke(*, seed: int = 303) -> dict[str, Any]:
         if not obj.retired
     ) and not any(event.kind == "TREASURE_CREATED" for event in state.events):
         # The trigger may already have resolved during the direct priority cycle.
-        raise UnsupportedCapability("combat smoke did not preserve Malcolm damage trigger causality")
+        raise UnsupportedCapability(
+            "combat smoke did not preserve Malcolm damage trigger causality"
+        )
     return {
         "status": "PASS",
         "attacker": "Malcolm, Keen-Eyed Navigator",
@@ -1214,7 +1231,9 @@ def run_phase_c_exploratory_smoke(*, seed: int = 404) -> dict[str, Any]:
         raise UnsupportedCapability("exploratory smoke produced no decision record")
     record = explorer.records[-1]
     if record.decision_layer_depth != 1 or record.nodes_evaluated < 1:
-        raise UnsupportedCapability("exploratory smoke did not execute exactly one production layer")
+        raise UnsupportedCapability(
+            "exploratory smoke did not execute exactly one production layer"
+        )
     body = transcript(state, seed=seed_text)
     replayed = validate_replay(body)
     if state_hash(replayed) != state_hash(state):
@@ -1230,6 +1249,7 @@ def run_phase_c_exploratory_smoke(*, seed: int = 404) -> dict[str, Any]:
         "first_divergence": record.first_divergence,
         "replay_digest": body["digest"],
     }
+
 
 def technical_game_digest(game: PhaseCTechnicalGame) -> str:
     return hashlib.sha256(_canonical(game.to_dict())).hexdigest()

@@ -93,7 +93,9 @@ def _git_file(root: Path, commit: str, path: Path) -> bytes:
     try:
         return subprocess.check_output(["git", "show", f"{commit}:{relative}"], cwd=root)
     except (subprocess.CalledProcessError, FileNotFoundError) as exc:
-        raise PhaseCControlError(f"required file is unavailable at implementation commit: {relative}") from exc
+        raise PhaseCControlError(
+            f"required file is unavailable at implementation commit: {relative}"
+        ) from exc
 
 
 def _git_file_sha256(root: Path, commit: str, path: Path) -> str:
@@ -588,39 +590,65 @@ def _validate_governance_only_activation(
             capture_output=True,
         )
     except (subprocess.CalledProcessError, FileNotFoundError) as exc:
-        raise PhaseCControlError("activation commit is not a descendant of the reviewed implementation") from exc
+        raise PhaseCControlError(
+            "activation commit is not a descendant of the reviewed implementation"
+        ) from exc
     changed = {
         value
-        for value in _git(root, "diff", "--name-only", implementation_commit, activation_commit).splitlines()
+        for value in _git(
+            root, "diff", "--name-only", implementation_commit, activation_commit
+        ).splitlines()
         if value
     }
     unexpected = changed - _ACTIVATION_ALLOWLIST
     if unexpected:
-        raise PhaseCControlError(f"activation commit changes non-governance files: {sorted(unexpected)}")
+        raise PhaseCControlError(
+            f"activation commit changes non-governance files: {sorted(unexpected)}"
+        )
 
     locked_config = json.loads(_git_file(root, implementation_commit, config_path).decode("utf-8"))
     if not isinstance(locked_config, dict):
         raise PhaseCControlError("locked implementation config is malformed")
     locked_non_auth = {key: value for key, value in locked_config.items() if key != "authorization"}
-    current_non_auth = {key: value for key, value in current_config.items() if key != "authorization"}
+    current_non_auth = {
+        key: value for key, value in current_config.items() if key != "authorization"
+    }
     if locked_non_auth != current_non_auth:
-        raise PhaseCControlError("activation changed the study configuration outside authorization fields")
+        raise PhaseCControlError(
+            "activation changed the study configuration outside authorization fields"
+        )
     locked_auth = _mapping(locked_config.get("authorization"), "locked authorization")
     current_auth = _mapping(current_config.get("authorization"), "current authorization")
     _exact(set(current_auth), set(locked_auth), "activation authorization field set")
     _exact(locked_auth.get("execution_allowed"), False, "implementation execution lock")
     _exact(locked_auth.get("status"), "LOCKED_PENDING_OWNER_APPROVAL", "implementation status")
-    _exact(current_auth.get("confirmation_token"), locked_auth.get("confirmation_token"), "activation confirmation token")
+    _exact(
+        current_auth.get("confirmation_token"),
+        locked_auth.get("confirmation_token"),
+        "activation confirmation token",
+    )
     _exact(current_auth.get("execution_allowed"), True, "activation execution flag")
     _exact(current_auth.get("status"), "AUTHORIZED", "activation status")
-    _exact(current_auth.get("approved_by"), current_approval.get("approved_by"), "activation approved_by")
-    _exact(current_auth.get("approved_at"), current_approval.get("approved_at"), "activation approved_at")
+    _exact(
+        current_auth.get("approved_by"),
+        current_approval.get("approved_by"),
+        "activation approved_by",
+    )
+    _exact(
+        current_auth.get("approved_at"),
+        current_approval.get("approved_at"),
+        "activation approved_at",
+    )
 
-    pending_approval = json.loads(_git_file(root, implementation_commit, approval_path).decode("utf-8"))
+    pending_approval = json.loads(
+        _git_file(root, implementation_commit, approval_path).decode("utf-8")
+    )
     if not isinstance(pending_approval, dict):
         raise PhaseCControlError("implementation approval record is malformed")
     _exact(set(current_approval), set(pending_approval), "activation approval field set")
-    _exact(pending_approval.get("status"), "PENDING_OWNER_APPROVAL", "implementation approval status")
+    _exact(
+        pending_approval.get("status"), "PENDING_OWNER_APPROVAL", "implementation approval status"
+    )
     immutable_approval_keys = {
         "authorized_counts",
         "authorized_shards",
@@ -655,7 +683,9 @@ def validate_execution_authorization(
     if requested_exploratory_games != EXPLORATORY_GAMES:
         raise PhaseCControlError("Phase C requires exactly 200 exploratory games")
     if not _is_git_object_id(implementation_commit) or not _is_git_object_id(activation_commit):
-        raise PhaseCControlError("implementation and activation commits must be lowercase 40-character Git object IDs")
+        raise PhaseCControlError(
+            "implementation and activation commits must be lowercase 40-character Git object IDs"
+        )
     if not _is_sha256(expected_locked_config_sha256) or not _is_sha256(expected_workflow_sha256):
         raise PhaseCControlError("configuration and workflow bindings must be SHA-256 digests")
     if _git(root, "rev-parse", "HEAD") != activation_commit:
@@ -695,7 +725,9 @@ def validate_execution_authorization(
     if approval.status != "APPROVED":
         raise PhaseCControlError("Phase C owner approval remains pending")
     if approval.approved_by != "Jeff Toney" or not approval.approved_at:
-        raise PhaseCControlError("Phase C approval must contain the exact owner identity and timestamp")
+        raise PhaseCControlError(
+            "Phase C approval must contain the exact owner identity and timestamp"
+        )
     if not _is_rfc3339_utc(approval.approved_at):
         raise PhaseCControlError("Phase C approval timestamp must be RFC3339 UTC")
     if approval.implementation_commit != implementation_commit:
@@ -721,7 +753,9 @@ def validate_execution_authorization(
         f"exploratory_shards={EXPLORATORY_SHARDS}",
     )
     if not all(term in approval.approval_statement for term in required_statement_terms):
-        raise PhaseCControlError("Phase C approval statement must name implementation, tree, counts, depth, and digests")
+        raise PhaseCControlError(
+            "Phase C approval statement must name implementation, tree, counts, depth, and digests"
+        )
     blockers = current_engine_blockers()
     if blockers:
         raise PhaseCControlError(f"Phase C engine remains incomplete: {', '.join(blockers)}")
@@ -729,7 +763,10 @@ def validate_execution_authorization(
 
 
 def _require_durable_certification_gates(root: Path = ROOT) -> None:
-    for script in ("scripts/check_phase_a_certification.py", "scripts/check_phase_b_certification.py"):
+    for script in (
+        "scripts/check_phase_a_certification.py",
+        "scripts/check_phase_b_certification.py",
+    ):
         try:
             subprocess.check_output(
                 [sys.executable, script], cwd=root, text=True, stderr=subprocess.STDOUT
@@ -769,9 +806,7 @@ def execute_phase_c_shard(
         root=root,
     )
     _require_durable_certification_gates(root)
-    assignment = build_pilot_shard_assignment(
-        config, seeds, mode=mode, shard_index=shard_index
-    )
+    assignment = build_pilot_shard_assignment(config, seeds, mode=mode, shard_index=shard_index)
     if output_root.exists() and not output_root.is_dir():
         raise PhaseCControlError("Phase C output root exists but is not a directory")
 

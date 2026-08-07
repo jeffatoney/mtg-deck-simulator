@@ -100,7 +100,9 @@ def test_dry_run_derives_readiness_from_real_smokes_and_creates_no_result() -> N
     }
     assert all(value["status"] == "PASS" for value in report.readiness_evidence.values())
     assert report.config_sha256 == hashlib.sha256(DEFAULT_CONFIG.read_bytes()).hexdigest()
-    assert report.approval_record_sha256 == hashlib.sha256(DEFAULT_APPROVAL.read_bytes()).hexdigest()
+    assert (
+        report.approval_record_sha256 == hashlib.sha256(DEFAULT_APPROVAL.read_bytes()).hexdigest()
+    )
     assert report.workflow_sha256 == hashlib.sha256(DEFAULT_WORKFLOW.read_bytes()).hexdigest()
 
 
@@ -164,7 +166,9 @@ def test_combat_and_exploratory_smokes_use_production_paths() -> None:
 
 
 def test_look_select_is_exact_deterministic_and_evaluator_bound() -> None:
-    bundle = next(item for item in load_policy_matrix() if item.policy_config_id == "anchor_balanced")
+    bundle = next(
+        item for item in load_policy_matrix() if item.policy_config_id == "anchor_balanced"
+    )
     evaluator = ContextualEvaluator(load_evaluator_config())
     provider = PolicyStrategicChoiceProvider(bundle, evaluator)
     cards = tuple(
@@ -196,14 +200,14 @@ def test_look_select_is_exact_deterministic_and_evaluator_bound() -> None:
     assert first.evaluator_sha256 == evaluator.config.config_sha256
     with pytest.raises(Exception):
         provider.choose_cards(
-            CardSelectionRequest(
-                **{**request.__dict__, "minimum": 0, "maximum": 1}
-            )
+            CardSelectionRequest(**{**request.__dict__, "minimum": 0, "maximum": 1})
         )
 
 
 def test_tutor_card_selection_is_deterministic_exact_and_evaluator_bound() -> None:
-    bundle = next(item for item in load_policy_matrix() if item.policy_config_id == "anchor_balanced")
+    bundle = next(
+        item for item in load_policy_matrix() if item.policy_config_id == "anchor_balanced"
+    )
     evaluator = ContextualEvaluator(load_evaluator_config())
     provider = PolicyStrategicChoiceProvider(bundle, evaluator)
     cards = (
@@ -212,9 +216,15 @@ def test_tutor_card_selection_is_deterministic_exact_and_evaluator_bound() -> No
         PublicCard("h3", "Opt", 1, ("Instant",), ()),
     )
     exact = CardSelectionRequest(
-        request_id="long-term-plans", actor_id="P0", ability_id="ltp",
-        purpose="TUTOR_THIRD_FROM_TOP", turn_number=8, observation={},
-        candidates=cards, minimum=1, maximum=1,
+        request_id="long-term-plans",
+        actor_id="P0",
+        ability_id="ltp",
+        purpose="TUTOR_THIRD_FROM_TOP",
+        turn_number=8,
+        observation={},
+        candidates=cards,
+        minimum=1,
+        maximum=1,
     )
     first = provider.choose_cards(exact)
     assert first == provider.choose_cards(exact)
@@ -223,9 +233,15 @@ def test_tutor_card_selection_is_deterministic_exact_and_evaluator_bound() -> No
     assert first.evaluator_sha256 == evaluator.config.config_sha256
     assert first.diagnostics["purpose"] == "TUTOR_THIRD_FROM_TOP"
     optional = CardSelectionRequest(
-        request_id="invent", actor_id="P0", ability_id="invent",
-        purpose="TUTOR_INSTANT", turn_number=8, observation={},
-        candidates=(cards[2],), minimum=0, maximum=1,
+        request_id="invent",
+        actor_id="P0",
+        ability_id="invent",
+        purpose="TUTOR_INSTANT",
+        turn_number=8,
+        observation={},
+        candidates=(cards[2],),
+        minimum=0,
+        maximum=1,
     )
     assert provider.choose_cards(optional).selected_handles == ("h3",)
 
@@ -248,15 +264,28 @@ def test_atomic_rollback_preserves_state_hash_and_replay_sequence() -> None:
 def test_cleanup_policy_bookkeeping_does_not_consume_identity_or_rng_and_replays() -> None:
     state, executor = new_game(("P0", "P1"), seed="phase-c-cleanup")
     specs = {spec.name: spec for spec in load_full_deck_specs().values()}
-    for name in ("Island", "Mountain", "Opt", "Twinflame", "Curiosity", "Abrade", "Negate", "Dispel"):
+    for name in (
+        "Island",
+        "Mountain",
+        "Opt",
+        "Twinflame",
+        "Curiosity",
+        "Abrade",
+        "Negate",
+        "Dispel",
+    ):
         add_card(executor, specs[name], Zone.HAND)
     _policy, provider, _ = _bound_policy(executor, "anchor_balanced")
     allocation_before = dict(state.allocation)
-    rng_before = {key: (value.draw_count, value.state_digest) for key, value in state.rng_streams.items()}
+    rng_before = {
+        key: (value.draw_count, value.state_digest) for key, value in state.rng_streams.items()
+    }
     discard = _cleanup_discard_ids(executor, provider)
     assert len(discard) == 1
     assert state.allocation == allocation_before
-    assert {key: (value.draw_count, value.state_digest) for key, value in state.rng_streams.items()} == rng_before
+    assert {
+        key: (value.draw_count, value.state_digest) for key, value in state.rng_streams.items()
+    } == rng_before
     executor.begin_step("CLEANUP", {"discard_ids": list(discard)})
     assert len(state.zones[executor.zones.zone_key(Zone.HAND, "P0")]) == 7
     replayed = validate_replay(transcript(state, seed="phase-c-cleanup"))
@@ -272,14 +301,24 @@ def test_all_six_combo_packages_have_executable_detectors_and_no_tutor_double_co
     state.turn.active_player_id = "P0"
     state.turn.priority_holder_id = "P0"
     state.players["P0"].mana_pool.update({"R": 5, "U": 5, "C": 10})
-    for name in ("Dualcaster Mage", "Twinflame", "Electroduplicate", "Glint-Horn Buccaneer", "Curiosity", "Psychosis Crawler", "Opt"):
+    for name in (
+        "Dualcaster Mage",
+        "Twinflame",
+        "Electroduplicate",
+        "Glint-Horn Buccaneer",
+        "Curiosity",
+        "Psychosis Crawler",
+        "Opt",
+    ):
         add_card(executor, specs[name], Zone.HAND)
     for name in ("Malcolm, Keen-Eyed Navigator", "Lightning-Rig Crew", "Niv-Mizzet, the Firemind"):
         obj = add_card(executor, specs[name], Zone.BATTLEFIELD)
         assert obj.permanent_status is not None
         obj.permanent_status["controller_since_turn"] = "1"
     crew = next(
-        obj for obj in state.objects.values() if obj.current_characteristics.get("name") == "Lightning-Rig Crew"
+        obj
+        for obj in state.objects.values()
+        if obj.current_characteristics.get("name") == "Lightning-Rig Crew"
     )
     aura = add_card(executor, specs["Crab Umbra"], Zone.BATTLEFIELD)
     aura.attached_to_ref = TargetRef(crew.object_id)
@@ -322,11 +361,20 @@ def _activation_repo(tmp_path: Path) -> tuple[Path, Path, Path, str, str, str, s
     return root, config, approval, implementation, tree, locked_sha, workflow_sha
 
 
-def test_activation_is_governance_only_descendant_not_self_referential(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    root, config_path, approval_path, implementation, tree, locked_sha, workflow_sha = _activation_repo(tmp_path)
+def test_activation_is_governance_only_descendant_not_self_referential(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root, config_path, approval_path, implementation, tree, locked_sha, workflow_sha = (
+        _activation_repo(tmp_path)
+    )
     config = json.loads(config_path.read_text())
     config["authorization"].update(
-        {"execution_allowed": True, "status": "AUTHORIZED", "approved_by": "Jeff Toney", "approved_at": "2026-08-06T23:00:00Z"}
+        {
+            "execution_allowed": True,
+            "status": "AUTHORIZED",
+            "approved_by": "Jeff Toney",
+            "approved_at": "2026-08-06T23:00:00Z",
+        }
     )
     _write_json(config_path, config)
     approval = json.loads(approval_path.read_text())
@@ -377,11 +425,15 @@ def test_activation_is_governance_only_descendant_not_self_referential(tmp_path:
     assert activation != implementation
 
 
-def test_activation_rejects_unexpected_code_change_and_git_sha256_domain_mix(tmp_path: Path) -> None:
+def test_activation_rejects_unexpected_code_change_and_git_sha256_domain_mix(
+    tmp_path: Path,
+) -> None:
     with pytest.raises(PhaseCControlError, match="40-character Git object ID"):
         PhaseCAuthorizationContext("a" * 64, "b" * 40, "c" * 40, "d" * 64, "e" * 64)
 
-    root, config_path, approval_path, implementation, _tree, locked_sha, workflow_sha = _activation_repo(tmp_path)
+    root, config_path, approval_path, implementation, _tree, locked_sha, workflow_sha = (
+        _activation_repo(tmp_path)
+    )
     (root / "src").mkdir()
     (root / "src/unexpected.py").write_text("unexpected = True\n")
     subprocess.run(["git", "add", "."], cwd=root, check=True)

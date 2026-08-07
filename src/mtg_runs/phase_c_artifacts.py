@@ -250,7 +250,9 @@ def _measurement_from_dict(payload: Mapping[str, Any]) -> GameMeasurement:
         if isinstance(divergence_payload, Mapping)
         else None
     )
-    checkpoint_access = {int(key): bool(value) for key, value in dict(payload["checkpoint_table_win_access"]).items()}
+    checkpoint_access = {
+        int(key): bool(value) for key, value in dict(payload["checkpoint_table_win_access"]).items()
+    }
     failure_labels = {
         int(key): tuple(str(item) for item in value)
         for key, value in dict(payload["failure_labels"]).items()
@@ -272,13 +274,21 @@ def _measurement_from_dict(payload: Mapping[str, Any]) -> GameMeasurement:
         primary_failure=primary_failure,
         combo_records=combos,
         earliest_legal_attempt_turn=(
-            None if payload.get("earliest_legal_attempt_turn") is None else int(payload["earliest_legal_attempt_turn"])
+            None
+            if payload.get("earliest_legal_attempt_turn") is None
+            else int(payload["earliest_legal_attempt_turn"])
         ),
         actual_first_attempt_turn=(
-            None if payload.get("actual_first_attempt_turn") is None else int(payload["actual_first_attempt_turn"])
+            None
+            if payload.get("actual_first_attempt_turn") is None
+            else int(payload["actual_first_attempt_turn"])
         ),
-        attempt_package=(None if payload.get("attempt_package") is None else str(payload["attempt_package"])),
-        attempt_timing=(None if payload.get("attempt_timing") is None else str(payload["attempt_timing"])),
+        attempt_package=(
+            None if payload.get("attempt_package") is None else str(payload["attempt_package"])
+        ),
+        attempt_timing=(
+            None if payload.get("attempt_timing") is None else str(payload["attempt_timing"])
+        ),
         usable_protection_count=int(payload["usable_protection_count"]),
         protection_in_hand_not_payable=bool(payload["protection_in_hand_not_payable"]),
         protection_category_mismatch=bool(payload["protection_category_mismatch"]),
@@ -287,9 +297,13 @@ def _measurement_from_dict(payload: Mapping[str, Any]) -> GameMeasurement:
         divergence=divergence,
         search_decisions=tuple(dict(value) for value in payload.get("search_decisions", ())),
         future_information_rejections=int(payload.get("future_information_rejections", 0)),
-        post_result_optimization_rejections=int(payload.get("post_result_optimization_rejections", 0)),
+        post_result_optimization_rejections=int(
+            payload.get("post_result_optimization_rejections", 0)
+        ),
         terminal_status=str(payload.get("terminal_status", "ACTIVE")),
-        terminal_turn=(None if payload.get("terminal_turn") is None else int(payload["terminal_turn"])),
+        terminal_turn=(
+            None if payload.get("terminal_turn") is None else int(payload["terminal_turn"])
+        ),
         extra=dict(payload.get("extra", {})),
     )
 
@@ -496,9 +510,7 @@ def write_phase_c_shard(
         b"".join(_canonical(record.to_dict()) + b"\n" for record in measurements)
     )
     summary_path.write_bytes(_canonical(summary) + b"\n")
-    files.extend(
-        (manifest_path, technical_games_path, games_path, measurements_path, summary_path)
-    )
+    files.extend((manifest_path, technical_games_path, games_path, measurements_path, summary_path))
     for game_index, replay in zip(
         range(manifest.first_game_index, manifest.last_game_index + 1), replays, strict=True
     ):
@@ -514,14 +526,18 @@ def write_phase_c_shard(
 
 def load_phase_c_shard(
     shard_dir: Path,
-) -> tuple[PhaseCShardManifest, tuple[PhaseCGameArtifact, ...], tuple[Mapping[str, Any], ...], tuple[GameMeasurement, ...], Mapping[str, Any]]:
+) -> tuple[
+    PhaseCShardManifest,
+    tuple[PhaseCGameArtifact, ...],
+    tuple[Mapping[str, Any], ...],
+    tuple[GameMeasurement, ...],
+    Mapping[str, Any],
+]:
     manifest_payload = json.loads((shard_dir / "manifest.json").read_text(encoding="utf-8"))
     manifest = PhaseCShardManifest(**manifest_payload)
     technical_games = tuple(
         json.loads(line)
-        for line in (shard_dir / "technical-games.jsonl")
-        .read_text(encoding="utf-8")
-        .splitlines()
+        for line in (shard_dir / "technical-games.jsonl").read_text(encoding="utf-8").splitlines()
         if line
     )
     game_payloads = [
@@ -541,9 +557,7 @@ def load_phase_c_shard(
         for index in range(manifest.first_game_index, manifest.last_game_index + 1)
     )
     summary = json.loads((shard_dir / "summary.json").read_text(encoding="utf-8"))
-    _validate_shard_payloads(
-        manifest, technical_games, games, replays, measurements, summary
-    )
+    _validate_shard_payloads(manifest, technical_games, games, replays, measurements, summary)
     return manifest, games, replays, measurements, summary
 
 
@@ -575,7 +589,9 @@ def validate_phase_c_aggregate(
     )
     first = manifests[0]
     for manifest in manifests[1:]:
-        mixed = [field for field in invariant_fields if getattr(manifest, field) != getattr(first, field)]
+        mixed = [
+            field for field in invariant_fields if getattr(manifest, field) != getattr(first, field)
+        ]
         if mixed:
             raise ValueError(f"Phase C aggregation rejects mixed shard identity fields: {mixed}")
 
@@ -583,22 +599,29 @@ def validate_phase_c_aggregate(
         "STANDARD": [],
         "EXPLORATORY": [],
     }
-    for manifest, _games, _replays, measurements, _summary in loaded:
-        mode_data[manifest.mode].append((manifest, measurements))
+    for manifest, _games, _replays, shard_measurements, _summary in loaded:
+        mode_data[manifest.mode].append((manifest, shard_measurements))
 
     expected_by_mode = {
         "STANDARD": (tuple(int(v) for v in expected_standard_seeds), expected_standard_shards),
-        "EXPLORATORY": (tuple(int(v) for v in expected_exploratory_seeds), expected_exploratory_shards),
+        "EXPLORATORY": (
+            tuple(int(v) for v in expected_exploratory_seeds),
+            expected_exploratory_shards,
+        ),
     }
     summaries: dict[str, Mapping[str, Any]] = {}
     all_manifest_shas: list[str] = []
     for mode, entries in mode_data.items():
         expected_seeds, expected_shards = expected_by_mode[mode]
         if len(entries) != expected_shards:
-            raise ValueError(f"Phase C aggregation requires exactly {expected_shards} {mode} shards")
+            raise ValueError(
+                f"Phase C aggregation requires exactly {expected_shards} {mode} shards"
+            )
         entries.sort(key=lambda value: value[0].shard_index)
         if [manifest.shard_index for manifest, _ in entries] != list(range(expected_shards)):
-            raise ValueError(f"Phase C aggregation rejects missing or duplicate {mode} shard indexes")
+            raise ValueError(
+                f"Phase C aggregation rejects missing or duplicate {mode} shard indexes"
+            )
         flattened_seeds: list[int] = []
         flattened_indexes: list[int] = []
         measurements: list[GameMeasurement] = []

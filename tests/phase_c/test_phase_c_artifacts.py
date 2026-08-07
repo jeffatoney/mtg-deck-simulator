@@ -127,9 +127,7 @@ def _write_shard(
         measurements=measurements,
         summary=summary,
     )
-    return write_phase_c_shard(
-        root, manifest, technical, games, replays, measurements, summary
-    )
+    return write_phase_c_shard(root, manifest, technical, games, replays, measurements, summary)
 
 
 def test_manifest_rejects_git_oid_and_sha256_domain_mixing(tmp_path: Path) -> None:

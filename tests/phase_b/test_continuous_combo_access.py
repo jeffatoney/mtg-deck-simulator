@@ -52,7 +52,9 @@ def test_every_frozen_combo_package_has_an_execution_detector() -> None:
     _state, executor, tracker = scenario(3, mana={"R": 3, "C": 2})
     records = tracker.observe(executor)
     assert {record.package for record in records} == set(load_evaluator_config().combo_packages)
-    assert all("PACKAGE_EXECUTION_DETECTOR_UNIMPLEMENTED" not in record.blockers for record in records)
+    assert all(
+        "PACKAGE_EXECUTION_DETECTOR_UNIMPLEMENTED" not in record.blockers for record in records
+    )
 
 
 def test_dualcaster_access_requires_main_phase_and_leaves_real_protection_mana() -> None:

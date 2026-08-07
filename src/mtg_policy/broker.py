@@ -155,7 +155,8 @@ class ActionBroker(_CoreActionBroker):
                     effect = dict(ability.get("effect", {}))
                     x_spell = "{X}" in str(face.get("mana_cost", ""))
                     mana_available = sum(
-                        int(value) for value in self.executor.state.players[self.player_id].mana_pool.values()
+                        int(value)
+                        for value in self.executor.state.players[self.player_id].mana_pool.values()
                     )
                     x_values = range(0, mana_available + 1) if x_spell else (0,)
                     for x_value in x_values:
@@ -209,7 +210,9 @@ class ActionBroker(_CoreActionBroker):
                                                 "mode": ability.get("mode"),
                                                 "x_value": x_value,
                                                 "target_handles": target_handles,
-                                                "cast_permission": ability.get("cast_permission", "NORMAL"),
+                                                "cast_permission": ability.get(
+                                                    "cast_permission", "NORMAL"
+                                                ),
                                                 **self._public_choice_metadata(spell_choices),
                                                 **entry_public,
                                             },

@@ -148,10 +148,17 @@ class ComboAccessTracker:
         return obj.permanent_status is not None and obj.permanent_status.get("tap") == "UNTAPPED"
 
     def _can_use_tap_ability(self, executor: Any, obj: GameObject) -> bool:
-        if obj.zone is not Zone.BATTLEFIELD or obj.controller != self.player_id or not self._is_untapped(obj):
+        if (
+            obj.zone is not Zone.BATTLEFIELD
+            or obj.controller != self.player_id
+            or not self._is_untapped(obj)
+        ):
             return False
         keywords = {str(value) for value in obj.current_characteristics.get("keywords", ())}
-        if "Creature" not in obj.current_characteristics.get("card_types", ()) or "Haste" in keywords:
+        if (
+            "Creature" not in obj.current_characteristics.get("card_types", ())
+            or "Haste" in keywords
+        ):
             return True
         status = obj.permanent_status or {}
         try:
@@ -175,10 +182,15 @@ class ComboAccessTracker:
         )
 
     def _available_generic_resources(self, executor: Any) -> int:
-        return self._mana_total(executor.state.players[self.player_id].mana_pool) + self._untapped_treasures(executor)
+        return self._mana_total(
+            executor.state.players[self.player_id].mana_pool
+        ) + self._untapped_treasures(executor)
 
     def _has_red_resource(self, executor: Any) -> bool:
-        return int(executor.state.players[self.player_id].mana_pool.get("R", 0)) > 0 or self._untapped_treasures(executor) > 0
+        return (
+            int(executor.state.players[self.player_id].mana_pool.get("R", 0)) > 0
+            or self._untapped_treasures(executor) > 0
+        )
 
     def _main_phase_priority(self, executor: Any) -> bool:
         turn = executor.state.turn
@@ -219,14 +231,18 @@ class ComboAccessTracker:
             tuple(blockers),
         )
 
-    def _dualcaster_copy_spell(self, executor: Any, package: str, spell: str) -> ComboAccessSnapshot:
+    def _dualcaster_copy_spell(
+        self, executor: Any, package: str, spell: str
+    ) -> ComboAccessSnapshot:
         hand_names = self._owned_names_by_zone(executor)[Zone.HAND]
         grave_names = self._owned_names_by_zone(executor)[Zone.GRAVEYARD]
         dualcaster_in_hand = "Dualcaster Mage" in hand_names
         normal_spell = spell in hand_names
         flashback_spell = spell == "Electroduplicate" and spell in grave_names
         pieces = dualcaster_in_hand and (normal_spell or flashback_spell)
-        spell_cost = "{1}{R}" if spell == "Twinflame" else ("{2}{R}" if normal_spell else "{2}{R}{R}")
+        spell_cost = (
+            "{1}{R}" if spell == "Twinflame" else ("{2}{R}" if normal_spell else "{2}{R}{R}")
+        )
         costs = (spell_cost, "{1}{R}{R}")
         sufficient = pieces and self._can_pay_sequence(
             executor.state.players[self.player_id].mana_pool, costs
@@ -336,7 +352,8 @@ class ComboAccessTracker:
         remaining_hand = hand_count - sum(
             1
             for name in ("Malcolm, Keen-Eyed Navigator", "Glint-Horn Buccaneer")
-            if name in self._owned_names_by_zone(executor)[Zone.HAND] and not self._objects_named(executor, name, (Zone.BATTLEFIELD,))
+            if name in self._owned_names_by_zone(executor)[Zone.HAND]
+            and not self._objects_named(executor, name, (Zone.BATTLEFIELD,))
         )
         has_discard = remaining_hand > 0
         sufficient = enough_cast_and_activate and has_discard
@@ -352,7 +369,9 @@ class ComboAccessTracker:
         )
         # Access before attackers are declared is still a deterministic this-turn line
         # when every missing piece can be cast and Glint-Horn can legally attack.
-        this_turn_access = pieces and sufficient and can_reach_attack and self._main_phase_priority(executor)
+        this_turn_access = (
+            pieces and sufficient and can_reach_attack and self._main_phase_priority(executor)
+        )
         legal = legal or this_turn_access
         life = self._living_opponent_life(executor, self.player_id)
         library_key = executor.zones.zone_key(Zone.LIBRARY, self.player_id)
@@ -400,7 +419,8 @@ class ComboAccessTracker:
         attached = bool(
             crew is not None
             and any(
-                aura.attached_to_ref is not None and aura.attached_to_ref.object_id == crew.object_id
+                aura.attached_to_ref is not None
+                and aura.attached_to_ref.object_id == crew.object_id
                 for aura in aura_list
             )
         )
@@ -408,7 +428,11 @@ class ComboAccessTracker:
         life = self._living_opponent_life(executor, self.player_id)
         enough_opponents = len(life) >= 1
         sufficient = pieces and crew_ready and attached and enough_opponents
-        legal = sufficient and bool(malcolm) and executor.state.turn.priority_holder_id == self.player_id
+        legal = (
+            sufficient
+            and bool(malcolm)
+            and executor.state.turn.priority_holder_id == self.player_id
+        )
         full_kill = legal and self._loop_can_kill_with_generated_mana(
             life,
             starting_resources=self._available_generic_resources(executor) + 3,

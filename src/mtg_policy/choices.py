@@ -175,9 +175,7 @@ class PolicyStrategicChoiceProvider:
             )
         elif request.purpose == "LOOK_SELECT":
             if request.minimum != request.maximum:
-                raise UnsupportedCapability(
-                    "LOOK_SELECT requires one exact legal selection count"
-                )
+                raise UnsupportedCapability("LOOK_SELECT requires one exact legal selection count")
             ordered = sorted(
                 request.candidates,
                 key=lambda card: (
@@ -207,7 +205,9 @@ class PolicyStrategicChoiceProvider:
             # A hidden-zone search may legally fail to find when minimum is zero,
             # but the frozen maximizing policy chooses the best eligible card when
             # one exists.  Exact-minimum searches (Long-Term Plans) remain exact.
-            choose_count = request.minimum if request.minimum == request.maximum else request.maximum
+            choose_count = (
+                request.minimum if request.minimum == request.maximum else request.maximum
+            )
             selected = tuple(card.handle for card in ordered[:choose_count])
         else:
             raise UnsupportedCapability(
