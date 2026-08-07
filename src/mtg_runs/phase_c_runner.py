@@ -598,6 +598,52 @@ def _combat_optional_trigger_choices(
     return choices
 
 
+def _delayed_trigger_step_choices(executor: GameExecutor, step: str) -> dict[str, Any]:
+    """Supply explicit rules-required choices for frozen delayed triggers.
+
+    Arcane Denial's delayed trigger lets the controller of the countered spell draw
+    up to two cards. In the frozen Phase C model P0 maximizes deterministic card
+    access, so P0 chooses two. Opponent hidden resources and actions are outside the
+    model, so an opponent chooses zero rather than injecting unmodeled hidden cards.
+    The choice is recorded in the begin-step replay command.
+    """
+    if step != "UPKEEP":
+        return {}
+    per_trigger: dict[str, dict[str, Any]] = {}
+    for object_id in tuple(executor.state.delayed_triggers):
+        trigger = executor.state.objects.get(object_id)
+        if trigger is None or trigger.retired or trigger.ceased_to_exist:
+            continue
+        raw_ability = trigger.current_characteristics.get("ability", {})
+        if not isinstance(raw_ability, dict):
+            continue
+        ability = dict(raw_ability)
+        if ability.get("trigger") != "NEXT_UPKEEP":
+            continue
+        raw_context = trigger.current_characteristics.get("trigger_context", {})
+        context = dict(raw_context) if isinstance(raw_context, dict) else {}
+        not_before_turn = int(context.get("not_before_turn", executor.state.turn.number))
+        if executor.state.turn.number < not_before_turn:
+            continue
+        raw_effect = ability.get("effect", {})
+        if not isinstance(raw_effect, dict):
+            continue
+        effect = dict(raw_effect)
+        if effect.get("kind") != "ARCANE_DENIAL_DELAYED_DRAWS":
+            continue
+        optional_player = str(effect.get("optional_player", ""))
+        if optional_player not in executor.state.players:
+            raise IllegalAction("Arcane Denial delayed draw player is unavailable")
+        count = 2 if optional_player == CONTROLLED_PLAYER else 0
+        per_trigger[object_id] = {
+            "arcane_denial_draw_count": {
+                "player_id": optional_player,
+                "count": count,
+            }
+        }
+    return {"delayed_trigger_choices": per_trigger} if per_trigger else {}
+
+
 def _policy_window_required(step: str, executor: GameExecutor) -> bool:
     if step in {"PRECOMBAT_MAIN", "DECLARE_ATTACKERS", "POSTCOMBAT_MAIN"}:
         return True
@@ -1067,7 +1113,8 @@ def run_phase_c_game_execution(
                     else _resolve_required_stack(executor)
                 )
                 continue
-            executor.begin_step(step)
+            step_choices = _delayed_trigger_step_choices(executor, step)
+            executor.begin_step(step, step_choices)
             if step == "DECLARE_ATTACKERS" and not policy_actions:
                 executor.declare_attackers(CONTROLLED_PLAYER, {})
             if step != "UNTAP":

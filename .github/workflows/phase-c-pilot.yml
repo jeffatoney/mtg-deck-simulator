@@ -142,7 +142,7 @@ jobs:
     needs: preflight
     if: ${{ !inputs.preflight_only }}
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 240
     strategy:
       fail-fast: true
       max-parallel: 20
