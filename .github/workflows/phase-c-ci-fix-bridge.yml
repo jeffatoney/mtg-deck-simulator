@@ -40,15 +40,26 @@ jobs:
           cp -a /tmp/ruff-formatted/. .
           python - <<'PY'
           from pathlib import Path
-          path = Path('scripts/check_clean_engine_boundary.py')
-          text = path.read_text(encoding='utf-8')
+
+          boundary = Path('scripts/check_clean_engine_boundary.py')
+          text = boundary.read_text(encoding='utf-8')
           needle = '    "src/mtg_runs/phase_c.py": {"subprocess.check_output", "subprocess.run"},\n'
           addition = '    "src/mtg_runs/phase_c_runner.py": {"subprocess.run"},\n'
           if addition not in text:
               if needle not in text:
                   raise SystemExit('expected Phase C allowlist anchor not found')
               text = text.replace(needle, needle + addition)
-              path.write_text(text, encoding='utf-8')
+              boundary.write_text(text, encoding='utf-8')
+
+          runner = Path('src/mtg_runs/phase_c_runner.py')
+          text = runner.read_text(encoding='utf-8')
+          old = 'from mtg_kernel.models import GameObject, Zone\n'
+          new = 'from mtg_kernel.models import Zone\n'
+          if old in text:
+              text = text.replace(old, new, 1)
+              runner.write_text(text, encoding='utf-8')
+          elif new not in text:
+              raise SystemExit('expected phase_c_runner import anchor not found')
           PY
           uv sync --frozen --all-extras
           uv run ruff format .
