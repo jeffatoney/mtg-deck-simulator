@@ -57,9 +57,35 @@ jobs:
           new = 'from mtg_kernel.models import Zone\n'
           if old in text:
               text = text.replace(old, new, 1)
-              runner.write_text(text, encoding='utf-8')
           elif new not in text:
               raise SystemExit('expected phase_c_runner import anchor not found')
+          text = text.replace(
+              'def _policy_bundle(policy_config_id: str):\n',
+              'def _policy_bundle(policy_config_id: str) -> Any:\n',
+              1,
+          )
+          text = text.replace(
+              'def _bound_policy(executor: GameExecutor, policy_config_id: str):\n',
+              'def _bound_policy(\n    executor: GameExecutor, policy_config_id: str\n) -> tuple[StandardPolicy, Any, Any]:\n',
+              1,
+          )
+          runner.write_text(text, encoding='utf-8')
+
+          artifacts = Path('src/mtg_runs/phase_c_artifacts.py')
+          text = artifacts.read_text(encoding='utf-8')
+          old = (
+              '    for manifest, _games, _replays, measurements, _summary in loaded:\n'
+              '        mode_data[manifest.mode].append((manifest, measurements))\n'
+          )
+          new = (
+              '    for manifest, _games, _replays, shard_measurements, _summary in loaded:\n'
+              '        mode_data[manifest.mode].append((manifest, shard_measurements))\n'
+          )
+          if old not in text and new not in text:
+              raise SystemExit('expected phase_c_artifacts measurement anchor not found')
+          if old in text:
+              text = text.replace(old, new, 1)
+          artifacts.write_text(text, encoding='utf-8')
           PY
           uv sync --frozen --all-extras
           uv run ruff format .
@@ -100,7 +126,7 @@ jobs:
           git config user.name "chatgpt-codex-connector[bot]"
           git config user.email "199175422+chatgpt-codex-connector[bot]@users.noreply.github.com"
           COMMIT="$(printf '%s\n\n%s\n' \
-            'Apply exact Ruff artifact and boundary allowlist' \
+            'Apply exact Ruff artifact and CI fixes' \
             'Validated with pinned Ruff and strict mypy; no pilot execution.' \
             | git commit-tree "${TREE}" -p "${EXPECTED_BASE}")"
           git push origin "${COMMIT}:refs/heads/bridge/phase-c-ci-validated" --force
