@@ -114,7 +114,9 @@ def main() -> int:
     certified_tree = record.get("certified_repository_tree_sha")
     if not isinstance(certified_tree, str) or _COMMIT.fullmatch(certified_tree) is None:
         errors.append("certified_repository_tree_sha is missing or invalid")
-    elif isinstance(commit, str) and _COMMIT.fullmatch(commit) is not None and _commit_exists(commit):
+    elif (
+        isinstance(commit, str) and _COMMIT.fullmatch(commit) is not None and _commit_exists(commit)
+    ):
         if certified_tree != _git("rev-parse", f"{commit}^{{tree}}"):
             errors.append("certified repository tree does not match certified content commit")
 
