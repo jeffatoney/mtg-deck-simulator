@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -52,9 +53,19 @@ def replay_in_fresh_process(
         "payload=json.load(open(sys.argv[1],encoding='utf-8'));"
         "print(state_hash(validate_replay(payload)))"
     )
+    environment = os.environ.copy()
+    source_root = cwd / "src"
+    existing_pythonpath = environment.get("PYTHONPATH", "")
+    source_text = str(source_root)
+    environment["PYTHONPATH"] = (
+        source_text
+        if not existing_pythonpath
+        else f"{source_text}{os.pathsep}{existing_pythonpath}"
+    )
     completed = subprocess.run(
         [sys.executable, "-c", code, str(path)],
         cwd=cwd,
+        env=environment,
         text=True,
         capture_output=True,
         check=False,

@@ -59,7 +59,12 @@ def add_card(
         owner if zone is Zone.BATTLEFIELD else None,
         (instance_id,),
         current_characteristics=base_characteristics(spec),
-        permanent_status={"tap": "UNTAPPED", "face": orientation, "phase": "PHASED_IN"}
+        permanent_status={
+            "tap": "UNTAPPED",
+            "face": orientation,
+            "phase": "PHASED_IN",
+            "controller_since_turn": "0",
+        }
         if zone is Zone.BATTLEFIELD
         else None,
         nonbattlefield_orientation=orientation

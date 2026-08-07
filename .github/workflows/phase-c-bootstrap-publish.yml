@@ -1,0 +1,53 @@
+name: Phase C bootstrap publish
+
+on:
+  push:
+    branches: [staging/phase-c-consolidation]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reconstruct exact reviewed Phase C tree and publish
+        env:
+          EXPECTED_BASE: 5f8a8f2eb3f4684e870b37b8f21b3bc85fd39a60
+          EXPECTED_TREE: 2ba546779ade03d765d60a692b32700ace595d43
+          PATCH_GZ_SHA256: d90b0328ef8b6647ac647665d6958db4f0060637ee102b7b7cfbafa831d336d5
+          PATCH_SHA256: b0e1eee55ea6d45e059ae69606592e59bdc60d92e3f1fe039a8e4637fbd98b90
+        run: |
+          set -euo pipefail
+          cat .phasec-bootstrap/patchgz.* | base64 -d > /tmp/phasec.patch.gz
+          echo "${PATCH_GZ_SHA256}  /tmp/phasec.patch.gz" | sha256sum -c -
+          gzip -dc /tmp/phasec.patch.gz > /tmp/phasec.patch
+          echo "${PATCH_SHA256}  /tmp/phasec.patch" | sha256sum -c -
+          git apply --check /tmp/phasec.patch
+          rm -rf .phasec-bootstrap
+          rm .github/workflows/phase-c-bootstrap-publish.yml
+          git add -A
+          git apply --index /tmp/phasec.patch
+          TREE="$(git write-tree)"
+          if [ "${TREE}" != "${EXPECTED_TREE}" ]; then
+            echo "Refusing publication: assembled tree ${TREE} != reviewed tree ${EXPECTED_TREE}" >&2
+            exit 1
+          fi
+          git config user.name "chatgpt-codex-connector[bot]"
+          git config user.email "199175422+chatgpt-codex-connector[bot]@users.noreply.github.com"
+          COMMIT="$(printf '%s\n\n%s\n' \
+            'Complete Phase C production readiness and certification hardening' \
+            'No pilot or full-study games executed; execution remains owner-locked.' \
+            | git commit-tree "${TREE}" -p "${EXPECTED_BASE}")"
+          git push origin \
+            "${COMMIT}:refs/heads/phase-c/pilot-authorization" \
+            --force-with-lease="phase-c/pilot-authorization:${EXPECTED_BASE}"
+          {
+            echo "## Published exact reviewed Phase C tree"
+            echo "- commit: \`${COMMIT}\`"
+            echo "- tree: \`${TREE}\`"
+            echo "- parent: \`${EXPECTED_BASE}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
