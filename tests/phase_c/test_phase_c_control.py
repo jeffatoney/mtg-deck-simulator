@@ -32,6 +32,7 @@ from mtg_runs.phase_c import (
     build_pilot_seed_plan,
     build_pilot_shard_assignment,
     dry_run_phase_c,
+    load_phase_c_approval,
     load_phase_c_config,
     validate_execution_authorization,
 )
@@ -59,13 +60,23 @@ def _config_payload() -> dict[str, object]:
 
 def test_locked_config_binds_exact_policy_counts_depth_and_information_boundary() -> None:
     config = load_phase_c_config()
+    approval = load_phase_c_approval()
     policy = next(
         bundle
         for bundle in load_policy_matrix()
         if bundle.policy_config_id == config.policy_config_id
     )
-    assert config.execution_allowed is False
-    assert config.authorization_status == "LOCKED_PENDING_OWNER_APPROVAL"
+    expected_status = {
+        False: "LOCKED_PENDING_OWNER_APPROVAL",
+        True: "AUTHORIZED",
+    }
+    assert config.authorization_status == expected_status[config.execution_allowed]
+    if config.execution_allowed:
+        assert approval.status == "APPROVED"
+        assert approval.approved_by == "Jeff Toney"
+        assert approval.approved_at is not None
+    else:
+        assert approval.status == "PENDING_OWNER_APPROVAL"
     assert (config.standard_games, config.exploratory_games) == (500, 200)
     assert config.exploratory_production_decision_layer_depth == 1
     assert policy.config_hash == config.policy_config_hash
@@ -113,10 +124,11 @@ def test_paired_modes_share_environment_but_not_search_rng() -> None:
 
 
 def test_dry_run_derives_readiness_from_real_smokes_and_creates_no_result() -> None:
+    config = load_phase_c_config()
     report = dry_run_phase_c()
     assert report.status == "READY_FOR_OWNER_REVIEW"
-    assert report.execution_allowed is False
-    assert report.authorization_status == "LOCKED_PENDING_OWNER_APPROVAL"
+    assert report.execution_allowed is config.execution_allowed
+    assert report.authorization_status == config.authorization_status
     assert report.game_results_created == 0
     assert report.full_study_execution_allowed is False
     assert report.readiness_blockers == ()
@@ -377,8 +389,32 @@ def _activation_repo(tmp_path: Path) -> tuple[Path, Path, Path, str, str, str, s
     config = root / "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json"
     approval = root / "docs/spec/phase-c/PHASE_C_PILOT_APPROVAL.json"
     workflow = root / ".github/workflows/phase-c-pilot.yml"
-    _write_json(config, json.loads(DEFAULT_CONFIG.read_text()))
-    _write_json(approval, json.loads(DEFAULT_APPROVAL.read_text()))
+    config_payload = json.loads(DEFAULT_CONFIG.read_text())
+    authorization = config_payload["authorization"]
+    assert isinstance(authorization, dict)
+    authorization.update(
+        {
+            "approved_at": None,
+            "approved_by": None,
+            "execution_allowed": False,
+            "status": "LOCKED_PENDING_OWNER_APPROVAL",
+        }
+    )
+    _write_json(config, config_payload)
+    approval_payload = json.loads(DEFAULT_APPROVAL.read_text())
+    approval_payload.update(
+        {
+            "approval_statement": None,
+            "approved_at": None,
+            "approved_by": None,
+            "implementation_commit": None,
+            "implementation_tree": None,
+            "locked_pilot_config_sha256": None,
+            "status": "PENDING_OWNER_APPROVAL",
+            "workflow_sha256": None,
+        }
+    )
+    _write_json(approval, approval_payload)
     workflow.parent.mkdir(parents=True, exist_ok=True)
     workflow.write_bytes(DEFAULT_WORKFLOW.read_bytes())
     subprocess.run(["git", "init", "-q"], cwd=root, check=True)
