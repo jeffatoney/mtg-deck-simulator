@@ -37,7 +37,7 @@ Before any owner approval, one exact implementation commit must be green and rev
 - 500 standard and 200 exploratory games;
 - 10 standard and 10 exploratory shards;
 - exploratory production decision-layer depth of exactly 1;
-- exact deterministic standard and exploratory seed-plan digests;
+- exact deterministic standard environment, paired subset/assignment, and exploratory search-seed digests;
 - the confirmation-token SHA-256;
 - exact-head Phase A and Phase B durable certifications and CI evidence.
 
@@ -98,8 +98,8 @@ Before owner review, the exact implementation commit must prove without executin
 8. One-layer exploratory successor expansion through the same broker/executor and hidden-safe observation boundary, with deterministic diagnostics and actual depth/node reporting.
 9. Atomic rollback that does not recursively copy replay history and restores failed state/replay exactly.
 10. Cleanup-policy bookkeeping that consumes no engine identity or RNG and reproduces successor identities on replay.
-11. Immutable per-game technical records, replay records, measurements, shard manifests, mode summaries, and aggregate manifests with cross-file digest validation.
-12. Exact deterministic 500/200 seed assignments with no duplicates, omissions, overlap, mixed modes, or shard gaps.
+11. Immutable per-game technical records, replay records, measurements, shard manifests, mode summaries, the primary paired Turn-8 aggregate, and the source-bound secondary earliest-access timing artifact with cross-file digest validation.
+12. Exact deterministic 500/200 seed assignments with no duplicates, omissions, mixed modes, shard gaps, or environment/search RNG-domain mixing; exploratory environment seeds are exactly the frozen paired subset of standard environments.
 13. Strict 40-character Git object-ID validation for commits/trees and SHA-256 validation for content digests, with identity-domain mixing rejected.
 14. Certification provenance that proves each durable Phase A/B record belongs to its exact certified commit/tree and GitHub Actions run; hand-patched covered hashes cannot substitute for a CI-produced candidate.
 15. The no-game dry run derives readiness from executable production checks and creates no pilot result.
@@ -136,7 +136,8 @@ The eventual active workflow must:
 - upload immutable shard artifacts;
 - aggregate only after every exact shard succeeds;
 - reject duplicate, missing, overlapping, mixed-mode, wrong-seed, wrong-identity, replay, measurement, summary, manifest, or digest evidence;
-- upload one immutable final pilot aggregate;
+- build the secondary earliest-access timing artifact only from the already validated immutable shard set and primary aggregate;
+- upload the primary aggregate and source-bound secondary timing artifact together;
 - fail closed on every stop condition.
 
 ## Mandatory stop conditions
@@ -152,7 +153,7 @@ Execution must stop immediately for any:
 - post-result policy optimization or policy mutation;
 - game-count, shard, index, or seed mismatch;
 - standard/exploratory mixing;
-- replay, state-hash, technical-game, measurement, summary, shard-manifest, or aggregate mismatch;
+- replay, state-hash, technical-game, measurement, summary, shard-manifest, aggregate, or paired-timing source-binding mismatch;
 - attempt to launch the full study.
 
 ## Owner authorization record
@@ -183,4 +184,8 @@ The pilot measures **legal deterministic table-win access under a no-interaction
 
 The 200 exploratory executions are not an independent draw sample. They reuse a frozen 200-game subset of the 500 standard **environment seeds**, exactly 20 from each 50-game standard shard. STANDARD and EXPLORATORY runs for a pair initialize from the same environment seed. Exploratory search randomness is derived from a separate frozen search-seed namespace and never perturbs environment RNG.
 
-The primary exploratory comparison is paired Turn-8 table-win access. The aggregate reports BOTH_ACCESS, STANDARD_ONLY_ACCESS, EXPLORATORY_ONLY_ACCESS, and NEITHER_ACCESS; the paired access-rate difference `(EXPLORATORY_ONLY - STANDARD_ONLY) / 200`; a two-sided exact McNemar test on discordant pairs; and a 95% deterministic paired-bootstrap percentile interval using 10,000 pre-registered resamples. First-decision divergence, branch count, node count, and actual one-layer depth are secondary diagnostics. A null paired effect is not evidence that the baseline is optimal.
+The **primary exploratory comparison** is paired Turn-8 legal deterministic table-win access. The aggregate reports `BOTH_ACCESS`, `STANDARD_ONLY_ACCESS`, `EXPLORATORY_ONLY_ACCESS`, and `NEITHER_ACCESS`; the paired access-rate difference `(EXPLORATORY_ONLY - STANDARD_ONLY) / 200`; a two-sided exact McNemar test on discordant pairs; and a 95% deterministic paired-bootstrap percentile interval using 10,000 pre-registered resamples. The four raw cells and discordant-pair count must be reported alongside any p-value or interval. A null or inconclusive primary result is not evidence that the baseline policy is optimal.
+
+The **secondary exploratory comparison** is earliest legal deterministic table-win access timing through Turn 10. It is descriptive and explicitly censored. For the same 200 pairs, report: both arms accessed by Turn 10, STANDARD-only access by Turn 10, EXPLORATORY-only access by Turn 10, and neither arm accessed by Turn 10. A numeric exploratory-minus-standard turn shift is calculated only for pairs where both arms have an observed access turn. Pairs with one or both arms censored are reported as counts and are excluded from the numeric turn-shift mean. No Turn-11 value or other synthetic access turn is imputed.
+
+The pilot pre-commits **no numeric action threshold** for the secondary timing result, including no 0.25-turn threshold. Issue #52 must use the observed primary discordance, access differences, censored timing categories, paired both-access turn shifts, and actual exploratory depth/node evidence to determine whether and how a later 20,000/5,000 study should be sized or authorized. First-decision divergence, branch count, node count, and actual one-layer depth remain diagnostics and do not independently decide retention of the exploratory arm.
