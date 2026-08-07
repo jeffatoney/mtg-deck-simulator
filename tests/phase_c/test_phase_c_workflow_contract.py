@@ -17,8 +17,7 @@ def test_phase_c_workflow_binds_the_definition_github_actually_executes() -> Non
     assert "- name: Bind executed workflow definition" in text
     assert "RUNTIME_WORKFLOW_COMMIT: ${{ github.workflow_sha }}" in text
     assert (
-        'git cat-file blob "${RUNTIME_WORKFLOW_COMMIT}:.github/workflows/phase-c-pilot.yml"'
-        in text
+        'git cat-file blob "${RUNTIME_WORKFLOW_COMMIT}:.github/workflows/phase-c-pilot.yml"' in text
     )
     assert 'test "${RUNTIME_WORKFLOW_SHA256}" = "${WORKFLOW_SHA256}"' in text
     assert 'test "${CHECKED_OUT_WORKFLOW_SHA256}" = "${WORKFLOW_SHA256}"' in text
