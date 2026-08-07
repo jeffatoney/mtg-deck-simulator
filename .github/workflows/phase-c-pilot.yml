@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       activation_commit:
-        description: Exact governance-only owner activation commit
+        description: Exact governance-only owner activation commit; ignored when preflight_only is true
         required: true
         type: string
       locked_config_sha256:
@@ -23,6 +23,11 @@ on:
         description: SHA-256 of this reviewed workflow at the implementation commit
         required: true
         type: string
+      preflight_only:
+        description: Run the complete pre-approval technical preflight and skip authorization, shards, and aggregation
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -33,17 +38,21 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ github.token }}
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
     steps:
-      - name: Require main and exact confirmation token
+      - name: Require main and exact execution confirmation
         env:
           CONFIRMATION: ${{ inputs.confirmation }}
+          PREFLIGHT_ONLY: ${{ inputs.preflight_only }}
         run: |
           test "${GITHUB_REF}" = "refs/heads/main"
-          test "${CONFIRMATION}" = "AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY"
+          if [ "${PREFLIGHT_ONLY}" != "true" ]; then
+            test "${CONFIRMATION}" = "AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY"
+          fi
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.activation_commit }}
+          ref: ${{ inputs.preflight_only && inputs.implementation_commit || inputs.activation_commit }}
       - uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
@@ -53,11 +62,11 @@ jobs:
           python-version-file: .python-version
       - name: Install dependencies
         run: uv sync --frozen --all-extras
-      - name: Require exact clean activation commit
+      - name: Require exact clean selected commit
         env:
-          ACTIVATION_COMMIT: ${{ inputs.activation_commit }}
+          TARGET_COMMIT: ${{ inputs.preflight_only && inputs.implementation_commit || inputs.activation_commit }}
         run: |
-          test "$(git rev-parse HEAD)" = "${ACTIVATION_COMMIT}"
+          test "$(git rev-parse HEAD)" = "${TARGET_COMMIT}"
           test -z "$(git status --porcelain)"
       - name: Frozen identity lock integrity
         run: uv run python scripts/check_identity_lock.py
@@ -90,7 +99,18 @@ jobs:
         run: uv run python scripts/check_phase_b_certification.py
       - name: No-game Phase C dry run
         run: uv run mtg-engine phase-c-dry-run
+      - name: Validate locked preflight-only bindings
+        if: ${{ inputs.preflight_only }}
+        env:
+          IMPLEMENTATION_COMMIT: ${{ inputs.implementation_commit }}
+          LOCKED_CONFIG_SHA256: ${{ inputs.locked_config_sha256 }}
+          WORKFLOW_SHA256: ${{ inputs.workflow_sha256 }}
+        run: |
+          test "$(git rev-parse HEAD)" = "${IMPLEMENTATION_COMMIT}"
+          test "$(sha256sum docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json | awk '{print $1}')" = "${LOCKED_CONFIG_SHA256}"
+          test "$(sha256sum .github/workflows/phase-c-pilot.yml | awk '{print $1}')" = "${WORKFLOW_SHA256}"
       - name: Validate implementation and governance-only activation
+        if: ${{ !inputs.preflight_only }}
         env:
           CONFIRMATION: ${{ inputs.confirmation }}
           IMPLEMENTATION_COMMIT: ${{ inputs.implementation_commit }}
@@ -107,6 +127,7 @@ jobs:
 
   shards:
     needs: preflight
+    if: ${{ !inputs.preflight_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 55
     strategy:
@@ -117,6 +138,7 @@ jobs:
         shard_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     env:
       GITHUB_TOKEN: ${{ github.token }}
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -160,9 +182,11 @@ jobs:
 
   aggregate:
     needs: shards
+    if: ${{ !inputs.preflight_only && needs.shards.result == 'success' }}
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ github.token }}
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
     steps:
       - uses: actions/checkout@v4
         with:
