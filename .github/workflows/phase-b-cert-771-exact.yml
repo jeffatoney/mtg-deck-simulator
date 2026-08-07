@@ -1,0 +1,44 @@
+name: Phase B run 771 exact candidate bridge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    if: github.head_ref == 'staging/phase-b-cert-771-exact'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Download exact Phase B candidate from run 771
+        uses: actions/download-artifact@v4
+        with:
+          name: phase-b-certification-candidate-ec7ce0ad841917fcc8d687db831a8d6db6755535
+          path: /tmp/phase-b-candidate
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 31149374795
+      - name: Emit exact one-file descendant
+        env:
+          EXPECTED_BASE: 1a4dcac27cf1e6d0105a47c4c86d535e1cfd45be
+          EXPECTED_BLOB: 621983ce3825ffc95102428d53697dc17fcd7edc
+        run: |
+          set -euo pipefail
+          git checkout --detach "${EXPECTED_BASE}"
+          cp /tmp/phase-b-candidate/CERTIFICATION.json docs/audit/phase-b-certification/CERTIFICATION.json
+          test "$(git hash-object docs/audit/phase-b-certification/CERTIFICATION.json)" = "${EXPECTED_BLOB}"
+          test "$(git diff --name-only)" = "docs/audit/phase-b-certification/CERTIFICATION.json"
+          git diff --check
+          git add docs/audit/phase-b-certification/CERTIFICATION.json
+          TREE="$(git write-tree)"
+          git config user.name "chatgpt-codex-connector[bot]"
+          git config user.email "199175422+chatgpt-codex-connector[bot]@users.noreply.github.com"
+          COMMIT="$(printf '%s\n' 'Replace Phase B certification with exact run 771 candidate' | git commit-tree "${TREE}" -p "${EXPECTED_BASE}")"
+          git push origin "${COMMIT}:refs/heads/bridge/phase-b-cert-771-exact" --force
