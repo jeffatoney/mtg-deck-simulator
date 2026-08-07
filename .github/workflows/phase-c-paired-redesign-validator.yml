@@ -45,7 +45,16 @@ jobs:
       - name: Normalize generated source
         run: |
           python - <<'PY'
+          import json
           from pathlib import Path
+
+          config_path = Path("docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json")
+          config = json.loads(config_path.read_text())
+          # Preserve the already-frozen 500-game standard environment stream.
+          # Exploratory now reuses 200 of these exact environments; only search
+          # randomness receives a new domain.
+          config["pilot"]["environment_seed_namespace"] = "phase-c-pilot-standard-v1"
+          config_path.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n")
 
           simple = {
               "src/mtg_runs/phase_c_pairing.py": [
@@ -67,6 +76,11 @@ jobs:
 
           path = Path("src/mtg_runs/phase_c_runner.py")
           text = path.read_text()
+          seed_old = '    seed_text = f"phase-c:environment:{seed}"\n'
+          seed_new = '    seed_text = f"phase-c:standard:{seed}"\n'
+          if text.count(seed_old) != 1:
+              raise SystemExit("unexpected generated environment seed construction")
+          text = text.replace(seed_old, seed_new, 1)
           old = '''    explorer = (\n        _OneLayerExplorer(policy_config_id, int(effective_search_seed))\n        if mode == "EXPLORATORY" and policy_actions\n        else None\n    )\n'''
           new = '''    explorer = None\n    if mode == "EXPLORATORY" and policy_actions:\n        if effective_search_seed is None:\n            raise ValueError("EXPLORATORY execution requires a search seed")\n        explorer = _OneLayerExplorer(policy_config_id, effective_search_seed)\n'''
           if text.count(old) != 1:
