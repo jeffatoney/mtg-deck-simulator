@@ -1,0 +1,57 @@
+name: Phase C Ruff artifact publish
+
+on:
+  pull_request:
+    branches: [phase-c/pilot-authorization]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Apply exact CI Ruff artifact to Phase C branch
+        env:
+          EXPECTED_BASE: 6eb0a10c6f6bb3de42b41d3b704040032614ef30
+          PATCH_GZ_SHA256: ebc97eb76052cf34a47cf64c1eb53fc91b7cdb21bb8b80a83ea4f69b4f60c826
+          PATCH_SHA256: 5a80eec37ca74b27eb018a37fbfd5f1b97f8b01ef744d05731b39fa8597ee090
+        run: |
+          set -euo pipefail
+          cat .phasec-ruff/patchgz.* | base64 -d > /tmp/ruff.patch.gz
+          echo "${PATCH_GZ_SHA256}  /tmp/ruff.patch.gz" | sha256sum -c -
+          gzip -dc /tmp/ruff.patch.gz > /tmp/ruff.patch
+          echo "${PATCH_SHA256}  /tmp/ruff.patch" | sha256sum -c -
+          git checkout --detach "${EXPECTED_BASE}"
+          git apply --check /tmp/ruff.patch
+          git apply --index /tmp/ruff.patch
+          git diff --cached --check
+          EXPECTED="scripts/_phase_a_paths.py
+          scripts/_phase_b_paths.py
+          scripts/check_phase_a_certification.py
+          scripts/check_phase_b_certification.py
+          src/mtg_kernel/cli.py
+          src/mtg_kernel/engine.py
+          src/mtg_kernel/engine_core.py
+          src/mtg_measure/combo_access.py
+          src/mtg_policy/broker.py
+          src/mtg_policy/broker_core.py
+          src/mtg_policy/choices.py
+          src/mtg_policy/standard.py
+          src/mtg_runs/phase_c.py
+          src/mtg_runs/phase_c_artifacts.py
+          src/mtg_runs/phase_c_runner.py
+          tests/phase_c/test_phase_c_artifacts.py
+          tests/phase_c/test_phase_c_control.py"
+          ACTUAL="$(git diff --cached --name-only)"
+          test "${ACTUAL}" = "${EXPECTED}"
+          TREE="$(git write-tree)"
+          git config user.name "chatgpt-codex-connector[bot]"
+          git config user.email "199175422+chatgpt-codex-connector[bot]@users.noreply.github.com"
+          COMMIT="$(printf '%s\n' 'Apply exact CI Ruff formatting artifact' | git commit-tree "${TREE}" -p "${EXPECTED_BASE}")"
+          git push origin "${COMMIT}:refs/heads/phase-c/pilot-authorization" --force-with-lease="phase-c/pilot-authorization:${EXPECTED_BASE}"
+          echo "Published ${COMMIT} tree ${TREE}" >> "${GITHUB_STEP_SUMMARY}"
