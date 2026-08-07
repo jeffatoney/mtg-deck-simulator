@@ -54,7 +54,9 @@ def main() -> int:
     else:
         try:
             commit_available = (
-                subprocess.check_output(["git", "cat-file", "-t", commit], cwd=ROOT, text=True).strip()
+                subprocess.check_output(
+                    ["git", "cat-file", "-t", commit], cwd=ROOT, text=True
+                ).strip()
                 == "commit"
             )
         except subprocess.CalledProcessError:
@@ -63,9 +65,7 @@ def main() -> int:
             errors.append("certified content commit is unavailable")
 
     certified_tree = str(record.get("certified_repository_tree_sha", ""))
-    if len(certified_tree) != 40 or any(
-        char not in "0123456789abcdef" for char in certified_tree
-    ):
+    if len(certified_tree) != 40 or any(char not in "0123456789abcdef" for char in certified_tree):
         errors.append("certified repository tree is invalid")
     elif commit_available:
         actual_tree = subprocess.check_output(
