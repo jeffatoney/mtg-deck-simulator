@@ -268,7 +268,11 @@ def _stack_object_targets_actor_or_controlled_creature(
             and self.state.players[actor].in_game
         ):
             return True
-        if self._is_permanent(target) and target.controller == actor and "Creature" in _types(target):
+        if (
+            self._is_permanent(target)
+            and target.controller == actor
+            and "Creature" in _types(target)
+        ):
             return True
     return False
 
