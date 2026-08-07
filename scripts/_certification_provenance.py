@@ -132,9 +132,13 @@ def verify_github_actions_candidate(
             else:
                 raw = _request_bytes(archive_url, token)
                 with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-                    names = [name for name in archive.namelist() if name.endswith("CERTIFICATION.json")]
+                    names = [
+                        name for name in archive.namelist() if name.endswith("CERTIFICATION.json")
+                    ]
                     if len(names) != 1:
-                        errors.append("certification candidate artifact does not contain one record")
+                        errors.append(
+                            "certification candidate artifact does not contain one record"
+                        )
                     else:
                         candidate_record = json.loads(archive.read(names[0]).decode("utf-8"))
                         if candidate_record != dict(record):
@@ -142,5 +146,11 @@ def verify_github_actions_candidate(
                                 "committed certification record differs from the CI-produced candidate"
                             )
         return errors
-    except (OSError, ValueError, json.JSONDecodeError, zipfile.BadZipFile, urllib.error.URLError) as exc:
+    except (
+        OSError,
+        ValueError,
+        json.JSONDecodeError,
+        zipfile.BadZipFile,
+        urllib.error.URLError,
+    ) as exc:
         return [f"unable to verify GitHub Actions certification provenance: {exc}"]
