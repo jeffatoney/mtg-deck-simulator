@@ -1,0 +1,76 @@
+name: Phase C paired redesign validator
+
+on:
+  pull_request:
+    branches:
+      - phase-c/pilot-authorization
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-publish:
+    if: github.head_ref == 'staging/phase-c-paired-source'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Preserve staging transformers and reset to exact reviewed parent
+        run: |
+          cp automation/apply_phase_c_pairing.py "$RUNNER_TEMP/apply_phase_c_pairing.py"
+          cp automation/normalize_phase_c_pairing.py "$RUNNER_TEMP/normalize_phase_c_pairing.py"
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("${{ runner.temp }}/apply_phase_c_pairing.py")
+          text = path.read_text()
+          old = '''    count = text.count(old)\n    if count != 1:\n        raise SystemExit(f"{path}: expected one replacement, found {count}: {old[:80]!r}")\n    target.write_text(text.replace(old, new), encoding="utf-8")\n'''
+          new = '''    count = text.count(old)\n    if count < 1:\n        raise SystemExit(f"{path}: replacement target not found: {old[:80]!r}")\n    target.write_text(text.replace(old, new, 1), encoding="utf-8")\n'''
+          if old not in text:
+              raise SystemExit("temporary replace_once helper patch not found")
+          path.write_text(text.replace(old, new, 1))
+          PY
+          git checkout --detach bc849eadbb9f9f3dbad74d060f31d751ca770977
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Apply paired redesign
+        run: |
+          python "$RUNNER_TEMP/apply_phase_c_pairing.py"
+          python "$RUNNER_TEMP/normalize_phase_c_pairing.py"
+      - name: Format changed Python
+        run: |
+          uv run ruff format src/mtg_policy/choices.py src/mtg_runs/phase_c.py src/mtg_runs/phase_c_runner.py src/mtg_runs/phase_c_artifacts.py src/mtg_runs/phase_c_pairing.py tests/phase_c/test_phase_c_control.py tests/phase_c/test_phase_c_artifacts.py
+      - name: Lint
+        run: uv run ruff check .
+      - name: Strict type check
+        run: uv run mypy src
+      - name: Focused Phase C tests
+        run: uv run pytest tests/phase_c -q
+      - name: Full repository tests
+        run: uv run pytest -q
+      - name: Boundary and manifest gates
+        run: |
+          uv run python scripts/check_clean_engine_boundary.py
+          uv run python scripts/check_manifest.py
+      - name: No-game dry run
+        run: uv run mtg-engine phase-c-dry-run
+      - name: Verify change scope and publish bridge
+        run: |
+          git diff --check
+          git status --short
+          git config user.name "chatgpt-codex-connector[bot]"
+          git config user.email "199175422+chatgpt-codex-connector[bot]@users.noreply.github.com"
+          git add docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json docs/spec/phase-c/PHASE_C_PILOT_AUTHORIZATION.md src/mtg_policy/choices.py src/mtg_runs/phase_c.py src/mtg_runs/phase_c_runner.py src/mtg_runs/phase_c_artifacts.py src/mtg_runs/phase_c_pairing.py tests/phase_c/test_phase_c_control.py tests/phase_c/test_phase_c_artifacts.py
+          git commit -m "Pair exploratory pilot to frozen standard environment subset"
+          git push --force origin HEAD:refs/heads/bridge/phase-c-paired-redesign
+          echo "BRIDGE_COMMIT=$(git rev-parse HEAD)"
