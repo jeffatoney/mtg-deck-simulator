@@ -1,9 +1,11 @@
-# Triggered after staging ref creation; this workflow deletes itself before publication.
+# One-use staging publisher. This file and its patch chunks are deleted before publication.
 name: Phase C bootstrap publish
 
 on:
   push:
     branches: [staging/phase-c-consolidation]
+  pull_request:
+    branches: [phase-c/pilot-authorization]
 
 permissions:
   contents: write
@@ -15,6 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Reconstruct exact reviewed Phase C tree and publish
         env:
           EXPECTED_BASE: 5f8a8f2eb3f4684e870b37b8f21b3bc85fd39a60
