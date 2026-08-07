@@ -248,6 +248,7 @@ def build_paired_earliest_access_timing(records: Sequence[Mapping[str, Any]]) ->
             str(key): exploratory_turns[key] for key in sorted(exploratory_turns)
         },
         "effect_threshold_rule": PILOT_EFFECT_THRESHOLD_RULE,
+        "pair_records_sha256": _digest(rows),
     }
 
 
@@ -302,7 +303,6 @@ def build_paired_turn8_analysis(records: Sequence[Mapping[str, Any]]) -> dict[st
         "reporting_metric": "LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS",
         "required_reporting_sentence": REPORTING_SENTENCE,
         "effect_threshold_rule": PILOT_EFFECT_THRESHOLD_RULE,
-        "secondary_earliest_access_timing": build_paired_earliest_access_timing(rows),
         "pair_records_sha256": _digest(rows),
     }
 
