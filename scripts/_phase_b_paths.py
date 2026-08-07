@@ -91,7 +91,6 @@ def all_digests() -> dict[str, str]:
     return {relative: content_digest(relative) for relative in COVERED_PATHS}
 
 
-
 def _archived_files(commit: str) -> dict[str, bytes]:
     """Read the complete certification surface from one exact Git tree in one process."""
     command = ["git", "archive", "--format=tar", commit, "--", *COVERED_PATHS]
@@ -103,7 +102,9 @@ def _archived_files(commit: str) -> dict[str, bytes]:
     )
     if completed.returncode != 0:
         message = completed.stderr.decode("utf-8", errors="replace").strip()
-        raise FileNotFoundError(f"unable to archive certification surface at commit {commit}: {message}")
+        raise FileNotFoundError(
+            f"unable to archive certification surface at commit {commit}: {message}"
+        )
     files: dict[str, bytes] = {}
     with tarfile.open(fileobj=io.BytesIO(completed.stdout), mode="r:") as archive:
         for member in archive.getmembers():
@@ -145,6 +146,7 @@ def all_digests_at_commit(commit: str) -> dict[str, str]:
     """Return every covered digest from one exact Git archive."""
     files = _archived_files(commit)
     return {relative: _digest_archived_path(relative, files, commit) for relative in COVERED_PATHS}
+
 
 def aggregate_digest(digests: dict[str, str] | None = None) -> str:
     payload = all_digests() if digests is None else digests
