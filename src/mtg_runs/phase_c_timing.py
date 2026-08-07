@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from mtg_measure import GameMeasurement
-from mtg_runs.phase_c_artifacts import load_phase_c_shard
+from mtg_runs.phase_c_artifacts import PhaseCAggregateManifest, load_phase_c_shard
 from mtg_runs.phase_c_pairing import PAIRED_GAME_COUNT, build_paired_earliest_access_timing
 
 
@@ -74,15 +74,20 @@ def build_phase_c_paired_timing_artifact(
     output_root: Path,
 ) -> Mapping[str, Any]:
     """Validate source bindings and write one immutable secondary timing artifact."""
-    aggregate_manifest = _load_object(aggregate_root / "manifest.json", "Phase C aggregate manifest")
-    primary_analysis = _load_object(
-        aggregate_root / "paired-turn8-analysis.json", "Phase C paired Turn-8 analysis"
+    aggregate_payload = _load_object(
+        aggregate_root / "manifest.json",
+        "Phase C aggregate manifest",
     )
-    paired_analysis_sha = str(aggregate_manifest.get("paired_analysis_sha256", ""))
-    if _digest(primary_analysis) != paired_analysis_sha:
+    try:
+        aggregate_manifest = PhaseCAggregateManifest(**aggregate_payload)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Phase C aggregate manifest failed self-validation") from exc
+    primary_analysis = _load_object(
+        aggregate_root / "paired-turn8-analysis.json",
+        "Phase C paired Turn-8 analysis",
+    )
+    if _digest(primary_analysis) != aggregate_manifest.paired_analysis_sha256:
         raise ValueError("paired timing source Turn-8 analysis digest does not match aggregate")
-    if int(aggregate_manifest.get("paired_game_count", -1)) != PAIRED_GAME_COUNT:
-        raise ValueError("paired timing source aggregate does not contain exactly 200 pairs")
 
     shard_dirs = sorted(
         path
@@ -92,13 +97,12 @@ def build_phase_c_paired_timing_artifact(
     if not shard_dirs:
         raise ValueError("paired timing requires immutable Phase C shard artifacts")
     standard, exploratory, shard_manifest_shas = _measurement_maps(shard_dirs)
-    expected_manifest_shas = aggregate_manifest.get("shard_manifest_sha256s")
-    if not isinstance(expected_manifest_shas, list):
-        raise ValueError("aggregate omits the source shard-manifest digest set")
-    if shard_manifest_shas != tuple(sorted(str(value) for value in expected_manifest_shas)):
+    if shard_manifest_shas != tuple(sorted(aggregate_manifest.shard_manifest_sha256s)):
         raise ValueError("paired timing shard set differs from the validated aggregate")
     if len(standard) != PAIRED_GAME_COUNT or len(exploratory) != PAIRED_GAME_COUNT:
-        raise ValueError("paired timing requires exactly 200 STANDARD and 200 EXPLORATORY pair records")
+        raise ValueError(
+            "paired timing requires exactly 200 STANDARD and 200 EXPLORATORY pair records"
+        )
     if set(standard) != set(exploratory):
         raise ValueError("paired timing STANDARD/EXPLORATORY pair-ID sets differ")
 
@@ -114,9 +118,9 @@ def build_phase_c_paired_timing_artifact(
         exploratory_record = exploratory[pair_id]
         if standard_record.seed != exploratory_record.seed:
             raise ValueError("paired timing records do not share the environment seed")
-        if standard_record.extra.get("environment_initial_state_hash") != exploratory_record.extra.get(
+        if standard_record.extra.get(
             "environment_initial_state_hash"
-        ):
+        ) != exploratory_record.extra.get("environment_initial_state_hash"):
             raise ValueError("paired timing records do not share the initial environment state")
         if standard_record.extra.get("search_seed") is not None:
             raise ValueError("paired timing standard record consumed exploratory search randomness")
@@ -136,8 +140,8 @@ def build_phase_c_paired_timing_artifact(
     analysis = build_paired_earliest_access_timing(rows)
     data: dict[str, Any] = {
         "schema_version": "phase-c-paired-timing-artifact-v1",
-        "source_aggregate_sha256": str(aggregate_manifest.get("aggregation_sha256", "")),
-        "source_paired_turn8_analysis_sha256": paired_analysis_sha,
+        "source_aggregate_sha256": aggregate_manifest.aggregation_sha256,
+        "source_paired_turn8_analysis_sha256": aggregate_manifest.paired_analysis_sha256,
         "source_shard_manifest_sha256s": shard_manifest_shas,
         "pair_count": PAIRED_GAME_COUNT,
         "analysis": analysis,
