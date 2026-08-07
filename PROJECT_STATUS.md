@@ -5,6 +5,7 @@
 > **Phase B merge:** PR #37 merged into `main` at `4d1df5a68744864906e337d8ded17d12d7724d37`
 > **Active Phase C branch:** `phase-c/pilot-authorization`
 > **Active Phase C draft PR:** #49
+> **Published technical implementation:** `8549f5e270a4def2c5e41521104bde72dc3770c8`; exact-head CI is being triggered from this uncovered status-only descendant
 > **Phase C execution status:** **LOCKED — NOT AUTHORIZED**
 
 This dashboard distinguishes technical implementation readiness from execution authorization. No pilot or full-study game is authorized by code, tests, a dry run, CI, certification renewal, or an owner-review package. `execution_allowed` remains false until a separate explicit owner decision under issue #51.
@@ -15,7 +16,7 @@ This dashboard distinguishes technical implementation readiness from execution a
 |---|---|---|
 | Phase A foundation | **Implemented; renewal required for covered Phase C changes** | Standing verifier remains the authority; exact-head durable certification must be renewed from CI candidate |
 | Phase B deck/policy foundation | **Merged; renewal required for covered Phase C changes** | PR #37 merged with zero exact-deck blockers and 12 approved transcripts; Phase C covered changes require exact-head recertification |
-| Phase C production runner | **Technical implementation candidate complete locally; exact-head CI pending** | Real Turn-10 policy/replay path, combat, exploratory expansion, combo detection, replay/rollback, and immutable artifacts have executable tests |
+| Phase C production runner | **Technical implementation candidate published; exact-head CI pending** | Real Turn-10 policy/replay path, combat, exploratory expansion, combo detection, replay/rollback, and immutable artifacts have executable tests |
 | Phase C authorization controls | **Implemented and locked; exact-head CI pending** | Reviewed implementation identity separated from later governance-only activation identity |
 | Phase C 500/200 execution | **Not authorized** | `execution_allowed: false`; owner approval record pending; zero pilot games run |
 | Full 20,000/5,000 study | **Not authorized** | Separate post-pilot owner decision required; zero full-study games run |
@@ -107,14 +108,13 @@ The machine owner record remains pending, and the pilot config remains:
 
 ## Next required actions
 
-1. Publish the technical candidate to existing branch `phase-c/pilot-authorization` and existing draft PR #49.
-2. Run exact-head GitHub CI and repair any formatting, typing, test, verifier, readiness, or provenance failure.
-3. Retrieve the exact Phase A and Phase B CI-produced certification candidates from that run.
-4. Commit those candidates unmodified in a separate certification-renewal commit.
-5. Rerun exact-head CI and continue repairing until all blocking gates are green.
-6. Conduct a second-pass diff/test/audit review and close only acceptance-complete technical issues.
-7. Present a digest-bound `OWNER DECISION REQUIRED` package under issue #51.
-8. Do not run the pilot or full study until the owner explicitly approves the final package and a governance-only activation commit is created.
+1. Run exact-head GitHub CI and repair any formatting, typing, test, verifier, readiness, or provenance failure.
+2. Retrieve the exact Phase A and Phase B CI-produced certification candidates from that run.
+3. Commit those candidates unmodified in a separate certification-renewal commit.
+4. Rerun exact-head CI and continue repairing until all blocking gates are green.
+5. Conduct a second-pass diff/test/audit review and close only acceptance-complete technical issues.
+6. Present a digest-bound `OWNER DECISION REQUIRED` package under issue #51.
+7. Do not run the pilot or full study until the owner explicitly approves the final package and a governance-only activation commit is created.
 
 ## Repository health
 
