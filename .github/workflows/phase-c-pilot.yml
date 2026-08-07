@@ -4,23 +4,25 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: Exact Phase C owner confirmation token
-        required: true
+        description: Exact Phase C owner confirmation token; required for execution, ignored when preflight_only is true
+        required: false
+        default: ""
         type: string
       implementation_commit:
         description: Exact reviewed green implementation commit
         required: true
         type: string
       activation_commit:
-        description: Exact governance-only owner activation commit; ignored when preflight_only is true
-        required: true
+        description: Exact governance-only owner activation commit; required for execution, ignored when preflight_only is true
+        required: false
+        default: ""
         type: string
       locked_config_sha256:
         description: SHA-256 of the reviewed locked Phase C pilot config at the implementation commit
         required: true
         type: string
       workflow_sha256:
-        description: SHA-256 of this reviewed workflow at the implementation commit
+        description: SHA-256 of the reviewed workflow; must match both the executed main workflow and reviewed checkout
         required: true
         type: string
       preflight_only:
@@ -68,6 +70,17 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "${TARGET_COMMIT}"
           test -z "$(git status --porcelain)"
+      - name: Bind executed workflow definition
+        env:
+          RUNTIME_WORKFLOW_COMMIT: ${{ github.workflow_sha }}
+          WORKFLOW_SHA256: ${{ inputs.workflow_sha256 }}
+        run: |
+          test -n "${RUNTIME_WORKFLOW_COMMIT}"
+          git cat-file -e "${RUNTIME_WORKFLOW_COMMIT}^{commit}"
+          RUNTIME_WORKFLOW_SHA256="$(git cat-file blob "${RUNTIME_WORKFLOW_COMMIT}:.github/workflows/phase-c-pilot.yml" | sha256sum | awk '{print $1}')"
+          CHECKED_OUT_WORKFLOW_SHA256="$(sha256sum .github/workflows/phase-c-pilot.yml | awk '{print $1}')"
+          test "${RUNTIME_WORKFLOW_SHA256}" = "${WORKFLOW_SHA256}"
+          test "${CHECKED_OUT_WORKFLOW_SHA256}" = "${WORKFLOW_SHA256}"
       - name: Frozen identity lock integrity
         run: uv run python scripts/check_identity_lock.py
       - name: Phase A authority classification
