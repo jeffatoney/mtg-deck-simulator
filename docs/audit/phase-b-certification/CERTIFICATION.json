@@ -34,7 +34,7 @@
     ".github/workflows/phase-c-pilot.yml": "sha256:08cfcb955627098ed385500095edba65ba8c7e9ebad5ccf813950e92039b7096",
     "automation/phase-b-authority-map.json": "sha256:e5eb8507e4db5ad09b0ae38a0b08a7ea19e4cab0f949c313cffce9c74027cc9f",
     "automation/phase-b-test-mapping.json": "sha256:03f1b4556f664696a7863679a665fb0a7cb30e0c163ed19be6ddcfa45673824e",
-    "configs/baseline.toml": "sha256:20d54af9c38ca0f8426501811c9a01131aa3373e38f52030c8eaa76134",
+    "configs/baseline.toml": "sha256:20d54af9c38ca0f84af0f8426501811c9a01131aa3373e38f52030c8eaa76134",
     "configs/evaluators": "sha256:83db9ef8f139fa304079d54d4cb6706cd000ae56ce1f884973a0089391424e78",
     "configs/policies.json": "sha256:ba6edfcc31808219c0728a778b6f71a2a5264f6fa4c3386e9508c5e8eb382a7d",
     "configs/policies.yaml": "sha256:b38c7d3d579f4336cf3bde5ab2c3e49273892ebf268164b5b2f724774175368c",
