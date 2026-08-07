@@ -118,6 +118,17 @@ class StandardPolicy:
         if "generation" not in observation or "turn" not in observation:
             raise ValueError("policy observation is incomplete")
 
+    def choose_optional_trigger(self, effect_kind: str) -> bool:
+        """Choose a supported optional trigger from public effect classification.
+
+        The exact deck currently has one optional trigger: Curiosity's card draw.
+        Keep this effect-based and fail closed so a future optional effect cannot be
+        silently accepted merely because it was added to the deck.
+        """
+        if effect_kind == "DRAW":
+            return True
+        raise ValueError(f"unsupported optional trigger effect for standard policy: {effect_kind}")
+
     def select_action(
         self, observation: dict[str, Any], actions: tuple[ObservedAction, ...]
     ) -> str:
@@ -142,6 +153,20 @@ class StandardPolicy:
                 value += 70 if self.bundle.value("development_plan") == "malcolm_first" else 30
             if action.identity == "Breeches, Brazen Plunderer":
                 value += 25 if self.bundle.value("breeches_timing") == "early" else 5
+            if action.kind == "DECLARE_ATTACKERS":
+                attacker_count = int(action.metadata.get("attacker_count", 0))
+                opponent_count = int(action.metadata.get("opponent_count", 0))
+                pirate_count = int(action.metadata.get("pirate_count", 0))
+                identities = {
+                    str(value) for value in action.metadata.get("attacker_identities", ())
+                }
+                value += 30 * attacker_count + 25 * opponent_count + 20 * pirate_count
+                if "Malcolm, Keen-Eyed Navigator" in identities:
+                    value += 25
+                if "Glint-Horn Buccaneer" in identities:
+                    value += 20
+                if attacker_count == 0:
+                    value -= 60
             if action.kind == "PASS_PRIORITY":
                 value -= 100
             return (value, -action.mana_value, -action.target_count, action.handle)

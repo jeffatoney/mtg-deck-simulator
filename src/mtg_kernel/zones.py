@@ -120,7 +120,12 @@ class ZoneService:
                     copy_creation_event_id=old.copy_creation_event_id,
                     copy_target_choice_id=old.copy_target_choice_id,
                     current_characteristics=characteristics,
-                    permanent_status={"tap": "UNTAPPED", "face": "FACE_UP", "phase": "PHASED_IN"}
+                    permanent_status={
+                        "tap": "UNTAPPED",
+                        "face": "FACE_UP",
+                        "phase": "PHASED_IN",
+                        "controller_since_turn": str(self.state.turn.number),
+                    }
                     if destination is Zone.BATTLEFIELD
                     else None,
                     identity_visible_to=set(old.identity_visible_to),
@@ -170,6 +175,7 @@ class ZoneService:
                         "tap": "UNTAPPED",
                         "face": "FACE_DOWN" if face_down else "FACE_UP",
                         "phase": "PHASED_IN",
+                        "controller_since_turn": str(self.state.turn.number),
                     }
                     if destination is Zone.BATTLEFIELD
                     else None,

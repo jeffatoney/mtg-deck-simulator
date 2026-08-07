@@ -1,0 +1,213 @@
+name: Phase C Pilot — Locked
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Exact Phase C owner confirmation token
+        required: true
+        type: string
+      implementation_commit:
+        description: Exact reviewed green implementation commit
+        required: true
+        type: string
+      activation_commit:
+        description: Exact governance-only owner activation commit
+        required: true
+        type: string
+      locked_config_sha256:
+        description: SHA-256 of the reviewed locked Phase C pilot config at the implementation commit
+        required: true
+        type: string
+      workflow_sha256:
+        description: SHA-256 of this reviewed workflow at the implementation commit
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Require main and exact confirmation token
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${CONFIRMATION}" = "AUTHORIZE_PHASE_C_500_STANDARD_200_EXPLORATORY"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.activation_commit }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Require exact clean activation commit
+        env:
+          ACTIVATION_COMMIT: ${{ inputs.activation_commit }}
+        run: |
+          test "$(git rev-parse HEAD)" = "${ACTIVATION_COMMIT}"
+          test -z "$(git status --porcelain)"
+      - name: Frozen identity lock integrity
+        run: uv run python scripts/check_identity_lock.py
+      - name: Phase A authority classification
+        run: uv run python scripts/check_phase_a_authority.py
+      - name: Clean engine boundary
+        run: uv run python scripts/check_clean_engine_boundary.py
+      - name: Legacy package is unavailable
+        run: |
+          if uv run python -c "import mtg_sim" 2>/dev/null; then exit 1; fi
+      - name: Formatting
+        run: uv run ruff format --check .
+      - name: Lint
+        run: uv run ruff check .
+      - name: Strict typing
+        run: uv run mypy src
+      - name: Exact-deck Turn-10 production policy and replay smoke
+        run: uv run python scripts/check_phase_c_turn10.py
+      - name: Full tests
+        run: uv run pytest -q
+      - name: Manifest integrity
+        run: uv run python scripts/check_manifest.py
+      - name: Phase A verifier
+        run: uv run mtg-engine verify-phase-a
+      - name: Durable Phase A certification
+        run: uv run python scripts/check_phase_a_certification.py
+      - name: Phase B verifier
+        run: uv run mtg-engine verify-phase-b
+      - name: Durable Phase B certification
+        run: uv run python scripts/check_phase_b_certification.py
+      - name: No-game Phase C dry run
+        run: uv run mtg-engine phase-c-dry-run
+      - name: Validate implementation and governance-only activation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          IMPLEMENTATION_COMMIT: ${{ inputs.implementation_commit }}
+          ACTIVATION_COMMIT: ${{ inputs.activation_commit }}
+          LOCKED_CONFIG_SHA256: ${{ inputs.locked_config_sha256 }}
+          WORKFLOW_SHA256: ${{ inputs.workflow_sha256 }}
+        run: |
+          uv run mtg-engine phase-c-authorization-check \
+            --confirmation "${CONFIRMATION}" \
+            --implementation-commit "${IMPLEMENTATION_COMMIT}" \
+            --activation-commit "${ACTIVATION_COMMIT}" \
+            --expected-locked-config-sha256 "${LOCKED_CONFIG_SHA256}" \
+            --expected-workflow-sha256 "${WORKFLOW_SHA256}"
+
+  shards:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    strategy:
+      fail-fast: true
+      max-parallel: 20
+      matrix:
+        mode: [STANDARD, EXPLORATORY]
+        shard_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.activation_commit }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Execute exact authorized shard
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          IMPLEMENTATION_COMMIT: ${{ inputs.implementation_commit }}
+          ACTIVATION_COMMIT: ${{ inputs.activation_commit }}
+          LOCKED_CONFIG_SHA256: ${{ inputs.locked_config_sha256 }}
+          WORKFLOW_SHA256: ${{ inputs.workflow_sha256 }}
+          MODE: ${{ matrix.mode }}
+          SHARD_INDEX: ${{ matrix.shard_index }}
+        run: |
+          uv run mtg-engine phase-c-pilot \
+            --confirmation "${CONFIRMATION}" \
+            --implementation-commit "${IMPLEMENTATION_COMMIT}" \
+            --activation-commit "${ACTIVATION_COMMIT}" \
+            --expected-locked-config-sha256 "${LOCKED_CONFIG_SHA256}" \
+            --expected-workflow-sha256 "${WORKFLOW_SHA256}" \
+            --mode "${MODE}" \
+            --shard-index "${SHARD_INDEX}" \
+            --output-root artifacts/phase-c-shards
+      - name: Upload immutable shard
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-c-${{ matrix.mode }}-${{ matrix.shard_index }}-${{ inputs.activation_commit }}
+          path: artifacts/phase-c-shards
+          if-no-files-found: error
+          retention-days: 90
+
+  aggregate:
+    needs: shards
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.activation_commit }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Download all immutable shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase-c-*-${{ inputs.activation_commit }}
+          path: artifacts/downloaded-shards
+      - name: Validate exact 500/200 aggregate
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          IMPLEMENTATION_COMMIT: ${{ inputs.implementation_commit }}
+          ACTIVATION_COMMIT: ${{ inputs.activation_commit }}
+          LOCKED_CONFIG_SHA256: ${{ inputs.locked_config_sha256 }}
+          WORKFLOW_SHA256: ${{ inputs.workflow_sha256 }}
+        run: |
+          uv run mtg-engine phase-c-aggregate \
+            --confirmation "${CONFIRMATION}" \
+            --implementation-commit "${IMPLEMENTATION_COMMIT}" \
+            --activation-commit "${ACTIVATION_COMMIT}" \
+            --expected-locked-config-sha256 "${LOCKED_CONFIG_SHA256}" \
+            --expected-workflow-sha256 "${WORKFLOW_SHA256}" \
+            --shard-root artifacts/downloaded-shards \
+            --output-root artifacts/phase-c-pilot
+      - name: Build paired earliest-access timing
+        run: |
+          uv run python -m mtg_runs.phase_c_timing \
+            --shard-root artifacts/downloaded-shards \
+            --aggregate-root artifacts/phase-c-pilot/aggregate \
+            --output-root artifacts/phase-c-pilot/paired-timing
+      - name: Upload immutable aggregate
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-c-pilot-${{ inputs.activation_commit }}
+          path: artifacts/phase-c-pilot
+          if-no-files-found: error
+          retention-days: 90

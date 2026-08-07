@@ -140,8 +140,22 @@ class ActionBroker:
         method(_record=record, **copied)
 
     def _probe(self, operation: str, arguments: dict[str, Any]) -> bool:
-        state = deepcopy(self.executor.state)
-        probe = GameExecutor(state, self.executor.seed, replaying=True)
+        # Broker probes need mutable rules state, not a recursive copy of the
+        # append-only replay transcript. Detaching it here applies the same
+        # rollback-history optimization used by GameExecutor._begin_atomic.
+        live = self.executor.state
+        replay_initial = live.replay_initial_state
+        replay_commands = live.replay_commands
+        live.replay_initial_state = None
+        live.replay_commands = []
+        try:
+            state = deepcopy(live)
+        finally:
+            live.replay_initial_state = replay_initial
+            live.replay_commands = replay_commands
+        state.replay_initial_state = replay_initial
+        state.replay_commands = list(replay_commands)
+        probe = GameExecutor(state, self.executor.seed, replaying=True, probing=True)
         try:
             self._invoke(probe, operation, arguments, record=False)
         except (IllegalAction, UnsupportedCapability, KeyError, ValueError):
@@ -390,6 +404,106 @@ class ActionBroker:
                         )
         return result
 
+    def _candidate_attack_declarations(self) -> list[_InternalAction]:
+        """Expose a bounded set of legal multiplayer attack declarations.
+
+        Attacker declaration is a simultaneous turn-based action, so the broker
+        publishes complete legal plans rather than one attacker at a time.  The
+        exact-deck no-blocker model needs single-attacker probes, all-in plans,
+        and a spread plan that can damage multiple opponents for Pirate triggers.
+        """
+        if (
+            self.executor.state.turn.active_player_id != self.player_id
+            or self.executor.state.turn.step != "DECLARE_ATTACKERS"
+        ):
+            return []
+        if any(
+            event.kind == "ATTACKERS_DECLARED"
+            and int(event.payload.get("turn_number", -1)) == self.executor.state.turn.number
+            for event in self.executor.state.events
+        ):
+            return []
+        attackers = sorted(
+            (
+                obj
+                for obj in self.executor.state.objects.values()
+                if self.executor._attack_eligible(self.player_id, obj)
+            ),
+            key=lambda obj: (str(obj.current_characteristics.get("name", "")), obj.object_id),
+        )
+        opponents = sorted(
+            player.player_id
+            for player in self.executor.state.players.values()
+            if player.in_game and player.player_id != self.player_id
+        )
+        if not opponents:
+            return []
+
+        raw_plans: list[dict[str, str]] = [{}]
+        for attacker in attackers:
+            for opponent in opponents:
+                raw_plans.append({attacker.object_id: opponent})
+        if attackers:
+            for opponent in opponents:
+                raw_plans.append({attacker.object_id: opponent for attacker in attackers})
+            raw_plans.append(
+                {
+                    attacker.object_id: opponents[index % len(opponents)]
+                    for index, attacker in enumerate(attackers)
+                }
+            )
+
+        seen: set[tuple[tuple[str, str], ...]] = set()
+        result: list[_InternalAction] = []
+        for plan in raw_plans:
+            key = tuple(sorted(plan.items()))
+            if key in seen:
+                continue
+            seen.add(key)
+            arguments = {"actor": self.player_id, "assignments": dict(plan)}
+            if not self._probe("declare_attackers", arguments):
+                continue
+            attacker_handles: list[str] = []
+            identities: list[str] = []
+            pirates = 0
+            public_assignments: list[dict[str, str]] = []
+            for object_id, opponent in sorted(plan.items()):
+                obj = self.executor.state.objects[object_id]
+                handle = self.observations.handle_for_object(
+                    self.player_id, self.generation, object_id
+                )
+                if handle is None:
+                    raise UnsupportedCapability("legal attacker is not publicly observable")
+                identity = str(obj.current_characteristics.get("name", ""))
+                attacker_handles.append(handle)
+                identities.append(identity)
+                if "Pirate" in obj.current_characteristics.get("subtypes", ()):
+                    pirates += 1
+                public_assignments.append({"attacker_handle": handle, "opponent": opponent})
+            result.append(
+                _InternalAction(
+                    "declare_attackers",
+                    arguments,
+                    ObservedAction(
+                        "",
+                        "DECLARE_ATTACKERS",
+                        None,
+                        0,
+                        ("COMBAT", "DECLARE_ATTACKERS"),
+                        0,
+                        {
+                            "attacker_count": len(plan),
+                            "attacker_handles": tuple(attacker_handles),
+                            "attacker_identities": tuple(identities),
+                            "pirate_count": pirates,
+                            "opponent_count": len(set(plan.values())),
+                            "assignments": tuple(public_assignments),
+                        },
+                    ),
+                )
+            )
+        return result
+
     def _candidate_commander_choices(self) -> list[_InternalAction]:
         result: list[_InternalAction] = []
         for object_id in self.executor.state.pending_commander_choices:
@@ -466,8 +580,22 @@ class ActionBroker:
         observation = self.observations.observe_for_policy(self.player_id)
         self.generation = int(observation["generation"])
         self._state_token = state_hash(self.executor.state)
-        candidates = self._candidate_commander_choices()
-        if self.executor.state.pending_commander_choices:
+        combat_declarations = self._candidate_attack_declarations()
+        attack_declaration_pending = (
+            self.executor.state.turn.step == "DECLARE_ATTACKERS"
+            and not any(
+                event.kind == "ATTACKERS_DECLARED"
+                and int(event.payload.get("turn_number", -1)) == self.executor.state.turn.number
+                for event in self.executor.state.events
+            )
+        )
+        if attack_declaration_pending:
+            candidates = combat_declarations
+        else:
+            candidates = self._candidate_commander_choices()
+        if attack_declaration_pending:
+            pass
+        elif self.executor.state.pending_commander_choices:
             if not candidates:
                 raise UnsupportedCapability("a pending commander choice requires its owning policy")
         else:

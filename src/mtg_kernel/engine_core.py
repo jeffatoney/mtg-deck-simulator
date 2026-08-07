@@ -36,10 +36,12 @@ class GameExecutor:
         seed: str = "phase-a",
         *,
         replaying: bool = False,
+        probing: bool = False,
     ) -> None:
         self.state = state
         self.seed = seed
         self.replaying = replaying
+        self.probing = probing
         self.identity = IdentityService(state, seed)
         self.zones = ZoneService(state, self.identity)
         self._resolution_depth = 0
@@ -58,13 +60,38 @@ class GameExecutor:
         if self.state.terminal.status != "ACTIVE":
             raise IllegalAction("game is terminal")
 
-    def _begin_atomic(self) -> GameState:
-        before = deepcopy(self.state)
+    def _begin_atomic(self) -> GameState | None:
+        # A broker legality probe executes on an already-disposable clone. A second
+        # atomic deep copy would double the dominant cost without adding rollback
+        # safety: failed or successful probe mutations are discarded with that clone.
+        if self.probing or self.replaying:
+            # Replay also runs on a disposable reconstructed state. If a recorded
+            # command is illegal, replay aborts rather than recovering and
+            # continuing, so per-command rollback copies add cost without safety.
+            return None
+        # Replay evidence is append-only and can grow large during a Turn-10 run.
+        # It is not mutable rules state, so do not recursively deep-copy it on every
+        # atomic action.  Detach it while copying the rules state, then restore the
+        # live references and give the rollback snapshot a shallow command-sequence
+        # snapshot.  Recorded command dictionaries are never mutated after append.
+        replay_initial = self.state.replay_initial_state
+        replay_commands = self.state.replay_commands
+        self.state.replay_initial_state = None
+        self.state.replay_commands = []
+        try:
+            before = deepcopy(self.state)
+        finally:
+            self.state.replay_initial_state = replay_initial
+            self.state.replay_commands = replay_commands
+        before.replay_initial_state = replay_initial
+        before.replay_commands = list(replay_commands)
         if not self.replaying and self.state.replay_initial_state is None:
             self.state.replay_initial_state = state_to_data(self.state)
         return before
 
-    def _rollback(self, before: GameState) -> None:
+    def _rollback(self, before: GameState | None) -> None:
+        if before is None:
+            return
         self.state.__dict__.clear()
         self.state.__dict__.update(before.__dict__)
 
@@ -915,6 +942,95 @@ class GameExecutor:
             for _ in range(7):
                 self.draw_card(player_id, action=action)
 
+    def league_mulligan(
+        self,
+        player_id: str,
+        keep_candidate_index: int,
+        *,
+        _record: bool = True,
+    ) -> tuple[GameObject, ...]:
+        """Execute the frozen 7/free-7/6/5/4 league mulligan deterministically.
+
+        Policy chooses only which candidate to keep. The engine owns every shuffle,
+        draw, return-to-library zone change, and draw-back-to-seven refill, so replay
+        can reproduce exact physical-card successors without rerunning policy.
+        """
+        self._ensure_active()
+        before = self._begin_atomic()
+        try:
+            if player_id not in self.state.players:
+                raise IllegalAction("mulligan player is not in the game")
+            candidate_sizes = (7, 7, 6, 5, 4)
+            if keep_candidate_index < 0 or keep_candidate_index >= len(candidate_sizes):
+                raise IllegalAction("league mulligan keep index must be between zero and four")
+            hand_key = self.zones.zone_key(Zone.HAND, player_id)
+            if self.state.zones.get(hand_key):
+                raise IllegalAction("league mulligan must start with an empty hand")
+            action = Action(
+                self.identity.new_id("action"),
+                "LEAGUE_MULLIGAN",
+                player_id,
+                metadata={
+                    "candidate_sizes": list(candidate_sizes),
+                    "keep_candidate_index": keep_candidate_index,
+                    "refill_to": 7,
+                },
+            )
+            self.state.actions.append(action)
+            kept: tuple[GameObject, ...] = ()
+            for index, nominal_size in enumerate(candidate_sizes[: keep_candidate_index + 1]):
+                self.shuffle_library(player_id, action)
+                for _ in range(nominal_size):
+                    if self.draw_card(player_id, action=action) is None:
+                        raise IllegalAction("library cannot supply the required mulligan candidate")
+                hand_ids = tuple(self.state.zones.get(hand_key, ()))
+                self._event(
+                    "MULLIGAN_CANDIDATE_DRAWN",
+                    action,
+                    player_id=player_id,
+                    candidate_index=index,
+                    nominal_size=nominal_size,
+                    candidate_object_ids=list(hand_ids),
+                )
+                if index == keep_candidate_index:
+                    refill = 7 - nominal_size
+                    for _ in range(refill):
+                        if self.draw_card(player_id, action=action) is None:
+                            raise IllegalAction("library cannot refill a kept mulligan hand")
+                    kept = tuple(
+                        self.state.objects[object_id]
+                        for object_id in self.state.zones.get(hand_key, ())
+                    )
+                    self._event(
+                        "MULLIGAN_HAND_KEPT",
+                        action,
+                        player_id=player_id,
+                        candidate_index=index,
+                        nominal_size=nominal_size,
+                        final_hand_size=len(kept),
+                    )
+                    break
+                return_event = self._event(
+                    "MULLIGAN_HAND_RETURNED",
+                    action,
+                    player_id=player_id,
+                    candidate_index=index,
+                )
+                for object_id in hand_ids:
+                    self.zones.move(object_id, Zone.LIBRARY, "MULLIGAN_RETURN", return_event)
+            if len(kept) != 7:
+                raise IllegalAction("league mulligan must finish with seven cards in hand")
+            if _record:
+                self._record_command(
+                    "league_mulligan",
+                    player_id=player_id,
+                    keep_candidate_index=keep_candidate_index,
+                )
+            return kept
+        except Exception:
+            self._rollback(before)
+            raise
+
     def draw_card(self, player_id: str, *, action: Action | None = None) -> GameObject | None:
         key = self.zones.zone_key(Zone.LIBRARY, player_id)
         library = self.state.zones.get(key, [])
@@ -1542,6 +1658,234 @@ class GameExecutor:
             self._rollback(before)
             raise
 
+    def _attack_eligible(self, actor: str, obj: GameObject) -> bool:
+        if (
+            obj.retired
+            or obj.ceased_to_exist
+            or obj.zone is not Zone.BATTLEFIELD
+            or obj.controller != actor
+            or "Creature" not in self._types(obj)
+            or "Battle" in self._types(obj)
+            or obj.permanent_status is None
+            or obj.permanent_status.get("tap") != "UNTAPPED"
+        ):
+            return False
+        keywords = {str(value) for value in obj.current_characteristics.get("keywords", ())}
+        if "Defender" in keywords or obj.current_characteristics.get("cannot_attack") is True:
+            return False
+        if "Haste" in keywords:
+            return True
+        since_raw = obj.permanent_status.get("controller_since_turn")
+        try:
+            since = int(since_raw) if since_raw is not None else self.state.turn.number
+        except (TypeError, ValueError):
+            return False
+        return since < self.state.turn.number
+
+    def declare_attackers(
+        self,
+        actor: str,
+        assignments: dict[str, str],
+        *,
+        _record: bool = True,
+    ) -> None:
+        """Declare one legal multiplayer attacker set as a turn-based action."""
+        self._ensure_active()
+        before = self._begin_atomic()
+        try:
+            if actor != self.state.turn.active_player_id:
+                raise IllegalAction("only the active player declares attackers")
+            if self.state.turn.step != "DECLARE_ATTACKERS":
+                raise IllegalAction("attackers may be declared only in declare attackers")
+            if any(
+                event.kind == "ATTACKERS_DECLARED"
+                and int(event.payload.get("turn_number", -1)) == self.state.turn.number
+                for event in self.state.events
+            ):
+                raise IllegalAction("attackers have already been declared this combat")
+            if len(assignments) != len(set(assignments)):
+                raise IllegalAction("an attacking creature may be declared only once")
+            action = Action(
+                self.identity.new_id("action"),
+                "DECLARE_ATTACKERS",
+                actor,
+                metadata={"assignments": dict(sorted(assignments.items()))},
+            )
+            for object_id, opponent_id in assignments.items():
+                obj = self.state.objects.get(object_id)
+                if obj is None or not self._attack_eligible(actor, obj):
+                    raise IllegalAction("declared attacker is not legally able to attack")
+                opponent = self.state.players.get(opponent_id)
+                if opponent is None or opponent_id == actor or not opponent.in_game:
+                    raise IllegalAction("attacker must be assigned to a living opponent")
+            self.state.actions.append(action)
+            for object_id, opponent_id in sorted(assignments.items()):
+                obj = self.state.objects[object_id]
+                keywords = {str(value) for value in obj.current_characteristics.get("keywords", ())}
+                if "Vigilance" not in keywords and obj.permanent_status is not None:
+                    obj.permanent_status["tap"] = "TAPPED"
+                obj.current_characteristics["attacking"] = True
+                obj.current_characteristics["attacking_player_id"] = opponent_id
+                obj.current_characteristics.pop("unblocked", None)
+            self._event(
+                "ATTACKERS_DECLARED",
+                action,
+                assignments=dict(sorted(assignments.items())),
+                attacker_count=len(assignments),
+                turn_number=self.state.turn.number,
+            )
+            if _record:
+                self._record_command(
+                    "declare_attackers", assignments=dict(sorted(assignments.items()))
+                )
+        except Exception:
+            self._rollback(before)
+            raise
+
+    def declare_no_blockers(self, *, _record: bool = True) -> None:
+        """Apply the frozen Phase C no-blocking model at the rules-defined step."""
+        self._ensure_active()
+        before = self._begin_atomic()
+        try:
+            if self.state.turn.step != "DECLARE_BLOCKERS":
+                raise IllegalAction("no-blocker declaration is outside declare blockers")
+            attackers = [
+                obj
+                for obj in self.state.objects.values()
+                if not obj.retired and obj.current_characteristics.get("attacking") is True
+            ]
+            if not attackers:
+                raise IllegalAction("declare blockers step is skipped when there are no attackers")
+            action = Action(
+                self.identity.new_id("action"),
+                "DECLARE_NO_BLOCKERS",
+                self.state.turn.active_player_id,
+            )
+            self.state.actions.append(action)
+            for attacker in attackers:
+                attacker.current_characteristics["unblocked"] = True
+            self._event(
+                "NO_BLOCKERS_DECLARED",
+                action,
+                attacker_ids=sorted(obj.object_id for obj in attackers),
+            )
+            if _record:
+                self._record_command("declare_no_blockers")
+        except Exception:
+            self._rollback(before)
+            raise
+
+    @staticmethod
+    def _combat_power(obj: GameObject) -> int:
+        value = obj.current_characteristics.get("power", 0)
+        if isinstance(value, bool):
+            raise UnsupportedCapability("combat power cannot be boolean")
+        if isinstance(value, int):
+            return max(0, value)
+        text = str(value).strip()
+        if text.lstrip("-").isdigit():
+            return max(0, int(text))
+        raise UnsupportedCapability("combat power is not deterministically numeric")
+
+    def resolve_no_blocker_combat_damage(
+        self,
+        choices_by_source: dict[str, dict[str, Any]] | None = None,
+        *,
+        _record: bool = True,
+    ) -> None:
+        """Assign and deal all unblocked combat damage simultaneously.
+
+        Optional trigger decisions are policy-owned but rules-required. They are
+        supplied per damage source and recorded in the combat command so replay
+        consumes the original decision without invoking policy code.
+        """
+        self._ensure_active()
+        before = self._begin_atomic()
+        choices_by_source = {
+            str(key): dict(value) for key, value in (choices_by_source or {}).items()
+        }
+        try:
+            if self.state.turn.step != "COMBAT_DAMAGE":
+                raise IllegalAction("combat damage may be dealt only in combat damage")
+            attackers = [
+                obj
+                for obj in self.state.objects.values()
+                if not obj.retired
+                and obj.zone is Zone.BATTLEFIELD
+                and obj.current_characteristics.get("attacking") is True
+                and obj.current_characteristics.get("unblocked") is True
+            ]
+            if not attackers:
+                raise IllegalAction("combat damage step has no unblocked attackers")
+            assignments: list[tuple[GameObject, str, int]] = []
+            for source in attackers:
+                opponent_id = str(source.current_characteristics.get("attacking_player_id", ""))
+                opponent = self.state.players.get(opponent_id)
+                if opponent is None or not opponent.in_game:
+                    raise IllegalAction("attacking creature has no living defending player")
+                assignments.append((source, opponent_id, self._combat_power(source)))
+            action = Action(
+                self.identity.new_id("action"),
+                "COMBAT_DAMAGE",
+                self.state.turn.active_player_id,
+                metadata={
+                    "assignments": [
+                        {
+                            "source_object_id": source.object_id,
+                            "player_id": opponent_id,
+                            "amount": amount,
+                        }
+                        for source, opponent_id, amount in assignments
+                    ]
+                },
+            )
+            self.state.actions.append(action)
+
+            # Rule 510.2: all assigned combat damage is dealt simultaneously.
+            for source, opponent_id, amount in assignments:
+                self.state.players[opponent_id].life -= amount
+                if source.component_card_instance_ids:
+                    instance = self.state.card_instances[source.component_card_instance_ids[0]]
+                    if instance.commander_designation:
+                        by_commander = self.state.commander_damage.setdefault(
+                            instance.card_instance_id, {}
+                        )
+                        by_commander[opponent_id] = by_commander.get(opponent_id, 0) + amount
+            for source, opponent_id, amount in assignments:
+                event = self._event(
+                    "DAMAGE_DEALT",
+                    action,
+                    source_object_id=source.object_id,
+                    players=[opponent_id],
+                    amounts={opponent_id: amount},
+                    combat=True,
+                )
+                self._scan_damage_triggers(
+                    source,
+                    [opponent_id],
+                    event,
+                    choices_by_source.get(source.object_id, {}),
+                )
+            self.check_state_based_actions()
+            self.put_waiting_triggers_on_stack()
+            self._event("COMBAT_DAMAGE_RESOLVED", action, attacker_count=len(assignments))
+            if _record:
+                self._record_command(
+                    "resolve_no_blocker_combat_damage",
+                    choices_by_source=choices_by_source,
+                )
+        except Exception:
+            self._rollback(before)
+            raise
+
+    def _end_combat_markers(self) -> None:
+        for obj in self.state.objects.values():
+            if obj.retired:
+                continue
+            obj.current_characteristics.pop("attacking", None)
+            obj.current_characteristics.pop("attacking_player_id", None)
+            obj.current_characteristics.pop("unblocked", None)
+
     def _cleanup_iteration(self, discard_ids: tuple[str, ...]) -> None:
         self.state.turn.cleanup_iteration += 1
         active = self.state.players[self.state.turn.active_player_id]
@@ -1597,6 +1941,15 @@ class GameExecutor:
         before = self._begin_atomic()
         choices = dict(choices or {})
         try:
+            prior_step = self.state.turn.step
+            prior_phase = self.state.turn.phase
+            if step != prior_step:
+                for player in self.state.players.values():
+                    for symbol in player.mana_pool:
+                        player.mana_pool[symbol] = 0
+            if step == "POSTCOMBAT_MAIN" and prior_phase == "COMBAT":
+                self._end_combat_markers()
+                self._event("COMBAT_ENDED")
             self.state.turn.step = step
             if step in {"UNTAP", "UPKEEP", "DRAW"}:
                 self.state.turn.phase = "BEGINNING"
@@ -1641,10 +1994,50 @@ class GameExecutor:
             self._rollback(before)
             raise
 
+    def start_next_controlled_turn(self, player_id: str, *, _record: bool = True) -> None:
+        """Advance from a stable cleanup to the next modeled controlled turn."""
+        self._ensure_active()
+        before = self._begin_atomic()
+        try:
+            if self.state.turn.step != "CLEANUP":
+                raise IllegalAction("the next controlled turn starts only after cleanup")
+            if self.state.turn.cleanup_repeat_pending or self.state.stack:
+                raise IllegalAction("cleanup must be stable before the next controlled turn")
+            if player_id not in self.state.players or not self.state.players[player_id].in_game:
+                raise IllegalAction("next controlled turn requires a living player")
+            previous = self.state.turn.number
+            self.state.turn.number += 1
+            self.state.turn.active_player_id = player_id
+            self.state.turn.phase = "BEGINNING"
+            self.state.turn.step = "CLEANUP"
+            self.state.turn.priority_holder_id = player_id
+            self.state.turn.consecutive_priority_passes = 0
+            self.state.turn.cleanup_iteration = 0
+            self.state.turn.cleanup_repeat_pending = False
+            self._event(
+                "CONTROLLED_TURN_ADVANCED",
+                previous_turn=previous,
+                turn_number=self.state.turn.number,
+                player_id=player_id,
+            )
+            if _record:
+                self._record_command("start_next_controlled_turn", player_id=player_id)
+        except Exception:
+            self._rollback(before)
+            raise
+
     def execute_replay_command(self, command: dict[str, Any]) -> None:
         operation = str(command["operation"])
         arguments = dict(command.get("arguments", {}))
-        if operation == "cast":
+        if operation == "league_mulligan":
+            self.league_mulligan(
+                str(arguments["player_id"]),
+                int(arguments["keep_candidate_index"]),
+                _record=False,
+            )
+        elif operation == "start_next_controlled_turn":
+            self.start_next_controlled_turn(str(arguments["player_id"]), _record=False)
+        elif operation == "cast":
             self.cast(
                 str(arguments["actor"]),
                 str(arguments["card_object_id"]),
@@ -1726,6 +2119,22 @@ class GameExecutor:
             )
         elif operation == "cleanup":
             self.cleanup(tuple(arguments.get("discard_ids", [])), _record=False)
+        elif operation == "declare_attackers":
+            self.declare_attackers(
+                self.state.turn.active_player_id,
+                {str(key): str(value) for key, value in arguments.get("assignments", {}).items()},
+                _record=False,
+            )
+        elif operation == "declare_no_blockers":
+            self.declare_no_blockers(_record=False)
+        elif operation == "resolve_no_blocker_combat_damage":
+            self.resolve_no_blocker_combat_damage(
+                {
+                    str(key): dict(value)
+                    for key, value in arguments.get("choices_by_source", {}).items()
+                },
+                _record=False,
+            )
         elif operation == "begin_step":
             self.begin_step(
                 str(arguments["step"]), dict(arguments.get("choices", {})), _record=False

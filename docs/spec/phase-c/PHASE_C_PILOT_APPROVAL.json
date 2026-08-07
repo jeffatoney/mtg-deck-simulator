@@ -1,0 +1,21 @@
+{
+  "approval_statement": null,
+  "approved_at": null,
+  "approved_by": null,
+  "authorized_counts": {
+    "exploratory": 200,
+    "standard": 500
+  },
+  "authorized_shards": {
+    "exploratory": 10,
+    "standard": 10
+  },
+  "confirmation_token_sha256": "1ffb5460831ae8725d40b72bc754e5104fcdc797b64e43d562c346632f3de448",
+  "implementation_commit": null,
+  "implementation_tree": null,
+  "locked_pilot_config_sha256": null,
+  "production_decision_layer_depth": 1,
+  "schema_version": "phase-c-pilot-approval-v2",
+  "status": "PENDING_OWNER_APPROVAL",
+  "workflow_sha256": null
+}

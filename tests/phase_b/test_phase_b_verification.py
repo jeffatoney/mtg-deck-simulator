@@ -29,6 +29,11 @@ def test_verifier_and_durable_certification_fail_closed_without_fabricated_block
         "- name: Build Phase B certification candidate", 1
     )[0]
     assert "continue-on-error" not in phase_b_step
+    candidate_step = workflow.split("- name: Build Phase B certification candidate", 1)[1].split(
+        "- name: Durable Phase B certification is current", 1
+    )[0]
+    assert "python -m mtg_verify.result_selection" in candidate_step
+    assert "--phase phase-b" in candidate_step
     assert (
         "Build Phase B certification candidate" in workflow
         and "Durable Phase B certification is current" in workflow

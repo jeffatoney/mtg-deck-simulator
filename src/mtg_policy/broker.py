@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from mtg_kernel.engine import MAIN_PHASES
 from mtg_kernel.models import GameObject, Zone
 from mtg_kernel.phase_b_actions import (
     automatic_ability_execution_supported,
@@ -119,40 +120,104 @@ class ActionBroker(_CoreActionBroker):
                     ability = dict(raw_ability)
                     if not effect_execution_supported(dict(ability.get("effect", {}))):
                         continue
+                    permission = str(ability.get("cast_permission", "NORMAL"))
+                    # Mirror the executor's zone/timing gates before any target
+                    # enumeration or production probe. These predicates depend
+                    # only on the current public rules state and card face, so
+                    # skipping an impossible mode cannot hide a legal action.
+                    if obj.zone is Zone.GRAVEYARD and permission not in {"AFTERMATH", "FLASHBACK"}:
+                        continue
+                    if permission in {"AFTERMATH", "FLASHBACK"} and obj.zone is not Zone.GRAVEYARD:
+                        continue
+                    if obj.zone is Zone.EXILE and permission != "FORETELL":
+                        continue
+                    if permission == "FORETELL":
+                        if obj.zone is not Zone.EXILE:
+                            continue
+                        if not bool(obj.current_characteristics.get("foretold")):
+                            continue
+                        if obj.current_characteristics.get("foretold_by") != self.player_id:
+                            continue
+                        if self.executor.state.turn.number <= int(
+                            obj.current_characteristics.get("foretold_turn", -1)
+                        ):
+                            continue
+                    if "Land" in card_types:
+                        continue
+                    instant_speed = "Instant" in card_types or "Flash" in face.get("keywords", ())
+                    if not instant_speed and (
+                        self.player_id != self.executor.state.turn.active_player_id
+                        or self.executor.state.turn.phase not in MAIN_PHASES
+                        or bool(self.executor.state.stack)
+                    ):
+                        continue
                     schema = dict(ability.get("target_schema", {}))
-                    for targets in self._target_sets(self.player_id, schema):
+                    effect = dict(ability.get("effect", {}))
+                    x_spell = "{X}" in str(face.get("mana_cost", ""))
+                    mana_available = sum(
+                        int(value)
+                        for value in self.executor.state.players[self.player_id].mana_pool.values()
+                    )
+                    x_values = range(0, mana_available + 1) if x_spell else (0,)
+                    for x_value in x_values:
+                        target_schema = dict(schema)
+                        if effect.get("target_count_from_x"):
+                            # X is the exact number of targets. Bounding before
+                            # combinations prevents the old powerset explosion of
+                            # impossible X=0 probes while preserving every legal X.
+                            target_schema["min"] = x_value
+                            target_schema["max"] = x_value
+                        target_sets = self._target_sets(self.player_id, target_schema)
+                        if effect.get("target_count_from_x") and not target_sets:
+                            continue
+                        by_count: dict[int, list[tuple[Any, ...]]] = {}
+                        for targets in target_sets:
+                            by_count.setdefault(len(targets), []).append(targets)
                         for spell_choices in self._ability_choice_variants(ability):
                             for entry_choices, entry_public in entry_variants:
                                 choices = self._merge_choices(spell_choices, entry_choices)
-                                arguments = {
-                                    "actor": self.player_id,
-                                    "card_object_id": obj.object_id,
-                                    "targets": targets,
-                                    "face": face_index,
-                                    "x_value": 0,
-                                    "mode": ability.get("mode"),
-                                    "choices": choices,
-                                }
-                                if not self._probe("cast", arguments):
-                                    continue
-                                target_handles = self._public_target_handles(targets)
-                                public = ObservedAction(
-                                    "",
-                                    "CAST",
-                                    str(obj.current_characteristics.get("name")),
-                                    int(face.get("mana_value", 0)),
-                                    self._tags(obj, ability),
-                                    len(targets),
-                                    {
+                                for target_count, same_count_sets in by_count.items():
+                                    # `_target_sets` already proves each target is
+                                    # individually legal and combinations are unique.
+                                    # Cast timing/payment/additional-cost legality is
+                                    # identical for sets of the same size, so probe one
+                                    # representative rather than deep-copying the game
+                                    # for every combinatorial target permutation.
+                                    representative = same_count_sets[0]
+                                    probe_arguments = {
+                                        "actor": self.player_id,
+                                        "card_object_id": obj.object_id,
+                                        "targets": representative,
                                         "face": face_index,
+                                        "x_value": x_value,
                                         "mode": ability.get("mode"),
-                                        "target_handles": target_handles,
-                                        "cast_permission": ability.get("cast_permission", "NORMAL"),
-                                        **self._public_choice_metadata(spell_choices),
-                                        **entry_public,
-                                    },
-                                )
-                                result.append(_InternalAction("cast", arguments, public))
+                                        "choices": choices,
+                                    }
+                                    if not self._probe("cast", probe_arguments):
+                                        continue
+                                    for targets in same_count_sets:
+                                        arguments = {**probe_arguments, "targets": targets}
+                                        target_handles = self._public_target_handles(targets)
+                                        public = ObservedAction(
+                                            "",
+                                            "CAST",
+                                            str(obj.current_characteristics.get("name")),
+                                            int(face.get("mana_value", 0)),
+                                            self._tags(obj, ability),
+                                            target_count,
+                                            {
+                                                "face": face_index,
+                                                "mode": ability.get("mode"),
+                                                "x_value": x_value,
+                                                "target_handles": target_handles,
+                                                "cast_permission": ability.get(
+                                                    "cast_permission", "NORMAL"
+                                                ),
+                                                **self._public_choice_metadata(spell_choices),
+                                                **entry_public,
+                                            },
+                                        )
+                                        result.append(_InternalAction("cast", arguments, public))
         return result
 
     def _candidate_hand_activations(self) -> list[_InternalAction]:
