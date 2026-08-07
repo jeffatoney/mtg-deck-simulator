@@ -1,4 +1,4 @@
-"""Frozen paired-environment design and paired Turn-8 analysis for Phase C."""
+"""Frozen paired-environment design and paired Phase C analysis."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 import random
+from collections import Counter
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
@@ -16,6 +17,10 @@ PAIRED_CI_METHOD = "DETERMINISTIC_PAIRED_BOOTSTRAP_PERCENTILE_V1"
 PAIRED_CI_CONFIDENCE = 0.95
 PAIRED_BOOTSTRAP_RESAMPLES = 10_000
 PAIR_SELECTION_RULE = "FIRST_20_OF_EACH_STANDARD_SHARD"
+PRIMARY_OUTCOME = "LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS_BY_TURN_8"
+SECONDARY_OUTCOME = "EARLIEST_LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS_TURN"
+SECONDARY_CENSORING_RULE = "NO_IMPUTATION_BOTH_ACCESS_TURN_SHIFT_ONLY"
+PILOT_EFFECT_THRESHOLD_RULE = "NO_NUMERIC_ACTION_THRESHOLD_PRECOMMITTED"
 REPORTING_SENTENCE = (
     "These figures measure combo assembly speed against opponents who take no actions. "
     "They are not win rates and do not predict performance against interactive opponents."
@@ -177,6 +182,75 @@ def _paired_bootstrap_percentile_ci(
     return samples[lower_index], samples[upper_index]
 
 
+def _validated_turn(value: object, label: str) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= 10:
+        raise ValueError(f"{label} must be an integer Turn 1-10 or null")
+    return value
+
+
+def build_paired_earliest_access_timing(records: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """Build the secondary paired timing description without imputing censored turns."""
+    rows = [dict(record) for record in records]
+    if len(rows) != PAIRED_GAME_COUNT:
+        raise ValueError("paired earliest-access timing requires exactly 200 records")
+    pair_ids = [str(row.get("pair_id", "")) for row in rows]
+    if any(not pair_id for pair_id in pair_ids) or len(set(pair_ids)) != PAIRED_GAME_COUNT:
+        raise ValueError("paired earliest-access timing requires 200 unique pair IDs")
+
+    both = standard_only = exploratory_only = neither = 0
+    shifts: list[int] = []
+    standard_turns: Counter[int] = Counter()
+    exploratory_turns: Counter[int] = Counter()
+    for row in rows:
+        standard_turn = _validated_turn(
+            row.get("standard_earliest_access_turn"), "standard earliest access turn"
+        )
+        exploratory_turn = _validated_turn(
+            row.get("exploratory_earliest_access_turn"), "exploratory earliest access turn"
+        )
+        if standard_turn is not None:
+            standard_turns[standard_turn] += 1
+        if exploratory_turn is not None:
+            exploratory_turns[exploratory_turn] += 1
+        if standard_turn is not None and exploratory_turn is not None:
+            both += 1
+            shifts.append(exploratory_turn - standard_turn)
+        elif standard_turn is not None:
+            standard_only += 1
+        elif exploratory_turn is not None:
+            exploratory_only += 1
+        else:
+            neither += 1
+
+    shift_counts = Counter(shifts)
+    return {
+        "schema_version": "phase-c-paired-earliest-access-timing-v1",
+        "analysis_role": "SECONDARY_DESCRIPTIVE",
+        "outcome_name": SECONDARY_OUTCOME,
+        "censoring_rule": SECONDARY_CENSORING_RULE,
+        "pair_count": PAIRED_GAME_COUNT,
+        "both_access_by_turn10": both,
+        "standard_only_access_by_turn10": standard_only,
+        "exploratory_only_access_by_turn10": exploratory_only,
+        "neither_access_by_turn10": neither,
+        "paired_turn_shift_count": len(shifts),
+        "paired_turn_shift_excluded_censored_count": PAIRED_GAME_COUNT - len(shifts),
+        "paired_turn_shift_mean_exploratory_minus_standard": (
+            sum(shifts) / len(shifts) if shifts else None
+        ),
+        "paired_turn_shift_counts": {str(key): shift_counts[key] for key in sorted(shift_counts)},
+        "standard_earliest_access_turn_counts": {
+            str(key): standard_turns[key] for key in sorted(standard_turns)
+        },
+        "exploratory_earliest_access_turn_counts": {
+            str(key): exploratory_turns[key] for key in sorted(exploratory_turns)
+        },
+        "effect_threshold_rule": PILOT_EFFECT_THRESHOLD_RULE,
+    }
+
+
 def build_paired_turn8_analysis(records: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     rows = [dict(record) for record in records]
     if len(rows) != PAIRED_GAME_COUNT:
@@ -204,7 +278,9 @@ def build_paired_turn8_analysis(records: Sequence[Mapping[str, Any]]) -> dict[st
     lower, upper = _paired_bootstrap_percentile_ci(differences)
     p_value = _mcnemar_exact_two_sided(exploratory_only, standard_only)
     return {
-        "schema_version": "phase-c-paired-turn8-analysis-v1",
+        "schema_version": "phase-c-paired-turn8-analysis-v2",
+        "analysis_role": "PRIMARY",
+        "primary_outcome": PRIMARY_OUTCOME,
         "checkpoint_turn": PAIRED_CHECKPOINT_TURN,
         "pair_count": PAIRED_GAME_COUNT,
         "both_access": both,
@@ -225,6 +301,8 @@ def build_paired_turn8_analysis(records: Sequence[Mapping[str, Any]]) -> dict[st
         "paired_access_rate_difference_ci": {"lower": lower, "upper": upper},
         "reporting_metric": "LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS",
         "required_reporting_sentence": REPORTING_SENTENCE,
+        "effect_threshold_rule": PILOT_EFFECT_THRESHOLD_RULE,
+        "secondary_earliest_access_timing": build_paired_earliest_access_timing(rows),
         "pair_records_sha256": _digest(rows),
     }
 
@@ -237,8 +315,13 @@ __all__ = [
     "PAIRED_CI_METHOD",
     "PAIRED_GAME_COUNT",
     "PAIRS_PER_STANDARD_SHARD",
+    "PILOT_EFFECT_THRESHOLD_RULE",
+    "PRIMARY_OUTCOME",
     "PairingPlan",
     "REPORTING_SENTENCE",
+    "SECONDARY_CENSORING_RULE",
+    "SECONDARY_OUTCOME",
+    "build_paired_earliest_access_timing",
     "build_paired_turn8_analysis",
     "build_pairing_plan",
 ]
