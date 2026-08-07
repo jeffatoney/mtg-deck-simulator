@@ -42,6 +42,27 @@ jobs:
         run: uv sync --frozen --all-extras
       - name: Apply paired redesign
         run: python "$RUNNER_TEMP/apply_phase_c_pairing.py"
+      - name: Remove generated unused imports
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          replacements = {
+              "src/mtg_runs/phase_c_pairing.py": (
+                  "from dataclasses import asdict, dataclass",
+                  "from dataclasses import dataclass",
+              ),
+              "tests/phase_c/test_phase_c_artifacts.py": (
+                  "from dataclasses import asdict, replace",
+                  "from dataclasses import asdict",
+              ),
+          }
+          for filename, (old, new) in replacements.items():
+              path = Path(filename)
+              text = path.read_text()
+              if text.count(old) != 1:
+                  raise SystemExit(f"unexpected generated import shape: {filename}")
+              path.write_text(text.replace(old, new, 1))
+          PY
       - name: Format changed Python
         run: |
           uv run ruff format src/mtg_runs/phase_c.py src/mtg_runs/phase_c_runner.py src/mtg_runs/phase_c_artifacts.py src/mtg_runs/phase_c_pairing.py tests/phase_c/test_phase_c_control.py tests/phase_c/test_phase_c_artifacts.py
