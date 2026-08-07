@@ -1,0 +1,152 @@
+name: Apply Arcane Denial Phase C correction
+
+on:
+  push:
+    branches:
+      - phase-c/arcane-denial-delayed-choice
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-c/arcane-denial-delayed-choice
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply exact runner and regression patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          runner = Path("src/mtg_runs/phase_c_runner.py")
+          text = runner.read_text(encoding="utf-8")
+
+          function_anchor = "def _policy_window_required(step: str, executor: GameExecutor) -> bool:\n"
+          if text.count(function_anchor) != 1:
+              raise SystemExit("expected exactly one Phase C policy-window anchor")
+
+          helper = '''def _delayed_trigger_step_choices(executor: GameExecutor, step: str) -> dict[str, Any]:
+              """Supply explicit rules-required choices for frozen delayed triggers.
+
+              Arcane Denial's controller-created delayed trigger lets the controller of
+              the countered spell draw up to two cards. In the frozen Phase C model P0
+              maximizes deterministic card access, so P0 chooses two. Opponent hidden
+              resources/actions are outside the model, so an opponent chooses zero rather
+              than injecting unmodeled hidden cards. The chosen value is recorded in the
+              begin-step replay command.
+              """
+              if step != "UPKEEP":
+                  return {}
+              per_trigger: dict[str, dict[str, Any]] = {}
+              for object_id in tuple(executor.state.delayed_triggers):
+                  trigger = executor.state.objects.get(object_id)
+                  if trigger is None or trigger.retired or trigger.ceased_to_exist:
+                      continue
+                  raw_ability = trigger.current_characteristics.get("ability", {})
+                  if not isinstance(raw_ability, dict):
+                      continue
+                  ability = dict(raw_ability)
+                  if ability.get("trigger") != "NEXT_UPKEEP":
+                      continue
+                  raw_context = trigger.current_characteristics.get("trigger_context", {})
+                  context = dict(raw_context) if isinstance(raw_context, dict) else {}
+                  not_before_turn = int(context.get("not_before_turn", executor.state.turn.number))
+                  if executor.state.turn.number < not_before_turn:
+                      continue
+                  raw_effect = ability.get("effect", {})
+                  if not isinstance(raw_effect, dict):
+                      continue
+                  effect = dict(raw_effect)
+                  if effect.get("kind") != "ARCANE_DENIAL_DELAYED_DRAWS":
+                      continue
+                  optional_player = str(effect.get("optional_player", ""))
+                  if optional_player not in executor.state.players:
+                      raise IllegalAction("Arcane Denial delayed draw player is unavailable")
+                  count = 2 if optional_player == CONTROLLED_PLAYER else 0
+                  per_trigger[object_id] = {
+                      "arcane_denial_draw_count": {
+                          "player_id": optional_player,
+                          "count": count,
+                      }
+                  }
+              return {"delayed_trigger_choices": per_trigger} if per_trigger else {}
+
+
+          '''
+          text = text.replace(function_anchor, helper + function_anchor)
+
+          call_anchor = '''            executor.begin_step(step)
+              if step == "DECLARE_ATTACKERS" and not policy_actions:
+          '''
+          replacement = '''            step_choices = _delayed_trigger_step_choices(executor, step)
+              executor.begin_step(step, step_choices)
+              if step == "DECLARE_ATTACKERS" and not policy_actions:
+          '''
+          if text.count(call_anchor) != 1:
+              raise SystemExit("expected exactly one generic begin-step Phase C call")
+          text = text.replace(call_anchor, replacement)
+          runner.write_text(text, encoding="utf-8")
+
+          test_path = Path("tests/phase_c/test_phase_c_delayed_choices.py")
+          if test_path.exists():
+              raise SystemExit("Arcane Denial regression test already exists")
+          test_path.write_text(
+              '''from mtg_runs.phase_c_runner import run_phase_c_game_execution
+
+
+FAILED_STANDARD_SHARD_ZERO_SEED = 6304405178442445102
+
+
+def test_failed_standard_seed_records_arcane_denial_delayed_draw_choice() -> None:
+    execution = run_phase_c_game_execution(
+        seed=FAILED_STANDARD_SHARD_ZERO_SEED,
+        mode="STANDARD",
+        through_turn=10,
+        validate_fresh_replay=False,
+        policy_actions=True,
+    )
+
+    arcane_choices: list[dict[str, object]] = []
+    for command in execution.replay_transcript["commands"]:
+        if command.get("operation") != "begin_step":
+            continue
+        arguments = command.get("arguments", {})
+        if arguments.get("step") != "UPKEEP":
+            continue
+        choices = arguments.get("choices", {})
+        per_trigger = choices.get("delayed_trigger_choices", {})
+        for trigger_choice in per_trigger.values():
+            value = trigger_choice.get("arcane_denial_draw_count")
+            if isinstance(value, dict):
+                arcane_choices.append(value)
+
+    assert arcane_choices
+    assert all(
+        choice["count"] == (2 if choice["player_id"] == "P0" else 0)
+        for choice in arcane_choices
+    )
+    assert execution.technical_game.controlled_turns_completed == 10
+    assert (
+        execution.technical_game.fresh_replay_state_hash
+        == execution.technical_game.final_state_hash
+    )
+''',
+              encoding="utf-8",
+          )
+
+          Path(".github/workflows/apply-arcane-delayed-choice-fix.yml").unlink()
+          PY
+      - name: Commit corrected production path
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Handle Arcane Denial delayed draw choices in Phase C"
+          git push origin HEAD:phase-c/arcane-denial-delayed-choice
