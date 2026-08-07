@@ -34,12 +34,30 @@ def _copy(relative: str, destination: Path) -> None:
 
 
 def _run(cwd: Path) -> subprocess.CompletedProcess[str]:
+    # These tests intentionally exercise a self-contained temporary Git repository.
+    # The outer CI job may be validating an exact-head candidate via environment
+    # overrides, but inheriting those values would make this child read the outer
+    # candidate instead of the sandbox record and would also perform network/run
+    # provenance checks against a synthetic sandbox commit.  CI provenance is
+    # validated by the dedicated candidate gate before pytest; these tests cover the
+    # local content/tree/forgery behavior of the durable checker.
+    env = os.environ.copy()
+    for name in (
+        "PHASE_A_CERTIFICATION_RECORD",
+        "GITHUB_ACTIONS",
+        "GITHUB_TOKEN",
+        "GITHUB_REPOSITORY",
+        "GITHUB_RUN_ID",
+        "GITHUB_API_URL",
+    ):
+        env.pop(name, None)
     return subprocess.run(
         [sys.executable, str(cwd / "scripts/check_phase_a_certification.py")],
         cwd=cwd,
         capture_output=True,
         text=True,
         check=False,
+        env=env,
     )
 
 
