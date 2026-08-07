@@ -2,148 +2,173 @@ name: CI
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
+  actions: read
 
 jobs:
-  apply-arcane-denial-correction:
-    if: github.event.pull_request.head.ref == 'phase-c/arcane-denial-delayed-choice'
+  checks:
     runs-on: ubuntu-latest
+    env:
+      # Repository-controlled external anchor shared by the lock check and its tests.
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: phase-c/arcane-denial-delayed-choice
           fetch-depth: 0
+          # Certify the exact PR head commit rather than GitHub's temporary merge ref.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-      - name: Apply exact production and regression patch
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Frozen identity lock integrity
+        run: uv run python scripts/check_identity_lock.py
+      - name: Phase A authority classification
+        run: uv run python scripts/check_phase_a_authority.py
+      - name: Phase B evaluator and learning boundary
+        run: uv run python scripts/check_phase_b_evaluator.py
+      - name: Clean engine and support-package boundary
+        run: uv run python scripts/check_clean_engine_boundary.py
+      - name: Legacy package is not importable
         run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          runner = Path("src/mtg_runs/phase_c_runner.py")
-          text = runner.read_text(encoding="utf-8")
-
-          function_anchor = "def _policy_window_required(step: str, executor: GameExecutor) -> bool:\n"
-          if text.count(function_anchor) != 1:
-              raise SystemExit("expected exactly one Phase C policy-window anchor")
-
-          helper = '''def _delayed_trigger_step_choices(executor: GameExecutor, step: str) -> dict[str, Any]:
-              """Supply explicit rules-required choices for frozen delayed triggers.
-
-              Arcane Denial's delayed trigger lets the controller of the countered
-              spell draw up to two cards. In the frozen Phase C model P0 maximizes
-              deterministic card access, so P0 chooses two. Opponent hidden resources
-              and actions are outside the model, so an opponent chooses zero rather
-              than injecting unmodeled hidden cards. The choice is recorded in the
-              begin-step replay command.
-              """
-              if step != "UPKEEP":
-                  return {}
-              per_trigger: dict[str, dict[str, Any]] = {}
-              for object_id in tuple(executor.state.delayed_triggers):
-                  trigger = executor.state.objects.get(object_id)
-                  if trigger is None or trigger.retired or trigger.ceased_to_exist:
-                      continue
-                  raw_ability = trigger.current_characteristics.get("ability", {})
-                  if not isinstance(raw_ability, dict):
-                      continue
-                  ability = dict(raw_ability)
-                  if ability.get("trigger") != "NEXT_UPKEEP":
-                      continue
-                  raw_context = trigger.current_characteristics.get("trigger_context", {})
-                  context = dict(raw_context) if isinstance(raw_context, dict) else {}
-                  not_before_turn = int(context.get("not_before_turn", executor.state.turn.number))
-                  if executor.state.turn.number < not_before_turn:
-                      continue
-                  raw_effect = ability.get("effect", {})
-                  if not isinstance(raw_effect, dict):
-                      continue
-                  effect = dict(raw_effect)
-                  if effect.get("kind") != "ARCANE_DENIAL_DELAYED_DRAWS":
-                      continue
-                  optional_player = str(effect.get("optional_player", ""))
-                  if optional_player not in executor.state.players:
-                      raise IllegalAction("Arcane Denial delayed draw player is unavailable")
-                  count = 2 if optional_player == CONTROLLED_PLAYER else 0
-                  per_trigger[object_id] = {
-                      "arcane_denial_draw_count": {
-                          "player_id": optional_player,
-                          "count": count,
-                      }
-                  }
-              return {"delayed_trigger_choices": per_trigger} if per_trigger else {}
-
-
-          '''
-          text = text.replace(function_anchor, helper + function_anchor)
-
-          call_anchor = '''            executor.begin_step(step)
-              if step == "DECLARE_ATTACKERS" and not policy_actions:
-          '''
-          replacement = '''            step_choices = _delayed_trigger_step_choices(executor, step)
-              executor.begin_step(step, step_choices)
-              if step == "DECLARE_ATTACKERS" and not policy_actions:
-          '''
-          if text.count(call_anchor) != 1:
-              raise SystemExit("expected exactly one generic begin-step Phase C call")
-          text = text.replace(call_anchor, replacement)
-          runner.write_text(text, encoding="utf-8")
-
-          test_path = Path("tests/phase_c/test_phase_c_delayed_choices.py")
-          test_path.write_text(
-              '''from mtg_runs.phase_c_runner import run_phase_c_game_execution
-
-
-FAILED_STANDARD_SHARD_ZERO_SEED = 6304405178442445102
-
-
-def test_failed_standard_seed_records_arcane_denial_delayed_draw_choice() -> None:
-    execution = run_phase_c_game_execution(
-        seed=FAILED_STANDARD_SHARD_ZERO_SEED,
-        mode="STANDARD",
-        through_turn=10,
-        validate_fresh_replay=False,
-        policy_actions=True,
-    )
-
-    arcane_choices: list[dict[str, object]] = []
-    for command in execution.replay_transcript["commands"]:
-        if command.get("operation") != "begin_step":
-            continue
-        arguments = command.get("arguments", {})
-        if arguments.get("step") != "UPKEEP":
-            continue
-        choices = arguments.get("choices", {})
-        per_trigger = choices.get("delayed_trigger_choices", {})
-        for trigger_choice in per_trigger.values():
-            value = trigger_choice.get("arcane_denial_draw_count")
-            if isinstance(value, dict):
-                arcane_choices.append(value)
-
-    assert arcane_choices
-    assert all(
-        choice["count"] == (2 if choice["player_id"] == "P0" else 0)
-        for choice in arcane_choices
-    )
-    assert execution.technical_game.controlled_turns_completed == 10
-    assert (
-        execution.technical_game.fresh_replay_state_hash
-        == execution.technical_game.final_state_hash
-    )
-''',
-              encoding="utf-8",
-          )
-          PY
-      - name: Restore CI, remove temporary workflow, and commit correction
+          if uv run python -c "import mtg_sim" 2>/dev/null; then
+            echo "FAIL: mtg_sim is importable from the installed environment" >&2
+            exit 1
+          fi
+          echo "PASS: mtg_sim is not importable"
+      - name: Format
+        id: format
+        continue-on-error: true
+        run: uv run ruff format --check --diff .
+      - name: Prepare formatted-source suggestion
+        if: steps.format.outcome == 'failure'
         run: |
-          git checkout origin/main -- .github/workflows/ci.yml
-          git rm .github/workflows/apply-arcane-delayed-choice-fix.yml
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/mtg_runs/phase_c_runner.py tests/phase_c/test_phase_c_delayed_choices.py .github/workflows/ci.yml
-          git diff --cached --check
-          git commit -m "Handle Arcane Denial delayed draw choices in Phase C"
-          git push origin HEAD:phase-c/arcane-denial-delayed-choice
+          uv run ruff format .
+          mkdir -p "${RUNNER_TEMP}/ruff-formatted"
+          git diff --name-only -z -- '*.py' | xargs -0 -r cp --parents -t "${RUNNER_TEMP}/ruff-formatted"
+      - name: Upload formatted-source suggestion
+        if: steps.format.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruff-formatted-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/ruff-formatted
+          if-no-files-found: error
+          retention-days: 7
+      - name: Enforce formatting
+        if: steps.format.outcome == 'failure'
+        run: exit 1
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check
+        run: uv run mypy src
+      - name: Phase C exact-deck Turn-10 production policy and replay smoke
+        run: uv run python scripts/check_phase_c_turn10.py
+
+      # Phase A is a standing regression contract. Every later branch and every push to
+      # main must continue to pass it; it is not restricted to the original Phase A branch.
+      - name: Phase A production verifier
+        env:
+          PHASE_A_ARTIFACT_ROOT: ${{ runner.temp }}/phase-a-result
+        run: uv run mtg-engine verify-phase-a
+      - name: Build CI certification candidate
+        run: |
+          RESULT="$(uv run python -m mtg_verify.result_selection \
+            --phase phase-a \
+            --root "${RUNNER_TEMP}/phase-a-result")"
+          uv run python scripts/record_phase_a_certification.py \
+            --verifier-result "${RESULT}" \
+            --output "${RUNNER_TEMP}/phase-a-certification-candidate/CERTIFICATION.json"
+      - name: Validate Phase A certification candidate
+        env:
+          PHASE_A_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-a-certification-candidate/CERTIFICATION.json
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run python scripts/check_phase_a_certification.py
+
+      # Certification-negative tests need to validate the newly generated candidate when
+      # covered content changed. The committed record still must pass the separate durable
+      # gate below before the pull request can merge.
+      - name: Tests
+        env:
+          PHASE_A_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-a-certification-candidate/CERTIFICATION.json
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run pytest -q
+      - name: Manifest integrity
+        run: uv run python scripts/check_manifest.py
+      # Phase B is a blocking gate. The exact deck, strategic model, owner-approved
+      # transcripts, and durable certification must all pass on the exact checked-out head.
+      - name: Phase B verifier
+        id: phase_b
+        env:
+          PHASE_A_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-a-certification-candidate/CERTIFICATION.json
+          PHASE_B_ARTIFACT_ROOT: ${{ runner.temp }}/phase-b-result
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run mtg-engine verify-phase-b
+      - name: Build Phase B certification candidate
+        run: |
+          RESULT="$(uv run python -m mtg_verify.result_selection \
+            --phase phase-b \
+            --root "${RUNNER_TEMP}/phase-b-result")"
+          uv run python scripts/record_phase_b_certification.py \
+            --verifier-result "${RESULT}" \
+            --output "${RUNNER_TEMP}/phase-b-certification-candidate/CERTIFICATION.json"
+      - name: Validate Phase B certification candidate
+        env:
+          PHASE_B_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-b-certification-candidate/CERTIFICATION.json
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run python scripts/check_phase_b_certification.py
+      - name: Phase C no-game dry run
+        run: uv run mtg-engine phase-c-dry-run
+      # These two tracked-record gates intentionally run only after both exact-head
+      # candidates exist. A covered technical change can therefore produce legitimate
+      # renewal artifacts in one CI run while still keeping the PR red until those
+      # unmodified CI-produced candidates are committed.
+      - name: Durable Phase A certification is current
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run python scripts/check_phase_a_certification.py
+      - name: Durable Phase B certification is current
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run python scripts/check_phase_b_certification.py
+      - name: Upload Phase B verification artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-b-result-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase-b-result
+          if-no-files-found: error
+          retention-days: 90
+      - name: Upload Phase B certification candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-b-certification-candidate-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase-b-certification-candidate
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload Phase A verification artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-a-result-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase-a-result
+          if-no-files-found: error
+          retention-days: 90
+      - name: Upload Phase A certification candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-a-certification-candidate-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase-a-certification-candidate
+          if-no-files-found: error
+          retention-days: 30
