@@ -7,6 +7,7 @@ import os
 import shutil
 import subprocess
 import sys
+import urllib.request
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from _certification_provenance import _CrossHostRedirectHandler  # noqa: E402
 from _phase_a_paths import COVERED_PATHS  # noqa: E402
 
 RECORD = "docs/audit/phase-a-certification/CERTIFICATION.json"
@@ -110,6 +112,24 @@ def _patch_record(sandbox: Path, **changes: object) -> None:
     record = json.loads(path.read_text(encoding="utf-8"))
     record.update(changes)
     path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def test_cross_host_artifact_redirect_strips_authorization() -> None:
+    handler = _CrossHostRedirectHandler()
+    request = urllib.request.Request(
+        "https://api.github.com/repos/example/repo/actions/artifacts/1/zip",
+        headers={"Authorization": "Bearer secret"},
+    )
+    redirected = handler.redirect_request(
+        request,
+        None,
+        302,
+        "Found",
+        {},
+        "https://artifact.example.invalid/file.zip?sig=opaque",
+    )
+    assert redirected is not None
+    assert redirected.get_header("Authorization") is None
 
 
 def test_current_certification_passes(sandbox: Path) -> None:
