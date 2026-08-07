@@ -13,10 +13,33 @@ import io
 import json
 import os
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from collections.abc import Mapping, Sequence
 from typing import Any
+
+
+class _CrossHostRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Drop GitHub credentials before following signed cross-host artifact URLs."""
+
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: Any,
+        code: int,
+        msg: str,
+        headers: Any,
+        newurl: str,
+    ) -> urllib.request.Request | None:
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is None:
+            return None
+        source_host = urllib.parse.urlsplit(req.full_url).netloc
+        destination_host = urllib.parse.urlsplit(newurl).netloc
+        if source_host != destination_host:
+            redirected.remove_header("Authorization")
+        return redirected
 
 
 def _request_json(url: str, token: str) -> dict[str, Any]:
@@ -44,7 +67,8 @@ def _request_bytes(url: str, token: str) -> bytes:
             "X-GitHub-Api-Version": "2022-11-28",
         },
     )
-    with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310
+    opener = urllib.request.build_opener(_CrossHostRedirectHandler())
+    with opener.open(request, timeout=30) as response:  # noqa: S310
         return response.read()
 
 
