@@ -105,6 +105,7 @@ SUPPORTED_ETB_TARGET_SCHEMAS = frozenset(
         "SLIVER",
     }
 )
+STORMTAMER_TARGET_SCHEMA = "SPELL_OR_ABILITY_TARGETING_YOU_OR_CONTROLLED_CREATURE"
 
 
 def effect_execution_supported(effect: dict[str, Any]) -> bool:
@@ -242,6 +243,36 @@ def _permanent_has_hexproof_from(self: Any, actor: str, obj: GameObject) -> bool
     )
 
 
+def _stack_object_targets_actor_or_controlled_creature(
+    self: Any, actor: str, obj: GameObject
+) -> bool:
+    if obj.zone is not Zone.STACK or obj.object_kind is ObjectKind.MANA_ABILITY:
+        return False
+    try:
+        created = self._created_action(obj)
+    except IllegalAction:
+        return False
+    for ref in created.targets:
+        try:
+            target = self.identity.resolve_reference(ref)
+        except IllegalAction:
+            continue
+        if not isinstance(target, GameObject):
+            continue
+        if (
+            target.object_kind is ObjectKind.EXTERNAL_PUBLIC_OBJECT
+            and target.zone is Zone.NONE
+            and target.current_characteristics.get("target_kind") == "PLAYER"
+            and target.current_characteristics.get("player_id") == actor
+            and actor in self.state.players
+            and self.state.players[actor].in_game
+        ):
+            return True
+        if self._is_permanent(target) and target.controller == actor and "Creature" in _types(target):
+            return True
+    return False
+
+
 def _target_matches(self: Any, actor: str, obj: GameObject, kind: str) -> bool:
     types = _types(obj)
     subtypes = _subtypes(obj)
@@ -262,6 +293,8 @@ def _target_matches(self: Any, actor: str, obj: GameObject, kind: str) -> bool:
         if permanent and _permanent_has_hexproof_from(self, actor, obj):
             return False
         return permanent and bool(types.intersection({"Creature", "Planeswalker", "Battle"}))
+    if kind == STORMTAMER_TARGET_SCHEMA:
+        return _stack_object_targets_actor_or_controlled_creature(self, actor, obj)
     if permanent and _permanent_has_hexproof_from(self, actor, obj):
         return False
     if kind == "SPELL":
@@ -300,7 +333,14 @@ def _ability_by_id(self: Any, source: GameObject, ability_id: str) -> dict[str, 
     ]
     if len(matches) != 1:
         raise IllegalAction("activated ability is unavailable")
-    return matches[0]
+    selected = matches[0]
+    if str(dict(selected.get("effect", {})).get("kind", "")) == "COUNTER_TARGETING_CONTROLLER":
+        schema = dict(selected.get("target_schema", {}))
+        if str(schema.get("kind", "")) != "SPELL_OR_ABILITY":
+            raise IllegalAction("controller-targeting counter has an invalid target schema")
+        schema["kind"] = STORMTAMER_TARGET_SCHEMA
+        selected["target_schema"] = schema
+    return selected
 
 
 def _ensure_player_target_objects(self: Any) -> dict[str, GameObject]:
