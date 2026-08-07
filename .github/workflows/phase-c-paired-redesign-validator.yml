@@ -20,6 +20,16 @@ jobs:
       - name: Preserve transformer and reset to exact reviewed parent
         run: |
           cp automation/apply_phase_c_pairing.py "$RUNNER_TEMP/apply_phase_c_pairing.py"
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("${{ runner.temp }}/apply_phase_c_pairing.py")
+          text = path.read_text()
+          old = '''    count = text.count(old)\n    if count != 1:\n        raise SystemExit(f"{path}: expected one replacement, found {count}: {old[:80]!r}")\n    target.write_text(text.replace(old, new), encoding="utf-8")\n'''
+          new = '''    count = text.count(old)\n    if count < 1:\n        raise SystemExit(f"{path}: replacement target not found: {old[:80]!r}")\n    target.write_text(text.replace(old, new, 1), encoding="utf-8")\n'''
+          if old not in text:
+              raise SystemExit("temporary replace_once helper patch not found")
+          path.write_text(text.replace(old, new, 1))
+          PY
           git checkout --detach bc849eadbb9f9f3dbad74d060f31d751ca770977
       - uses: astral-sh/setup-uv@v5
         with:
