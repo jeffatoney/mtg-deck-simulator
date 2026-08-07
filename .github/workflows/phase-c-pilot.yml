@@ -198,6 +198,12 @@ jobs:
             --expected-workflow-sha256 "${WORKFLOW_SHA256}" \
             --shard-root artifacts/downloaded-shards \
             --output-root artifacts/phase-c-pilot
+      - name: Build paired earliest-access timing
+        run: |
+          uv run python -m mtg_runs.phase_c_timing \
+            --shard-root artifacts/downloaded-shards \
+            --aggregate-root artifacts/phase-c-pilot/aggregate \
+            --output-root artifacts/phase-c-pilot/paired-timing
       - name: Upload immutable aggregate
         uses: actions/upload-artifact@v4
         with:
