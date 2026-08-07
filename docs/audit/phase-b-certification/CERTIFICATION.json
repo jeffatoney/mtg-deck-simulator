@@ -55,7 +55,7 @@
     "scripts/_certification_provenance.py": "sha256:4c8ae7545b046b53fb2b812120f47a6f94997148531abf390db7052ad65f4d06",
     "scripts/_phase_b_paths.py": "sha256:db736c8c362bd4763d9c01d77bd5f01a336a302eb07eb5d9f2bdc701ba72075f",
     "scripts/check_clean_engine_boundary.py": "sha256:e1b5623f90e19696ecc1130bb7f1917637f5483635881370002d76d1d8ba3cc9",
-    "scripts/check_full_deck_coverage.py": "sha256:6abb0e84a0859c763b8784d1e554ec17883c16b7b1e554ec17883c16b7b1e83eaf10f44f226ad11565",
+    "scripts/check_full_deck_coverage.py": "sha256:6abb0e84a0859c763b8784d1e554ec17883c16b7b1e83eaf10f44f226ad11565",
     "scripts/check_phase_b_authority.py": "sha256:3157adc84626f6d6668f17fc9175c68304949ebf060c52b9ee078db685461d68",
     "scripts/check_phase_b_certification.py": "sha256:eb6f3db5cf2dec62a4f1835f7e85410a07de01d8a7a9eee084651de623f01b8a",
     "scripts/check_phase_b_evaluator.py": "sha256:0f228306fb5ce5793d2c989b17829ae7212f0eef54136d8125d085d3f2f52b50",
