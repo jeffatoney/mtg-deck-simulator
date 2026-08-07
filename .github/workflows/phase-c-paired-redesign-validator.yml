@@ -1,0 +1,63 @@
+name: Phase C paired redesign validator
+
+on:
+  pull_request:
+    branches:
+      - phase-c/pilot-authorization
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-publish:
+    if: github.head_ref == 'staging/phase-c-paired-source'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Preserve transformer and reset to exact reviewed parent
+        run: |
+          cp automation/apply_phase_c_pairing.py "$RUNNER_TEMP/apply_phase_c_pairing.py"
+          git checkout --detach bc849eadbb9f9f3dbad74d060f31d751ca770977
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Apply paired redesign
+        run: python "$RUNNER_TEMP/apply_phase_c_pairing.py"
+      - name: Format changed Python
+        run: |
+          uv run ruff format src/mtg_runs/phase_c.py src/mtg_runs/phase_c_runner.py src/mtg_runs/phase_c_artifacts.py src/mtg_runs/phase_c_pairing.py tests/phase_c/test_phase_c_control.py tests/phase_c/test_phase_c_artifacts.py
+      - name: Lint
+        run: uv run ruff check .
+      - name: Strict type check
+        run: uv run mypy src
+      - name: Focused Phase C tests
+        run: uv run pytest tests/phase_c -q
+      - name: Full repository tests
+        run: uv run pytest -q
+      - name: Boundary and manifest gates
+        run: |
+          uv run python scripts/check_clean_engine_boundary.py
+          uv run python scripts/check_manifest.py
+      - name: No-game dry run
+        run: uv run mtg-engine phase-c-dry-run
+      - name: Verify change scope and publish bridge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git diff --check
+          git status --short
+          git config user.name "chatgpt-codex-connector[bot]"
+          git config user.email "199175422+chatgpt-codex-connector[bot]@users.noreply.github.com"
+          git add docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json docs/spec/phase-c/PHASE_C_PILOT_AUTHORIZATION.md src/mtg_runs/phase_c.py src/mtg_runs/phase_c_runner.py src/mtg_runs/phase_c_artifacts.py src/mtg_runs/phase_c_pairing.py tests/phase_c/test_phase_c_control.py tests/phase_c/test_phase_c_artifacts.py
+          git commit -m "Pair exploratory pilot to frozen standard environment subset"
+          git push --force origin HEAD:refs/heads/bridge/phase-c-paired-redesign
+          echo "BRIDGE_COMMIT=$(git rev-parse HEAD)"
