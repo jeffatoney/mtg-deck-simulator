@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from mtg_cards.full_deck import load_full_deck_specs
-from mtg_kernel.errors import IllegalAction
+from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.hashing import state_hash
 from mtg_kernel.models import TargetRef, Zone
@@ -30,6 +30,7 @@ from mtg_runs.phase_c import (
     PhaseCAuthorizationContext,
     PhaseCControlError,
     build_pilot_seed_plan,
+    build_pilot_shard_assignment,
     dry_run_phase_c,
     load_phase_c_config,
     validate_execution_authorization,
@@ -39,6 +40,7 @@ from mtg_runs.phase_c_runner import (
     _cleanup_discard_ids,
     run_phase_c_combat_smoke,
     run_phase_c_exploratory_smoke,
+    run_phase_c_paired_environment_smoke,
     run_phase_c_technical_game,
 )
 
@@ -72,15 +74,42 @@ def test_locked_config_binds_exact_policy_counts_depth_and_information_boundary(
     assert policy.value("learning_plan_sha256") == config.learning_plan_sha256
 
 
-def test_seed_plan_is_deterministic_exact_and_disjoint() -> None:
+def test_seed_plan_is_deterministic_exact_and_paired() -> None:
     config = load_phase_c_config()
     first = build_pilot_seed_plan(config)
     second = build_pilot_seed_plan(config)
     assert first == second
     assert len(first.standard) == 500
     assert len(first.exploratory) == 200
-    assert not set(first.standard).intersection(first.exploratory)
-    assert first.standard_sha256 != first.exploratory_sha256
+    assert set(first.exploratory).issubset(first.standard)
+    assert len(first.exploratory_search) == 200
+    assert not set(first.exploratory_search).intersection(first.standard)
+    assert len(set(first.pair_ids)) == 200
+    assert len(first.paired_standard_game_indexes) == 200
+    for shard_index in range(10):
+        standard_assignment = build_pilot_shard_assignment(
+            config, first, mode="STANDARD", shard_index=shard_index
+        )
+        exploratory_assignment = build_pilot_shard_assignment(
+            config, first, mode="EXPLORATORY", shard_index=shard_index
+        )
+        assert len([value for value in standard_assignment.pair_ids if value is not None]) == 20
+        assert exploratory_assignment.seeds == tuple(
+            seed
+            for seed, pair_id in zip(
+                standard_assignment.seeds, standard_assignment.pair_ids, strict=True
+            )
+            if pair_id is not None
+        )
+        assert all(value is not None for value in exploratory_assignment.search_seeds)
+
+
+def test_paired_modes_share_environment_but_not_search_rng() -> None:
+    smoke = run_phase_c_paired_environment_smoke(environment_seed=505, search_seed=606)
+    assert smoke["status"] == "PASS"
+    assert smoke["opening_environment_equal"] is True
+    assert smoke["standard_search_seed"] is None
+    assert smoke["exploratory_search_seed"] == 606
 
 
 def test_dry_run_derives_readiness_from_real_smokes_and_creates_no_result() -> None:
@@ -92,10 +121,13 @@ def test_dry_run_derives_readiness_from_real_smokes_and_creates_no_result() -> N
     assert report.full_study_execution_allowed is False
     assert report.readiness_blockers == ()
     assert report.exploratory_production_decision_layer_depth == 1
+    assert report.paired_game_count == 200
+    assert report.exploratory_search_seed_sha256 != report.exploratory_seed_sha256
     assert set(report.readiness_evidence) == {
         "CONTROLLED_TURN_DRIVER_NOT_IMPLEMENTED",
         "COMBAT_ACTION_PATH_NOT_IMPLEMENTED",
         "EXPLORATORY_PRODUCTION_EXPANSION_NOT_IMPLEMENTED",
+        "PAIRED_EXPLORATORY_DESIGN_NOT_IMPLEMENTED",
         "COMBO_ACCESS_DETECTORS_INCOMPLETE",
     }
     assert all(value["status"] == "PASS" for value in report.readiness_evidence.values())
@@ -450,4 +482,60 @@ def test_activation_rejects_unexpected_code_change_and_git_sha256_domain_mix(
             approval_path=approval_path,
             workflow_path=root / ".github/workflows/phase-c-pilot.yml",
             root=root,
+        )
+
+
+def test_order_library_bottom_is_exact_deterministic_and_evaluator_bound() -> None:
+    bundle = next(
+        item for item in load_policy_matrix() if item.policy_config_id == "anchor_balanced"
+    )
+    evaluator = ContextualEvaluator(load_evaluator_config())
+    provider = PolicyStrategicChoiceProvider(bundle, evaluator)
+    cards = (
+        PublicCard("bottom-a", "Island", 0, ("Land",), ()),
+        PublicCard("bottom-b", "Twinflame", 2, ("Sorcery",), ()),
+        PublicCard("bottom-c", "Opt", 1, ("Instant",), ()),
+    )
+    request = CardSelectionRequest(
+        request_id="order-library-bottom",
+        actor_id="P0",
+        ability_id="impulse",
+        purpose="ORDER_LIBRARY_BOTTOM",
+        turn_number=3,
+        observation={"generation": 1, "player": "P0", "objects": [], "turn": {"number": 3}},
+        candidates=cards,
+        minimum=3,
+        maximum=3,
+    )
+    evaluations = {
+        card.handle: evaluator.evaluate_pile((card,), request.observation).score for card in cards
+    }
+    expected = tuple(
+        card.handle
+        for card in sorted(
+            cards,
+            key=lambda card: (evaluations[card.handle], card.identity, card.handle),
+        )
+    )
+    first = provider.choose_cards(request)
+    second = provider.choose_cards(request)
+    assert first == second
+    assert first.selected_handles == expected
+    assert set(first.selected_handles) == {card.handle for card in cards}
+    assert first.evaluator_id == evaluator.config.evaluator_id
+    assert first.evaluator_sha256 == evaluator.config.config_sha256
+    assert first.diagnostics["purpose"] == "ORDER_LIBRARY_BOTTOM"
+    with pytest.raises(UnsupportedCapability, match="exact ordering"):
+        provider.choose_cards(
+            CardSelectionRequest(
+                request_id="bad-bottom-order",
+                actor_id="P0",
+                ability_id="impulse",
+                purpose="ORDER_LIBRARY_BOTTOM",
+                turn_number=3,
+                observation=request.observation,
+                candidates=cards,
+                minimum=2,
+                maximum=3,
+            )
         )

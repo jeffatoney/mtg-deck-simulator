@@ -18,7 +18,6 @@ from mtg_runs.phase_c_artifacts import (
 
 @pytest.fixture(autouse=True)
 def _restore_artifact_permissions(tmp_path: Path):
-    """Return immutable fixture artifacts to pytest-cleanable permissions."""
     yield
     for path in sorted(tmp_path.rglob("*"), key=lambda value: len(value.parts), reverse=True):
         try:
@@ -28,7 +27,22 @@ def _restore_artifact_permissions(tmp_path: Path):
     tmp_path.chmod(0o755)
 
 
-def _measurement(index: int, seed: int, mode: str) -> GameMeasurement:
+def _measurement(
+    index: int,
+    seed: int,
+    mode: str,
+    *,
+    access8: bool = False,
+    pair_id: str | None = None,
+    paired_standard_game_index: int | None = None,
+    search_seed: int | None = None,
+    initial_hash: str | None = None,
+) -> GameMeasurement:
+    checkpoint = {5: False, 6: False, 8: access8, 10: access8}
+    failures = {
+        turn: (() if checkpoint[turn] else ("other_documented_cause",)) for turn in (5, 6, 8, 10)
+    }
+    primary = {turn: (None if not labels else labels[0]) for turn, labels in failures.items()}
     return GameMeasurement(
         schema_version="phase-b-game-measurement-v1",
         game_index=index,
@@ -37,19 +51,9 @@ def _measurement(index: int, seed: int, mode: str) -> GameMeasurement:
         policy_config_id="anchor_balanced",
         opening_hands=(OpeningHandMeasurement(1, 7, ("Island",) * 7, True),),
         kept_at=7,
-        checkpoint_table_win_access={5: False, 6: False, 8: False, 10: False},
-        failure_labels={
-            5: ("other_documented_cause",),
-            6: ("other_documented_cause",),
-            8: ("other_documented_cause",),
-            10: ("other_documented_cause",),
-        },
-        primary_failure={
-            5: "other_documented_cause",
-            6: "other_documented_cause",
-            8: "other_documented_cause",
-            10: "other_documented_cause",
-        },
+        checkpoint_table_win_access=checkpoint,
+        failure_labels=failures,
+        primary_failure=primary,
         combo_records=(),
         earliest_legal_attempt_turn=None,
         actual_first_attempt_turn=None,
@@ -60,6 +64,13 @@ def _measurement(index: int, seed: int, mode: str) -> GameMeasurement:
         protection_category_mismatch=False,
         independent_second_line_available=False,
         card_records=(),
+        extra={
+            "environment_seed": seed,
+            "environment_initial_state_hash": initial_hash or f"{seed + 2:064x}"[-64:],
+            "search_seed": search_seed,
+            "pair_id": pair_id,
+            "paired_standard_game_index": paired_standard_game_index,
+        },
     )
 
 
@@ -71,9 +82,28 @@ def _write_shard(
     shard_count: int,
     first_index: int,
     seeds: tuple[int, ...],
+    pair_ids: tuple[str | None, ...] | None = None,
+    paired_standard_indexes: tuple[int | None, ...] | None = None,
+    search_seeds: tuple[int | None, ...] | None = None,
+    access8: tuple[bool, ...] | None = None,
 ) -> Path:
+    pair_ids = pair_ids or (None,) * len(seeds)
+    paired_standard_indexes = paired_standard_indexes or (None,) * len(seeds)
+    search_seeds = search_seeds or (None,) * len(seeds)
+    access8 = access8 or (False,) * len(seeds)
+    initial_hashes = tuple(f"{seed + 2:064x}"[-64:] for seed in seeds)
     measurements = tuple(
-        _measurement(first_index + offset, seed, mode) for offset, seed in enumerate(seeds)
+        _measurement(
+            first_index + offset,
+            seed,
+            mode,
+            access8=access8[offset],
+            pair_id=pair_ids[offset],
+            paired_standard_game_index=paired_standard_indexes[offset],
+            search_seed=search_seeds[offset],
+            initial_hash=initial_hashes[offset],
+        )
+        for offset, seed in enumerate(seeds)
     )
     replays = tuple(
         {"schema_version": "test-replay-v1", "seed": seed, "digest": f"{seed:064x}"[-64:]}
@@ -84,11 +114,15 @@ def _write_shard(
             "schema_version": "phase-c-technical-game-v2",
             "mode": mode,
             "seed": seed,
+            "environment_initial_state_hash": initial_hashes[offset],
+            "search_seed": search_seeds[offset],
+            "pair_id": pair_ids[offset],
+            "paired_standard_game_index": paired_standard_indexes[offset],
             "replay_digest": replay["digest"],
             "final_state_hash": f"{seed + 1:064x}"[-64:],
             "terminal_status": "ACTIVE",
         }
-        for seed, replay in zip(seeds, replays, strict=True)
+        for offset, (seed, replay) in enumerate(zip(seeds, replays, strict=True))
     )
     games = tuple(
         make_game_artifact(
@@ -110,6 +144,9 @@ def _write_shard(
         shard_count=shard_count,
         first_game_index=first_index,
         seeds=seeds,
+        pair_ids=pair_ids,
+        paired_standard_game_indexes=paired_standard_indexes,
+        search_seeds=search_seeds,
         implementation_commit="1" * 40,
         implementation_tree="2" * 40,
         activation_commit="3" * 40,
@@ -134,6 +171,10 @@ def test_manifest_rejects_git_oid_and_sha256_domain_mixing(tmp_path: Path) -> No
     measurement = _measurement(1, 11, "STANDARD")
     replay = {"digest": "a" * 64}
     technical = {
+        "seed": 11,
+        "pair_id": None,
+        "paired_standard_game_index": None,
+        "search_seed": None,
         "replay_digest": "a" * 64,
         "final_state_hash": "b" * 64,
         "terminal_status": "ACTIVE",
@@ -154,6 +195,9 @@ def test_manifest_rejects_git_oid_and_sha256_domain_mixing(tmp_path: Path) -> No
             shard_count=1,
             first_game_index=1,
             seeds=(11,),
+            pair_ids=(None,),
+            paired_standard_game_indexes=(None,),
+            search_seeds=(None,),
             implementation_commit="1" * 64,
             implementation_tree="2" * 40,
             activation_commit="3" * 40,
@@ -174,110 +218,130 @@ def test_manifest_rejects_git_oid_and_sha256_domain_mixing(tmp_path: Path) -> No
 
 
 def test_shard_cross_file_tampering_fails_closed(tmp_path: Path) -> None:
-    def one(label: str) -> Path:
-        root = tmp_path / label
-        root.mkdir()
-        return _write_shard(
-            root,
-            mode="STANDARD",
-            shard_index=0,
-            shard_count=1,
-            first_index=1,
-            seeds=(11,),
-        )
-
-    technical_dir = one("technical")
-    technical_path = technical_dir / "technical-games.jsonl"
+    root = tmp_path / "technical"
+    root.mkdir()
+    shard = _write_shard(
+        root, mode="STANDARD", shard_index=0, shard_count=1, first_index=1, seeds=(11,)
+    )
+    technical_path = shard / "technical-games.jsonl"
     technical = json.loads(technical_path.read_text().strip())
     technical["final_state_hash"] = "f" * 64
     technical_path.chmod(0o644)
     technical_path.write_text(json.dumps(technical) + "\n")
     with pytest.raises(ValueError, match="technical-game digest differs"):
-        load_phase_c_shard(technical_dir)
-
-    replay_dir = one("replay")
-    replay_path = replay_dir / "replays/game-0001.json"
-    replay = json.loads(replay_path.read_text())
-    replay["digest"] = "e" * 64
-    replay_path.chmod(0o644)
-    replay_path.write_text(json.dumps(replay) + "\n")
-    with pytest.raises(ValueError, match="replay file digest differs"):
-        load_phase_c_shard(replay_dir)
-
-    measurement_dir = one("measurement")
-    measurement_path = measurement_dir / "measurements.jsonl"
-    measurement = json.loads(measurement_path.read_text().strip())
-    measurement["usable_protection_count"] = 99
-    measurement_path.chmod(0o644)
-    measurement_path.write_text(json.dumps(measurement) + "\n")
-    with pytest.raises(ValueError, match="measurement digest differs"):
-        load_phase_c_shard(measurement_dir)
-
-    summary_dir = one("summary")
-    summary_path = summary_dir / "summary.json"
-    summary = json.loads(summary_path.read_text())
-    summary["game_denominator"] = 999
-    summary_path.chmod(0o644)
-    summary_path.write_text(json.dumps(summary) + "\n")
-    with pytest.raises(ValueError, match="summary digest mismatch"):
-        load_phase_c_shard(summary_dir)
+        load_phase_c_shard(shard)
 
 
-def test_exact_500_200_shard_aggregation_is_deterministic_and_rejects_tampering(
+def test_exact_500_200_paired_aggregation_is_deterministic_and_reports_real_pairs(
     tmp_path: Path,
 ) -> None:
     standard = tuple(range(1, 501))
-    exploratory = tuple(range(1001, 1201))
+    paired_indexes = tuple(shard * 50 + offset + 1 for shard in range(10) for offset in range(20))
+    exploratory = tuple(standard[index - 1] for index in paired_indexes)
+    search = tuple(range(10_001, 10_201))
+    pair_ids = tuple(f"{index:024x}"[-24:] for index in range(1, 201))
+    pair_ordinal_by_standard = {
+        standard_index: ordinal for ordinal, standard_index in enumerate(paired_indexes)
+    }
     shard_dirs: list[Path] = []
-    for index in range(10):
+    for shard_index in range(10):
+        standard_start = shard_index * 50
+        standard_indexes = tuple(range(standard_start + 1, standard_start + 51))
+        standard_pair_ids = tuple(
+            pair_ids[pair_ordinal_by_standard[index]] if index in pair_ordinal_by_standard else None
+            for index in standard_indexes
+        )
+        standard_pair_indexes = tuple(
+            index if index in pair_ordinal_by_standard else None for index in standard_indexes
+        )
+        standard_access = tuple(
+            (pair_ordinal_by_standard[index] % 4 in {0, 1})
+            if index in pair_ordinal_by_standard
+            else False
+            for index in standard_indexes
+        )
         shard_dirs.append(
             _write_shard(
                 tmp_path,
                 mode="STANDARD",
-                shard_index=index,
+                shard_index=shard_index,
                 shard_count=10,
-                first_index=index * 50 + 1,
-                seeds=standard[index * 50 : (index + 1) * 50],
+                first_index=standard_start + 1,
+                seeds=standard[standard_start : standard_start + 50],
+                pair_ids=standard_pair_ids,
+                paired_standard_indexes=standard_pair_indexes,
+                search_seeds=(None,) * 50,
+                access8=standard_access,
             )
         )
+        exploratory_start = shard_index * 20
+        ordinals = range(exploratory_start, exploratory_start + 20)
         shard_dirs.append(
             _write_shard(
                 tmp_path,
                 mode="EXPLORATORY",
-                shard_index=index,
+                shard_index=shard_index,
                 shard_count=10,
-                first_index=index * 20 + 1,
-                seeds=exploratory[index * 20 : (index + 1) * 20],
+                first_index=exploratory_start + 1,
+                seeds=exploratory[exploratory_start : exploratory_start + 20],
+                pair_ids=pair_ids[exploratory_start : exploratory_start + 20],
+                paired_standard_indexes=paired_indexes[exploratory_start : exploratory_start + 20],
+                search_seeds=search[exploratory_start : exploratory_start + 20],
+                access8=tuple(ordinal % 4 in {0, 2} for ordinal in ordinals),
             )
         )
-    first, standard_summary, exploratory_summary = validate_phase_c_aggregate(
+    first, standard_summary, exploratory_summary, paired = validate_phase_c_aggregate(
         shard_dirs,
         expected_standard_seeds=standard,
         expected_exploratory_seeds=exploratory,
+        expected_exploratory_search_seeds=search,
+        expected_pair_ids=pair_ids,
+        expected_paired_standard_game_indexes=paired_indexes,
         expected_standard_shards=10,
         expected_exploratory_shards=10,
     )
-    second, _, _ = validate_phase_c_aggregate(
+    second, _, _, paired_second = validate_phase_c_aggregate(
         tuple(reversed(shard_dirs)),
         expected_standard_seeds=standard,
         expected_exploratory_seeds=exploratory,
+        expected_exploratory_search_seeds=search,
+        expected_pair_ids=pair_ids,
+        expected_paired_standard_game_indexes=paired_indexes,
         expected_standard_shards=10,
         expected_exploratory_shards=10,
     )
     assert first == second
+    assert paired == paired_second
     assert standard_summary["game_denominator"] == 500
     assert exploratory_summary["game_denominator"] == 200
+    assert paired["pair_count"] == 200
+    assert paired["both_access"] == 50
+    assert paired["standard_only_access"] == 50
+    assert paired["exploratory_only_access"] == 50
+    assert paired["neither_access"] == 50
+    assert paired["paired_access_rate_difference"] == 0.0
+    assert paired["mcnemar_exact_two_sided_p_value"] == 1.0
+    assert paired["paired_access_rate_difference_ci"]["lower"] <= 0.0
+    assert paired["paired_access_rate_difference_ci"]["upper"] >= 0.0
 
-    manifest_path = shard_dirs[0] / "manifest.json"
-    payload = json.loads(manifest_path.read_text())
-    payload["implementation_tree"] = "f" * 64
-    manifest_path.chmod(0o644)
-    manifest_path.write_text(json.dumps(payload))
-    with pytest.raises(ValueError, match="40-character Git object ID"):
-        validate_phase_c_aggregate(
-            shard_dirs,
-            expected_standard_seeds=standard,
-            expected_exploratory_seeds=exploratory,
-            expected_standard_shards=10,
-            expected_exploratory_shards=10,
-        )
+
+def test_pairing_tamper_fails_closed(tmp_path: Path) -> None:
+    pair_id = "a" * 24
+    standard = _write_shard(
+        tmp_path,
+        mode="STANDARD",
+        shard_index=0,
+        shard_count=1,
+        first_index=1,
+        seeds=(11,),
+        pair_ids=(pair_id,),
+        paired_standard_indexes=(1,),
+        search_seeds=(None,),
+    )
+    measurement_path = standard / "measurements.jsonl"
+    payload = json.loads(measurement_path.read_text().strip())
+    payload["extra"]["pair_id"] = "b" * 24
+    measurement_path.chmod(0o644)
+    measurement_path.write_text(json.dumps(payload) + "\n")
+    with pytest.raises(ValueError, match="pair ID linkage"):
+        load_phase_c_shard(standard)

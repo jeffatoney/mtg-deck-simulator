@@ -185,6 +185,20 @@ class PolicyStrategicChoiceProvider:
                 ),
             )
             selected = tuple(card.handle for card in ordered[: request.minimum])
+        elif request.purpose == "ORDER_LIBRARY_BOTTOM":
+            if request.minimum != request.maximum or request.minimum != len(request.candidates):
+                raise UnsupportedCapability(
+                    "ORDER_LIBRARY_BOTTOM requires an exact ordering of every public candidate"
+                )
+            ordered = sorted(
+                request.candidates,
+                key=lambda card: (
+                    evaluations[card.handle],
+                    card.identity,
+                    card.handle,
+                ),
+            )
+            selected = tuple(card.handle for card in ordered)
         elif request.purpose.startswith("TUTOR_"):
             # Search effects expose only the rules-eligible candidate set through
             # opaque handles.  Rank those candidates with the same frozen tutor

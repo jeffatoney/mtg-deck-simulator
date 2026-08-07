@@ -28,7 +28,6 @@ from mtg_measure import (
     ComboAccessSnapshot,
     ComboAccessTracker,
     ComboMeasurement,
-    DivergenceMeasurement,
     GameMeasurement,
     OpeningHandMeasurement,
     bind_combo_access_tracker,
@@ -97,6 +96,10 @@ class PhaseCTechnicalGame:
     schema_version: str
     mode: str
     seed: int
+    environment_initial_state_hash: str
+    search_seed: int | None
+    pair_id: str | None
+    paired_standard_game_index: int | None
     policy_config_id: str
     opening_hands: tuple[OpeningHandRecord, ...]
     controlled_turns_completed: int
@@ -124,6 +127,10 @@ class PhaseCTechnicalGame:
             raise ValueError("technical game fresh replay diverged")
         if self.mode == "STANDARD" and self.exploratory_decision_layer_depth != 0:
             raise ValueError("standard technical games cannot report exploratory depth")
+        if self.mode == "STANDARD" and self.search_seed is not None:
+            raise ValueError("standard technical games cannot consume exploratory search seeds")
+        if self.mode == "EXPLORATORY" and self.search_seed is None:
+            raise ValueError("exploratory technical games require a separate search seed")
         if self.mode == "EXPLORATORY" and self.exploratory_decision_layer_depth != 1:
             raise ValueError(
                 "exploratory technical games must report one production decision layer"
@@ -476,9 +483,9 @@ def _combo_evaluation(executor: GameExecutor, tracker: ComboAccessTracker) -> Se
 class _OneLayerExplorer:
     """One audited production decision layer under the frozen Phase B hard caps."""
 
-    def __init__(self, policy_config_id: str, game_seed: int) -> None:
+    def __init__(self, policy_config_id: str, search_seed: int) -> None:
         self.policy_config_id = policy_config_id
-        self.game_seed = game_seed
+        self.search_seed = search_seed
         self.search = BoundedExplorer()
         self.search.begin_game()
         self.records: list[ExploratoryDecisionRecord] = []
@@ -527,7 +534,7 @@ class _OneLayerExplorer:
 
         belief_seed = int.from_bytes(
             hashlib.sha256(
-                f"phase-c-belief:{self.game_seed}:{executor.state.turn.number}:"
+                f"phase-c-belief:{self.search_seed}:{executor.state.turn.number}:"
                 f"{executor.state.turn.step}:{len(self.records)}".encode()
             ).digest()[:8],
             "big",
@@ -748,6 +755,10 @@ def _build_game_measurement(
     policy_config_id: str,
     capture: _GameMeasurementCapture,
     exploratory_records: tuple[ExploratoryDecisionRecord, ...],
+    environment_initial_state_hash: str,
+    search_seed: int | None,
+    pair_id: str | None,
+    paired_standard_game_index: int | None,
 ) -> GameMeasurement:
     checkpoints = (5, 6, 8, 10)
     checkpoint_access = {
@@ -873,30 +884,13 @@ def _build_game_measurement(
             )
         )
 
-    divergence: DivergenceMeasurement | None = None
+    # Single exploratory executions record choice divergence diagnostics only.
+    # Paired outcome comparison is constructed later from two executions sharing
+    # the same environment seed; never write the same game's result into both arms.
     first_divergence = next(
         (record for record in exploratory_records if record.first_divergence), None
     )
-    if first_divergence is not None:
-        divergence = DivergenceMeasurement(
-            paired_seed=seed,
-            standard_result=executor.state.terminal.status,
-            exploratory_result=executor.state.terminal.status,
-            first_decision_divergence=(
-                f"{first_divergence.standard_action}->{first_divergence.exploratory_action}"
-            ),
-            visible_information={
-                "turn": first_divergence.turn,
-                "phase": first_divergence.phase,
-                "step": first_divergence.step,
-            },
-            win_turn_change=None,
-            narrow_condition=False,
-            branches_searched=first_divergence.branches_searched,
-            nodes_evaluated=first_divergence.nodes_evaluated,
-            depth_reached=first_divergence.decision_layer_depth,
-            selected_before_future_draws=True,
-        )
+    divergence = None
 
     usable_protection = int(
         any(record.legally_executable and record.usable_protection for record in tracker.records)
@@ -941,6 +935,14 @@ def _build_game_measurement(
         terminal_status=executor.state.terminal.status,
         terminal_turn=(int(executor.state.turn.number) if terminal else None),
         extra={
+            "environment_seed": seed,
+            "environment_initial_state_hash": environment_initial_state_hash,
+            "search_seed": search_seed,
+            "pair_id": pair_id,
+            "paired_standard_game_index": paired_standard_game_index,
+            "first_decision_divergence": (
+                None if first_divergence is None else asdict(first_divergence)
+            ),
             "selected_actions": tuple(capture.selected_actions),
             "combo_checkpoint_blockers": {
                 str(turn): {
@@ -961,6 +963,9 @@ def run_phase_c_game_execution(
     *,
     seed: int,
     mode: str,
+    search_seed: int | None = None,
+    pair_id: str | None = None,
+    paired_standard_game_index: int | None = None,
     policy_config_id: str = "anchor_balanced",
     through_turn: int = 10,
     validate_fresh_replay: bool = True,
@@ -971,8 +976,17 @@ def run_phase_c_game_execution(
         raise ValueError("Phase C technical mode must be STANDARD or EXPLORATORY")
     if through_turn < 1 or through_turn > 10:
         raise ValueError("Phase C technical turn horizon must be within 1..10")
-    seed_text = f"phase-c:{mode.lower()}:{seed}"
+    if mode == "STANDARD" and search_seed is not None:
+        raise ValueError("STANDARD execution cannot receive an exploratory search seed")
+    effective_search_seed = search_seed
+    if mode == "EXPLORATORY" and effective_search_seed is None:
+        effective_search_seed = int.from_bytes(
+            hashlib.sha256(f"phase-c-technical-search-v1:{seed}".encode()).digest()[:8],
+            "big",
+        )
+    seed_text = f"phase-c:standard:{seed}"
     state, executor, _ = build_exact_game(seed_text, PLAYER_IDS)
+    environment_initial_state_hash = state_hash(state)
     policy, provider, evaluator_config = _bound_policy(executor, policy_config_id)
     tracker = bind_combo_access_tracker(
         executor, CONTROLLED_PLAYER, evaluator_config.combo_packages
@@ -984,11 +998,11 @@ def run_phase_c_game_execution(
     executor.league_mulligan(CONTROLLED_PLAYER, keep_index)
     opening = _finalize_refill_names(executor, opening)
 
-    explorer = (
-        _OneLayerExplorer(policy_config_id, seed)
-        if mode == "EXPLORATORY" and policy_actions
-        else None
-    )
+    explorer = None
+    if mode == "EXPLORATORY" and policy_actions:
+        if effective_search_seed is None:
+            raise ValueError("EXPLORATORY execution requires a search seed")
+        explorer = _OneLayerExplorer(policy_config_id, effective_search_seed)
     completed_turns = 0
     for turn_number in range(1, through_turn + 1):
         if state.terminal.status != "ACTIVE":
@@ -1090,6 +1104,10 @@ def run_phase_c_game_execution(
         schema_version="phase-c-technical-game-v2",
         mode=mode,
         seed=seed,
+        environment_initial_state_hash=environment_initial_state_hash,
+        search_seed=effective_search_seed,
+        pair_id=pair_id,
+        paired_standard_game_index=paired_standard_game_index,
         policy_config_id=policy_config_id,
         opening_hands=opening,
         controlled_turns_completed=completed_turns,
@@ -1114,6 +1132,10 @@ def run_phase_c_game_execution(
         policy_config_id=policy_config_id,
         capture=capture,
         exploratory_records=exploratory_records,
+        environment_initial_state_hash=environment_initial_state_hash,
+        search_seed=effective_search_seed,
+        pair_id=pair_id,
+        paired_standard_game_index=paired_standard_game_index,
     )
     return PhaseCGameExecution(
         schema_version="phase-c-game-execution-v1",
@@ -1141,6 +1163,53 @@ def run_phase_c_technical_game(
         validate_fresh_replay=validate_fresh_replay,
         policy_actions=policy_actions,
     ).technical_game
+
+
+def run_phase_c_paired_environment_smoke(
+    *, environment_seed: int = 505, search_seed: int = 606
+) -> dict[str, Any]:
+    """Prove paired modes start from the same environment and separate search RNG."""
+    pair_id = hashlib.sha256(f"technical-pair:{environment_seed}".encode()).hexdigest()[:24]
+    standard = run_phase_c_game_execution(
+        seed=environment_seed,
+        mode="STANDARD",
+        pair_id=pair_id,
+        paired_standard_game_index=1,
+        through_turn=1,
+        validate_fresh_replay=False,
+        policy_actions=True,
+    )
+    exploratory = run_phase_c_game_execution(
+        seed=environment_seed,
+        mode="EXPLORATORY",
+        search_seed=search_seed,
+        pair_id=pair_id,
+        paired_standard_game_index=1,
+        through_turn=1,
+        validate_fresh_replay=False,
+        policy_actions=True,
+    )
+    if (
+        standard.technical_game.environment_initial_state_hash
+        != exploratory.technical_game.environment_initial_state_hash
+    ):
+        raise UnsupportedCapability("paired modes did not share the same environment state")
+    if standard.technical_game.opening_hands != exploratory.technical_game.opening_hands:
+        raise UnsupportedCapability("paired modes did not share the same opening environment")
+    if standard.technical_game.search_seed is not None:
+        raise UnsupportedCapability("standard mode consumed a search seed")
+    if exploratory.technical_game.search_seed != search_seed:
+        raise UnsupportedCapability("exploratory mode did not bind its separate search seed")
+    return {
+        "status": "PASS",
+        "pair_id": pair_id,
+        "environment_seed": environment_seed,
+        "search_seed": search_seed,
+        "environment_initial_state_hash": standard.technical_game.environment_initial_state_hash,
+        "opening_environment_equal": True,
+        "standard_search_seed": None,
+        "exploratory_search_seed": search_seed,
+    }
 
 
 def run_phase_c_combat_smoke(*, seed: int = 303) -> dict[str, Any]:

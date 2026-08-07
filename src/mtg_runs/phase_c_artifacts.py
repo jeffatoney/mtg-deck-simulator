@@ -14,6 +14,11 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from mtg_runs.phase_c_pairing import (
+    PAIRED_GAME_COUNT,
+    build_paired_turn8_analysis,
+)
+
 from mtg_measure import (
     CardMeasurement,
     ComboMeasurement,
@@ -106,6 +111,9 @@ class PhaseCShardManifest:
     first_game_index: int
     last_game_index: int
     seeds: tuple[int, ...]
+    pair_ids: tuple[str | None, ...]
+    paired_standard_game_indexes: tuple[int | None, ...]
+    search_seeds: tuple[int | None, ...]
     implementation_commit: str
     implementation_tree: str
     activation_commit: str
@@ -118,6 +126,8 @@ class PhaseCShardManifest:
     evaluator_snapshot_sha256: str
     learning_plan_sha256: str
     seed_sha256: str
+    pairing_sha256: str
+    search_seed_sha256: str
     technical_games_sha256: str
     game_records_sha256: str
     replay_bundle_sha256: str
@@ -140,6 +150,30 @@ class PhaseCShardManifest:
             raise ValueError("Phase C shard seed count does not match its game-index range")
         if len(self.seeds) != len(set(self.seeds)):
             raise ValueError("Phase C shard contains duplicate seeds")
+        if not (
+            len(self.pair_ids)
+            == len(self.paired_standard_game_indexes)
+            == len(self.search_seeds)
+            == len(self.seeds)
+        ):
+            raise ValueError("Phase C shard pairing metadata length mismatch")
+        nonempty_pair_ids = [value for value in self.pair_ids if value is not None]
+        if len(nonempty_pair_ids) != len(set(nonempty_pair_ids)):
+            raise ValueError("Phase C shard contains duplicate pair IDs")
+        if any(
+            value is not None
+            and (len(value) != 24 or any(char not in "0123456789abcdef" for char in value))
+            for value in self.pair_ids
+        ):
+            raise ValueError("Phase C pair IDs must be lowercase 24-character hex values")
+        if self.mode == "STANDARD" and any(value is not None for value in self.search_seeds):
+            raise ValueError("standard shard cannot contain exploratory search seeds")
+        if self.mode == "EXPLORATORY" and (
+            any(value is None for value in self.pair_ids)
+            or any(value is None for value in self.paired_standard_game_indexes)
+            or any(value is None for value in self.search_seeds)
+        ):
+            raise ValueError("exploratory shard requires complete pairing/search metadata")
         for label, value in (
             ("implementation commit", self.implementation_commit),
             ("implementation tree", self.implementation_tree),
@@ -154,6 +188,8 @@ class PhaseCShardManifest:
             ("evaluator digest", self.evaluator_snapshot_sha256),
             ("learning-plan digest", self.learning_plan_sha256),
             ("seed digest", self.seed_sha256),
+            ("pairing digest", self.pairing_sha256),
+            ("search-seed digest", self.search_seed_sha256),
             ("technical-game digest", self.technical_games_sha256),
             ("game-record digest", self.game_records_sha256),
             ("replay-bundle digest", self.replay_bundle_sha256),
@@ -193,6 +229,10 @@ class PhaseCAggregateManifest:
     exploratory_game_count: int
     standard_seed_sha256: str
     exploratory_seed_sha256: str
+    exploratory_search_seed_sha256: str
+    pair_assignment_sha256: str
+    paired_game_count: int
+    paired_analysis_sha256: str
     standard_shard_count: int
     exploratory_shard_count: int
     standard_summary_sha256: str
@@ -202,7 +242,7 @@ class PhaseCAggregateManifest:
     aggregation_sha256: str
 
     def __post_init__(self) -> None:
-        if self.schema_version != "phase-c-pilot-aggregate-manifest-v1":
+        if self.schema_version != "phase-c-pilot-aggregate-manifest-v2":
             raise ValueError("unsupported Phase C aggregate schema")
         for label, value in (
             ("implementation commit", self.implementation_commit),
@@ -216,6 +256,9 @@ class PhaseCAggregateManifest:
             ("approval digest", self.approval_record_sha256),
             ("standard seed digest", self.standard_seed_sha256),
             ("exploratory seed digest", self.exploratory_seed_sha256),
+            ("exploratory search seed digest", self.exploratory_search_seed_sha256),
+            ("pair assignment digest", self.pair_assignment_sha256),
+            ("paired analysis digest", self.paired_analysis_sha256),
             ("standard summary digest", self.standard_summary_sha256),
             ("exploratory summary digest", self.exploratory_summary_sha256),
             ("aggregate digest", self.aggregation_sha256),
@@ -225,6 +268,8 @@ class PhaseCAggregateManifest:
             raise ValueError("aggregate contains a non-SHA-256 shard manifest digest")
         if self.standard_game_count != 500 or self.exploratory_game_count != 200:
             raise ValueError("Phase C aggregate must contain exactly 500/200 games")
+        if self.paired_game_count != PAIRED_GAME_COUNT:
+            raise ValueError("Phase C aggregate must contain exactly 200 paired comparisons")
         if self.standard_shard_count < 1 or self.exploratory_shard_count < 1:
             raise ValueError("Phase C aggregate shard counts must be positive")
         if not self.pilot_authorized:
@@ -343,6 +388,9 @@ def build_shard_manifest(
     shard_count: int,
     first_game_index: int,
     seeds: Sequence[int],
+    pair_ids: Sequence[str | None],
+    paired_standard_game_indexes: Sequence[int | None],
+    search_seeds: Sequence[int | None],
     implementation_commit: str,
     implementation_tree: str,
     activation_commit: str,
@@ -375,6 +423,9 @@ def build_shard_manifest(
         "first_game_index": first_game_index,
         "last_game_index": first_game_index + len(seed_tuple) - 1,
         "seeds": seed_tuple,
+        "pair_ids": tuple(pair_ids),
+        "paired_standard_game_indexes": tuple(paired_standard_game_indexes),
+        "search_seeds": tuple(search_seeds),
         "implementation_commit": implementation_commit,
         "implementation_tree": implementation_tree,
         "activation_commit": activation_commit,
@@ -387,6 +438,19 @@ def build_shard_manifest(
         "evaluator_snapshot_sha256": evaluator_snapshot_sha256,
         "learning_plan_sha256": learning_plan_sha256,
         "seed_sha256": _digest(seed_tuple),
+        "pairing_sha256": _digest(
+            [
+                {
+                    "pair_id": pair_id,
+                    "standard_game_index": standard_index,
+                    "environment_seed": seed,
+                }
+                for pair_id, standard_index, seed in zip(
+                    pair_ids, paired_standard_game_indexes, seed_tuple, strict=True
+                )
+            ]
+        ),
+        "search_seed_sha256": _digest(tuple(search_seeds)),
         "technical_games_sha256": _digest(technical_dicts),
         "game_records_sha256": _digest(record_dicts),
         "replay_bundle_sha256": _digest(replay_digests),
@@ -429,9 +493,22 @@ def _validate_shard_payloads(
     if [record.seed for record in game_records] != list(manifest.seeds):
         raise ValueError("Phase C game artifacts do not match the manifest seed assignment")
 
-    for expected_index, expected_seed, game, technical, replay, measurement in zip(
+    for (
+        expected_index,
+        expected_seed,
+        expected_pair_id,
+        expected_standard_index,
+        expected_search_seed,
+        game,
+        technical,
+        replay,
+        measurement,
+    ) in zip(
         expected_indexes,
         manifest.seeds,
+        manifest.pair_ids,
+        manifest.paired_standard_game_indexes,
+        manifest.search_seeds,
         game_records,
         technical_games,
         replays,
@@ -448,6 +525,23 @@ def _validate_shard_payloads(
             raise ValueError("Phase C technical-game mode differs from the shard manifest")
         if int(technical.get("seed", -1)) != expected_seed:
             raise ValueError("Phase C technical-game seed differs from the shard manifest")
+        if (
+            technical.get("pair_id") != expected_pair_id
+            or measurement.extra.get("pair_id") != expected_pair_id
+        ):
+            raise ValueError("Phase C per-game pair ID linkage is inconsistent")
+        if (
+            technical.get("paired_standard_game_index") != expected_standard_index
+            or measurement.extra.get("paired_standard_game_index") != expected_standard_index
+        ):
+            raise ValueError("Phase C paired standard index linkage is inconsistent")
+        if (
+            technical.get("search_seed") != expected_search_seed
+            or measurement.extra.get("search_seed") != expected_search_seed
+        ):
+            raise ValueError("Phase C per-game search seed linkage is inconsistent")
+        if measurement.extra.get("environment_seed") != expected_seed:
+            raise ValueError("Phase C measurement environment seed linkage is inconsistent")
         if _digest(technical) != game.technical_game_sha256:
             raise ValueError("Phase C technical-game digest differs from its game artifact")
         if _digest(replay) != game.replay_file_sha256:
@@ -566,9 +660,12 @@ def validate_phase_c_aggregate(
     *,
     expected_standard_seeds: Sequence[int],
     expected_exploratory_seeds: Sequence[int],
+    expected_exploratory_search_seeds: Sequence[int],
+    expected_pair_ids: Sequence[str],
+    expected_paired_standard_game_indexes: Sequence[int],
     expected_standard_shards: int,
     expected_exploratory_shards: int,
-) -> tuple[PhaseCAggregateManifest, Mapping[str, Any], Mapping[str, Any]]:
+) -> tuple[PhaseCAggregateManifest, Mapping[str, Any], Mapping[str, Any], Mapping[str, Any]]:
     if not shard_dirs:
         raise ValueError("Phase C aggregation requires shard artifacts")
     loaded = [load_phase_c_shard(path) for path in shard_dirs]
@@ -602,15 +699,44 @@ def validate_phase_c_aggregate(
     for manifest, _games, _replays, shard_measurements, _summary in loaded:
         mode_data[manifest.mode].append((manifest, shard_measurements))
 
-    expected_by_mode = {
-        "STANDARD": (tuple(int(v) for v in expected_standard_seeds), expected_standard_shards),
-        "EXPLORATORY": (
-            tuple(int(v) for v in expected_exploratory_seeds),
-            expected_exploratory_shards,
+    expected_standard = tuple(int(v) for v in expected_standard_seeds)
+    expected_exploratory = tuple(int(v) for v in expected_exploratory_seeds)
+    expected_search = tuple(int(v) for v in expected_exploratory_search_seeds)
+    expected_pairs = tuple(str(v) for v in expected_pair_ids)
+    expected_standard_indexes = tuple(int(v) for v in expected_paired_standard_game_indexes)
+    if not (
+        len(expected_exploratory)
+        == len(expected_search)
+        == len(expected_pairs)
+        == len(expected_standard_indexes)
+        == PAIRED_GAME_COUNT
+    ):
+        raise ValueError("Phase C paired aggregate expectations must contain exactly 200 pairs")
+    pair_by_standard_index = dict(zip(expected_standard_indexes, expected_pairs, strict=True))
+    expected_pair_by_mode = {
+        "STANDARD": tuple(
+            pair_by_standard_index.get(index) for index in range(1, len(expected_standard) + 1)
         ),
+        "EXPLORATORY": expected_pairs,
+    }
+    expected_index_by_mode = {
+        "STANDARD": tuple(
+            index if index in pair_by_standard_index else None
+            for index in range(1, len(expected_standard) + 1)
+        ),
+        "EXPLORATORY": expected_standard_indexes,
+    }
+    expected_search_by_mode = {
+        "STANDARD": (None,) * len(expected_standard),
+        "EXPLORATORY": expected_search,
+    }
+    expected_by_mode = {
+        "STANDARD": (expected_standard, expected_standard_shards),
+        "EXPLORATORY": (expected_exploratory, expected_exploratory_shards),
     }
     summaries: dict[str, Mapping[str, Any]] = {}
     all_manifest_shas: list[str] = []
+    mode_measurements: dict[str, list[GameMeasurement]] = {}
     for mode, entries in mode_data.items():
         expected_seeds, expected_shards = expected_by_mode[mode]
         if len(entries) != expected_shards:
@@ -624,6 +750,9 @@ def validate_phase_c_aggregate(
             )
         flattened_seeds: list[int] = []
         flattened_indexes: list[int] = []
+        flattened_pair_ids: list[str | None] = []
+        flattened_standard_indexes: list[int | None] = []
+        flattened_search_seeds: list[int | None] = []
         measurements: list[GameMeasurement] = []
         expected_next = 1
         for manifest, shard_measurements in entries:
@@ -634,10 +763,19 @@ def validate_phase_c_aggregate(
             expected_next = manifest.last_game_index + 1
             flattened_seeds.extend(manifest.seeds)
             flattened_indexes.extend(range(manifest.first_game_index, manifest.last_game_index + 1))
+            flattened_pair_ids.extend(manifest.pair_ids)
+            flattened_standard_indexes.extend(manifest.paired_standard_game_indexes)
+            flattened_search_seeds.extend(manifest.search_seeds)
             measurements.extend(shard_measurements)
             all_manifest_shas.append(manifest.shard_sha256)
         if tuple(flattened_seeds) != expected_seeds:
-            raise ValueError(f"Phase C aggregation rejects {mode} seed partition drift")
+            raise ValueError(f"Phase C aggregation rejects {mode} environment seed partition drift")
+        if tuple(flattened_pair_ids) != expected_pair_by_mode[mode]:
+            raise ValueError(f"Phase C aggregation rejects {mode} pair assignment drift")
+        if tuple(flattened_standard_indexes) != expected_index_by_mode[mode]:
+            raise ValueError(f"Phase C aggregation rejects {mode} paired standard-index drift")
+        if tuple(flattened_search_seeds) != expected_search_by_mode[mode]:
+            raise ValueError(f"Phase C aggregation rejects {mode} search-seed drift")
         if flattened_indexes != list(range(1, len(expected_seeds) + 1)):
             raise ValueError(f"Phase C aggregation rejects {mode} game-index drift")
         if [record.game_index for record in measurements] != flattened_indexes:
@@ -646,21 +784,84 @@ def validate_phase_c_aggregate(
             raise ValueError(f"Phase C aggregation rejects {mode} measurement-seed drift")
         summary = aggregate_measurements(measurements)
         summaries[mode] = asdict(summary)
+        mode_measurements[mode] = measurements
 
+    standard_by_index = {record.game_index: record for record in mode_measurements["STANDARD"]}
+    exploratory_measurements = mode_measurements["EXPLORATORY"]
+    pair_records: list[dict[str, Any]] = []
+    for exploratory_index, (pair_id, standard_index, environment_seed, search_seed) in enumerate(
+        zip(
+            expected_pairs,
+            expected_standard_indexes,
+            expected_exploratory,
+            expected_search,
+            strict=True,
+        ),
+        start=1,
+    ):
+        standard_record = standard_by_index[standard_index]
+        exploratory_record = exploratory_measurements[exploratory_index - 1]
+        if standard_record.seed != environment_seed or exploratory_record.seed != environment_seed:
+            raise ValueError("paired STANDARD/EXPLORATORY executions do not share environment seed")
+        if exploratory_record.extra.get("search_seed") != search_seed:
+            raise ValueError("paired exploratory measurement lost its search seed binding")
+        if standard_record.extra.get("search_seed") is not None:
+            raise ValueError("paired standard measurement consumed exploratory search randomness")
+        if (
+            standard_record.extra.get("pair_id") != pair_id
+            or exploratory_record.extra.get("pair_id") != pair_id
+        ):
+            raise ValueError("paired measurements do not share the exact pair ID")
+        if standard_record.extra.get(
+            "environment_initial_state_hash"
+        ) != exploratory_record.extra.get("environment_initial_state_hash"):
+            raise ValueError("paired executions did not start from the same environment state")
+        pair_records.append(
+            {
+                "pair_id": pair_id,
+                "standard_game_index": standard_index,
+                "exploratory_game_index": exploratory_index,
+                "environment_seed": environment_seed,
+                "search_seed": search_seed,
+                "standard_access": bool(standard_record.checkpoint_table_win_access[8]),
+                "exploratory_access": bool(exploratory_record.checkpoint_table_win_access[8]),
+            }
+        )
+
+    paired_analysis = build_paired_turn8_analysis(pair_records)
     standard_summary = summaries["STANDARD"]
     exploratory_summary = summaries["EXPLORATORY"]
+    pair_assignment_rows = [
+        {
+            "pair_id": pair_id,
+            "standard_game_index": standard_index,
+            "environment_seed": environment_seed,
+            "search_seed": search_seed,
+        }
+        for pair_id, standard_index, environment_seed, search_seed in zip(
+            expected_pairs,
+            expected_standard_indexes,
+            expected_exploratory,
+            expected_search,
+            strict=True,
+        )
+    ]
     data: dict[str, Any] = {
-        "schema_version": "phase-c-pilot-aggregate-manifest-v1",
+        "schema_version": "phase-c-pilot-aggregate-manifest-v2",
         "implementation_commit": first.implementation_commit,
         "implementation_tree": first.implementation_tree,
         "activation_commit": first.activation_commit,
         "locked_config_sha256": first.locked_config_sha256,
         "workflow_sha256": first.workflow_sha256,
         "approval_record_sha256": first.approval_record_sha256,
-        "standard_game_count": len(expected_standard_seeds),
-        "exploratory_game_count": len(expected_exploratory_seeds),
-        "standard_seed_sha256": _digest(tuple(expected_standard_seeds)),
-        "exploratory_seed_sha256": _digest(tuple(expected_exploratory_seeds)),
+        "standard_game_count": len(expected_standard),
+        "exploratory_game_count": len(expected_exploratory),
+        "standard_seed_sha256": _digest(expected_standard),
+        "exploratory_seed_sha256": _digest(expected_exploratory),
+        "exploratory_search_seed_sha256": _digest(expected_search),
+        "pair_assignment_sha256": _digest(pair_assignment_rows),
+        "paired_game_count": PAIRED_GAME_COUNT,
+        "paired_analysis_sha256": _digest(paired_analysis),
         "standard_shard_count": expected_standard_shards,
         "exploratory_shard_count": expected_exploratory_shards,
         "standard_summary_sha256": _digest(standard_summary),
@@ -672,7 +873,7 @@ def validate_phase_c_aggregate(
     data["aggregation_sha256"] = _digest(
         {key: value for key, value in data.items() if key != "aggregation_sha256"}
     )
-    return PhaseCAggregateManifest(**data), standard_summary, exploratory_summary
+    return PhaseCAggregateManifest(**data), standard_summary, exploratory_summary, paired_analysis
 
 
 def write_phase_c_aggregate(
@@ -680,20 +881,25 @@ def write_phase_c_aggregate(
     manifest: PhaseCAggregateManifest,
     standard_summary: Mapping[str, Any],
     exploratory_summary: Mapping[str, Any],
+    paired_analysis: Mapping[str, Any],
 ) -> Path:
     output = root / "aggregate"
     output.mkdir(parents=True, exist_ok=False)
     manifest_path = output / "manifest.json"
     standard_path = output / "standard-summary.json"
     exploratory_path = output / "exploratory-summary.json"
+    paired_path = output / "paired-turn8-analysis.json"
     if _digest(standard_summary) != manifest.standard_summary_sha256:
         raise ValueError("standard summary digest differs from aggregate manifest")
     if _digest(exploratory_summary) != manifest.exploratory_summary_sha256:
         raise ValueError("exploratory summary digest differs from aggregate manifest")
+    if _digest(paired_analysis) != manifest.paired_analysis_sha256:
+        raise ValueError("paired analysis digest differs from aggregate manifest")
     manifest_path.write_bytes(_canonical(manifest.to_dict()) + b"\n")
     standard_path.write_bytes(_canonical(standard_summary) + b"\n")
     exploratory_path.write_bytes(_canonical(exploratory_summary) + b"\n")
-    for path in (manifest_path, standard_path, exploratory_path):
+    paired_path.write_bytes(_canonical(paired_analysis) + b"\n")
+    for path in (manifest_path, standard_path, exploratory_path, paired_path):
         path.chmod(0o444)
     output.chmod(0o555)
     return output

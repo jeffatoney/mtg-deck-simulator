@@ -176,3 +176,11 @@ The owner decision package must present the exact final values and explain the o
 If the owner later authorizes and the pilot executes, the audit must verify exact counts, shards, deterministic seeds, immutable cross-bound artifacts, replay success, actual exploratory depth/nodes, stable aggregation, no hidden-future or post-result optimization path, and exact implementation/activation identities.
 
 The post-pilot verdict must separately identify rules/execution defects, measurement defects, policy limitations, deck findings, exploratory-only findings, and any condition that would block a full study. The 20,000/5,000 study remains locked until a separate post-pilot owner decision.
+
+## Pre-registered metric language and paired exploratory comparison
+
+The pilot measures **legal deterministic table-win access under a no-interaction opponent model**. Findings must be described as "table-win access by Turn N" or "combo access by Turn N" and must not be described as win rate, wins by Turn N, or real-table performance. Every results summary must include: *These figures measure combo assembly speed against opponents who take no actions. They are not win rates and do not predict performance against interactive opponents.*
+
+The 200 exploratory executions are not an independent draw sample. They reuse a frozen 200-game subset of the 500 standard **environment seeds**, exactly 20 from each 50-game standard shard. STANDARD and EXPLORATORY runs for a pair initialize from the same environment seed. Exploratory search randomness is derived from a separate frozen search-seed namespace and never perturbs environment RNG.
+
+The primary exploratory comparison is paired Turn-8 table-win access. The aggregate reports BOTH_ACCESS, STANDARD_ONLY_ACCESS, EXPLORATORY_ONLY_ACCESS, and NEITHER_ACCESS; the paired access-rate difference `(EXPLORATORY_ONLY - STANDARD_ONLY) / 200`; a two-sided exact McNemar test on discordant pairs; and a 95% deterministic paired-bootstrap percentile interval using 10,000 pre-registered resamples. First-decision divergence, branch count, node count, and actual one-layer depth are secondary diagnostics. A null paired effect is not evidence that the baseline is optimal.

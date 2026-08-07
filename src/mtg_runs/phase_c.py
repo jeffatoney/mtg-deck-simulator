@@ -12,6 +12,18 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Callable
 
+from mtg_runs.phase_c_pairing import (
+    PAIR_SELECTION_RULE,
+    PAIRED_BOOTSTRAP_RESAMPLES,
+    PAIRED_CHECKPOINT_TURN,
+    PAIRED_CI_CONFIDENCE,
+    PAIRED_CI_METHOD,
+    PAIRED_GAME_COUNT,
+    PAIRS_PER_STANDARD_SHARD,
+    REPORTING_SENTENCE,
+    build_pairing_plan,
+)
+
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = ROOT / "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json"
 DEFAULT_APPROVAL = ROOT / "docs/spec/phase-c/PHASE_C_PILOT_APPROVAL.json"
@@ -110,6 +122,9 @@ class PilotShardAssignment:
     first_game_index: int
     last_game_index: int
     seeds: tuple[int, ...]
+    pair_ids: tuple[str | None, ...]
+    paired_standard_game_indexes: tuple[int | None, ...]
+    search_seeds: tuple[int | None, ...]
 
     def __post_init__(self) -> None:
         if self.mode not in {"STANDARD", "EXPLORATORY"}:
@@ -122,14 +137,36 @@ class PilotShardAssignment:
             raise PhaseCControlError("pilot shard seed assignment does not match its range")
         if len(self.seeds) != len(set(self.seeds)):
             raise PhaseCControlError("pilot shard contains duplicate seeds")
+        if not (
+            len(self.pair_ids)
+            == len(self.paired_standard_game_indexes)
+            == len(self.search_seeds)
+            == len(self.seeds)
+        ):
+            raise PhaseCControlError("pilot shard pairing metadata does not match seed count")
+        if self.mode == "STANDARD":
+            if any(value is not None for value in self.search_seeds):
+                raise PhaseCControlError("standard shard cannot contain exploratory search seeds")
+        else:
+            if any(value is None for value in self.pair_ids):
+                raise PhaseCControlError("exploratory shard requires pair IDs")
+            if any(value is None for value in self.paired_standard_game_indexes):
+                raise PhaseCControlError("exploratory shard requires paired standard indexes")
+            if any(value is None for value in self.search_seeds):
+                raise PhaseCControlError("exploratory shard requires search seeds")
 
 
 @dataclass(frozen=True)
 class PilotSeedPlan:
     standard: tuple[int, ...]
     exploratory: tuple[int, ...]
+    exploratory_search: tuple[int, ...]
+    paired_standard_game_indexes: tuple[int, ...]
+    pair_ids: tuple[str, ...]
     standard_sha256: str
     exploratory_sha256: str
+    exploratory_search_sha256: str
+    pair_assignment_sha256: str
 
     def __post_init__(self) -> None:
         if len(self.standard) != STANDARD_GAMES:
@@ -139,9 +176,21 @@ class PilotSeedPlan:
         if len(set(self.standard)) != len(self.standard):
             raise PhaseCControlError("standard pilot seed plan contains duplicates")
         if len(set(self.exploratory)) != len(self.exploratory):
-            raise PhaseCControlError("exploratory pilot seed plan contains duplicates")
-        if set(self.standard).intersection(self.exploratory):
-            raise PhaseCControlError("standard and exploratory pilot seed plans overlap")
+            raise PhaseCControlError("exploratory paired environment seeds contain duplicates")
+        if not set(self.exploratory).issubset(self.standard):
+            raise PhaseCControlError("exploratory environment seeds must be a standard subset")
+        if (
+            len(self.exploratory_search) != EXPLORATORY_GAMES
+            or len(set(self.exploratory_search)) != EXPLORATORY_GAMES
+        ):
+            raise PhaseCControlError("exploratory search seed plan must contain 200 unique seeds")
+        if set(self.exploratory_search).intersection(self.standard):
+            raise PhaseCControlError("environment and search seed domains must not overlap")
+        if (
+            len(self.paired_standard_game_indexes) != PAIRED_GAME_COUNT
+            or len(self.pair_ids) != PAIRED_GAME_COUNT
+        ):
+            raise PhaseCControlError("paired pilot metadata must contain exactly 200 pairs")
 
 
 @dataclass(frozen=True)
@@ -154,8 +203,8 @@ class PhaseCConfiguration:
     authorization_status: str
     standard_games: int
     exploratory_games: int
-    standard_seed_namespace: str
-    exploratory_seed_namespace: str
+    environment_seed_namespace: str
+    exploratory_search_seed_namespace: str
     policy_config_id: str
     policy_config_hash: str
     evaluator_snapshot_id: str
@@ -218,6 +267,9 @@ class PhaseCDryRunReport:
     exploratory_game_count: int
     standard_seed_sha256: str
     exploratory_seed_sha256: str
+    exploratory_search_seed_sha256: str
+    pair_assignment_sha256: str
+    paired_game_count: int
     execution_allowed: bool
     authorization_status: str
     readiness_blockers: tuple[str, ...]
@@ -237,6 +289,7 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
     measurement = _mapping(payload.get("measurement"), "measurement")
     mulligan = _mapping(payload.get("mulligan"), "mulligan")
     prerequisites = _mapping(payload.get("prerequisites"), "prerequisites")
+    paired = _mapping(payload.get("paired_analysis"), "paired_analysis")
 
     _exact(full_study.get("execution_allowed"), False, "full-study flag")
     _exact(full_study.get("standard_games"), 20_000, "full-study count")
@@ -284,10 +337,26 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
     _exact(prerequisites.get("phase_b_certification_required"), "PASS", "Phase B certification")
     _exact(prerequisites.get("post_merge_main_ci_required"), "PASS", "post-merge main CI")
 
+    _exact(paired.get("paired_game_count"), PAIRED_GAME_COUNT, "paired game count")
+    _exact(
+        paired.get("pairs_per_standard_shard"), PAIRS_PER_STANDARD_SHARD, "pairs per standard shard"
+    )
+    _exact(paired.get("pair_selection_rule"), PAIR_SELECTION_RULE, "pair selection rule")
+    _exact(paired.get("checkpoint_turn"), PAIRED_CHECKPOINT_TURN, "paired checkpoint")
+    _exact(paired.get("mcnemar_test"), "EXACT_TWO_SIDED", "paired test")
+    _exact(paired.get("confidence_interval_method"), PAIRED_CI_METHOD, "paired confidence interval")
+    _exact(paired.get("confidence_level"), PAIRED_CI_CONFIDENCE, "paired confidence level")
+    _exact(
+        paired.get("bootstrap_resamples"), PAIRED_BOOTSTRAP_RESAMPLES, "paired bootstrap resamples"
+    )
+    _exact(
+        paired.get("required_reporting_sentence"), REPORTING_SENTENCE, "paired reporting sentence"
+    )
+
 
 def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
     payload = _load_object(path, "Phase C pilot configuration")
-    _exact(payload.get("schema_version"), "phase-c-pilot-config-v1", "schema")
+    _exact(payload.get("schema_version"), "phase-c-pilot-config-v2", "schema")
     authorization = _mapping(payload.get("authorization"), "authorization")
     pilot = _mapping(payload.get("pilot"), "pilot")
     policy = _mapping(payload.get("policy"), "policy")
@@ -299,12 +368,16 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
     _exact(pilot.get("exploratory_games"), EXPLORATORY_GAMES, "exploratory pilot count")
     _exact(pilot.get("standard_shards"), STANDARD_SHARDS, "standard pilot shard count")
     _exact(pilot.get("exploratory_shards"), EXPLORATORY_SHARDS, "exploratory pilot shard count")
-    standard_namespace = str(pilot.get("standard_seed_namespace", ""))
-    exploratory_namespace = str(pilot.get("exploratory_seed_namespace", ""))
-    if not standard_namespace or not exploratory_namespace:
-        raise PhaseCControlError("pilot seed namespaces must be nonempty")
-    if standard_namespace == exploratory_namespace:
-        raise PhaseCControlError("pilot seed namespaces must be distinct")
+    environment_namespace = str(pilot.get("environment_seed_namespace", ""))
+    search_namespace = str(pilot.get("exploratory_search_seed_namespace", ""))
+    if not environment_namespace or not search_namespace:
+        raise PhaseCControlError(
+            "environment and exploratory search seed namespaces must be nonempty"
+        )
+    if environment_namespace == search_namespace:
+        raise PhaseCControlError(
+            "environment and exploratory search seed namespaces must be distinct"
+        )
 
     policy_id = str(policy.get("standard_policy_config_id", ""))
     policy_hash = str(policy.get("standard_policy_config_hash", ""))
@@ -331,8 +404,8 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
         authorization_status=str(authorization.get("status", "")),
         standard_games=int(pilot["standard_games"]),
         exploratory_games=int(pilot["exploratory_games"]),
-        standard_seed_namespace=standard_namespace,
-        exploratory_seed_namespace=exploratory_namespace,
+        environment_seed_namespace=environment_namespace,
+        exploratory_search_seed_namespace=search_namespace,
         policy_config_id=policy_id,
         policy_config_hash=policy_hash,
         evaluator_snapshot_id=evaluator_id,
@@ -394,13 +467,22 @@ def _derive_seeds(namespace: str, count: int) -> tuple[int, ...]:
 
 
 def build_pilot_seed_plan(config: PhaseCConfiguration) -> PilotSeedPlan:
-    standard = _derive_seeds(config.standard_seed_namespace, config.standard_games)
-    exploratory = _derive_seeds(config.exploratory_seed_namespace, config.exploratory_games)
+    standard = _derive_seeds(config.environment_seed_namespace, config.standard_games)
+    pairing = build_pairing_plan(
+        standard,
+        search_seed_namespace=config.exploratory_search_seed_namespace,
+        standard_shards=config.standard_shards,
+    )
     return PilotSeedPlan(
         standard=standard,
-        exploratory=exploratory,
+        exploratory=pairing.exploratory_environment_seeds,
+        exploratory_search=pairing.exploratory_search_seeds,
+        paired_standard_game_indexes=pairing.paired_standard_game_indexes,
+        pair_ids=pairing.pair_ids,
         standard_sha256=hashlib.sha256(_canonical(standard)).hexdigest(),
-        exploratory_sha256=hashlib.sha256(_canonical(exploratory)).hexdigest(),
+        exploratory_sha256=pairing.exploratory_environment_sha256,
+        exploratory_search_sha256=pairing.exploratory_search_sha256,
+        pair_assignment_sha256=pairing.pair_assignment_sha256,
     )
 
 
@@ -411,29 +493,56 @@ def build_pilot_shard_assignment(
     mode: str,
     shard_index: int,
 ) -> PilotShardAssignment:
+    pair_by_standard_index = dict(
+        zip(seeds.paired_standard_game_indexes, seeds.pair_ids, strict=True)
+    )
     if mode == "STANDARD":
         values = seeds.standard
         shard_count = config.standard_shards
-    elif mode == "EXPLORATORY":
+        if len(values) % shard_count:
+            raise PhaseCControlError("pilot game count must divide evenly across frozen shards")
+        if shard_index < 0 or shard_index >= shard_count:
+            raise PhaseCControlError("pilot shard index is outside the frozen shard range")
+        size = len(values) // shard_count
+        start = shard_index * size
+        selected = tuple(values[start : start + size])
+        standard_indexes = tuple(range(start + 1, start + size + 1))
+        return PilotShardAssignment(
+            mode=mode,
+            shard_index=shard_index,
+            shard_count=shard_count,
+            first_game_index=start + 1,
+            last_game_index=start + size,
+            seeds=selected,
+            pair_ids=tuple(pair_by_standard_index.get(index) for index in standard_indexes),
+            paired_standard_game_indexes=tuple(
+                index if index in pair_by_standard_index else None for index in standard_indexes
+            ),
+            search_seeds=(None,) * size,
+        )
+    if mode == "EXPLORATORY":
         values = seeds.exploratory
         shard_count = config.exploratory_shards
-    else:
-        raise PhaseCControlError("pilot shard mode must be STANDARD or EXPLORATORY")
-    if len(values) % shard_count:
-        raise PhaseCControlError("pilot game count must divide evenly across frozen shards")
-    if shard_index < 0 or shard_index >= shard_count:
-        raise PhaseCControlError("pilot shard index is outside the frozen shard range")
-    size = len(values) // shard_count
-    start = shard_index * size
-    selected = tuple(values[start : start + size])
-    return PilotShardAssignment(
-        mode=mode,
-        shard_index=shard_index,
-        shard_count=shard_count,
-        first_game_index=start + 1,
-        last_game_index=start + size,
-        seeds=selected,
-    )
+        if len(values) % shard_count:
+            raise PhaseCControlError("pilot game count must divide evenly across frozen shards")
+        if shard_index < 0 or shard_index >= shard_count:
+            raise PhaseCControlError("pilot shard index is outside the frozen shard range")
+        size = len(values) // shard_count
+        start = shard_index * size
+        return PilotShardAssignment(
+            mode=mode,
+            shard_index=shard_index,
+            shard_count=shard_count,
+            first_game_index=start + 1,
+            last_game_index=start + size,
+            seeds=tuple(values[start : start + size]),
+            pair_ids=tuple(seeds.pair_ids[start : start + size]),
+            paired_standard_game_indexes=tuple(
+                seeds.paired_standard_game_indexes[start : start + size]
+            ),
+            search_seeds=tuple(seeds.exploratory_search[start : start + size]),
+        )
+    raise PhaseCControlError("pilot shard mode must be STANDARD or EXPLORATORY")
 
 
 def _combo_detector_smoke() -> Mapping[str, Any]:
@@ -488,6 +597,7 @@ def evaluate_phase_c_readiness() -> tuple[tuple[str, ...], dict[str, Mapping[str
     from mtg_runs.phase_c_runner import (
         run_phase_c_combat_smoke,
         run_phase_c_exploratory_smoke,
+        run_phase_c_paired_environment_smoke,
     )
 
     evidence: dict[str, Mapping[str, Any]] = {}
@@ -529,6 +639,7 @@ def evaluate_phase_c_readiness() -> tuple[tuple[str, ...], dict[str, Mapping[str
     run("CONTROLLED_TURN_DRIVER_NOT_IMPLEMENTED", controlled_turn)
     run("COMBAT_ACTION_PATH_NOT_IMPLEMENTED", run_phase_c_combat_smoke)
     run("EXPLORATORY_PRODUCTION_EXPANSION_NOT_IMPLEMENTED", run_phase_c_exploratory_smoke)
+    run("PAIRED_EXPLORATORY_DESIGN_NOT_IMPLEMENTED", run_phase_c_paired_environment_smoke)
     run("COMBO_ACCESS_DETECTORS_INCOMPLETE", _combo_detector_smoke)
     return tuple(blockers), evidence
 
@@ -562,6 +673,9 @@ def dry_run_phase_c(
         exploratory_game_count=config.exploratory_games,
         standard_seed_sha256=seeds.standard_sha256,
         exploratory_seed_sha256=seeds.exploratory_sha256,
+        exploratory_search_seed_sha256=seeds.exploratory_search_sha256,
+        pair_assignment_sha256=seeds.pair_assignment_sha256,
+        paired_game_count=PAIRED_GAME_COUNT,
         execution_allowed=config.execution_allowed,
         authorization_status=config.authorization_status,
         readiness_blockers=blockers,
@@ -829,6 +943,9 @@ def execute_phase_c_shard(
         execution = run_phase_c_game_execution(
             seed=seed,
             mode=mode,
+            search_seed=assignment.search_seeds[offset],
+            pair_id=assignment.pair_ids[offset],
+            paired_standard_game_index=assignment.paired_standard_game_indexes[offset],
             policy_config_id=config.policy_config_id,
             through_turn=10,
             validate_fresh_replay=True,
@@ -857,6 +974,9 @@ def execute_phase_c_shard(
         shard_count=assignment.shard_count,
         first_game_index=assignment.first_game_index,
         seeds=assignment.seeds,
+        pair_ids=assignment.pair_ids,
+        paired_standard_game_indexes=assignment.paired_standard_game_indexes,
+        search_seeds=assignment.search_seeds,
         implementation_commit=context.implementation_commit,
         implementation_tree=context.implementation_tree,
         activation_commit=context.activation_commit,
@@ -930,22 +1050,26 @@ def aggregate_phase_c_pilot_artifacts(
         for path in shard_root.rglob("*")
         if path.is_dir() and (path / "manifest.json").is_file()
     )
-    manifest, standard_summary, exploratory_summary = validate_phase_c_aggregate(
+    manifest, standard_summary, exploratory_summary, paired_analysis = validate_phase_c_aggregate(
         shard_dirs,
         expected_standard_seeds=seeds.standard,
         expected_exploratory_seeds=seeds.exploratory,
+        expected_exploratory_search_seeds=seeds.exploratory_search,
+        expected_pair_ids=seeds.pair_ids,
+        expected_paired_standard_game_indexes=seeds.paired_standard_game_indexes,
         expected_standard_shards=config.standard_shards,
         expected_exploratory_shards=config.exploratory_shards,
     )
     output_root.mkdir(parents=True, exist_ok=True)
     aggregate_dir = write_phase_c_aggregate(
-        output_root, manifest, standard_summary, exploratory_summary
+        output_root, manifest, standard_summary, exploratory_summary, paired_analysis
     )
     return {
         "status": "PASS",
         "standard_game_count": manifest.standard_game_count,
         "exploratory_game_count": manifest.exploratory_game_count,
         "aggregation_sha256": manifest.aggregation_sha256,
+        "paired_turn8_analysis": dict(paired_analysis),
         "output": str(aggregate_dir),
     }
 
