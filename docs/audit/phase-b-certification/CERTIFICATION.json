@@ -18,9 +18,9 @@
     "B-SOURCE-001",
     "B-TRANSCRIPT-001"
   ],
-  "certified_content_commit": "7b37e9e2308141160a79e5f6d3d77fbd4ee88db0",
-  "certified_repository_tree_sha": "ba09ab45add3df323317a46750e9b28b31ab2ec8",
-  "ci_artifact_name": "phase-b-result-7b37e9e2308141160a79e5f6d3d77fbd4ee88db0",
+  "certified_content_commit": "7ae91b31d0f4344c714081a62f8ebf4c04be9a30",
+  "certified_repository_tree_sha": "17144baeb8ab3befe575b10d4f4ec2e4c4c2c472",
+  "ci_artifact_name": "phase-b-result-7ae91b31d0f4344c714081a62f8ebf4c04be9a30",
   "clean_tree_before_run": true,
   "counts": {
     "fail": 0,
@@ -28,7 +28,7 @@
     "skip": 0,
     "xfail": 0
   },
-  "covered_content_sha256": "sha256:ad75333e78300c54eca2bc79628d9340d7a819e582d1a7e18805390b8abf925c",
+  "covered_content_sha256": "sha256:9629f8c45c9917ed84ea4756fb45456b905d9ff69d8928704ad108d0c45da7d0",
   "covered_paths": {
     ".github/workflows/ci.yml": "sha256:712ee9349a1763a904e715b1b0c9f39db8082dc9d4c4e142c48e9780b526bc7d",
     ".github/workflows/phase-c-pilot.yml": "sha256:f964ae089795835de21c20314a154f80eef28fe8ee92d470db64991c318c8200",
@@ -55,7 +55,7 @@
     "scripts/_certification_provenance.py": "sha256:4c8ae7545b046b53fb2b812120f47a6f94997148531abf390db7052ad65f4d06",
     "scripts/_phase_b_paths.py": "sha256:db736c8c362bd4763d9c01d77bd5f01a336a302eb07eb5d9f2bdc701ba72075f",
     "scripts/check_clean_engine_boundary.py": "sha256:e1b5623f90e19696ecc1130bb7f1917637f5483635881370002d76d1d8ba3cc9",
-    "scripts/check_full_deck_coverage.py": "sha256:6abb0e84a0859c763b8784d1e554ec17883c16b7b1e83eaf10f44f226ad11565",
+    "scripts/check_full_deck_coverage.py": "sha256:6abb0e84a0859c763b8784d1e554ec17883c16b7b1e554ec17883c16b7b1e83eaf10f44f226ad11565",
     "scripts/check_phase_b_authority.py": "sha256:3157adc84626f6d6668f17fc9175c68304949ebf060c52b9ee078db685461d68",
     "scripts/check_phase_b_certification.py": "sha256:eb6f3db5cf2dec62a4f1835f7e85410a07de01d8a7a9eee084651de623f01b8a",
     "scripts/check_phase_b_evaluator.py": "sha256:0f228306fb5ce5793d2c989b17829ae7212f0eef54136d8125d085d3f2f52b50",
@@ -72,11 +72,11 @@
     "src/mtg_verify": "sha256:e1ae67c5efe6828a7d9d969c029dddc4abe3cbe53d2e09d72e6bb03b66fd24db",
     "tests/phase_a": "sha256:23e81b77f923956f4660309fd62011e1bc13ce44823183dd34c72e041ac6c443",
     "tests/phase_b": "sha256:2f6285741330ea30ba768f694ec35679f733be10ceec2f6da9811252c98988a9",
-    "tests/phase_c": "sha256:d36c045797360018ea410ebeded76a89ed4bcb1fa40725daf297b0bf23e5c104"
+    "tests/phase_c": "sha256:487d69687f371dc0739083630017dcde0b3eb3d9f4bb120fd85f795c6cdc8d12"
   },
   "evidence_classification": "CLEAN_ENGINE_PRODUCTION_PATH",
-  "github_run_id": "31194210410",
-  "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/31194210410",
+  "github_run_id": "31205366718",
+  "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/31205366718",
   "golden_transcripts": "PASS",
   "legacy_evidence_used": false,
   "note": "Renew whenever any Phase B covered path changes.",
@@ -87,5 +87,5 @@
   "transcript_count": 12,
   "unsupported_capabilities": [],
   "verification_environment": "GITHUB_ACTIONS",
-  "verifier_run_id": "20260807T154911Z-7b37e9e23081"
+  "verifier_run_id": "20260807T180925Z-7ae91b31d0f4"
 }
