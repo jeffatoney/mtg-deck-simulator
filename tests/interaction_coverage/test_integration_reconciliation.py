@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 from typing import Any
 
+from scripts.audit_policy_choice_replay_conformance import audit_conformance
 from scripts.build_interaction_integration_coverage import (
     build_integration_coverage,
     check_ledger,
@@ -28,6 +29,7 @@ SOURCE_COORDINATOR_PATHS = (
     "automation/interaction-record.schema.json",
     "docs/audit/interaction-coverage/INTERACTION_COVERAGE_CONTRACT.md",
     "scripts/build_interaction_coverage_manifest.py",
+    "scripts/check_interaction_candidate_lock.py",
     "tests/interaction_coverage/test_interaction_coverage_contract.py",
 )
 
@@ -96,7 +98,8 @@ def test_candidate_denominator_and_integration_ledger_agree() -> None:
     assert lock["card_composition_record_count"] == 80
     assert lock["card_effect_record_count"] == 126
     assert lock["global_rule_record_count"] == 10
-    assert lock["manifest_sha256"] == (
+    assert lock["manifest_sha256"] == "sha256:" + ("0" * 64)
+    assert lock["candidate_manifest_sha256"] == (
         "sha256:20d767ea754841bf0f9bda378068c4c705e0b9f8f8f4be20ca15be1f24bb2cdc"
     )
 
@@ -107,13 +110,22 @@ def test_candidate_denominator_and_integration_ledger_agree() -> None:
         "global_rule_record_count",
         "physical_card_count",
         "card_definition_count",
-        "manifest_sha256",
     ):
         assert surface[key] == lock[key]
 
+    assert surface["manifest_sha256"] == lock["candidate_manifest_sha256"]
     assert surface["candidate_status"] == lock["status"]
     assert ledger["coverage"]["requirements"] == lock["record_count"]
     assert ledger["coverage"]["inventory_mapped"] == lock["record_count"]
+
+
+def test_provisional_candidate_lock_cannot_be_reported_as_frozen() -> None:
+    lock = json.loads(LOCK.read_text(encoding="utf-8"))
+    report = audit_conformance()
+
+    assert lock["status"] == "PROVISIONAL_PENDING_AGENT_A_INTEGRATION"
+    assert report["surface_frozen"] is False
+    assert report["proof_status"] == "PROVISIONAL_UNTIL_COORDINATOR_FREEZE"
 
 
 def test_committed_ledger_matches_the_complete_recomputed_report() -> None:
