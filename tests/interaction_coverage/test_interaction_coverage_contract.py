@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILDER = ROOT / "scripts/build_interaction_coverage_manifest.py"
+CANDIDATE_LOCK_CHECKER = ROOT / "scripts/check_interaction_candidate_lock.py"
 
 
 def _build(tmp_path: Path) -> dict[str, object]:
@@ -146,12 +147,24 @@ def test_proof_bundle_schema_binds_to_record_schema() -> None:
     assert bundle_schema["properties"]["records"]["items"]["$ref"] == record_schema["$id"]
 
 
-def test_frozen_interaction_surface_lock_is_current() -> None:
-    result = subprocess.run(
+def test_provisional_interaction_candidate_lock_is_current_and_not_frozen() -> None:
+    candidate = subprocess.run(
+        [sys.executable, str(CANDIDATE_LOCK_CHECKER)],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert candidate.returncode == 0, candidate.stdout + candidate.stderr
+    report = json.loads(candidate.stdout)
+    assert report["status"] == "PASS"
+    assert report["lock_status"] == "PROVISIONAL_PENDING_AGENT_A_INTEGRATION"
+
+    legacy_frozen = subprocess.run(
         [sys.executable, str(BUILDER), "--check-lock"],
         cwd=ROOT,
         check=False,
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0, result.stdout + result.stderr
+    assert legacy_frozen.returncode != 0
