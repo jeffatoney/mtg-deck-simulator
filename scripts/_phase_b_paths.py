@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 COVERED_PATHS = (
     ".github/workflows/ci.yml",
     ".github/workflows/phase-c-pilot.yml",
+    ".github/workflows/phase-c-diagnostic.yml",
     "pyproject.toml",
     "src/mtg_kernel",
     "src/mtg_cards",
