@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import subprocess
 
+from scripts.build_interaction_integration_coverage import build_integration_coverage
+
 ROOT = Path(__file__).resolve().parents[2]
 LOCK = ROOT / "automation/interaction-coverage-lock.json"
 LEDGER = ROOT / "automation/interaction-integration-coverage.json"
@@ -66,6 +68,23 @@ def test_frozen_denominator_and_integration_ledger_agree() -> None:
 
     assert ledger["coverage"]["requirements"] == lock["record_count"]
     assert ledger["coverage"]["inventory_mapped"] == lock["record_count"]
+
+
+def test_cross_lane_policy_coverage_is_record_addressable() -> None:
+    report = build_integration_coverage()
+    policy = report["strategic_policy_replay"]
+
+    assert report["surface"]["record_count"] == 216
+    assert policy["records_requiring_strategic_policy"] == 94
+    assert policy["records_requiring_no_strategic_policy"] == 122
+    assert policy["current_support_complete_records"] == 51
+    assert policy["policy_ready_or_not_required_records"] == 173
+    assert policy["records_with_policy_replay_gaps"] == 43
+    assert policy["strategic_choice_occurrences"] == 145
+    assert policy["reviewed_route_occurrences"] == 98
+    assert policy["currently_supported_occurrences"] == 96
+    assert policy["unique_strategic_choice_classes"] == 49
+    assert policy["unrouted_strategic_choice_classes"] == 26
 
 
 def test_agent_b_output_paths_survive_integration() -> None:
