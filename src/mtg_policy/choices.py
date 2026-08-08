@@ -339,9 +339,7 @@ class PolicyStrategicChoiceProvider:
             diagnostics,
         )
 
-    def choose_counter_payment(
-        self, request: CounterPaymentRequest
-    ) -> CounterPaymentSelection:
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection:
         pay = request.can_pay_from_pool
         return CounterPaymentSelection(
             pay,
