@@ -1,7 +1,7 @@
 """Targeted rules-conformance guards for frozen-deck interaction choices.
 
 These guards close interaction-contract gaps that are purely rules-semantic and do
-not require the engine to invent a strategic preference.  They intentionally fail
+not require the engine to invent a strategic preference. They intentionally fail
 closed when the Comprehensive Rules require an explicit player choice.
 """
 
@@ -12,7 +12,9 @@ from typing import Any, Callable, cast
 
 import mtg_kernel.land_actions as land_actions
 from mtg_kernel.errors import IllegalAction
-from mtg_kernel.models import Choice, GameObject, Zone
+from mtg_kernel.mana import parse_mana_cost, pay_mana
+from mtg_kernel.models import Action, Choice, GameObject, Zone
+from mtg_kernel.specs import base_characteristics
 
 _ORIGINALS: dict[str, Callable[..., Any]] = {}
 
@@ -32,21 +34,46 @@ def _spell_effect(
     return dict(effect) if isinstance(effect, dict) else None
 
 
+def _spell_requires_x(
+    executor: Any,
+    card_object_id: str,
+    face: int,
+    mode: str | None,
+) -> bool:
+    card = executor.state.objects.get(card_object_id)
+    if card is None or card.retired or card.ceased_to_exist:
+        return False
+    face_data = executor._selected_face(card, face)
+    ability = executor._selected_spell_ability(face_data, mode)
+    cost_text = str(ability.get("alternative_cost", face_data.get("mana_cost", ""))).upper()
+    effect = ability.get("effect", {})
+    effect_data = dict(effect) if isinstance(effect, dict) else {}
+    return (
+        "{X}" in cost_text
+        or bool(effect_data.get("target_count_from_x"))
+        or bool(effect_data.get("amount_from_x"))
+    )
+
+
 def _cast(
     self: Any,
     actor: str,
     card_object_id: str,
     targets: tuple[Any, ...] = (),
     face: int = 0,
-    x_value: int = 0,
+    x_value: int | None = None,
     mode: str | None = None,
     choices: dict[str, Any] | None = None,
     *,
     _record: bool = True,
 ) -> GameObject:
-    """Require represented additional-cost declarations at cast proposal time."""
+    """Require represented cast-time declarations before the spell is proposed."""
 
     selected_choices = dict(choices or {})
+    if _spell_requires_x(self, card_object_id, face, mode) and x_value is None:
+        raise IllegalAction("X requires an explicit nonnegative integer declaration")
+    resolved_x = 0 if x_value is None else x_value
+
     effect = _spell_effect(self, card_object_id, face, mode)
     if effect is not None and str(effect.get("kicker", "")):
         if "kicked" not in selected_choices or not isinstance(selected_choices["kicked"], bool):
@@ -59,7 +86,7 @@ def _cast(
             card_object_id,
             targets,
             face,
-            x_value,
+            resolved_x,
             mode,
             selected_choices,
             _record=_record,
@@ -272,6 +299,96 @@ def _play_land(
     )
 
 
+def _turn_manifest_face_up(
+    self: Any,
+    actor: str,
+    object_id: str,
+    *,
+    _record: bool = True,
+) -> GameObject:
+    """Perform rule 701.40b's manifest face-up special action."""
+
+    self._ensure_active()
+    before = self._begin_atomic()
+    try:
+        if self.state.turn.priority_holder_id != actor:
+            raise IllegalAction("manifest face-up special action requires priority")
+        obj = self.state.objects.get(object_id)
+        if (
+            obj is None
+            or obj.retired
+            or obj.ceased_to_exist
+            or obj.zone is not Zone.BATTLEFIELD
+            or not self._is_permanent(obj)
+            or obj.controller != actor
+        ):
+            raise IllegalAction("manifest face-up special action requires a controlled permanent")
+        status = obj.permanent_status
+        if (
+            status is None
+            or status.get("face") != "FACE_DOWN"
+            or obj.current_characteristics.get("manifested") is not True
+        ):
+            raise IllegalAction("permanent is not a face-down manifested card")
+        if len(obj.component_card_instance_ids) != 1:
+            raise IllegalAction("manifest face-up special action requires one physical card")
+
+        instance = self.state.card_instances[obj.component_card_instance_ids[0]]
+        spec = self.state.card_specs[instance.card_spec_id]
+        characteristics = base_characteristics(spec, 0 if spec.faces else None)
+        card_types = set(str(value) for value in characteristics.get("card_types", ()))
+        mana_cost = str(characteristics.get("mana_cost", ""))
+        if "Creature" not in card_types or not mana_cost:
+            raise IllegalAction("manifested card cannot be turned face up by the manifest action")
+
+        cost = parse_mana_cost(mana_cost)
+        payment = pay_mana(self.state.players[actor].mana_pool, cost)
+        action = Action(
+            self.identity.new_id("action"),
+            "MANIFEST_FACE_UP_SPECIAL_ACTION",
+            actor,
+            object_id,
+            payments={"mana": payment, "cost": cost},
+        )
+        self.state.actions.append(action)
+
+        obj.current_characteristics = characteristics
+        status["face"] = "FACE_UP"
+        obj.identity_visible_to = set(self.state.players)
+        self.identity.validate_object_schema()
+        self._event(
+            "MANIFEST_TURNED_FACE_UP",
+            action,
+            object_id=object_id,
+            payment=payment,
+        )
+        self.check_state_based_actions()
+        if self.state.terminal.status == "ACTIVE":
+            self.put_waiting_triggers_on_stack()
+            self.state.turn.priority_holder_id = actor
+            self.state.turn.consecutive_priority_passes = 0
+        if _record:
+            self._record_command("turn_manifest_face_up", actor=actor, object_id=object_id)
+        return obj
+    except Exception:
+        self._rollback(before)
+        raise
+
+
+def _execute_replay_command(self: Any, command: dict[str, Any]) -> None:
+    operation = str(command["operation"])
+    if operation == "turn_manifest_face_up":
+        arguments = dict(command.get("arguments", {}))
+        _turn_manifest_face_up(
+            self,
+            str(arguments["actor"]),
+            str(arguments["object_id"]),
+            _record=False,
+        )
+        return
+    _ORIGINALS["execute_replay_command"](self, command)
+
+
 def install_interaction_rules_conformance(executor_class: type[Any]) -> None:
     """Install narrow fail-closed guards after the Phase B runtime extensions."""
 
@@ -282,10 +399,13 @@ def install_interaction_rules_conformance(executor_class: type[Any]) -> None:
             "cast": executor_class.cast,
             "activate": executor_class.activate,
             "play_land": land_actions.play_land,
+            "execute_replay_command": executor_class.execute_replay_command,
         }
     )
     executor_class.cast = _cast
     executor_class.activate = _activate
+    setattr(executor_class, "turn_manifest_face_up", _turn_manifest_face_up)
+    executor_class.execute_replay_command = _execute_replay_command
     setattr(land_actions, "play_land", _play_land)
     executor_class._interaction_rules_conformance_installed = True
 
