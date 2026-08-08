@@ -17,11 +17,7 @@ def test_mandatory_trigger_target_effects_have_explicit_policy_support() -> None
 
 def test_source_legality_and_exact_replay_invariants_are_present() -> None:
     report = audit_conformance()
-    failures = [
-        item
-        for item in report["source_invariants"]
-        if item["missing_tokens"]
-    ]
+    failures = [item for item in report["source_invariants"] if item["missing_tokens"]]
     assert failures == []
 
 
