@@ -33,6 +33,8 @@ Only these statuses are permitted:
 
 `IMPLEMENTED` is not equivalent to `PROVEN`.
 
+The coordinator-generated surface is intentionally emitted as `MAPPED`. Freezing the coordinator specification does not assert that the mapped interactions are already implemented or proven.
+
 ## 3. What must be recorded
 
 Every `CARD_EFFECT` record must identify:
@@ -47,12 +49,15 @@ Every `CARD_EFFECT` record must identify:
 8. when each choice is legally made;
 9. who makes each choice;
 10. which engine layer owns legality;
-11. whether strategic or opponent policy is required when more than one legal choice exists;
-12. what replay must persist rather than recompute;
-13. the rules/Oracle authority for the interaction; and
-14. deterministic production-path tests proving the positive and applicable negative paths.
+11. the frozen legality contract digest for the full behavior and its target schema when one exists;
+12. whether strategic or opponent policy is required when more than one legal choice exists;
+13. what replay must persist rather than recompute;
+14. the rules/Oracle authority for the interaction; and
+15. deterministic production-path tests proving the positive and applicable negative paths.
 
 No field may silently mean "default policy," "obvious target," "first legal choice," or "engine decides." If the rules create a choice, it must have an explicit purpose and timing. If the rules do not create a choice, the effect kind must still be explicitly classified as having no additional resolution choice.
+
+The legality digest pins the complete reviewed behavior contract, including target schema, cost configuration, restrictions, permissions, effect parameters, and any other behavior fields used to establish legal execution. Downstream proof may identify the production validator that enforces that contract; it may not replace the frozen contract with a looser one.
 
 ## 4. Choice timing is normative
 
@@ -162,10 +167,35 @@ This coordinator freeze consists of:
 - `automation/interaction-record.schema.json`;
 - `automation/interaction-choice-contracts.json`;
 - `automation/interaction-coverage-lock.json`;
+- `automation/interaction-proof-bundle.schema.json`;
 - `scripts/build_interaction_coverage_manifest.py`; and
 - `tests/interaction_coverage/test_interaction_coverage_contract.py`.
 
 Downstream agents may implement missing behavior and add proof evidence, but they may not silently alter the coverage unit, timing vocabulary, PASS criteria, or remove interaction records. A change to this contract or to the frozen surface requires a separately reviewed coordinator/specification change with a new surface digest.
+
+### 11.1 Parallel proof bundles
+
+Parallel work begins only after the coordinator surface is frozen. Each downstream agent receives a nonoverlapping assigned set of `record_id` values and the frozen `surface_sha256` and returns an `interaction-proof-bundle-v1` bundle.
+
+The following fields are immutable copies of the frozen surface and may not be changed by downstream proof work:
+
+- `record_id` and `record_class`;
+- `card`;
+- `effect`;
+- `event`;
+- `choices`;
+- `legality`; and
+- `authority`.
+
+A proof agent may populate only:
+
+- `implementation`;
+- `evidence`; and
+- `status`.
+
+The proof aggregator must reject a bundle if its surface SHA differs from the frozen lock; if it contains missing, extra, duplicate, or unassigned records; if any immutable field differs from the frozen record; or if two bundles make conflicting claims for the same record. No merge policy may resolve a specification conflict by choosing one agent's version.
+
+The generated coordinator manifest remains the immutable `MAPPED` baseline. Proof bundles are evidence-bearing overlays/copies tied to that baseline. Only the later aggregate proof ledger may advance records to `IMPLEMENTED` or `PROVEN`.
 
 ## 12. Rules authority used for the coordinator freeze
 
@@ -182,5 +212,6 @@ The supplied Comprehensive Rules dated 2026-06-19 establish the key timing disti
 - rule 514.1: the active player chooses enough cards to discard to maximum hand size as a turn-based cleanup action;
 - rule 514.3a: cleanup SBAs/triggers create the priority exception and then another complete cleanup step;
 - rule 704.5j: the controller chooses one same-named legendary permanent to keep;
-- rules 903.9a-b: graveyard/exile Commander return is an optional SBA while hand/library Commander movement is an optional replacement effect; and
-- rules 707.10 and 707.10c: spell copies copy prior decisions and are not cast; new targets may be chosen only when the copying effect permits it.
+- rules 903.9a-b: graveyard/exile Commander return is an optional SBA while hand/library Commander movement is an optional replacement effect;
+- rules 707.10 and 707.10c: spell copies copy prior decisions and are not cast; new targets may be chosen only when the copying effect permits it; and
+- rule 733.1: an illegal action is reversed in its entirety and payments made for it are canceled.
