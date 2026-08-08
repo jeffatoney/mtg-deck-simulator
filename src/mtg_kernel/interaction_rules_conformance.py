@@ -336,7 +336,10 @@ def _turn_manifest_face_up(
         instance = self.state.card_instances[obj.component_card_instance_ids[0]]
         spec = self.state.card_specs[instance.card_spec_id]
         characteristics = base_characteristics(spec, 0 if spec.faces else None)
-        card_types = set(str(value) for value in characteristics.get("card_types", ()))
+        raw_card_types = characteristics.get("card_types", ())
+        if not isinstance(raw_card_types, (list, tuple, set)):
+            raise IllegalAction("manifested card has invalid printed card types")
+        card_types = {str(value) for value in raw_card_types}
         mana_cost = str(characteristics.get("mana_cost", ""))
         if "Creature" not in card_types or not mana_cost:
             raise IllegalAction("manifested card cannot be turned face up by the manifest action")
@@ -369,7 +372,7 @@ def _turn_manifest_face_up(
             self.state.turn.consecutive_priority_passes = 0
         if _record:
             self._record_command("turn_manifest_face_up", actor=actor, object_id=object_id)
-        return obj
+        return cast(GameObject, obj)
     except Exception:
         self._rollback(before)
         raise
