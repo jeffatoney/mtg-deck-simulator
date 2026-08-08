@@ -7,16 +7,39 @@ closed when the Comprehensive Rules require an explicit player choice.
 
 from __future__ import annotations
 
-from copy import deepcopy
 from typing import Any, Callable, cast
 
 import mtg_kernel.land_actions as land_actions
 from mtg_kernel.errors import IllegalAction
 from mtg_kernel.mana import parse_mana_cost, pay_mana
-from mtg_kernel.models import Action, Choice, GameObject, Zone
+from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
 from mtg_kernel.specs import base_characteristics
 
 _ORIGINALS: dict[str, Callable[..., Any]] = {}
+
+
+def _resolved_face(executor: Any, card_object_id: str, face: int | None) -> int:
+    card = executor.state.objects.get(card_object_id)
+    if card is None or card.retired or card.ceased_to_exist:
+        return 0 if face is None else face
+    faces = card.current_characteristics.get("faces", ())
+    if face is None and isinstance(faces, (list, tuple)) and len(faces) > 1:
+        raise IllegalAction("cast path requires an explicit card face")
+    return 0 if face is None else face
+
+
+def _spell_context(
+    executor: Any,
+    card_object_id: str,
+    face: int,
+    mode: str | None,
+) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    card = executor.state.objects.get(card_object_id)
+    if card is None or card.retired or card.ceased_to_exist:
+        return None
+    face_data = executor._selected_face(card, face)
+    ability = executor._selected_spell_ability(face_data, mode)
+    return face_data, ability
 
 
 def _spell_effect(
@@ -25,11 +48,10 @@ def _spell_effect(
     face: int,
     mode: str | None,
 ) -> dict[str, Any] | None:
-    card = executor.state.objects.get(card_object_id)
-    if card is None or card.retired or card.ceased_to_exist:
+    context = _spell_context(executor, card_object_id, face, mode)
+    if context is None:
         return None
-    face_data = executor._selected_face(card, face)
-    ability = executor._selected_spell_ability(face_data, mode)
+    _, ability = context
     effect = ability.get("effect", {})
     return dict(effect) if isinstance(effect, dict) else None
 
@@ -40,11 +62,10 @@ def _spell_requires_x(
     face: int,
     mode: str | None,
 ) -> bool:
-    card = executor.state.objects.get(card_object_id)
-    if card is None or card.retired or card.ceased_to_exist:
+    context = _spell_context(executor, card_object_id, face, mode)
+    if context is None:
         return False
-    face_data = executor._selected_face(card, face)
-    ability = executor._selected_spell_ability(face_data, mode)
+    face_data, ability = context
     cost_text = str(ability.get("alternative_cost", face_data.get("mana_cost", ""))).upper()
     effect = ability.get("effect", {})
     effect_data = dict(effect) if isinstance(effect, dict) else {}
@@ -55,12 +76,28 @@ def _spell_requires_x(
     )
 
 
+def _spell_has_variable_target_count(
+    executor: Any,
+    card_object_id: str,
+    face: int,
+    mode: str | None,
+) -> bool:
+    context = _spell_context(executor, card_object_id, face, mode)
+    if context is None:
+        return False
+    _, ability = context
+    schema = dict(ability.get("target_schema", {}))
+    minimum = int(schema.get("min", 0))
+    maximum = schema.get("max", 0)
+    return maximum is None or int(maximum) != minimum
+
+
 def _cast(
     self: Any,
     actor: str,
     card_object_id: str,
-    targets: tuple[Any, ...] = (),
-    face: int = 0,
+    targets: tuple[Any, ...] | None = None,
+    face: int | None = None,
     x_value: int | None = None,
     mode: str | None = None,
     choices: dict[str, Any] | None = None,
@@ -70,11 +107,15 @@ def _cast(
     """Require represented cast-time declarations before the spell is proposed."""
 
     selected_choices = dict(choices or {})
-    if _spell_requires_x(self, card_object_id, face, mode) and x_value is None:
+    resolved_face = _resolved_face(self, card_object_id, face)
+    if _spell_has_variable_target_count(self, card_object_id, resolved_face, mode) and targets is None:
+        raise IllegalAction("variable target count requires an explicit target selection")
+    resolved_targets = () if targets is None else targets
+    if _spell_requires_x(self, card_object_id, resolved_face, mode) and x_value is None:
         raise IllegalAction("X requires an explicit nonnegative integer declaration")
     resolved_x = 0 if x_value is None else x_value
 
-    effect = _spell_effect(self, card_object_id, face, mode)
+    effect = _spell_effect(self, card_object_id, resolved_face, mode)
     if effect is not None and str(effect.get("kicker", "")):
         if "kicked" not in selected_choices or not isinstance(selected_choices["kicked"], bool):
             raise IllegalAction("kicker requires an explicit boolean declaration")
@@ -84,8 +125,8 @@ def _cast(
             self,
             actor,
             card_object_id,
-            targets,
-            face,
+            resolved_targets,
+            resolved_face,
             resolved_x,
             mode,
             selected_choices,
@@ -120,29 +161,144 @@ def _qualifying_sacrifice(
     return cast(GameObject, candidate)
 
 
-def _patched_without_source_sacrifice(
-    source: GameObject,
+def _activate_with_qualifying_sacrifice(
+    self: Any,
+    actor: str,
+    source_id: str,
     ability_id: str,
-) -> tuple[list[Any], int, dict[str, Any]]:
-    abilities = list(source.current_characteristics.get("abilities", ()))
-    matches = [
-        index
-        for index, ability in enumerate(abilities)
-        if isinstance(ability, dict)
-        and ability.get("ability_id") == ability_id
-        and ability.get("kind") == "ACTIVATED"
-    ]
-    if len(matches) != 1:
-        raise IllegalAction("additional-sacrifice activated ability is unavailable")
-    index = matches[0]
-    original = dict(abilities[index])
-    patched = deepcopy(original)
-    cost = dict(patched.get("cost", {}))
-    cost["sacrifice_source"] = False
-    patched["cost"] = cost
-    abilities[index] = patched
-    source.current_characteristics["abilities"] = abilities
-    return abilities, index, original
+    targets: tuple[Any, ...],
+    choices: dict[str, Any],
+    subtype: str,
+    *,
+    _record: bool,
+) -> GameObject | None:
+    """Run the activation pipeline with the selected permanent paid in cost order."""
+
+    self._ensure_active()
+    before = self._begin_atomic()
+    try:
+        source = self.state.objects[source_id]
+        if source.retired or source.ceased_to_exist or source.zone is not Zone.BATTLEFIELD:
+            raise IllegalAction("activated ability source is unavailable")
+        if source.controller != actor:
+            raise IllegalAction("a player may activate only an ability they control")
+        selected = self._ability_by_id(source, ability_id)
+        if self.state.turn.priority_holder_id != actor:
+            raise IllegalAction("the activating player does not have priority")
+        mana_ability = bool(selected.get("mana_ability"))
+        if selected.get("restriction") == "SOURCE_ATTACKING" and not source.current_characteristics.get(
+            "attacking", False
+        ):
+            raise IllegalAction("this ability may be activated only while the source attacks")
+
+        schema = dict(
+            selected.get("target_schema", {"kind": "NONE", "min": 0, "max": 0, "unique": True})
+        )
+        self._validate_targets(actor, targets, schema)
+        cost = dict(selected.get("cost", {}))
+        mana_cost = parse_mana_cost(str(cost.get("mana", "")))
+        payment = pay_mana(self.state.players[actor].mana_pool, mana_cost)
+        if cost.get("tap"):
+            status = source.permanent_status
+            if status is None or status.get("tap") != "UNTAPPED":
+                raise IllegalAction("tap cost requires an untapped permanent")
+            status["tap"] = "TAPPED"
+
+        action = Action(
+            self.identity.new_id("action"),
+            "ACTIVATE",
+            actor,
+            source_id,
+            targets,
+            (),
+            0,
+            {"mana": payment, "cost": mana_cost},
+            {"ability_id": ability_id, "target_schema": schema, "choices": choices},
+        )
+        self.state.actions.append(action)
+        self.state.target_records.append(
+            {
+                "action_id": action.action_id,
+                "targets": [self._target_data(target) for target in targets],
+            }
+        )
+        activated_event = self._event("ABILITY_ACTIVATED", action, ability_id=ability_id)
+        ability_object: GameObject | None = None
+        if not mana_ability:
+            ability_object = GameObject(
+                self.identity.new_id("object"),
+                ObjectKind.ACTIVATED_ABILITY,
+                Zone.STACK,
+                None,
+                actor,
+                source_object_id=source_id,
+                created_by_event_id=activated_event.event_id,
+                current_characteristics={"ability": selected},
+                was_cast=False,
+            )
+            self.state.objects[ability_object.object_id] = ability_object
+            self.zones.register(ability_object)
+            self.state.pending_actions.append(action.action_id)
+
+        discard_count = int(cost.get("discard", 0))
+        discard_ids = list(choices.get("discard_ids", []))
+        if len(discard_ids) != discard_count:
+            raise IllegalAction("activation requires explicit discard-cost choices")
+        for discard_id in discard_ids:
+            self._discard_card(actor, str(discard_id), action)
+
+        selected_id = choices.get("additional_sacrifice_object_id")
+        if not isinstance(selected_id, str):
+            raise IllegalAction("additional sacrifice cost requires an explicit permanent choice")
+        _qualifying_sacrifice(self, actor, selected_id, subtype)
+        choice_event = self._event(
+            "ADDITIONAL_SACRIFICE_CHOSEN",
+            action,
+            object_id=selected_id,
+            required_subtype=subtype,
+            timing="COST_PAYMENT",
+        )
+        self.state.choices.append(
+            Choice(
+                self.identity.new_id("choice"),
+                actor,
+                "ADDITIONAL_SACRIFICE_SELECTION",
+                selected_id,
+                choice_event.event_id,
+            )
+        )
+        self.zones.move(
+            selected_id,
+            Zone.GRAVEYARD,
+            "ACTIVATION_COST_SACRIFICE",
+            self._event(
+                "PERMANENT_SACRIFICED",
+                action,
+                object_id=selected_id,
+                required_subtype=subtype,
+            ),
+        )
+
+        if mana_ability:
+            self._apply_effect(None, action, dict(selected.get("effect", {})), [], choices)
+            self.check_state_based_actions()
+        else:
+            self.put_waiting_triggers_on_stack()
+            self.state.turn.priority_holder_id = actor
+            self.state.turn.consecutive_priority_passes = 0
+        if _record:
+            self._record_command(
+                "activate",
+                actor=actor,
+                source_id=source_id,
+                ability_id=ability_id,
+                targets=[self._target_data(target) for target in targets],
+                choices=choices,
+            )
+        return ability_object
+    except Exception:
+        self._rollback(before)
+        raise
 
 
 def _activate(
@@ -190,78 +346,16 @@ def _activate(
         )
 
     selected_choices = dict(choices or {})
-    selected_id = selected_choices.get("additional_sacrifice_object_id")
-    if not isinstance(selected_id, str):
-        raise IllegalAction("additional sacrifice cost requires an explicit permanent choice")
-    _qualifying_sacrifice(self, actor, selected_id, subtype)
-
-    before = self._begin_atomic()
-    try:
-        _, index, original_ability = _patched_without_source_sacrifice(source, ability_id)
-        ability_object = cast(
-            GameObject | None,
-            _ORIGINALS["activate"](
-                self,
-                actor,
-                source_id,
-                ability_id,
-                targets,
-                selected_choices,
-                _record=_record,
-            ),
-        )
-
-        current_source = self.state.objects.get(source_id)
-        if current_source is not None and not current_source.retired:
-            current_abilities = list(current_source.current_characteristics.get("abilities", ()))
-            current_abilities[index] = original_ability
-            current_source.current_characteristics["abilities"] = current_abilities
-
-        action = next(
-            (
-                candidate
-                for candidate in reversed(self.state.actions)
-                if candidate.kind == "ACTIVATE"
-                and candidate.actor_id == actor
-                and candidate.source_object_id == source_id
-                and candidate.metadata.get("ability_id") == ability_id
-            ),
-            None,
-        )
-        if action is None:
-            raise IllegalAction("additional sacrifice cost has no activation action")
-
-        choice_event = self._event(
-            "ADDITIONAL_SACRIFICE_CHOSEN",
-            action,
-            object_id=selected_id,
-            required_subtype=subtype,
-            timing="COST_PAYMENT",
-        )
-        self.state.choices.append(
-            Choice(
-                self.identity.new_id("choice"),
-                actor,
-                "ADDITIONAL_SACRIFICE_SELECTION",
-                selected_id,
-                choice_event.event_id,
-            )
-        )
-        self.zones.move(
-            selected_id,
-            Zone.GRAVEYARD,
-            "ACTIVATION_COST_SACRIFICE",
-            self._event(
-                "PERMANENT_SACRIFICED",
-                action,
-                object_id=selected_id,
-                required_subtype=subtype,
-            ),
-        )
-        return ability_object
-    except Exception:
-        self._rollback(before)
-        raise
+    return _activate_with_qualifying_sacrifice(
+        self,
+        actor,
+        source_id,
+        ability_id,
+        targets,
+        selected_choices,
+        subtype,
+        _record=_record,
+    )
 
 
 def _play_land(
