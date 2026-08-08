@@ -1,0 +1,32 @@
+{
+  "schema_version": "prismari-mode-target-schema-v1",
+  "card": "Prismari Command",
+  "selected_mode_count": 2,
+  "selected_modes_must_be_distinct": true,
+  "cross_role_unique": false,
+  "rules_refs": ["601.2b", "601.2c", "115.3"],
+  "roles": {
+    "DAMAGE": {
+      "target_word_index": 1,
+      "kind": "ANY_TARGET",
+      "required_if_mode_selected": true
+    },
+    "DRAW_DISCARD": {
+      "target_word_index": 2,
+      "kind": "PLAYER",
+      "required_if_mode_selected": true,
+      "resolution_choice_actor": "TARGET_PLAYER"
+    },
+    "CREATE_TREASURE": {
+      "target_word_index": 3,
+      "kind": "PLAYER",
+      "required_if_mode_selected": true
+    },
+    "DESTROY_ARTIFACT": {
+      "target_word_index": 4,
+      "kind": "ARTIFACT",
+      "required_if_mode_selected": true
+    }
+  },
+  "note": "Rule 115.3 allows the same legal object or player to be chosen for more than one distinct target word. Uniqueness applies within one target word, not globally across the selected Prismari modes."
+}
