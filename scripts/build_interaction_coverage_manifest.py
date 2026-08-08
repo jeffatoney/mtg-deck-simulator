@@ -178,16 +178,6 @@ def _structural_choices(
                     rules_refs=("601.2b", "118.8", "702.33"),
                 )
             )
-        if effect.get("additional_sacrifice_subtype") is not None:
-            choices.append(
-                _choice(
-                    "ADDITIONAL_SACRIFICE_SELECTION",
-                    "COST_PAYMENT",
-                    legality_owner="ENGINE_COST_VALIDATOR",
-                    policy_class="ACTOR_POLICY",
-                    rules_refs=("601.2h", "602.2b"),
-                )
-            )
 
     if ability_kind == "SPELL":
         spell_cost = _oracle_face_mana_cost(behavior, oracle_record)
@@ -215,6 +205,16 @@ def _structural_choices(
     cost = behavior.get("cost")
     if ability_kind == "ACTIVATED" and isinstance(cost, dict):
         mana_cost = str(cost.get("mana", ""))
+        if cost.get("sacrifice_permanent_subtype") is not None:
+            choices.append(
+                _choice(
+                    "SACRIFICE_PERMANENT_SELECTION",
+                    "COST_PAYMENT",
+                    legality_owner="ENGINE_COST_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
+                    rules_refs=("602.2b", "118.11"),
+                )
+            )
         if "/" in mana_cost:
             choices.append(
                 _choice(
