@@ -252,7 +252,7 @@ def _card_records(
                     rules_refs.update(str(value) for value in choice.get("rules_refs", ()))
                 parameters = {key: value for key, value in effect_node.items() if key != "effects"}
                 record_id = (
-                    f"CARD:{coverage.oracle_id}:{ability_id}:"
+                    f"CARD:{coverage.oracle_id}:{behavior_index}:{ability_id}:"
                     f"{effect_path.replace('.', '/').replace('[', ':').replace(']', '')}"
                 )
                 records.append(
@@ -456,7 +456,8 @@ def build_manifest() -> dict[str, Any]:
     records = sorted((*card_records, *_global_records()), key=lambda item: item["record_id"])
     record_ids = [record["record_id"] for record in records]
     if len(record_ids) != len(set(record_ids)):
-        raise ValueError("interaction record IDs are not unique")
+        duplicates = sorted({record_id for record_id in record_ids if record_ids.count(record_id) > 1})
+        raise ValueError(f"interaction record IDs are not unique: {duplicates}")
 
     choice_purposes = sorted(
         {choice["purpose"] for record in records for choice in record.get("choices", [])}
@@ -490,7 +491,13 @@ def check_lock(manifest: dict[str, Any]) -> tuple[bool, dict[str, Any]]:
         "manifest_sha256": lock.get("manifest_sha256"),
     }
     actual = {key: manifest.get(key) for key in expected}
-    return expected == actual, {"expected": expected, "actual": actual}
+    return expected == actual, {
+        "expected": expected,
+        "actual": actual,
+        "observed_effect_kinds": manifest["observed_effect_kinds"],
+        "observed_event_kinds": manifest["observed_event_kinds"],
+        "choice_purposes": manifest["choice_purposes"],
+    }
 
 
 def main() -> int:
@@ -514,7 +521,13 @@ def main() -> int:
 
     if args.check_lock:
         passed, detail = check_lock(manifest)
-        print(json.dumps({"status": "PASS" if passed else "FAIL", **detail}, indent=2, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "PASS" if passed else "FAIL", **detail},
+                indent=2,
+                sort_keys=True,
+            )
+        )
         return 0 if passed else 1
 
     print(
