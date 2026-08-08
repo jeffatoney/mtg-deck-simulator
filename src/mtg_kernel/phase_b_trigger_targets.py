@@ -71,10 +71,12 @@ def _choose_trigger_targets(
             "strategic trigger target selection supports exactly one required target"
         )
 
-    provider = require_provider(
-        getattr(self, "strategic_choice_provider", None),
-        "mandatory trigger target selection",
-    )
+    raw_provider = getattr(self, "strategic_choice_provider", None)
+    if raw_provider is None:
+        # Preserve the kernel's longstanding fail-closed contract for callers that
+        # intentionally exercise a targeted trigger without a policy provider.
+        raise IllegalAction("explicit trigger target choice is required")
+    provider = require_provider(raw_provider, "mandatory trigger target selection")
     request_id = self.identity.new_id("strategic-request")
     public_candidates = tuple(
         _public_target(self, request_id, candidate) for candidate in candidates
