@@ -13,6 +13,9 @@ import mtg_kernel.land_actions as land_actions
 from mtg_kernel.errors import IllegalAction
 from mtg_kernel.mana import parse_mana_cost, pay_mana
 from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
+from mtg_kernel.phase_b_runtime_effects_selection import _select_cards
+from mtg_kernel.phase_b_runtime_helpers import _permanents, _return_to_hand
+from mtg_kernel.phase_b_runtime_support import _types
 from mtg_kernel.specs import base_characteristics
 
 _ORIGINALS: dict[str, Callable[..., Any]] = {}
@@ -138,11 +141,11 @@ def _cast(
     )
 
 
-def _additional_sacrifice_subtype(ability: dict[str, Any]) -> str:
-    effect = ability.get("effect", {})
-    if not isinstance(effect, dict):
+def _sacrifice_permanent_subtype(ability: dict[str, Any]) -> str:
+    cost = ability.get("cost", {})
+    if not isinstance(cost, dict):
         return ""
-    return str(effect.get("additional_sacrifice_subtype", ""))
+    return str(cost.get("sacrifice_permanent_subtype", ""))
 
 
 def _qualifying_sacrifice(
@@ -164,7 +167,7 @@ def _qualifying_sacrifice(
     return cast(GameObject, candidate)
 
 
-def _activate_with_qualifying_sacrifice(
+def _activate_with_rules_costs(
     self: Any,
     actor: str,
     source_id: str,
@@ -172,10 +175,11 @@ def _activate_with_qualifying_sacrifice(
     targets: tuple[Any, ...],
     choices: dict[str, Any],
     subtype: str,
+    exile_source: bool,
     *,
     _record: bool,
 ) -> GameObject | None:
-    """Run the activation pipeline with the selected permanent paid in cost order."""
+    """Run the activation pipeline with explicit non-mana rules costs."""
 
     self._ensure_active()
     before = self._begin_atomic()
@@ -250,37 +254,48 @@ def _activate_with_qualifying_sacrifice(
         for discard_id in discard_ids:
             self._discard_card(actor, str(discard_id), action)
 
-        selected_id = choices.get("additional_sacrifice_object_id")
-        if not isinstance(selected_id, str):
-            raise IllegalAction("additional sacrifice cost requires an explicit permanent choice")
-        _qualifying_sacrifice(self, actor, selected_id, subtype)
-        choice_event = self._event(
-            "ADDITIONAL_SACRIFICE_CHOSEN",
-            action,
-            object_id=selected_id,
-            required_subtype=subtype,
-            timing="COST_PAYMENT",
-        )
-        self.state.choices.append(
-            Choice(
-                self.identity.new_id("choice"),
-                actor,
-                "ADDITIONAL_SACRIFICE_SELECTION",
-                selected_id,
-                choice_event.event_id,
-            )
-        )
-        self.zones.move(
-            selected_id,
-            Zone.GRAVEYARD,
-            "ACTIVATION_COST_SACRIFICE",
-            self._event(
-                "PERMANENT_SACRIFICED",
+        if subtype:
+            selected_id = choices.get("sacrifice_permanent_object_id")
+            if not isinstance(selected_id, str):
+                raise IllegalAction(
+                    "sacrifice-permanent cost requires an explicit permanent choice"
+                )
+            _qualifying_sacrifice(self, actor, selected_id, subtype)
+            choice_event = self._event(
+                "SACRIFICE_PERMANENT_CHOSEN",
                 action,
                 object_id=selected_id,
                 required_subtype=subtype,
-            ),
-        )
+                timing="COST_PAYMENT",
+            )
+            self.state.choices.append(
+                Choice(
+                    self.identity.new_id("choice"),
+                    actor,
+                    "SACRIFICE_PERMANENT_SELECTION",
+                    selected_id,
+                    choice_event.event_id,
+                )
+            )
+            self.zones.move(
+                selected_id,
+                Zone.GRAVEYARD,
+                "ACTIVATION_COST_SACRIFICE",
+                self._event(
+                    "PERMANENT_SACRIFICED",
+                    action,
+                    object_id=selected_id,
+                    required_subtype=subtype,
+                ),
+            )
+
+        if exile_source:
+            self.zones.move(
+                source_id,
+                Zone.EXILE,
+                "ACTIVATION_COST_EXILE",
+                self._event("SOURCE_EXILED_FOR_COST", action, object_id=source_id),
+            )
 
         if mana_ability:
             self._apply_effect(None, action, dict(selected.get("effect", {})), [], choices)
@@ -314,7 +329,7 @@ def _activate(
     *,
     _record: bool = True,
 ) -> GameObject | None:
-    """Pay represented qualifying-permanent sacrifice costs explicitly."""
+    """Pay represented qualifying-permanent sacrifice and self-exile costs explicitly."""
 
     source = self.state.objects.get(source_id)
     if source is None or source.retired or source.ceased_to_exist:
@@ -333,8 +348,10 @@ def _activate(
 
     ability_id = str(ability.get("ability_id")) if isinstance(ability, dict) else ability
     selected = self._ability_by_id(source, ability_id)
-    subtype = _additional_sacrifice_subtype(selected)
-    if not subtype:
+    cost = dict(selected.get("cost", {}))
+    subtype = _sacrifice_permanent_subtype(selected)
+    exile_source = bool(cost.get("exile_source"))
+    if not subtype and not exile_source:
         return cast(
             GameObject | None,
             _ORIGINALS["activate"](
@@ -349,7 +366,7 @@ def _activate(
         )
 
     selected_choices = dict(choices or {})
-    return _activate_with_qualifying_sacrifice(
+    return _activate_with_rules_costs(
         self,
         actor,
         source_id,
@@ -357,6 +374,7 @@ def _activate(
         targets,
         selected_choices,
         subtype,
+        exile_source,
         _record=_record,
     )
 
@@ -489,6 +507,37 @@ def _execute_replay_command(self: Any, command: dict[str, Any]) -> None:
     _ORIGINALS["execute_replay_command"](self, command)
 
 
+def _apply_effect(
+    self: Any,
+    source: GameObject | None,
+    action: Action,
+    effect: dict[str, Any],
+    targets: list[GameObject],
+    choices: dict[str, Any],
+) -> None:
+    """Handle exact-deck non-target resolution choices at the rules-correct time."""
+
+    if str(effect.get("kind", "")) != "RETURN_CONTROLLED_LAND":
+        _ORIGINALS["apply_effect"](self, source, action, effect, targets, choices)
+        return
+    candidates = [
+        permanent
+        for permanent in _permanents(self)
+        if permanent.controller == action.actor_id and "Land" in _types(permanent)
+    ]
+    if not candidates:
+        return
+    selected = _select_cards(
+        self,
+        action,
+        purpose="RETURN_CONTROLLED_LAND",
+        candidates=candidates,
+        minimum=1,
+        maximum=1,
+    )
+    _return_to_hand(self, selected[0], action, "RETURN_CONTROLLED_LAND")
+
+
 def install_interaction_rules_conformance(executor_class: type[Any]) -> None:
     """Install narrow fail-closed guards after the Phase B runtime extensions."""
 
@@ -498,12 +547,14 @@ def install_interaction_rules_conformance(executor_class: type[Any]) -> None:
         {
             "cast": executor_class.cast,
             "activate": executor_class.activate,
+            "apply_effect": executor_class._apply_effect,
             "play_land": land_actions.play_land,
             "execute_replay_command": executor_class.execute_replay_command,
         }
     )
     executor_class.cast = _cast
     executor_class.activate = _activate
+    executor_class._apply_effect = _apply_effect
     setattr(executor_class, "turn_manifest_face_up", _turn_manifest_face_up)
     executor_class.execute_replay_command = _execute_replay_command
     setattr(land_actions, "play_land", _play_land)
