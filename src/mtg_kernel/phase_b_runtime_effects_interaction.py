@@ -43,13 +43,18 @@ def _resolve_counter_unless_pay(
         if not isinstance(raw_decision, dict):
             raise IllegalAction("counter-unless-pay payment decision is malformed")
         if raw_decision.get("player_id") != payer:
-            raise IllegalAction("counter payment decision must be anchored to the target controller")
+            raise IllegalAction(
+                "counter payment decision must be anchored to the target controller"
+            )
         pay = raw_decision.get("pay")
         if not isinstance(pay, bool):
             raise IllegalAction("counter payment decision must record a boolean pay value")
     else:
         pool = self.state.players[payer].mana_pool
-        can_pay_from_pool = sum(int(pool.get(symbol, 0)) for symbol in ("W", "U", "B", "R", "G", "C")) >= amount
+        can_pay_from_pool = (
+            sum(int(pool.get(symbol, 0)) for symbol in ("W", "U", "B", "R", "G", "C"))
+            >= amount
+        )
         request = CounterPaymentRequest(
             request_id=self.identity.new_id("strategic-request"),
             actor_id=payer,
