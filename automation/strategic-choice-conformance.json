@@ -13,6 +13,7 @@
   ],
   "canonical_routes": [
     {"timing": "CAST_PROPOSAL", "purpose": "CAST_PATH", "mechanism": "BROKER_ACTION"},
+    {"timing": "CAST_PROPOSAL", "purpose": "MODE_TARGET_ASSIGNMENTS", "mechanism": "BROKER_ACTION"},
     {"timing": "CAST_PROPOSAL", "purpose": "TARGET_COUNT", "mechanism": "BROKER_ACTION"},
     {"timing": "CAST_PROPOSAL", "purpose": "TARGET_SELECTION", "mechanism": "BROKER_ACTION"},
     {"timing": "CAST_PROPOSAL", "purpose": "X_VALUE", "mechanism": "BROKER_ACTION"},
@@ -69,6 +70,11 @@
       "name": "prismari discard selection validates returned handles and count",
       "path": "src/mtg_kernel/phase_b_runtime_effects_prismari.py",
       "must_contain": ["purpose=\"PRISMARI_DISCARD\"", "not set(selected_handles) <= legal_handles", "len(selected_handles) != required", "CARD_SELECTION"]
+    },
+    {
+      "name": "prismari cast uses two mode-owned target words",
+      "path": "src/mtg_kernel/prismari_rules_conformance.py",
+      "must_contain": ["Prismari Command requires exactly two distinct modes while casting", "prismari_targets", "prismari_target_modes", "zip(target_modes, selected_targets, strict=True)"]
     },
     {
       "name": "cleanup discard policy validates returned handles and records the command input",
