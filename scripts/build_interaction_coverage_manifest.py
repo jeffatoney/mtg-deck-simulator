@@ -14,7 +14,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from mtg_cards.full_deck import RULES_BY_NAME  # noqa: E402
+from mtg_cards.full_deck import RULES_BY_NAME, load_full_deck_specs  # noqa: E402
 from mtg_deck import load_exact_deck_package  # noqa: E402
 
 CHOICE_CONTRACTS = ROOT / "automation/interaction-choice-contracts.json"
@@ -99,13 +99,7 @@ def _structural_choices(
     choices: list[dict[str, Any]] = []
 
     if ability_kind == "SPELL" and spell_sibling_count > 1:
-        choices.append(
-            _choice(
-                "CAST_PATH",
-                "CAST_PROPOSAL",
-                rules_refs=("601.2b",),
-            )
-        )
+        choices.append(_choice("CAST_PATH", "CAST_PROPOSAL", rules_refs=("601.2b",)))
 
     target_schema = behavior.get("target_schema")
     if isinstance(target_schema, dict):
@@ -123,13 +117,12 @@ def _structural_choices(
                 "ACTIVATED": ("602.2b", "115.1c"),
                 "TRIGGERED": ("603.3d", "115.1d"),
             }.get(ability_kind, ("115",))
-            legality_owner = "ENGINE_TARGET_SCHEMA"
             if maximum is None or minimum != maximum:
                 choices.append(
                     _choice(
                         "TARGET_COUNT",
                         timing,
-                        legality_owner=legality_owner,
+                        legality_owner="ENGINE_TARGET_SCHEMA",
                         rules_refs=rules,
                     )
                 )
@@ -137,7 +130,7 @@ def _structural_choices(
                 _choice(
                     "TARGET_SELECTION",
                     timing,
-                    legality_owner=legality_owner,
+                    legality_owner="ENGINE_TARGET_SCHEMA",
                     rules_refs=rules,
                 )
             )
@@ -145,19 +138,13 @@ def _structural_choices(
     effect = behavior.get("effect")
     if isinstance(effect, dict):
         if bool(effect.get("target_count_from_x")) or bool(effect.get("amount_from_x")):
-            choices.append(
-                _choice(
-                    "X_VALUE",
-                    "CAST_PROPOSAL",
-                    rules_refs=("601.2b",),
-                )
-            )
+            choices.append(_choice("X_VALUE", "CAST_PROPOSAL", rules_refs=("601.2b", "107.3")))
         if effect.get("kicker") is not None:
             choices.append(
                 _choice(
                     "KICKER_PAYMENT",
                     "CAST_PROPOSAL",
-                    rules_refs=("601.2b", "118.8"),
+                    rules_refs=("601.2b", "118.8", "702.33"),
                 )
             )
 
@@ -211,16 +198,28 @@ def _deduplicate_choices(choices: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(result, key=lambda item: (item["timing"], item["purpose"], item["actor"]))
 
 
-def _card_records(choice_contracts: dict[str, Any]) -> tuple[list[dict[str, Any]], set[str]]:
+def _card_records(
+    choice_contracts: dict[str, Any],
+) -> tuple[list[dict[str, Any]], set[str], set[str]]:
     package = load_exact_deck_package()
     coverage_by_name = {record.name: record for record in package.coverage}
+    specs_by_name = {spec.name: spec for spec in load_full_deck_specs().values()}
     effect_contracts = choice_contracts["effect_contracts"]
     records: list[dict[str, Any]] = []
     observed_effect_kinds: set[str] = set()
+    observed_event_kinds: set[str] = set()
+
+    if set(specs_by_name) != set(RULES_BY_NAME) or set(coverage_by_name) != set(RULES_BY_NAME):
+        raise ValueError("Oracle specs, coverage inventory, and behavior inventory must match exactly")
 
     for card_name in sorted(RULES_BY_NAME):
         behaviors = RULES_BY_NAME[card_name]
         coverage = coverage_by_name[card_name]
+        spec = specs_by_name[card_name]
+        if coverage.composition_status != "REVIEWED_COMPOSITION":
+            raise ValueError(f"card composition is not reviewed: {card_name}")
+        if coverage.oracle_id != spec.oracle_id:
+            raise ValueError(f"Oracle identity mismatch for {card_name}")
         spell_sibling_count = sum(1 for item in behaviors if item.get("kind") == "SPELL")
         for behavior_index, behavior in enumerate(behaviors):
             ability_id = str(behavior.get("ability_id", ""))
@@ -230,10 +229,9 @@ def _card_records(choice_contracts: dict[str, Any]) -> tuple[list[dict[str, Any]
                 raise ValueError(
                     f"behavior lacks stable ability/effect identity: {card_name}[{behavior_index}]"
                 )
-            structural = _structural_choices(
-                behavior,
-                spell_sibling_count=spell_sibling_count,
-            )
+            event_kind = str(behavior.get("trigger") or behavior.get("event") or ability_kind)
+            observed_event_kinds.add(event_kind)
+            structural = _structural_choices(behavior, spell_sibling_count=spell_sibling_count)
             for effect_path, effect_node in _walk_effects(effect, "effect"):
                 effect_kind = str(effect_node.get("kind", ""))
                 observed_effect_kinds.add(effect_kind)
@@ -264,6 +262,8 @@ def _card_records(choice_contracts: dict[str, Any]) -> tuple[list[dict[str, Any]
                         "card": {
                             "name": card_name,
                             "oracle_id": coverage.oracle_id,
+                            "oracle_record_sha256": "sha256:" + spec.oracle_record_sha256,
+                            "composition_status": coverage.composition_status,
                             "ability_id": ability_id,
                             "ability_kind": ability_kind,
                             "behavior_index": behavior_index,
@@ -273,12 +273,7 @@ def _card_records(choice_contracts: dict[str, Any]) -> tuple[list[dict[str, Any]
                             "kind": effect_kind,
                             "parameters_sha256": _sha256_value(parameters),
                         },
-                        "event": {
-                            "kind": str(
-                                behavior.get("trigger") or behavior.get("event") or ability_kind
-                            ),
-                            "choice_stage": _base_stage(ability_kind),
-                        },
+                        "event": {"kind": event_kind, "choice_stage": _base_stage(ability_kind)},
                         "choices": _deduplicate_choices(choices),
                         "authority": {
                             "oracle_source": coverage.source,
@@ -297,78 +292,158 @@ def _card_records(choice_contracts: dict[str, Any]) -> tuple[list[dict[str, Any]
                         "status": "MAPPED",
                     }
                 )
-    return records, observed_effect_kinds
+    return records, observed_effect_kinds, observed_event_kinds
+
+
+def _global_record(
+    record_id: str,
+    effect_kind: str,
+    stage: str,
+    rules_refs: tuple[str, ...],
+    choices: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "record_id": record_id,
+        "record_class": "GLOBAL_RULE",
+        "card": None,
+        "effect": {
+            "path": "global",
+            "kind": effect_kind,
+            "parameters_sha256": _sha256_value(
+                {"choice_stage": stage, "rules_refs": rules_refs, "choices": choices}
+            ),
+        },
+        "event": {"kind": effect_kind, "choice_stage": stage},
+        "choices": _deduplicate_choices(choices),
+        "authority": {"oracle_source": "NONE_GLOBAL_RULE", "rules_refs": list(rules_refs)},
+        "implementation": {
+            "engine_handler": None,
+            "policy_handler": None,
+            "replay_handler": None,
+        },
+        "evidence": {"positive_tests": [], "negative_tests": [], "fresh_replay_tests": []},
+        "status": "MAPPED",
+    }
 
 
 def _global_records() -> list[dict[str, Any]]:
-    definitions = (
-        ("GLOBAL-TRIGGER-ORDERING", "TRIGGER_ORDERING", "TRIGGER_STACKING", ("603.3b",)),
-        (
+    return [
+        _global_record(
+            "GLOBAL-TRIGGER-ORDERING",
+            "TRIGGER_ORDERING",
+            "TRIGGER_STACKING",
+            ("603.3b", "101.4"),
+            [
+                _choice(
+                    "TRIGGER_ORDER",
+                    "TRIGGER_STACKING",
+                    legality_owner="ENGINE_SHARED_VALIDATOR",
+                    rules_refs=("603.3b", "101.4"),
+                )
+            ],
+        ),
+        _global_record(
             "GLOBAL-REPLACEMENT-ORDERING",
             "REPLACEMENT_ORDERING",
             "REPLACEMENT_APPLICATION",
             ("616.1",),
+            [
+                _choice(
+                    "REPLACEMENT_EFFECT_SELECTION",
+                    "REPLACEMENT_APPLICATION",
+                    actor="AFFECTED_PLAYER",
+                    legality_owner="ENGINE_REPLACEMENT_VALIDATOR",
+                    rules_refs=("616.1",),
+                )
+            ],
         ),
-        ("GLOBAL-CLEANUP-REENTRY", "CLEANUP_REENTRY", "TURN_BASED_ACTION", ("514.3a",)),
-        (
+        _global_record(
+            "GLOBAL-CLEANUP-REENTRY",
+            "CLEANUP_REENTRY",
+            "TURN_BASED_ACTION",
+            ("514.1", "514.3a", "703.4n"),
+            [
+                _choice(
+                    "CLEANUP_DISCARD_SELECTION",
+                    "TURN_BASED_ACTION",
+                    actor="ACTIVE_PLAYER",
+                    legality_owner="ENGINE_TURN_BASED_ACTION_VALIDATOR",
+                    rules_refs=("514.1", "703.4n"),
+                )
+            ],
+        ),
+        _global_record(
             "GLOBAL-ILLEGAL-ACTION-ROLLBACK",
             "ILLEGAL_ACTION_ROLLBACK",
             "CAST_PROPOSAL",
             ("601.2", "733"),
+            [],
         ),
-        ("GLOBAL-SBA-TIMING", "SBA_TIMING", "STATE_BASED_ACTION", ("704",)),
-        (
-            "GLOBAL-COMMANDER-REPLACEMENT",
-            "COMMANDER_REPLACEMENT",
+        _global_record(
+            "GLOBAL-SBA-TIMING",
+            "SBA_TIMING",
+            "STATE_BASED_ACTION",
+            ("704.3", "704.4", "704.5j"),
+            [
+                _choice(
+                    "LEGEND_RULE_KEEP_SELECTION",
+                    "STATE_BASED_ACTION",
+                    legality_owner="ENGINE_STATE_BASED_ACTION_VALIDATOR",
+                    rules_refs=("704.5j",),
+                )
+            ],
+        ),
+        _global_record(
+            "GLOBAL-COMMANDER-GRAVEYARD-EXILE-RETURN",
+            "COMMANDER_GRAVEYARD_EXILE_RETURN",
+            "STATE_BASED_ACTION",
+            ("903.9a", "704.3"),
+            [
+                _choice(
+                    "COMMANDER_RETURN_FROM_GRAVEYARD_OR_EXILE",
+                    "STATE_BASED_ACTION",
+                    actor="OWNER",
+                    legality_owner="ENGINE_STATE_BASED_ACTION_VALIDATOR",
+                    rules_refs=("903.9a",),
+                )
+            ],
+        ),
+        _global_record(
+            "GLOBAL-COMMANDER-HAND-LIBRARY-REPLACEMENT",
+            "COMMANDER_HAND_LIBRARY_REPLACEMENT",
             "REPLACEMENT_APPLICATION",
-            ("903.9",),
+            ("903.9b", "614"),
+            [
+                _choice(
+                    "COMMANDER_HAND_LIBRARY_REPLACEMENT",
+                    "REPLACEMENT_APPLICATION",
+                    actor="OWNER",
+                    legality_owner="ENGINE_REPLACEMENT_VALIDATOR",
+                    rules_refs=("903.9b",),
+                )
+            ],
         ),
-        (
+        _global_record(
             "GLOBAL-PRIORITY-STACK-LIFO",
             "PRIORITY_STACK_LIFO",
-            "TURN_BASED_ACTION",
+            "PRIORITY_WINDOW",
             ("117", "405.5"),
+            [
+                _choice(
+                    "PRIORITY_ACTION_OR_PASS",
+                    "PRIORITY_WINDOW",
+                    actor="PRIORITY_HOLDER",
+                    legality_owner="ENGINE_SHARED_VALIDATOR",
+                    rules_refs=("117",),
+                )
+            ],
         ),
-    )
-    result: list[dict[str, Any]] = []
-    for record_id, effect_kind, stage, rules_refs in definitions:
-        result.append(
-            {
-                "record_id": record_id,
-                "record_class": "GLOBAL_RULE",
-                "card": None,
-                "effect": {
-                    "path": "global",
-                    "kind": effect_kind,
-                    "parameters_sha256": _sha256_value(
-                        {"choice_stage": stage, "rules_refs": rules_refs}
-                    ),
-                },
-                "event": {"kind": effect_kind, "choice_stage": stage},
-                "choices": [],
-                "authority": {
-                    "oracle_source": "NONE_GLOBAL_RULE",
-                    "rules_refs": list(rules_refs),
-                },
-                "implementation": {
-                    "engine_handler": None,
-                    "policy_handler": None,
-                    "replay_handler": None,
-                },
-                "evidence": {
-                    "positive_tests": [],
-                    "negative_tests": [],
-                    "fresh_replay_tests": [],
-                },
-                "status": "MAPPED",
-            }
-        )
-    return result
+    ]
 
 
 def build_manifest() -> dict[str, Any]:
     choice_contracts = _load_choice_contracts()
-    card_records, observed_effect_kinds = _card_records(choice_contracts)
+    card_records, observed_effect_kinds, observed_event_kinds = _card_records(choice_contracts)
     declared_effect_kinds = set(choice_contracts["effect_contracts"])
     undeclared = sorted(observed_effect_kinds - declared_effect_kinds)
     unused = sorted(declared_effect_kinds - observed_effect_kinds)
@@ -383,6 +458,9 @@ def build_manifest() -> dict[str, Any]:
     if len(record_ids) != len(set(record_ids)):
         raise ValueError("interaction record IDs are not unique")
 
+    choice_purposes = sorted(
+        {choice["purpose"] for record in records for choice in record.get("choices", [])}
+    )
     manifest: dict[str, Any] = {
         "schema_version": "interaction-coverage-surface-v1",
         "card_definition_count": len(package.coverage),
@@ -391,6 +469,8 @@ def build_manifest() -> dict[str, Any]:
         "global_rule_record_count": len(records) - len(card_records),
         "record_count": len(records),
         "observed_effect_kinds": sorted(observed_effect_kinds),
+        "observed_event_kinds": sorted(observed_event_kinds),
+        "choice_purposes": choice_purposes,
         "source_digests": {relative: _sha256_file(ROOT / relative) for relative in SOURCE_PATHS},
         "choice_contract_sha256": _sha256_file(CHOICE_CONTRACTS),
         "records": records,
@@ -434,8 +514,7 @@ def main() -> int:
 
     if args.check_lock:
         passed, detail = check_lock(manifest)
-        status = "PASS" if passed else "FAIL"
-        print(json.dumps({"status": status, **detail}, indent=2, sort_keys=True))
+        print(json.dumps({"status": "PASS" if passed else "FAIL", **detail}, indent=2, sort_keys=True))
         return 0 if passed else 1
 
     print(
@@ -449,6 +528,8 @@ def main() -> int:
                 "record_count": manifest["record_count"],
                 "manifest_sha256": manifest["manifest_sha256"],
                 "observed_effect_kinds": manifest["observed_effect_kinds"],
+                "observed_event_kinds": manifest["observed_event_kinds"],
+                "choice_purposes": manifest["choice_purposes"],
             },
             indent=2,
             sort_keys=True,
