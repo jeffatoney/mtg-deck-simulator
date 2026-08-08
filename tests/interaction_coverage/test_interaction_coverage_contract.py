@@ -47,6 +47,7 @@ def test_exact_deck_interaction_surface_is_finite_and_explicit(tmp_path: Path) -
         assert record["status"] == "MAPPED"
         assert record["authority"]["rules_refs"]
         assert record["effect"]["parameters_sha256"].startswith("sha256:")
+        assert record["legality"]["contract_sha256"].startswith("sha256:")
         for choice in record["choices"]:
             assert choice["purpose"]
             assert choice["rules_refs"]
@@ -77,6 +78,16 @@ def test_global_choice_families_are_explicit(tmp_path: Path) -> None:
     for record_id, purposes in expected.items():
         assert purposes <= {choice["purpose"] for choice in records[record_id]["choices"]}
     assert records["GLOBAL-ILLEGAL-ACTION-ROLLBACK"]["choices"] == []
+
+
+def test_proof_bundle_schema_binds_to_record_schema() -> None:
+    record_schema = json.loads(
+        (ROOT / "automation/interaction-record.schema.json").read_text(encoding="utf-8")
+    )
+    bundle_schema = json.loads(
+        (ROOT / "automation/interaction-proof-bundle.schema.json").read_text(encoding="utf-8")
+    )
+    assert bundle_schema["properties"]["records"]["items"]["$ref"] == record_schema["$id"]
 
 
 def test_frozen_interaction_surface_lock_is_current() -> None:
