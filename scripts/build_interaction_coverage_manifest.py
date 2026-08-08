@@ -373,6 +373,28 @@ def _global_records() -> list[dict[str, Any]]:
             ],
         ),
         _global_record(
+            "GLOBAL-COMBAT-ATTACKERS",
+            "COMBAT_ATTACKERS",
+            "TURN_BASED_ACTION",
+            ("508.1", "508.1a", "508.1b", "703.4i", "733"),
+            [
+                _choice(
+                    "ATTACKER_SELECTION",
+                    "TURN_BASED_ACTION",
+                    actor="ACTIVE_PLAYER",
+                    legality_owner="ENGINE_TURN_BASED_ACTION_VALIDATOR",
+                    rules_refs=("508.1a", "508.1c", "508.1d"),
+                ),
+                _choice(
+                    "ATTACK_DESTINATION_SELECTION",
+                    "TURN_BASED_ACTION",
+                    actor="ACTIVE_PLAYER",
+                    legality_owner="ENGINE_TURN_BASED_ACTION_VALIDATOR",
+                    rules_refs=("508.1b", "802.3"),
+                ),
+            ],
+        ),
+        _global_record(
             "GLOBAL-ILLEGAL-ACTION-ROLLBACK",
             "ILLEGAL_ACTION_ROLLBACK",
             "CAST_PROPOSAL",
