@@ -22,11 +22,15 @@ def _build(tmp_path: Path) -> dict[str, object]:
     return json.loads(output.read_text(encoding="utf-8"))
 
 
+def _purposes(record: dict[str, object]) -> set[str]:
+    return {str(choice["purpose"]) for choice in record["choices"]}
+
+
 def test_exact_deck_interaction_surface_is_finite_and_explicit(tmp_path: Path) -> None:
     manifest = _build(tmp_path)
     assert manifest["card_definition_count"] == 80
     assert manifest["physical_card_count"] == 100
-    assert manifest["global_rule_record_count"] == 9
+    assert manifest["global_rule_record_count"] == 10
     assert manifest["card_effect_record_count"] > 80
     assert manifest["record_count"] == (
         manifest["card_effect_record_count"] + manifest["global_rule_record_count"]
@@ -68,6 +72,11 @@ def test_global_choice_families_are_explicit(tmp_path: Path) -> None:
     expected = {
         "GLOBAL-TRIGGER-ORDERING": {"TRIGGER_ORDER"},
         "GLOBAL-REPLACEMENT-ORDERING": {"REPLACEMENT_EFFECT_SELECTION"},
+        "GLOBAL-COST-PAYMENT": {
+            "MANA_ABILITY_ACTIVATION_SEQUENCE",
+            "MANA_PAYMENT_CONFIGURATION",
+            "COST_PAYMENT_ORDER",
+        },
         "GLOBAL-CLEANUP-REENTRY": {"CLEANUP_DISCARD_SELECTION"},
         "GLOBAL-COMBAT-ATTACKERS": {"ATTACKER_SELECTION", "ATTACK_DESTINATION_SELECTION"},
         "GLOBAL-SBA-TIMING": {"LEGEND_RULE_KEEP_SELECTION"},
@@ -76,8 +85,37 @@ def test_global_choice_families_are_explicit(tmp_path: Path) -> None:
         "GLOBAL-PRIORITY-STACK-LIFO": {"PRIORITY_ACTION_OR_PASS"},
     }
     for record_id, purposes in expected.items():
-        assert purposes <= {choice["purpose"] for choice in records[record_id]["choices"]}
+        assert purposes <= _purposes(records[record_id])
     assert records["GLOBAL-ILLEGAL-ACTION-ROLLBACK"]["choices"] == []
+
+
+def test_card_specific_cost_choices_are_not_hidden_defaults(tmp_path: Path) -> None:
+    manifest = _build(tmp_path)
+    card_records = [record for record in manifest["records"] if record["record_class"] == "CARD_EFFECT"]
+
+    scavenger = [record for record in card_records if record["card"]["name"] == "Scavenger Grounds"]
+    assert any("ADDITIONAL_SACRIFICE_SELECTION" in _purposes(record) for record in scavenger)
+
+    cascade = [record for record in card_records if record["card"]["name"] == "Cascade Bluffs"]
+    assert any("HYBRID_COST_CONFIGURATION" in _purposes(record) for record in cascade)
+
+    glint_horn = [record for record in card_records if record["card"]["name"] == "Glint-Horn Buccaneer"]
+    assert any("DISCARD_COST_CARD_IDENTITY" in _purposes(record) for record in glint_horn)
+
+
+def test_target_controller_policy_uses_actual_actor_when_target_can_be_ours(tmp_path: Path) -> None:
+    manifest = _build(tmp_path)
+    arcane_denial = next(
+        record
+        for record in manifest["records"]
+        if record["record_class"] == "CARD_EFFECT"
+        and record["card"]["name"] == "Arcane Denial"
+    )
+    delayed_draw = next(
+        choice for choice in arcane_denial["choices"] if choice["purpose"] == "DELAYED_TRIGGER_DRAW_COUNT"
+    )
+    assert delayed_draw["actor"] == "TARGET_CONTROLLER"
+    assert delayed_draw["policy_class"] == "ACTOR_POLICY"
 
 
 def test_proof_bundle_schema_binds_to_record_schema() -> None:
