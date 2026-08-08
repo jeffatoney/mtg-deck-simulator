@@ -277,6 +277,14 @@ def _card_records(
                         },
                         "event": {"kind": event_kind, "choice_stage": _base_stage(ability_kind)},
                         "choices": _deduplicate_choices(choices),
+                        "legality": {
+                            "contract_sha256": _sha256_value(behavior),
+                            "target_schema": (
+                                deepcopy(behavior.get("target_schema"))
+                                if isinstance(behavior.get("target_schema"), dict)
+                                else None
+                            ),
+                        },
                         "authority": {
                             "oracle_source": coverage.source,
                             "rules_refs": sorted(rules_refs),
@@ -317,6 +325,12 @@ def _global_record(
         },
         "event": {"kind": effect_kind, "choice_stage": stage},
         "choices": _deduplicate_choices(choices),
+        "legality": {
+            "contract_sha256": _sha256_value(
+                {"choice_stage": stage, "rules_refs": rules_refs, "choices": choices}
+            ),
+            "target_schema": None,
+        },
         "authority": {"oracle_source": "NONE_GLOBAL_RULE", "rules_refs": list(rules_refs)},
         "implementation": {
             "engine_handler": None,
