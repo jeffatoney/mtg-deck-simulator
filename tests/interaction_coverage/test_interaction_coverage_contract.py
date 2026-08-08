@@ -108,9 +108,7 @@ def test_card_specific_cost_choices_are_not_hidden_defaults(tmp_path: Path) -> N
         record for record in manifest["records"] if record["record_class"] == "CARD_EFFECT"
     ]
 
-    scavenger = [
-        record for record in card_records if record["card"]["name"] == "Scavenger Grounds"
-    ]
+    scavenger = [record for record in card_records if record["card"]["name"] == "Scavenger Grounds"]
     assert any("ADDITIONAL_SACRIFICE_SELECTION" in _purposes(record) for record in scavenger)
 
     cascade = [record for record in card_records if record["card"]["name"] == "Cascade Bluffs"]
@@ -127,8 +125,7 @@ def test_target_controller_policy_uses_actual_actor_when_target_can_be_ours(tmp_
     arcane_denial = next(
         record
         for record in manifest["records"]
-        if record["record_class"] == "CARD_EFFECT"
-        and record["card"]["name"] == "Arcane Denial"
+        if record["record_class"] == "CARD_EFFECT" and record["card"]["name"] == "Arcane Denial"
     )
     delayed_draw = next(
         choice
