@@ -89,9 +89,7 @@ def _canonical(value: Any) -> bytes:
 def _error_metadata(exc: Exception) -> tuple[str, str, str]:
     error_type = type(exc).__name__
     reason = str(exc)
-    signature = hashlib.sha256(
-        _canonical({"error_type": error_type, "reason": reason})
-    ).hexdigest()
+    signature = hashlib.sha256(_canonical({"error_type": error_type, "reason": reason})).hexdigest()
     return error_type, reason, signature
 
 
@@ -310,9 +308,7 @@ def aggregate_diagnostic_reports(
                 raise PhaseCControlError("diagnostic game record is malformed")
             records.append(DiagnosticGameRecord(**dict(raw)))
 
-    expected_shards = {
-        (mode, index) for mode in ("STANDARD", "EXPLORATORY") for index in range(10)
-    }
+    expected_shards = {(mode, index) for mode in ("STANDARD", "EXPLORATORY") for index in range(10)}
     if seen_shards != expected_shards:
         raise PhaseCControlError("diagnostic shard set is incomplete or unexpected")
     standard_count = sum(record.mode == "STANDARD" for record in records)
