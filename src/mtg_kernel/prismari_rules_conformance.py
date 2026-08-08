@@ -210,8 +210,8 @@ def _cast(
     self: Any,
     actor: str,
     card_object_id: str,
-    targets: tuple[Any, ...] = (),
-    face: int = 0,
+    targets: tuple[Any, ...] | None = None,
+    face: int | None = None,
     x_value: int | None = None,
     mode: str | None = None,
     choices: dict[str, Any] | None = None,
@@ -219,7 +219,8 @@ def _cast(
     _record: bool = True,
 ) -> GameObject:
     selected_choices = dict(choices or {})
-    if _effect_kind(self, card_object_id, face, mode) != "PRISMARI_COMMAND":
+    inspection_face = 0 if face is None else face
+    if _effect_kind(self, card_object_id, inspection_face, mode) != "PRISMARI_COMMAND":
         return cast(
             GameObject,
             _ORIGINALS["cast"](
@@ -266,7 +267,7 @@ def _cast(
                 actor,
                 card_object_id,
                 (),
-                face,
+                inspection_face,
                 x_value,
                 mode,
                 selected_choices,
