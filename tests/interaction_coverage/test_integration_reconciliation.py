@@ -56,7 +56,7 @@ SOURCE_C_BLOBS = {
     ".github/workflows/policy-choice-replay-conformance.yml": (
         "b9550fadb86925ae0a28c88b1583766bc3d91da6"
     ),
-    "automation/strategic-choice-conformance.json": "40bc7db4a61cb98ac12c259bd4966067e1fafcbb",
+    "automation/strategic-choice-conformance.json": "50c6f873c271c29825100df3ccc9fa44c0d41de8",
     "docs/audit/interaction-coverage/AGENT_C_POLICY_CHOICE_REPLAY.md": (
         "d89b8d851e53db8baa5a27e0cfb3415ff0ea5422"
     ),
@@ -100,7 +100,7 @@ def test_candidate_denominator_and_integration_ledger_agree() -> None:
     assert lock["global_rule_record_count"] == 10
     assert lock["manifest_sha256"] == "sha256:" + ("0" * 64)
     assert lock["candidate_manifest_sha256"] == (
-        "sha256:20d767ea754841bf0f9bda378068c4c705e0b9f8f8f4be20ca15be1f24bb2cdc"
+        "sha256:f976526e34d7297521b9c949c7e3a54905cb8bdaa62e7e3225627de294f8a6b5"
     )
 
     for key in (
