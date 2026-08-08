@@ -56,7 +56,7 @@ SOURCE_C_BLOBS = {
     ".github/workflows/policy-choice-replay-conformance.yml": (
         "b9550fadb86925ae0a28c88b1583766bc3d91da6"
     ),
-    "automation/strategic-choice-conformance.json": "50c6f873c271c29825100df3ccc9fa44c0d41de8",
+    "automation/strategic-choice-conformance.json": "268090747f0d8185c0947b54c3eccffc3f21ec06",
     "docs/audit/interaction-coverage/AGENT_C_POLICY_CHOICE_REPLAY.md": (
         "d89b8d851e53db8baa5a27e0cfb3415ff0ea5422"
     ),
