@@ -56,6 +56,8 @@ def activated(
     maximum: int | None = 0,
     tap: bool = False,
     sacrifice: bool = False,
+    exile: bool = False,
+    sacrifice_subtype: str | None = None,
     discard: int = 0,
     restriction: str | None = None,
     mana_ability: bool = False,
@@ -68,6 +70,10 @@ def activated(
         cost["tap"] = True
     if sacrifice:
         cost["sacrifice_source"] = True
+    if exile:
+        cost["exile_source"] = True
+    if sacrifice_subtype is not None:
+        cost["sacrifice_permanent_subtype"] = sacrifice_subtype
     if discard:
         cost["discard"] = discard
     value: dict[str, Any] = {
@@ -406,14 +412,7 @@ RULES_BY_NAME: dict[str, tuple[dict[str, Any], ...]] = {
             "event": "ENTERS_BATTLEFIELD",
             "effect": {"kind": "ENTER_TAPPED"},
         },
-        triggered(
-            "boilerworks:etb",
-            "ETB",
-            "RETURN_CONTROLLED_LAND",
-            targets="CONTROLLED_LAND",
-            minimum=1,
-            maximum=1,
-        ),
+        triggered("boilerworks:etb", "ETB", "RETURN_CONTROLLED_LAND"),
         mana("boilerworks:ur", {"U": 1, "R": 1}),
     ),
     "Izzet Signet": (
@@ -576,13 +575,12 @@ RULES_BY_NAME: dict[str, tuple[dict[str, Any], ...]] = {
             "EXILE_ALL_GRAVEYARDS",
             mana_cost="{2}",
             tap=True,
-            sacrifice=True,
-            additional_sacrifice_subtype="Desert",
+            sacrifice_subtype="Desert",
         ),
     ),
     "Sentinel Totem": (
         triggered("totem:etb", "ETB", "SCRY", count=1),
-        activated("totem:exile", "EXILE_ALL_GRAVEYARDS", tap=True, sacrifice=True),
+        activated("totem:exile", "EXILE_ALL_GRAVEYARDS", tap=True, exile=True),
     ),
     "Shivan Reef": (
         mana("reef:c", {"C": 1}),
@@ -685,7 +683,7 @@ RULES_BY_NAME: dict[str, tuple[dict[str, Any], ...]] = {
         spell("DESTROY_ALL_OPPONENT_ARTIFACTS", mode="overload", cost="{4}{R}"),
     ),
     "Vedalken Aethermage": (
-        triggered("aethermage:etb", "ETB", "BOUNCE_TARGET", targets="SLIVER", minimum=0, maximum=1),
+        triggered("aethermage:etb", "ETB", "BOUNCE_TARGET", targets="SLIVER", minimum=1, maximum=1),
         activated(
             "aethermage:wizardcycling",
             "TYPECYCLE",
