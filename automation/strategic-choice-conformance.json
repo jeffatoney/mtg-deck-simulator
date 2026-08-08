@@ -7,7 +7,8 @@
     {"runtime_purpose": "LOOK_SELECT", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
     {"runtime_purpose": "ORDER_LIBRARY_BOTTOM", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
     {"runtime_purpose": "PRISMARI_DISCARD", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
-    {"runtime_purpose": "TRIGGER_TARGET:*", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"}
+    {"runtime_purpose": "TRIGGER_TARGET:*", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
+    {"runtime_purpose": "TUTOR_*", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"}
   ],
   "canonical_routes": [
     {"timing": "CAST_PROPOSAL", "purpose": "CAST_PATH", "mechanism": "BROKER_ACTION"},
