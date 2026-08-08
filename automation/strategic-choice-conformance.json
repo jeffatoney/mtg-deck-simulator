@@ -32,6 +32,7 @@
     {"timing": "RESOLUTION", "purpose": "UNTAP_LAND_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "UNTAP_LANDS"},
     {"timing": "RESOLUTION", "purpose": "LOOK_CARD_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "LOOK_SELECT"},
     {"timing": "RESOLUTION", "purpose": "BOTTOM_ORDER_IF_MULTIPLE", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "ORDER_LIBRARY_BOTTOM"},
+    {"timing": "RESOLUTION", "purpose": "UNLESS_PAYMENT_DECISION", "mechanism": "PROTOCOL_METHOD", "protocol_method": "choose_counter_payment"},
     {"timing": "RESOLUTION", "purpose": "DELAYED_TRIGGER_DRAW_COUNT", "mechanism": "RUNNER_EXPLICIT_POLICY"},
     {"timing": "TURN_BASED_ACTION", "purpose": "CLEANUP_DISCARD_SELECTION", "mechanism": "RUNNER_EXPLICIT_POLICY", "runtime_purpose": "DISCARD"},
     {"timing": "TURN_BASED_ACTION", "purpose": "ATTACKER_SELECTION", "mechanism": "BROKER_ACTION"},
@@ -53,6 +54,11 @@
       "name": "trigger policy fails closed on unknown target effects",
       "path": "src/mtg_policy/trigger_choices.py",
       "must_contain": ["TRIGGER_TARGET:", "mandatory trigger target policy is unsupported for effect", "request.candidates"]
+    },
+    {
+      "name": "counter-unless-pay choice crosses explicit policy and replay boundary",
+      "path": "src/mtg_kernel/phase_b_runtime_effects_interaction.py",
+      "must_contain": ["CounterPaymentRequest", "choose_counter_payment", "strategic provider selected an unavailable counter payment", "chosen_at\": \"RESOLUTION"]
     },
     {
       "name": "shared resolution card selection validates returned handles and count",
@@ -77,7 +83,7 @@
     {
       "name": "production specialized choices are constrained to legal request sets",
       "path": "src/mtg_policy/choices.py",
-      "must_contain": ["request.eligible_cards", "request.legal_splits", "if selected not in request.legal_target_sets"]
+      "must_contain": ["request.eligible_cards", "request.legal_splits", "if selected not in request.legal_target_sets", "PAY_IF_CURRENT_POOL_CAN_PAY"]
     },
     {
       "name": "replay card selections recheck purpose candidate membership and count",
@@ -87,7 +93,7 @@
     {
       "name": "replay specialized choices recheck legality",
       "path": "src/mtg_kernel/strategic_choices.py",
-      "must_contain": ["identity not in request.eligible_identities", "split_index not in {split.split_index for split in request.legal_splits}", "handles not in request.legal_target_sets"]
+      "must_contain": ["identity not in request.eligible_identities", "split_index not in {split.split_index for split in request.legal_splits}", "handles not in request.legal_target_sets", "recorded counter payment is not legal from the replay mana pool"]
     },
     {
       "name": "replay uses recorded provider and requires exact transcript equality",
