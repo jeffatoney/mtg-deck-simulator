@@ -56,8 +56,6 @@ def test_spell_pierce_payment_is_chosen_at_resolution_and_replays() -> None:
     recorded = transcript(state, seed=seed)
     replayed = validate_replay(recorded)
     assert replayed.replay_commands == state.replay_commands
-    replay_choices = [
-        choice for choice in replayed.choices if choice.kind == "COUNTER_UNLESS_PAY"
-    ]
+    replay_choices = [choice for choice in replayed.choices if choice.kind == "COUNTER_UNLESS_PAY"]
     assert len(replay_choices) == 1
     assert replay_choices[0].selected["pay"] is True
