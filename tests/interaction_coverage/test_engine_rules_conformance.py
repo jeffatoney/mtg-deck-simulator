@@ -149,7 +149,7 @@ def test_scavenger_grounds_requires_explicit_qualifying_sacrifice_atomically() -
     add_card(executor, specs["Opt"], Zone.GRAVEYARD, owner="P0")
     before = state_hash(state)
 
-    with pytest.raises(IllegalAction, match="additional sacrifice cost requires an explicit"):
+    with pytest.raises(IllegalAction, match="sacrifice-permanent cost requires an explicit"):
         executor.activate("P0", grounds.object_id, "grounds:exile")
 
     assert state_hash(state) == before
@@ -175,7 +175,7 @@ def test_scavenger_grounds_may_sacrifice_another_desert_and_source_survives() ->
         "P0",
         grounds.object_id,
         "grounds:exile",
-        choices={"additional_sacrifice_object_id": other_desert.object_id},
+        choices={"sacrifice_permanent_object_id": other_desert.object_id},
     )
 
     assert grounds.zone is Zone.BATTLEFIELD
@@ -184,7 +184,7 @@ def test_scavenger_grounds_may_sacrifice_another_desert_and_source_survives() ->
     assert other_desert.retired
     assert active_named(state, "Scavenger Grounds", Zone.GRAVEYARD)
     sacrifice_choice = next(
-        choice for choice in state.choices if choice.kind == "ADDITIONAL_SACRIFICE_SELECTION"
+        choice for choice in state.choices if choice.kind == "SACRIFICE_PERMANENT_SELECTION"
     )
     assert sacrifice_choice.selected == other_desert.object_id
 
