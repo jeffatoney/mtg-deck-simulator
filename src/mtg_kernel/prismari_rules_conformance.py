@@ -58,7 +58,9 @@ def _target_data(choices: dict[str, Any], mode: str) -> dict[str, Any]:
         raise IllegalAction("Prismari Command requires explicit targets while casting")
     raw_target = raw_targets.get(mode)
     if not isinstance(raw_target, dict):
-        raise IllegalAction(f"Prismari Command mode {mode} requires an explicit target while casting")
+        raise IllegalAction(
+            f"Prismari Command mode {mode} requires an explicit target while casting"
+        )
     return {str(key): value for key, value in raw_target.items()}
 
 
@@ -110,7 +112,9 @@ def _cast_target_ref(
         return _player_ref(executor, actor, target)
     if mode == "DESTROY_ARTIFACT":
         if set(target) != {"object_id"}:
-            raise IllegalAction("Prismari Command artifact mode requires exactly one artifact target")
+            raise IllegalAction(
+                "Prismari Command artifact mode requires exactly one artifact target"
+            )
         return _permanent_ref(executor, actor, target, required_types={"Artifact"})
     if mode == "DAMAGE":
         if set(target) == {"player_id"}:
@@ -231,7 +235,9 @@ def _cast(
             ),
         )
     if targets:
-        raise IllegalAction("Prismari Command uses mode-associated cast choices, not generic targets")
+        raise IllegalAction(
+            "Prismari Command uses mode-associated cast choices, not generic targets"
+        )
 
     before = self._begin_atomic()
     try:
@@ -303,9 +309,7 @@ def _resolved_target(
         return value
 
     required_types = (
-        {"Artifact"}
-        if mode == "DESTROY_ARTIFACT"
-        else {"Creature", "Planeswalker", "Battle"}
+        {"Artifact"} if mode == "DESTROY_ARTIFACT" else {"Creature", "Planeswalker", "Battle"}
     )
     if (
         not executor._is_permanent(value)
@@ -334,9 +338,7 @@ def _revalidate_targets(self: Any, action: Action) -> list[GameObject]:
     if "prismari_target_modes" not in action.metadata:
         return cast(list[GameObject], _ORIGINALS["revalidate_targets"](self, action))
     return [
-        target
-        for _, target in _prismari_resolution_targets(self, action)
-        if target is not None
+        target for _, target in _prismari_resolution_targets(self, action) if target is not None
     ]
 
 
