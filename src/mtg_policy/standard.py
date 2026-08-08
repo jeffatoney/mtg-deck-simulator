@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
 from typing import Any
 
 from mtg_policy.broker import ObservedAction
@@ -118,6 +120,31 @@ class StandardPolicy:
         if "generation" not in observation or "turn" not in observation:
             raise ValueError("policy observation is incomplete")
 
+    @staticmethod
+    def _public_action_tiebreak(action: ObservedAction) -> str:
+        """Return a stable tie-break derived only from policy-visible action semantics.
+
+        Broker handles are revocable capability tokens bound to the full engine state.
+        They must never become a strategic preference because their state binding can
+        include information that is intentionally absent from the policy observation.
+        """
+
+        public = {
+            "identity": action.identity,
+            "kind": action.kind,
+            "mana_value": action.mana_value,
+            "metadata": action.metadata,
+            "tags": action.tags,
+            "target_count": action.target_count,
+        }
+        encoded = json.dumps(
+            public,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode()
+        return hashlib.sha256(b"standard-policy-public-action-v1\0" + encoded).hexdigest()
+
     def choose_optional_trigger(self, effect_kind: str) -> bool:
         """Choose a supported optional trigger from public effect classification.
 
@@ -169,6 +196,11 @@ class StandardPolicy:
                     value -= 60
             if action.kind == "PASS_PRIORITY":
                 value -= 100
-            return (value, -action.mana_value, -action.target_count, action.handle)
+            return (
+                value,
+                -action.mana_value,
+                -action.target_count,
+                self._public_action_tiebreak(action),
+            )
 
         return max(actions, key=score).handle
