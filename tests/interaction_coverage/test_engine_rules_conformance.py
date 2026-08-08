@@ -61,12 +61,12 @@ def test_x_requires_explicit_cast_proposal_declaration_even_when_zero() -> None:
     before = state_hash(state)
 
     with pytest.raises(IllegalAction, match="X requires an explicit"):
-        executor.cast("P0", spell.object_id)
+        executor.cast("P0", spell.object_id, targets=())
 
     assert state_hash(state) == before
     assert spell.zone is Zone.HAND
 
-    executor.cast("P0", spell.object_id, x_value=0)
+    executor.cast("P0", spell.object_id, targets=(), x_value=0)
     assert state.stack
 
 
