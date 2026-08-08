@@ -2,11 +2,11 @@
   "schema_version": "strategic-choice-conformance-v1",
   "purpose": "Fail-closed routing contract from rules-defined strategic choices to production policy, legality validation, and exact replay.",
   "runtime_purpose_contracts": [
-    {"runtime_purpose": "DISCARD", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_COMMAND_ARGUMENT"},
+    {"runtime_purpose": "DISCARD", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE_OR_COMMAND_ARGUMENT"},
     {"runtime_purpose": "UNTAP_LANDS", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
     {"runtime_purpose": "LOOK_SELECT", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
     {"runtime_purpose": "ORDER_LIBRARY_BOTTOM", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
-    {"runtime_purpose": "TUTOR_*", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
+    {"runtime_purpose": "PRISMARI_DISCARD", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
     {"runtime_purpose": "TRIGGER_TARGET:*", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"}
   ],
   "canonical_routes": [
@@ -20,12 +20,12 @@
     {"timing": "RESOLUTION", "purpose": "COPY_NEW_TARGETS", "mechanism": "PROTOCOL_METHOD", "protocol_method": "choose_spell_copy_targets"},
     {"timing": "RESOLUTION", "purpose": "FACT_OR_FICTION_SPLIT", "mechanism": "PROTOCOL_METHOD", "protocol_method": "choose_fact_or_fiction"},
     {"timing": "RESOLUTION", "purpose": "FACT_OR_FICTION_PILE", "mechanism": "PROTOCOL_METHOD", "protocol_method": "choose_fact_or_fiction"},
-    {"timing": "RESOLUTION", "purpose": "SEARCH_SELECTION_OR_FAIL_TO_FIND_STATED_QUALITY", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "TUTOR_*"},
-    {"timing": "RESOLUTION", "purpose": "SEARCH_SELECTION_REQUIRED_IF_LIBRARY_NONEMPTY", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "TUTOR_*"},
-    {"timing": "RESOLUTION", "purpose": "TYPE_TUTOR_SELECTIONS_WITH_STATED_QUALITIES", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "TUTOR_*"},
+    {"timing": "RESOLUTION", "purpose": "SEARCH_SELECTION_OR_FAIL_TO_FIND_STATED_QUALITY", "mechanism": "PROTOCOL_METHOD", "protocol_method": "choose_tutor"},
+    {"timing": "RESOLUTION", "purpose": "SEARCH_SELECTION_REQUIRED_IF_LIBRARY_NONEMPTY", "mechanism": "PROTOCOL_METHOD", "protocol_method": "choose_tutor"},
+    {"timing": "RESOLUTION", "purpose": "TYPE_TUTOR_SELECTIONS_WITH_STATED_QUALITIES", "mechanism": "PROTOCOL_METHOD", "protocol_method": "choose_tutor"},
     {"timing": "RESOLUTION", "purpose": "DISCARD_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "DISCARD"},
     {"timing": "RESOLUTION", "purpose": "DISCARD_SELECTION_IF_REQUIRED", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "DISCARD"},
-    {"timing": "RESOLUTION", "purpose": "DRAW_DISCARD_SELECTION_IF_CHOSEN", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "DISCARD"},
+    {"timing": "RESOLUTION", "purpose": "DRAW_DISCARD_SELECTION_IF_CHOSEN", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "PRISMARI_DISCARD"},
     {"timing": "RESOLUTION", "purpose": "UNTAP_LAND_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "UNTAP_LANDS"},
     {"timing": "RESOLUTION", "purpose": "LOOK_CARD_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "LOOK_SELECT"},
     {"timing": "RESOLUTION", "purpose": "BOTTOM_ORDER_IF_MULTIPLE", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "ORDER_LIBRARY_BOTTOM"},
@@ -50,6 +50,16 @@
       "name": "trigger policy fails closed on unknown target effects",
       "path": "src/mtg_policy/trigger_choices.py",
       "must_contain": ["TRIGGER_TARGET:", "mandatory trigger target policy is unsupported for effect", "request.candidates"]
+    },
+    {
+      "name": "shared resolution card selection validates returned handles and count",
+      "path": "src/mtg_kernel/phase_b_runtime_effects_selection.py",
+      "must_contain": ["purpose=purpose", "not set(selected_handles) <= legal_handles", "not minimum <= len(selected_handles) <= maximum", "CARD_SELECTION"]
+    },
+    {
+      "name": "prismari discard selection validates returned handles and count",
+      "path": "src/mtg_kernel/phase_b_runtime_effects_prismari.py",
+      "must_contain": ["purpose=\"PRISMARI_DISCARD\"", "not set(selected_handles) <= legal_handles", "len(selected_handles) != required", "CARD_SELECTION"]
     },
     {
       "name": "cleanup discard policy validates returned handles and records the command input",
