@@ -72,6 +72,7 @@
             "SPECIAL_ACTION",
             "TURN_BASED_ACTION",
             "STATE_BASED_ACTION",
+            "PRIORITY_WINDOW",
             "CONTINUOUS"
           ]
         }
@@ -140,7 +141,8 @@
             "REPLACEMENT_APPLICATION",
             "SPECIAL_ACTION",
             "TURN_BASED_ACTION",
-            "STATE_BASED_ACTION"
+            "STATE_BASED_ACTION",
+            "PRIORITY_WINDOW"
           ]
         },
         "actor": {
@@ -152,6 +154,7 @@
             "OPPONENT_POLICY",
             "ACTIVE_PLAYER",
             "NONACTIVE_PLAYER",
+            "PRIORITY_HOLDER",
             "RULES_DETERMINED"
           ]
         },
