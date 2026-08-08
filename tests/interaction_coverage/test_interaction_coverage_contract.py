@@ -30,16 +30,29 @@ def test_exact_deck_interaction_surface_is_finite_and_explicit(tmp_path: Path) -
     manifest = _build(tmp_path)
     assert manifest["card_definition_count"] == 80
     assert manifest["physical_card_count"] == 100
+    assert manifest["card_composition_record_count"] == 80
     assert manifest["global_rule_record_count"] == 10
     assert manifest["card_effect_record_count"] > 80
     assert manifest["record_count"] == (
-        manifest["card_effect_record_count"] + manifest["global_rule_record_count"]
+        manifest["card_composition_record_count"]
+        + manifest["card_effect_record_count"]
+        + manifest["global_rule_record_count"]
     )
 
     records = manifest["records"]
     assert isinstance(records, list)
     ids = [record["record_id"] for record in records]
     assert len(ids) == len(set(ids))
+
+    composition_records = [
+        record for record in records if record["record_class"] == "CARD_COMPOSITION"
+    ]
+    assert len(composition_records) == 80
+    assert len({record["card"]["name"] for record in composition_records}) == 80
+    for record in composition_records:
+        assert record["card"]["behavior_index"] == -1
+        assert record["effect"]["kind"] == "ORACLE_COMPOSITION"
+        assert record["authority"]["rules_refs"] == ["108.1"]
 
     card_records = [record for record in records if record["record_class"] == "CARD_EFFECT"]
     assert len({record["card"]["name"] for record in card_records}) == 80
@@ -91,15 +104,21 @@ def test_global_choice_families_are_explicit(tmp_path: Path) -> None:
 
 def test_card_specific_cost_choices_are_not_hidden_defaults(tmp_path: Path) -> None:
     manifest = _build(tmp_path)
-    card_records = [record for record in manifest["records"] if record["record_class"] == "CARD_EFFECT"]
+    card_records = [
+        record for record in manifest["records"] if record["record_class"] == "CARD_EFFECT"
+    ]
 
-    scavenger = [record for record in card_records if record["card"]["name"] == "Scavenger Grounds"]
+    scavenger = [
+        record for record in card_records if record["card"]["name"] == "Scavenger Grounds"
+    ]
     assert any("ADDITIONAL_SACRIFICE_SELECTION" in _purposes(record) for record in scavenger)
 
     cascade = [record for record in card_records if record["card"]["name"] == "Cascade Bluffs"]
     assert any("HYBRID_COST_CONFIGURATION" in _purposes(record) for record in cascade)
 
-    glint_horn = [record for record in card_records if record["card"]["name"] == "Glint-Horn Buccaneer"]
+    glint_horn = [
+        record for record in card_records if record["card"]["name"] == "Glint-Horn Buccaneer"
+    ]
     assert any("DISCARD_COST_CARD_IDENTITY" in _purposes(record) for record in glint_horn)
 
 
@@ -112,7 +131,9 @@ def test_target_controller_policy_uses_actual_actor_when_target_can_be_ours(tmp_
         and record["card"]["name"] == "Arcane Denial"
     )
     delayed_draw = next(
-        choice for choice in arcane_denial["choices"] if choice["purpose"] == "DELAYED_TRIGGER_DRAW_COUNT"
+        choice
+        for choice in arcane_denial["choices"]
+        if choice["purpose"] == "DELAYED_TRIGGER_DRAW_COUNT"
     )
     assert delayed_draw["actor"] == "TARGET_CONTROLLER"
     assert delayed_draw["policy_class"] == "ACTOR_POLICY"
