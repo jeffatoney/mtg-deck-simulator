@@ -49,7 +49,7 @@ def _selected_modes(choices: dict[str, Any]) -> tuple[str, str]:
         raise IllegalAction("Prismari Command requires exactly two distinct modes while casting")
     if not set(modes) <= set(PRISMARI_MODE_ORDER):
         raise IllegalAction("Prismari Command includes an unsupported mode")
-    return cast(tuple[str, str], modes)
+    return modes
 
 
 def _target_data(choices: dict[str, Any], mode: str) -> dict[str, Any]:
