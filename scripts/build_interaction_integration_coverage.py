@@ -366,9 +366,7 @@ def _ledger_expectations(report: dict[str, Any]) -> dict[tuple[str, ...], Any]:
         ("status",): report["status"],
         ("surface", "candidate_status"): surface["candidate_status"],
         ("surface", "record_count"): surface["record_count"],
-        ("surface", "card_composition_record_count"): surface[
-            "card_composition_record_count"
-        ],
+        ("surface", "card_composition_record_count"): surface["card_composition_record_count"],
         ("surface", "card_effect_record_count"): surface["card_effect_record_count"],
         ("surface", "global_rule_record_count"): surface["global_rule_record_count"],
         ("surface", "manifest_sha256"): surface["manifest_sha256"],
@@ -376,15 +374,9 @@ def _ledger_expectations(report: dict[str, Any]) -> dict[tuple[str, ...], Any]:
         ("coverage", "requirements"): surface["record_count"],
         ("coverage", "inventory_mapped"): surface["record_count"],
         ("coverage", "record_level_proven"): evidence["proven_records"],
-        ("coverage", "record_level_engine_evidence_attached"): evidence[
-            "engine_handler_attached"
-        ],
-        ("coverage", "record_level_policy_evidence_attached"): evidence[
-            "policy_handler_attached"
-        ],
-        ("coverage", "record_level_replay_evidence_attached"): evidence[
-            "replay_handler_attached"
-        ],
+        ("coverage", "record_level_engine_evidence_attached"): evidence["engine_handler_attached"],
+        ("coverage", "record_level_policy_evidence_attached"): evidence["policy_handler_attached"],
+        ("coverage", "record_level_replay_evidence_attached"): evidence["replay_handler_attached"],
         ("coverage", "record_level_direct_test_evidence_attached"): evidence[
             "positive_test_evidence_attached"
         ],
@@ -397,16 +389,10 @@ def _ledger_expectations(report: dict[str, Any]) -> dict[tuple[str, ...], Any]:
         ("coverage", "policy_ready_or_not_required_records"): policy[
             "policy_ready_or_not_required_records"
         ],
-        ("coverage", "records_with_policy_replay_gaps"): policy[
-            "records_with_policy_replay_gaps"
-        ],
-        ("coverage", "strategic_choice_occurrences"): policy[
-            "strategic_choice_occurrences"
-        ],
+        ("coverage", "records_with_policy_replay_gaps"): policy["records_with_policy_replay_gaps"],
+        ("coverage", "strategic_choice_occurrences"): policy["strategic_choice_occurrences"],
         ("coverage", "reviewed_route_occurrences"): policy["reviewed_route_occurrences"],
-        ("coverage", "currently_supported_occurrences"): policy[
-            "currently_supported_occurrences"
-        ],
+        ("coverage", "currently_supported_occurrences"): policy["currently_supported_occurrences"],
         ("coverage", "strategic_choice_classes_required"): policy[
             "unique_strategic_choice_classes"
         ],
@@ -416,18 +402,14 @@ def _ledger_expectations(report: dict[str, Any]) -> dict[tuple[str, ...], Any]:
         ("coverage", "strategic_choice_classes_unrouted"): policy[
             "unrouted_strategic_choice_classes"
         ],
-        ("coverage", "strategic_protocol_methods_required"): policy[
-            "protocol_methods_required"
-        ],
+        ("coverage", "strategic_protocol_methods_required"): policy["protocol_methods_required"],
         ("coverage", "strategic_protocol_methods_in_production_provider"): policy[
             "protocol_methods_in_production_provider"
         ],
         ("coverage", "strategic_protocol_methods_in_recorded_replay_provider"): policy[
             "protocol_methods_in_recorded_replay_provider"
         ],
-        ("coverage", "engine_blocker_families"): report["engine_rules"][
-            "blocker_family_count"
-        ],
+        ("coverage", "engine_blocker_families"): report["engine_rules"]["blocker_family_count"],
         ("coverage", "live_policy_defects"): policy["live_policy_defect_count"],
         ("coverage", "agent_a_findings_total"): agent_a["finding_count"],
         ("coverage", "agent_a_findings_complete"): len(agent_a["complete_findings"]),
