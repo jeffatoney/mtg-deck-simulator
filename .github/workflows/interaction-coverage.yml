@@ -3,6 +3,8 @@ name: Interaction Coverage Contract
 on:
   pull_request:
     paths:
+      - "automation/agent-a-*.json"
+      - "automation/agent-a-deck-interaction-manifest/**"
       - "automation/interaction-*.json"
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
@@ -23,6 +25,8 @@ on:
   push:
     branches: [main]
     paths:
+      - "automation/agent-a-*.json"
+      - "automation/agent-a-deck-interaction-manifest/**"
       - "automation/interaction-*.json"
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
@@ -55,7 +59,7 @@ jobs:
           cache: pip
       - name: Install project
         run: python -m pip install -e ".[dev]"
-      - name: Verify frozen surface lock
+      - name: Verify candidate surface lock
         run: python scripts/build_interaction_coverage_manifest.py --check-lock
       - name: Verify integrated coverage ledger
         run: >-
