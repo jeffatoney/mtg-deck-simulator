@@ -10,6 +10,7 @@ from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.hashing import state_hash
 from mtg_kernel.land_actions import play_land
 from mtg_kernel.models import TargetRef, Zone
+from mtg_kernel.replay import transcript, validate_replay
 
 PLAYERS = ("P0", "P1")
 MANA_SYMBOLS = ("W", "U", "B", "R", "G", "C")
@@ -40,6 +41,33 @@ def active_named(state, name: str, zone: Zone):
         and obj.zone is zone
         and obj.current_characteristics.get("name") == name
     ]
+
+
+def manifested_permanent(state, controller: str):
+    return next(
+        obj
+        for obj in state.objects.values()
+        if not obj.retired
+        and not obj.ceased_to_exist
+        and obj.zone is Zone.BATTLEFIELD
+        and obj.controller == controller
+        and obj.current_characteristics.get("manifested") is True
+    )
+
+
+def test_x_requires_explicit_cast_proposal_declaration_even_when_zero() -> None:
+    state, executor, specs = funded_game("agent-b-x-explicit")
+    spell = add_card(executor, specs["By Force"], Zone.HAND, owner="P0")
+    before = state_hash(state)
+
+    with pytest.raises(IllegalAction, match="X requires an explicit"):
+        executor.cast("P0", spell.object_id)
+
+    assert state_hash(state) == before
+    assert spell.zone is Zone.HAND
+
+    executor.cast("P0", spell.object_id, x_value=0)
+    assert state.stack
 
 
 def test_kicker_requires_explicit_cast_proposal_declaration_atomically() -> None:
@@ -137,3 +165,59 @@ def test_scavenger_grounds_may_sacrifice_another_desert_and_source_survives() ->
         for obj in state.objects.values()
         if not obj.retired and not obj.ceased_to_exist and obj.zone is Zone.GRAVEYARD
     ]
+
+
+def test_manifested_creature_card_can_turn_face_up_as_special_action_and_replay() -> None:
+    seed = "agent-b-manifest-face-up"
+    state, executor, specs = funded_game(seed)
+    target = add_card(executor, specs["Dualcaster Mage"], Zone.BATTLEFIELD, owner="P1")
+    add_card(executor, specs["Spectral Sailor"], Zone.LIBRARY, owner="P1")
+    spell = add_card(executor, specs["Reality Shift"], Zone.HAND, owner="P0")
+
+    executor.cast("P0", spell.object_id, targets=(TargetRef(target.object_id),))
+    pass_all(executor)
+
+    manifested = manifested_permanent(state, "P1")
+    object_id = manifested.object_id
+    assert manifested.current_characteristics["name"] == "Face-down creature"
+    assert manifested.permanent_status is not None
+    assert manifested.permanent_status["face"] == "FACE_DOWN"
+
+    executor.pass_priority("P0")
+    face_up = getattr(executor, "turn_manifest_face_up")("P1", object_id)
+
+    assert face_up.object_id == object_id
+    assert face_up.current_characteristics["name"] == "Spectral Sailor"
+    assert face_up.permanent_status is not None
+    assert face_up.permanent_status["face"] == "FACE_UP"
+    assert face_up.identity_visible_to == set(PLAYERS)
+    assert state.turn.priority_holder_id == "P1"
+    assert any(action.kind == "MANIFEST_FACE_UP_SPECIAL_ACTION" for action in state.actions)
+
+    recorded = transcript(state, seed=seed)
+    replayed = validate_replay(recorded)
+    replayed_face_up = replayed.objects[object_id]
+    assert replayed_face_up.current_characteristics["name"] == "Spectral Sailor"
+    assert replayed_face_up.permanent_status is not None
+    assert replayed_face_up.permanent_status["face"] == "FACE_UP"
+
+
+def test_noncreature_manifest_cannot_use_manifest_face_up_action_atomically() -> None:
+    state, executor, specs = funded_game("agent-b-manifest-noncreature")
+    target = add_card(executor, specs["Dualcaster Mage"], Zone.BATTLEFIELD, owner="P1")
+    add_card(executor, specs["Opt"], Zone.LIBRARY, owner="P1")
+    spell = add_card(executor, specs["Reality Shift"], Zone.HAND, owner="P0")
+
+    executor.cast("P0", spell.object_id, targets=(TargetRef(target.object_id),))
+    pass_all(executor)
+    manifested = manifested_permanent(state, "P1")
+    executor.pass_priority("P0")
+    before = state_hash(state)
+
+    with pytest.raises(IllegalAction, match="cannot be turned face up"):
+        getattr(executor, "turn_manifest_face_up")("P1", manifested.object_id)
+
+    assert state_hash(state) == before
+    assert manifested.current_characteristics["name"] == "Face-down creature"
+    assert manifested.permanent_status is not None
+    assert manifested.permanent_status["face"] == "FACE_DOWN"
