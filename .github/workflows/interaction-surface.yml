@@ -6,7 +6,6 @@ on:
       - "automation/agent-a-*.json"
       - "automation/agent-a-deck-interaction-manifest/**"
       - "automation/interaction-*.json"
-      - "configs/**"
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
       - "scripts/check_interaction_candidate_lock.py"
@@ -26,7 +25,6 @@ on:
       - "automation/agent-a-*.json"
       - "automation/agent-a-deck-interaction-manifest/**"
       - "automation/interaction-*.json"
-      - "configs/**"
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
       - "scripts/check_interaction_candidate_lock.py"
@@ -71,23 +69,5 @@ jobs:
             scripts/audit_policy_choice_replay_conformance.py
           if-no-files-found: error
           retention-days: 14
-      - name: Publish short-lived integration source snapshot
-        uses: actions/upload-artifact@v4
-        with:
-          name: integration-source-${{ github.sha }}
-          path: |
-            .github
-            .python-version
-            automation
-            configs
-            docs
-            pyproject.toml
-            scripts
-            src
-            tests
-            uv.lock
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 3
       - name: Verify provisional or reviewed interaction lock
         run: python scripts/check_interaction_candidate_lock.py
