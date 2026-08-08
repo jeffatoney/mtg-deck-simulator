@@ -38,9 +38,7 @@ def test_exact_deck_interaction_surface_is_finite_and_explicit(tmp_path: Path) -
     assert len(ids) == len(set(ids))
 
     card_names = {
-        record["card"]["name"]
-        for record in records
-        if record["record_class"] == "CARD_EFFECT"
+        record["card"]["name"] for record in records if record["record_class"] == "CARD_EFFECT"
     }
     assert len(card_names) == 80
 
