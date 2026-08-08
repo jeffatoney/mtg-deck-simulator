@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 import json
 import sys
 from pathlib import Path
@@ -40,6 +41,17 @@ def main() -> int:
         errors.append("Turn-10 measurement does not record six packages at four checkpoints")
     if execution.replay_transcript.get("digest") != game.replay_digest:
         errors.append("Turn-10 replay transcript digest is inconsistent")
+
+    selected_actions = tuple(measurement.extra.get("selected_actions", ()))
+    combo_blockers = dict(measurement.extra.get("combo_checkpoint_blockers", {}))
+    malcolm_glint_horn = [
+        asdict(record) for record in measurement.combo_records if record.package == "malcolm_glint_horn"
+    ]
+    relevant_cards = [
+        asdict(record)
+        for record in measurement.card_records
+        if record.card_name in {"Malcolm, Keen-Eyed Navigator", "Glint-Horn Buccaneer", "Curiosity"}
+    ]
     result = {
         "status": "FAIL" if errors else "PASS",
         "controlled_turns_completed": game.controlled_turns_completed,
@@ -48,6 +60,17 @@ def main() -> int:
         "actual_first_attempt_turn": measurement.actual_first_attempt_turn,
         "attempt_package": measurement.attempt_package,
         "combo_record_count": len(measurement.combo_records),
+        "checkpoint_table_win_access": dict(measurement.checkpoint_table_win_access),
+        "primary_failure": dict(measurement.primary_failure),
+        "malcolm_glint_horn_combo_records": malcolm_glint_horn,
+        "malcolm_glint_horn_blockers": {
+            turn: packages.get("malcolm_glint_horn", [])
+            for turn, packages in combo_blockers.items()
+            if isinstance(packages, dict)
+        },
+        "relevant_card_records": relevant_cards,
+        "selected_action_count": len(selected_actions),
+        "selected_actions_tail": list(selected_actions[-40:]),
         "errors": errors,
     }
     print(json.dumps(result, indent=2, sort_keys=True))
