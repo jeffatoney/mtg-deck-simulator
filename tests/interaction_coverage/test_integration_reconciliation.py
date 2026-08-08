@@ -10,6 +10,18 @@ ROOT = Path(__file__).resolve().parents[2]
 LOCK = ROOT / "automation/interaction-coverage-lock.json"
 LEDGER = ROOT / "automation/interaction-integration-coverage.json"
 
+SOURCE_COORDINATOR_PATHS = (
+    ".github/workflows/interaction-coverage.yml",
+    ".github/workflows/interaction-surface.yml",
+    "automation/interaction-choice-contracts.json",
+    "automation/interaction-coverage-lock.json",
+    "automation/interaction-proof-bundle.schema.json",
+    "automation/interaction-record.schema.json",
+    "docs/audit/interaction-coverage/INTERACTION_COVERAGE_CONTRACT.md",
+    "scripts/build_interaction_coverage_manifest.py",
+    "tests/interaction_coverage/test_interaction_coverage_contract.py",
+)
+
 SOURCE_B_PATHS = (
     "docs/audit/interaction-coverage/AGENT_B_ENGINE_RULES_CONFORMANCE.md",
     "src/mtg_kernel/__init__.py",
@@ -85,6 +97,11 @@ def test_cross_lane_policy_coverage_is_record_addressable() -> None:
     assert policy["currently_supported_occurrences"] == 96
     assert policy["unique_strategic_choice_classes"] == 49
     assert policy["unrouted_strategic_choice_classes"] == 26
+
+
+def test_coordinator_output_paths_survive_integration() -> None:
+    missing = [path for path in SOURCE_COORDINATOR_PATHS if not (ROOT / path).is_file()]
+    assert missing == []
 
 
 def test_agent_b_output_paths_survive_integration() -> None:
