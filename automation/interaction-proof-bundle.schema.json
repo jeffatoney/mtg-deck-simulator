@@ -24,7 +24,7 @@
     "records": {
       "type": "array",
       "minItems": 1,
-      "items": {"$ref": "interaction-record.schema.json"}
+      "items": {"$ref": "https://example.invalid/mtg/interaction-record-v1.schema.json"}
     }
   }
 }
