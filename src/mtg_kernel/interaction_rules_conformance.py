@@ -49,9 +49,7 @@ def _cast(
     selected_choices = dict(choices or {})
     effect = _spell_effect(self, card_object_id, face, mode)
     if effect is not None and str(effect.get("kicker", "")):
-        if "kicked" not in selected_choices or not isinstance(
-            selected_choices["kicked"], bool
-        ):
+        if "kicked" not in selected_choices or not isinstance(selected_choices["kicked"], bool):
             raise IllegalAction("kicker requires an explicit boolean declaration")
     return cast(
         GameObject,
@@ -91,9 +89,7 @@ def _qualifying_sacrifice(
         or candidate.controller != actor
         or subtype not in candidate.current_characteristics.get("subtypes", ())
     ):
-        raise IllegalAction(
-            f"additional activation cost requires a controlled {subtype} permanent"
-        )
+        raise IllegalAction(f"additional activation cost requires a controlled {subtype} permanent")
     return cast(GameObject, candidate)
 
 
