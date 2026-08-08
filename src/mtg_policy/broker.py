@@ -48,9 +48,7 @@ class ActionBroker(_CoreActionBroker):
         if not requires_reveal_choice:
             return variants
         return tuple(
-            variant
-            if "reveal_object_id" in variant
-            else {**variant, "reveal_object_id": None}
+            variant if "reveal_object_id" in variant else {**variant, "reveal_object_id": None}
             for variant in variants
         )
 
