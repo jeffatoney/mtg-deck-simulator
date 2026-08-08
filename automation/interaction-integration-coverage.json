@@ -1,0 +1,73 @@
+{
+  "schema_version": "interaction-integration-coverage-v1",
+  "status": "BLOCKED_NOT_PROVEN",
+  "surface": {
+    "frozen_from_main_commit": "20b94f46038251d5fb2d56389d953c1e9d01b68b",
+    "manifest_sha256": "sha256:20d767ea754841bf0f9bda378068c4c705e0b9f8f8f4be20ca15be1f24bb2cdc",
+    "record_count": 216,
+    "card_composition_record_count": 80,
+    "card_effect_record_count": 126,
+    "global_rule_record_count": 10,
+    "physical_card_count": 100,
+    "card_definition_count": 80
+  },
+  "source_lanes": {
+    "coordinator": {"pr": 88, "head": "0a6e90d6a0346b837986bfe54ac5e676f22bd5c4"},
+    "diagnostic": {"pr": 89, "head": "751b98b33bf8556d28c96ee4bec990b2e0ff8429"},
+    "policy_replay": {"pr": 90, "head": "490960781ba8770cf5e0e9ac4f7bd69e58f5ae4a"},
+    "engine_rules": {"pr": 91, "head": "8447444dc6b40f9315c99f5e153bd21166d3341b"}
+  },
+  "coverage": {
+    "requirements": 216,
+    "inventory_mapped": 216,
+    "record_level_proven": 0,
+    "record_level_engine_evidence_attached": 0,
+    "record_level_policy_evidence_attached": 0,
+    "record_level_replay_evidence_attached": 0,
+    "record_level_direct_test_evidence_attached": 0,
+    "strategic_choice_classes_required": 49,
+    "strategic_choice_classes_with_reviewed_routes": 23,
+    "strategic_choice_classes_unrouted": 26,
+    "strategic_protocol_methods_required": 4,
+    "strategic_protocol_methods_in_production_provider": 4,
+    "strategic_protocol_methods_in_recorded_replay_provider": 4,
+    "engine_blocker_families": 10,
+    "live_policy_defects": 2
+  },
+  "integration_corrections": [
+    {
+      "id": "INTEGRATION-LOCK-DENOMINATOR",
+      "status": "CORRECTED",
+      "detail": "Coordinator bootstrap lock said 0 total records and 7 global records while the generator and contract require 216 total records and 10 global records."
+    },
+    {
+      "id": "INTEGRATION-PYTHON-VERSION",
+      "status": "CORRECTED",
+      "detail": "Coordinator interaction workflows requested Python 3.11 although pyproject requires Python 3.12; both workflows now use Python 3.12."
+    },
+    {
+      "id": "INTEGRATION-DERIVED-CERTIFICATE",
+      "status": "CORRECT_BY_OMISSION",
+      "detail": "Agent D's branch-specific Phase B CERTIFICATION.json was not copied because combining Agent B changes invalidates that derived certificate; the integrated tree must produce a fresh certificate."
+    }
+  ],
+  "remaining_engine_blockers": [
+    "hybrid and exact/generic mana-payment configuration",
+    "simultaneous same-controller trigger ordering",
+    "optional-trigger decision timing",
+    "general replacement-effect ordering",
+    "cleanup re-entry discard selection",
+    "legend-rule keep choice",
+    "Commander hand/library replacement choice",
+    "generic resolution-time scry choice ownership",
+    "compound retarget metadata for copied Prismari Command spells",
+    "global attack destinations beyond opponent players"
+  ],
+  "remaining_policy_replay_findings": {
+    "unrouted_strategic_choice_classes": 26,
+    "runtime_policy_handler_missing": ["PRISMARI_DISCARD"],
+    "trigger_target_effect_policy_missing": ["BOUNCE_TARGET"],
+    "note": "The Agent C audit emits 29 violation messages because the PRISMARI_DISCARD defect is reported both at runtime-purpose coverage and at canonical-route validation."
+  },
+  "evidence_boundary": "The four lanes did not produce record-addressable proof bundles because the coordinator surface was not frozen when they ran. Therefore functional implementation and broad tests must not be converted into per-record PROVEN claims by inference. The next proof pass must attach engine, policy where required, replay, and direct-test evidence to each of the 216 frozen record IDs."
+}
