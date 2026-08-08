@@ -125,9 +125,7 @@ def test_scavenger_grounds_may_sacrifice_another_desert_and_source_survives() ->
     assert other_desert.retired
     assert active_named(state, "Scavenger Grounds", Zone.GRAVEYARD)
     sacrifice_choice = next(
-        choice
-        for choice in state.choices
-        if choice.kind == "ADDITIONAL_SACRIFICE_SELECTION"
+        choice for choice in state.choices if choice.kind == "ADDITIONAL_SACRIFICE_SELECTION"
     )
     assert sacrifice_choice.selected == other_desert.object_id
 
