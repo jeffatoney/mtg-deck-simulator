@@ -69,5 +69,22 @@ jobs:
             scripts/audit_policy_choice_replay_conformance.py
           if-no-files-found: error
           retention-days: 14
+      - name: Publish short-lived integration source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-source-${{ github.sha }}
+          path: |
+            .github
+            .python-version
+            automation
+            docs
+            pyproject.toml
+            scripts
+            src
+            tests
+            uv.lock
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3
       - name: Verify provisional or reviewed interaction lock
         run: python scripts/check_interaction_candidate_lock.py
