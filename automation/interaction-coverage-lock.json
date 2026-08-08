@@ -8,7 +8,7 @@
   "card_effect_record_count": 126,
   "global_rule_record_count": 10,
   "record_count": 216,
-  "candidate_manifest_sha256": "sha256:20d767ea754841bf0f9bda378068c4c705e0b9f8f8f4be20ca15be1f24bb2cdc",
+  "candidate_manifest_sha256": "sha256:f976526e34d7297521b9c949c7e3a54905cb8bdaa62e7e3225627de294f8a6b5",
   "manifest_sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "note": "The candidate digest is verified independently, but the reserved frozen digest remains zero until all 16 accepted Agent A findings are implemented or rules-authoritatively resolved and the reviewed surface is explicitly frozen."
 }
