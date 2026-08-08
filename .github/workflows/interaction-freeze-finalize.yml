@@ -1,0 +1,84 @@
+name: Interaction Freeze Finalize
+
+on:
+  pull_request:
+    paths:
+      - "automation/interaction-coverage-lock.json"
+      - "docs/audit/interaction-coverage/INTERACTION_COVERAGE_CONTRACT.md"
+      - ".github/workflows/interaction-freeze-finalize.yml"
+      - ".github/workflows/interaction-freeze-bootstrap.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Finalize frozen coordinator contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          zero_hash = "sha256:" + ("0" * 64)
+          lock_path = Path("automation/interaction-coverage-lock.json")
+          contract_path = Path("docs/audit/interaction-coverage/INTERACTION_COVERAGE_CONTRACT.md")
+          lock = json.loads(lock_path.read_text(encoding="utf-8"))
+
+          manifest_sha = lock.get("manifest_sha256")
+          if not manifest_sha or manifest_sha == zero_hash:
+              print("Surface lock is still the placeholder; finalizer will not modify the branch.")
+              raise SystemExit(0)
+
+          text = contract_path.read_text(encoding="utf-8")
+          text = text.replace(
+              "**Status:** COORDINATOR_CANDIDATE_V1",
+              "**Status:** COORDINATOR_FROZEN_V1",
+              1,
+          )
+
+          marker = "## Frozen surface identity"
+          if marker not in text:
+              frozen = (
+                  f"\n{marker}\n\n"
+                  "The coordinator surface is frozen by `automation/interaction-coverage-lock.json`. "
+                  "The machine-generated identity for this specification revision is:\n\n"
+                  f"- unique Oracle-bound card definitions: `{lock['card_definition_count']}`;\n"
+                  f"- physical cards: `{lock['physical_card_count']}`;\n"
+                  f"- card-composition guards: `{lock['card_composition_record_count']}`;\n"
+                  f"- card-effect records: `{lock['card_effect_record_count']}`;\n"
+                  f"- global-rule records: `{lock['global_rule_record_count']}`;\n"
+                  f"- total frozen records: `{lock['record_count']}`; and\n"
+                  f"- manifest SHA-256: `{manifest_sha}`.\n\n"
+                  "Changing any frozen surface input or interaction definition requires a separately "
+                  "reviewed coordinator/specification revision and a new lock. Downstream proof work "
+                  "may not refresh this identity automatically.\n"
+              )
+              text = text.rstrip() + frozen + "\n"
+
+          contract_path.write_text(text, encoding="utf-8")
+          PY
+      - name: Remove temporary freeze workflows
+        run: |
+          rm -f .github/workflows/interaction-freeze-bootstrap.yml
+          rm -f .github/workflows/interaction-freeze-finalize.yml
+      - name: Commit final freeze
+        run: |
+          if git diff --quiet; then
+            echo "No finalization change required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add automation/interaction-coverage-lock.json \
+            docs/audit/interaction-coverage/INTERACTION_COVERAGE_CONTRACT.md \
+            .github/workflows/interaction-freeze-bootstrap.yml \
+            .github/workflows/interaction-freeze-finalize.yml
+          git commit -m "Finalize frozen interaction coverage contract"
+          git push origin "HEAD:${{ github.head_ref }}"
