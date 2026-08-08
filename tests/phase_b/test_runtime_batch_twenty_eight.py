@@ -159,9 +159,9 @@ def test_prismari_command_executes_damage_and_artifact_destruction() -> None:
     ]
     assert [choice["mode"] for choice in target_choices] == ["DAMAGE", "DESTROY_ARTIFACT"]
     assert all(
-        next(event for event in state.events if event.event_id == choice.cause_event_id).payload.get(
-            "timing"
-        )
+        next(
+            event for event in state.events if event.event_id == choice.cause_event_id
+        ).payload.get("timing")
         == "CAST_PROPOSAL"
         for choice in state.choices
         if choice.kind in {"PRISMARI_COMMAND_MODES", "PRISMARI_COMMAND_TARGET"}
