@@ -53,7 +53,7 @@ def test_failed_standard_shard_four_seed_completes_with_recorded_trigger_targets
         seed=FAILED_STANDARD_SHARD_FOUR_SEED,
         mode="STANDARD",
         through_turn=10,
-        validate_fresh_replay=False,
+        validate_fresh_replay=True,
         policy_actions=True,
     )
 
