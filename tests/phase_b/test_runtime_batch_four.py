@@ -212,7 +212,12 @@ def test_frostboil_snarl_reveal_decline_and_mana_paths() -> None:
 
     decline_state, decline_executor, decline_specs = funded_game("frostboil-snarl-decline")
     decline_card = add_card(decline_executor, decline_specs["Frostboil Snarl"], Zone.HAND)
-    declined = play_land(decline_executor, "P0", decline_card.object_id)
+    declined = play_land(
+        decline_executor,
+        "P0",
+        decline_card.object_id,
+        {"reveal_object_id": None},
+    )
     assert declined.permanent_status is not None
     assert declined.permanent_status["tap"] == "TAPPED"
     assert any(
