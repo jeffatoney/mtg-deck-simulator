@@ -26,7 +26,7 @@ def test_exact_deck_interaction_surface_is_finite_and_explicit(tmp_path: Path) -
     manifest = _build(tmp_path)
     assert manifest["card_definition_count"] == 80
     assert manifest["physical_card_count"] == 100
-    assert manifest["global_rule_record_count"] == 7
+    assert manifest["global_rule_record_count"] == 8
     assert manifest["card_effect_record_count"] > 80
     assert manifest["record_count"] == (
         manifest["card_effect_record_count"] + manifest["global_rule_record_count"]
@@ -37,10 +37,11 @@ def test_exact_deck_interaction_surface_is_finite_and_explicit(tmp_path: Path) -
     ids = [record["record_id"] for record in records]
     assert len(ids) == len(set(ids))
 
-    card_names = {
-        record["card"]["name"] for record in records if record["record_class"] == "CARD_EFFECT"
-    }
-    assert len(card_names) == 80
+    card_records = [record for record in records if record["record_class"] == "CARD_EFFECT"]
+    assert len({record["card"]["name"] for record in card_records}) == 80
+    for record in card_records:
+        assert record["card"]["composition_status"] == "REVIEWED_COMPOSITION"
+        assert record["card"]["oracle_record_sha256"].startswith("sha256:")
 
     for record in records:
         assert record["status"] == "MAPPED"
@@ -58,6 +59,23 @@ def test_unknown_effect_kinds_fail_closed(tmp_path: Path) -> None:
         (ROOT / "automation/interaction-choice-contracts.json").read_text(encoding="utf-8")
     )["effect_contracts"]
     assert set(manifest["observed_effect_kinds"]) == set(declared)
+
+
+def test_global_choice_families_are_explicit(tmp_path: Path) -> None:
+    manifest = _build(tmp_path)
+    records = {record["record_id"]: record for record in manifest["records"]}
+    expected = {
+        "GLOBAL-TRIGGER-ORDERING": "TRIGGER_ORDER",
+        "GLOBAL-REPLACEMENT-ORDERING": "REPLACEMENT_EFFECT_SELECTION",
+        "GLOBAL-CLEANUP-REENTRY": "CLEANUP_DISCARD_SELECTION",
+        "GLOBAL-SBA-TIMING": "LEGEND_RULE_KEEP_SELECTION",
+        "GLOBAL-COMMANDER-GRAVEYARD-EXILE-RETURN": "COMMANDER_RETURN_FROM_GRAVEYARD_OR_EXILE",
+        "GLOBAL-COMMANDER-HAND-LIBRARY-REPLACEMENT": "COMMANDER_HAND_LIBRARY_REPLACEMENT",
+        "GLOBAL-PRIORITY-STACK-LIFO": "PRIORITY_ACTION_OR_PASS",
+    }
+    for record_id, purpose in expected.items():
+        assert purpose in {choice["purpose"] for choice in records[record_id]["choices"]}
+    assert records["GLOBAL-ILLEGAL-ACTION-ROLLBACK"]["choices"] == []
 
 
 def test_frozen_interaction_surface_lock_is_current() -> None:
