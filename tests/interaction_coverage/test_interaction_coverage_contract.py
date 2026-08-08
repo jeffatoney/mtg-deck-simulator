@@ -110,7 +110,7 @@ def test_card_specific_cost_choices_are_not_hidden_defaults(tmp_path: Path) -> N
     ]
 
     scavenger = [record for record in card_records if record["card"]["name"] == "Scavenger Grounds"]
-    assert any("ADDITIONAL_SACRIFICE_SELECTION" in _purposes(record) for record in scavenger)
+    assert any("SACRIFICE_PERMANENT_SELECTION" in _purposes(record) for record in scavenger)
 
     cascade = [record for record in card_records if record["card"]["name"] == "Cascade Bluffs"]
     assert any("HYBRID_COST_CONFIGURATION" in _purposes(record) for record in cascade)
