@@ -1,6 +1,6 @@
 # Interaction Coverage Contract
 
-**Status:** COORDINATOR_FROZEN_V1
+**Status:** COORDINATOR_CANDIDATE_V1
 
 **Purpose:** Define the finite rules-interaction surface that must be proven before Phase C simulation results may be treated as reliable.
 
@@ -15,6 +15,8 @@ For exact-deck card behavior, the canonical chain is:
 `card -> ability/effect -> event/timing -> choice -> legality -> policy -> replay -> test`
 
 One card may produce many interaction records. A nested effect may produce its own record. A card is covered only when every required record derived from its frozen Oracle behavior is PROVEN.
+
+The repository's existing `REVIEWED_COMPOSITION` is the starting inventory, not proof of execution. Each generated card record is pinned to the card's Oracle ID and frozen Oracle-record SHA-256 so an Oracle-source change cannot silently preserve an old interaction surface.
 
 Engine-wide rules interactions that are not owned by one card use `GLOBAL_RULE` records and are held to the same proof standard.
 
@@ -33,36 +35,37 @@ Only these statuses are permitted:
 
 Every `CARD_EFFECT` record must identify:
 
-1. exact card name and Oracle ID;
-2. stable ability ID and ability kind;
-3. behavior index and nested effect path;
-4. effect kind and a canonical effect digest;
-5. the event or rules timing at which the effect becomes relevant;
-6. every rules-relevant player choice purpose;
-7. when each choice is legally made;
-8. who makes each choice;
-9. which engine layer owns legality;
-10. whether strategic or opponent policy is required when more than one legal choice exists;
-11. what replay must persist rather than recompute;
-12. the rules/Oracle authority for the interaction; and
-13. deterministic production-path tests proving the positive and applicable negative paths.
+1. exact card name, Oracle ID, and frozen Oracle-record digest;
+2. the existing reviewed-composition status;
+3. stable ability ID and ability kind;
+4. behavior index and nested effect path;
+5. effect kind and a canonical effect digest;
+6. the event or rules timing at which the effect becomes relevant;
+7. every rules-relevant player choice purpose;
+8. when each choice is legally made;
+9. who makes each choice;
+10. which engine layer owns legality;
+11. whether strategic or opponent policy is required when more than one legal choice exists;
+12. what replay must persist rather than recompute;
+13. the rules/Oracle authority for the interaction; and
+14. deterministic production-path tests proving the positive and applicable negative paths.
 
-No field may silently mean “default policy,” “obvious target,” “first legal choice,” or “engine decides.” If the rules create a choice, it must have an explicit purpose and timing. If the rules do not create a choice, the effect kind must still be explicitly classified as having no additional resolution choice.
+No field may silently mean "default policy," "obvious target," "first legal choice," or "engine decides." If the rules create a choice, it must have an explicit purpose and timing. If the rules do not create a choice, the effect kind must still be explicitly classified as having no additional resolution choice.
 
 ## 4. Choice timing is normative
 
 The choice timing vocabulary is:
 
 - `CAST_PROPOSAL`: modes, alternative/additional costs, X, target count, and spell targets chosen while casting.
-- `ACTIVATION_PROPOSAL`: activated-ability modes/targets/cost choices made while activating.
+- `ACTIVATION_PROPOSAL`: activated-ability modes, targets, and activation-cost choices made while proposing an activation.
 - `TRIGGER_STACKING`: trigger modes, targets, and ordering decisions made as triggered abilities are put on the stack.
-- `RESOLUTION`: choices made while a resolving spell or ability is applied.
+- `RESOLUTION`: choices made while a spell or ability resolves. Activated mana abilities resolve immediately after activation and do not use the stack; choices made by their mana-producing effect are still resolution choices, not proposal choices.
 - `REPLACEMENT_APPLICATION`: choices required before or while applying a replacement/prevention effect.
 - `SPECIAL_ACTION`: choices made as part of a special action.
-- `TURN_BASED_ACTION`: choices made by a turn-based action.
-- `STATE_BASED_ACTION`: choices required by a state-based action.
+- `TURN_BASED_ACTION`: choices made by a turn-based action, including choosing cleanup discards.
+- `STATE_BASED_ACTION`: choices required by a state-based action, including the legend rule and Commander rule 903.9a.
 
-A downstream implementation may not move a choice to a more convenient stage. In particular, policy must not supply a target during resolution when the Comprehensive Rules require the target as a spell/ability is put on the stack.
+A downstream implementation may not move a choice to a more convenient stage. In particular, policy must not supply a target during resolution when the Comprehensive Rules require the target as a spell or ability is put on the stack.
 
 ## 5. Legality and policy separation
 
@@ -93,6 +96,8 @@ Effect-specific choices that cannot be inferred safely from the generic structur
 
 Every observed effect kind must appear in that file, including effect kinds with zero additional choices. An unknown effect kind is a blocking `UNMAPPED` interaction, not an implicit no-choice effect.
 
+For library searches, "fail to find" is not a universal default. The choice contract must distinguish a search for a card with a stated quality, where rules may permit failure to find that quality, from an unrestricted search such as Long-Term Plans, which requires selecting a card when the library contains one.
+
 ## 7. Replay requirement
 
 For every nontrivial player or policy choice, replay must consume the recorded decision rather than rerun strategic policy. Replay evidence must be sufficient to reject missing, added, reordered, or altered decisions and must revalidate legality through the same production rules path.
@@ -117,15 +122,16 @@ A broad smoke test, card-name registration test, or successful random game is su
 The interaction coverage gate is PASS only when all of the following are true on one exact commit:
 
 1. exact deck identity remains 98 library cards plus two commanders and 80 unique Oracle-bound card definitions;
-2. the generated interaction surface matches the frozen interaction-surface digest;
-3. every behavior and nested effect is represented by a stable interaction record;
-4. every effect kind has an explicit choice classification;
-5. no record is `UNMAPPED`, `MAPPED`, or `IMPLEMENTED` in the proof ledger;
-6. every required choice purpose has legality, policy, replay, and deterministic test evidence appropriate to that choice;
-7. all `GLOBAL_RULE` records are PROVEN;
-8. all referenced tests pass with zero skip and zero xfail for blocking interaction evidence;
-9. no generic/default/fallback choice path can execute for a frozen-deck interaction; and
-10. the complete proof report reports `PROVEN == total`, `unproven == 0`, and `unknown_choice_purposes == 0`.
+2. every card record is pinned to the frozen Oracle-record digest and `REVIEWED_COMPOSITION` inventory used to generate the surface;
+3. the generated interaction surface matches the frozen interaction-surface digest;
+4. every behavior and nested effect is represented by a stable interaction record;
+5. every effect kind has an explicit choice classification;
+6. no record is `UNMAPPED`, `MAPPED`, or `IMPLEMENTED` in the proof ledger;
+7. every required choice purpose has legality, policy, replay, and deterministic test evidence appropriate to that choice;
+8. all `GLOBAL_RULE` records are PROVEN;
+9. all referenced tests pass with zero skip and zero xfail for blocking interaction evidence;
+10. no generic/default/fallback choice path can execute for a frozen-deck interaction; and
+11. the complete proof report reports `PROVEN == total`, `unproven == 0`, and `unknown_choice_purposes == 0`.
 
 Until those conditions are met, Phase A/Phase B certification may remain valid for its historical scope, but **interaction-proof coverage is not complete**.
 
@@ -133,15 +139,16 @@ Until those conditions are met, Phase A/Phase B certification may remain valid f
 
 The following engine-wide interactions are part of this contract even though they are not owned by one card:
 
-- `GLOBAL-TRIGGER-ORDERING`: simultaneous triggered abilities and APNAP/order choices.
-- `GLOBAL-REPLACEMENT-ORDERING`: competing replacement/prevention effects and affected-player choice.
-- `GLOBAL-CLEANUP-REENTRY`: cleanup triggers, priority exception, and additional cleanup steps.
+- `GLOBAL-TRIGGER-ORDERING`: simultaneous triggered abilities and the controller's required ordering when more than one controlled trigger is waiting.
+- `GLOBAL-REPLACEMENT-ORDERING`: competing replacement/prevention effects and the affected-player/controller choice required by rule 616.1.
+- `GLOBAL-CLEANUP-REENTRY`: maximum-hand-size discard selection under rule 514.1, trigger collection, the rule 514.3a priority exception, and complete additional cleanup steps.
 - `GLOBAL-ILLEGAL-ACTION-ROLLBACK`: illegal proposals are atomic and restore the prior state.
-- `GLOBAL-SBA-TIMING`: state-based actions occur at rules-defined checkpoints, not during resolution.
-- `GLOBAL-COMMANDER-REPLACEMENT`: commander zone-replacement choices and subsequent object identity.
+- `GLOBAL-SBA-TIMING`: state-based actions occur at rules-defined checkpoints, not during resolution; when the legend rule applies, the controller explicitly chooses the one legendary permanent that remains under rule 704.5j.
+- `GLOBAL-COMMANDER-GRAVEYARD-EXILE-RETURN`: under rule 903.9a, the owner explicitly chooses during a state-based-action check whether a commander newly in a graveyard or exile moves to the command zone; the intermediate zone is real and observable.
+- `GLOBAL-COMMANDER-HAND-LIBRARY-REPLACEMENT`: under rule 903.9b, the owner explicitly chooses whether the command-zone replacement applies to a commander that would move to its hand or library.
 - `GLOBAL-PRIORITY-STACK-LIFO`: priority and stack last-in/first-out execution.
 
-Downstream proof work may add narrower global records but may not remove or weaken these seven.
+These eight records are minimum frozen global coverage. If downstream work discovers another rules interaction that can affect a frozen-deck run, it must be proposed as a coordinator/specification revision; it may not be hidden inside an implementation patch or omitted because no current random seed reaches it.
 
 ## 11. Coordinator outputs and downstream change control
 
@@ -163,7 +170,12 @@ The supplied Comprehensive Rules dated 2026-06-19 establish the key timing disti
 - rule 601.2b: spell mode, alternative/additional-cost, and X choices during casting;
 - rule 601.2c: spell target and variable target-count choices during casting;
 - rules 115.1c-d and 603.3d: activated and triggered targets are chosen when those abilities are put on the stack;
+- rule 605.3b: an activated mana ability does not use the stack and resolves immediately after activation;
 - rule 608.2d: choices not already made as part of casting/activation/stack placement are made while resolving the effect;
 - rule 614.12a: a replacement-effect choice that modifies battlefield entry is made before the permanent enters;
-- rule 616.1: the affected player/controller chooses among competing applicable replacement/prevention effects; and
+- rule 616.1: the affected player/controller chooses among competing applicable replacement/prevention effects;
+- rule 514.1: the active player chooses enough cards to discard to maximum hand size as a turn-based cleanup action;
+- rule 514.3a: cleanup SBAs/triggers create the priority exception and then another complete cleanup step;
+- rule 704.5j: the controller chooses one same-named legendary permanent to keep;
+- rules 903.9a-b: graveyard/exile Commander return is an optional SBA while hand/library Commander movement is an optional replacement effect; and
 - rules 707.10 and 707.10c: spell copies copy prior decisions and are not cast; new targets may be chosen only when the copying effect permits it.
