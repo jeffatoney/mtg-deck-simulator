@@ -32,17 +32,17 @@
     "record_level_direct_test_evidence_attached": 0,
     "records_requiring_strategic_policy": 94,
     "records_requiring_no_strategic_policy": 122,
-    "policy_ready_or_not_required_records": 174,
-    "records_with_policy_replay_gaps": 42,
+    "policy_ready_or_not_required_records": 176,
+    "records_with_policy_replay_gaps": 40,
     "strategic_choice_occurrences": 144,
-    "reviewed_route_occurrences": 98,
-    "currently_supported_occurrences": 98,
+    "reviewed_route_occurrences": 100,
+    "currently_supported_occurrences": 100,
     "strategic_choice_classes_required": 49,
-    "strategic_choice_classes_with_reviewed_routes": 24,
-    "strategic_choice_classes_unrouted": 25,
-    "strategic_protocol_methods_required": 4,
-    "strategic_protocol_methods_in_production_provider": 4,
-    "strategic_protocol_methods_in_recorded_replay_provider": 4,
+    "strategic_choice_classes_with_reviewed_routes": 25,
+    "strategic_choice_classes_unrouted": 24,
+    "strategic_protocol_methods_required": 5,
+    "strategic_protocol_methods_in_production_provider": 5,
+    "strategic_protocol_methods_in_recorded_replay_provider": 5,
     "engine_blocker_families": 10,
     "live_policy_defects": 0,
     "agent_a_findings_total": 16,
@@ -81,6 +81,11 @@
       "detail": "The production policy provider handles PRISMARI_DISCARD for the actual target player by delegating to the reviewed discard ranking with that actor's observation and legal hand candidates."
     },
     {
+      "id": "INTEGRATION-COUNTER-PAYMENT-POLICY",
+      "status": "CORRECTED",
+      "detail": "Counter-unless-pay resolution decisions now cross an explicit five-method strategic policy/replay protocol and are revalidated from the current payer state."
+    },
+    {
       "id": "AGENT-A-BLOCK-001-004-SLICE",
       "status": "IMPLEMENTED_PENDING_FINAL_CI_ADJUDICATION",
       "detail": "Boilerworks resolution selection, Sentinel Totem self-exile cost, Scavenger Grounds one-Desert cost, and mandatory Vedalken Aethermage target semantics are represented in the candidate tree. Formal Agent A completion remains zero until the synchronized tree passes CI."
@@ -100,9 +105,9 @@
   ],
   "remaining_policy_replay_findings": {
     "records_requiring_strategic_policy": 94,
-    "records_currently_complete": 52,
-    "records_with_policy_replay_gaps": 42,
-    "unrouted_strategic_choice_classes": 25,
+    "records_currently_complete": 54,
+    "records_with_policy_replay_gaps": 40,
+    "unrouted_strategic_choice_classes": 24,
     "runtime_policy_handler_missing": [],
     "trigger_target_effect_policy_missing": [],
     "note": "All currently routed live policy handlers are present. The remaining record-level gaps arise from missing reviewed routes and must remain blocking."
