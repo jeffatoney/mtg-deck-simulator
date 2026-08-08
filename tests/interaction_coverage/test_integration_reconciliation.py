@@ -37,9 +37,7 @@ SOURCE_D_BLOBS = {
 
 
 def _git_blob(path: str) -> str:
-    return subprocess.check_output(
-        ["git", "hash-object", path], cwd=ROOT, text=True
-    ).strip()
+    return subprocess.check_output(["git", "hash-object", path], cwd=ROOT, text=True).strip()
 
 
 def test_frozen_denominator_and_integration_ledger_agree() -> None:
