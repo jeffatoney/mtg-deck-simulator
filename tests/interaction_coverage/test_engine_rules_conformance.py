@@ -153,9 +153,10 @@ def test_scavenger_grounds_requires_explicit_qualifying_sacrifice_atomically() -
         executor.activate("P0", grounds.object_id, "grounds:exile")
 
     assert state_hash(state) == before
-    assert grounds.zone is Zone.BATTLEFIELD
-    assert grounds.permanent_status is not None
-    assert grounds.permanent_status["tap"] == "UNTAPPED"
+    restored = state.objects[grounds.object_id]
+    assert restored.zone is Zone.BATTLEFIELD
+    assert restored.permanent_status is not None
+    assert restored.permanent_status["tap"] == "UNTAPPED"
 
 
 def test_scavenger_grounds_may_sacrifice_another_desert_and_source_survives() -> None:
