@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Build the cross-lane interaction coverage summary for the frozen exact deck."""
+"""Build the cross-lane interaction coverage summary for the exact deck."""
 
 from __future__ import annotations
 
 import argparse
+import base64
+import gzip
+import hashlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 try:
     from scripts.audit_policy_choice_replay_conformance import audit_conformance
@@ -18,7 +21,34 @@ except ModuleNotFoundError:
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_PATH = ROOT / "automation/strategic-choice-conformance.json"
 LEDGER_PATH = ROOT / "automation/interaction-integration-coverage.json"
+AGENT_A_INVENTORY_DIR = ROOT / "automation/agent-a-deck-interaction-manifest"
+AGENT_A_ADJUDICATION_PATH = ROOT / "automation/agent-a-findings-adjudication.json"
 _NON_STRATEGIC_POLICY_CLASSES = {"NONE", "MANDATORY_DETERMINISTIC"}
+_AGENT_A_COMPLETE_STATUSES = {
+    "IMPLEMENTED_VERIFIED",
+    "MAPPED_TO_EXISTING_VERIFIED_RECORD",
+    "REJECTED_WITH_RULES_AUTHORITY",
+}
+_ENGINE_BLOCKERS = (
+    "hybrid and exact/generic mana-payment configuration",
+    "simultaneous same-controller trigger ordering",
+    "optional-trigger decision timing",
+    "general replacement-effect ordering",
+    "cleanup re-entry discard selection",
+    "legend-rule keep choice",
+    "Commander hand/library replacement choice",
+    "generic resolution-time scry choice ownership",
+    "compound retarget metadata for copied Prismari Command spells",
+    "global attack destinations beyond opponent players",
+)
+
+
+def _canonical_bytes(value: Any) -> bytes:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+
+
+def _sha256_value(value: Any) -> str:
+    return "sha256:" + hashlib.sha256(_canonical_bytes(value)).hexdigest()
 
 
 def _route_matches(choice: dict[str, Any], route: dict[str, Any]) -> bool:
@@ -79,10 +109,82 @@ def _current_route_support(
     return True, None
 
 
+def _load_agent_a() -> dict[str, Any]:
+    chunks = sorted(AGENT_A_INVENTORY_DIR.glob("part-*.b64"))
+    if not chunks:
+        raise ValueError("Agent A interaction inventory artifact chunks are missing")
+    encoded = "".join(path.read_text(encoding="ascii").strip() for path in chunks)
+    inventory = json.loads(gzip.decompress(base64.b64decode(encoded)).decode("utf-8"))
+    adjudication = json.loads(AGENT_A_ADJUDICATION_PATH.read_text(encoding="utf-8"))
+
+    if inventory.get("metadata", {}).get("schema_version") != (
+        "agent-a-deck-interaction-inventory-v1"
+    ):
+        raise ValueError("unsupported Agent A interaction inventory schema")
+    expected_digest = str(inventory.get("agent_a_manifest_sha256", ""))
+    digest_input = dict(inventory)
+    digest_input.pop("agent_a_manifest_sha256", None)
+    actual_digest = _sha256_value(digest_input)
+    if actual_digest != expected_digest:
+        raise ValueError(
+            f"Agent A interaction inventory digest mismatch: {actual_digest} != {expected_digest}"
+        )
+    if adjudication.get("agent_a_artifact_sha256") != expected_digest:
+        raise ValueError("Agent A adjudication is not bound to the imported inventory digest")
+
+    inventory_findings = {
+        str(item.get("id", ""))
+        for item in inventory.get("blocking_findings", [])
+        if isinstance(item, dict)
+    }
+    adjudicated = {
+        str(item.get("id", "")): item
+        for item in adjudication.get("findings", [])
+        if isinstance(item, dict)
+    }
+    if "" in inventory_findings or "" in adjudicated:
+        raise ValueError("Agent A findings require nonempty stable IDs")
+    if set(adjudicated) != inventory_findings:
+        raise ValueError(
+            "Agent A adjudication finding IDs do not exactly match the imported inventory"
+        )
+
+    pending = sorted(
+        finding_id
+        for finding_id, item in adjudicated.items()
+        if str(item.get("implementation_status", "")) not in _AGENT_A_COMPLETE_STATUSES
+    )
+    accepted = sorted(
+        finding_id
+        for finding_id, item in adjudicated.items()
+        if str(item.get("disposition", "")) == "ACCEPTED"
+    )
+    complete = sorted(inventory_findings - set(pending))
+    return {
+        "artifact_sha256": expected_digest,
+        "finding_count": len(inventory_findings),
+        "accepted_findings": accepted,
+        "complete_findings": complete,
+        "pending_findings": pending,
+        "pending_count": len(pending),
+        "adjudication_status": str(adjudication.get("status", "")),
+    }
+
+
+def _unsupported_runtime_purposes(audit: dict[str, Any]) -> list[str]:
+    supported_patterns = tuple(str(value) for value in audit["production_policy_patterns"])
+    return sorted(
+        str(pattern)
+        for pattern in audit["runtime_purpose_patterns"]
+        if not any(_pattern_matches(str(pattern), supported) for supported in supported_patterns)
+    )
+
+
 def build_integration_coverage() -> dict[str, Any]:
     manifest = build_manifest()
     registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
     audit = audit_conformance()
+    agent_a = _load_agent_a()
     routes = [item for item in registry.get("canonical_routes", []) if isinstance(item, dict)]
 
     strategic_record_count = 0
@@ -170,22 +272,52 @@ def build_integration_coverage() -> dict[str, Any]:
     )
     proven_records = sum(record.get("status") == "PROVEN" for record in records)
 
+    unique_choice_classes = int(audit["strategic_surface_choice_count"])
+    unrouted_choice_classes = len(audit["unrouted_surface_choices"])
+    reviewed_choice_classes = unique_choice_classes - unrouted_choice_classes
+    unsupported_runtime_purposes = _unsupported_runtime_purposes(audit)
+    missing_trigger_policy_effects = list(audit["missing_trigger_policy_effects"])
+    live_policy_defect_count = len(unsupported_runtime_purposes) + len(
+        missing_trigger_policy_effects
+    )
+
+    if agent_a["pending_count"]:
+        status = "BLOCKED_PROVISIONAL_SURFACE"
+        candidate_status = "PROVISIONAL_PENDING_AGENT_A_INTEGRATION"
+    elif (
+        proven_records == total_records
+        and not _ENGINE_BLOCKERS
+        and not record_route_gaps
+        and live_policy_defect_count == 0
+    ):
+        status = "PASS"
+        candidate_status = "FROZEN_REVIEWED"
+    else:
+        status = "BLOCKED_NOT_PROVEN"
+        candidate_status = "FROZEN_REVIEWED"
+
     return {
-        "schema_version": "interaction-integration-derived-v1",
-        "status": "PASS" if proven_records == total_records else "BLOCKED_NOT_PROVEN",
+        "schema_version": "interaction-integration-derived-v2",
+        "status": status,
         "surface": {
+            "candidate_status": candidate_status,
             "record_count": total_records,
             "card_composition_record_count": int(manifest["card_composition_record_count"]),
             "card_effect_record_count": int(manifest["card_effect_record_count"]),
             "global_rule_record_count": int(manifest["global_rule_record_count"]),
             "manifest_sha256": str(manifest["manifest_sha256"]),
         },
+        "agent_a": agent_a,
         "record_level_evidence": {
             "engine_handler_attached": engine_evidence,
             "policy_handler_attached": policy_evidence,
             "replay_handler_attached": replay_evidence,
             "positive_test_evidence_attached": direct_test_evidence,
             "proven_records": proven_records,
+        },
+        "engine_rules": {
+            "blocker_families": list(_ENGINE_BLOCKERS),
+            "blocker_family_count": len(_ENGINE_BLOCKERS),
         },
         "strategic_policy_replay": {
             "records_requiring_strategic_policy": strategic_record_count,
@@ -197,8 +329,9 @@ def build_integration_coverage() -> dict[str, Any]:
             "current_support_complete_records": current_support_complete_record_count,
             "policy_ready_or_not_required_records": policy_ready_or_not_required,
             "records_with_policy_replay_gaps": total_records - policy_ready_or_not_required,
-            "unique_strategic_choice_classes": int(audit["strategic_surface_choice_count"]),
-            "unrouted_strategic_choice_classes": len(audit["unrouted_surface_choices"]),
+            "unique_strategic_choice_classes": unique_choice_classes,
+            "reviewed_strategic_choice_classes": reviewed_choice_classes,
+            "unrouted_strategic_choice_classes": unrouted_choice_classes,
             "protocol_methods_required": len(audit["protocol_methods"]),
             "protocol_methods_in_production_provider": len(
                 set(audit["protocol_methods"]) & set(audit["production_policy_methods"])
@@ -206,67 +339,163 @@ def build_integration_coverage() -> dict[str, Any]:
             "protocol_methods_in_recorded_replay_provider": len(
                 set(audit["protocol_methods"]) & set(audit["recorded_replay_methods"])
             ),
-            "missing_trigger_policy_effects": list(audit["missing_trigger_policy_effects"]),
+            "unsupported_runtime_purposes": unsupported_runtime_purposes,
+            "missing_trigger_policy_effects": missing_trigger_policy_effects,
+            "live_policy_defect_count": live_policy_defect_count,
             "audit_violation_messages": len(audit["violations"]),
         },
         "record_route_gaps": record_route_gaps,
     }
 
 
-def _check_ledger(report: dict[str, Any]) -> bool:
-    ledger = json.loads(LEDGER_PATH.read_text(encoding="utf-8"))
-    expected = {
-        "requirements": report["surface"]["record_count"],
-        "inventory_mapped": report["surface"]["record_count"],
-        "record_level_proven": report["record_level_evidence"]["proven_records"],
-        "record_level_engine_evidence_attached": report["record_level_evidence"][
+def _path_value(value: Mapping[str, Any], path: tuple[str, ...]) -> Any:
+    current: Any = value
+    for key in path:
+        if not isinstance(current, Mapping) or key not in current:
+            return None
+        current = current[key]
+    return current
+
+
+def _ledger_expectations(report: dict[str, Any]) -> dict[tuple[str, ...], Any]:
+    policy = report["strategic_policy_replay"]
+    evidence = report["record_level_evidence"]
+    agent_a = report["agent_a"]
+    surface = report["surface"]
+    return {
+        ("status",): report["status"],
+        ("surface", "candidate_status"): surface["candidate_status"],
+        ("surface", "record_count"): surface["record_count"],
+        ("surface", "card_composition_record_count"): surface[
+            "card_composition_record_count"
+        ],
+        ("surface", "card_effect_record_count"): surface["card_effect_record_count"],
+        ("surface", "global_rule_record_count"): surface["global_rule_record_count"],
+        ("surface", "manifest_sha256"): surface["manifest_sha256"],
+        ("source_lanes", "agent_a", "artifact_sha256"): agent_a["artifact_sha256"],
+        ("coverage", "requirements"): surface["record_count"],
+        ("coverage", "inventory_mapped"): surface["record_count"],
+        ("coverage", "record_level_proven"): evidence["proven_records"],
+        ("coverage", "record_level_engine_evidence_attached"): evidence[
             "engine_handler_attached"
         ],
-        "record_level_policy_evidence_attached": report["record_level_evidence"][
+        ("coverage", "record_level_policy_evidence_attached"): evidence[
             "policy_handler_attached"
         ],
-        "record_level_replay_evidence_attached": report["record_level_evidence"][
+        ("coverage", "record_level_replay_evidence_attached"): evidence[
             "replay_handler_attached"
         ],
-        "record_level_direct_test_evidence_attached": report["record_level_evidence"][
+        ("coverage", "record_level_direct_test_evidence_attached"): evidence[
             "positive_test_evidence_attached"
         ],
-        "records_requiring_strategic_policy": report["strategic_policy_replay"][
+        ("coverage", "records_requiring_strategic_policy"): policy[
             "records_requiring_strategic_policy"
         ],
-        "policy_ready_or_not_required_records": report["strategic_policy_replay"][
+        ("coverage", "records_requiring_no_strategic_policy"): policy[
+            "records_requiring_no_strategic_policy"
+        ],
+        ("coverage", "policy_ready_or_not_required_records"): policy[
             "policy_ready_or_not_required_records"
         ],
-        "records_with_policy_replay_gaps": report["strategic_policy_replay"][
+        ("coverage", "records_with_policy_replay_gaps"): policy[
             "records_with_policy_replay_gaps"
         ],
-        "strategic_choice_occurrences": report["strategic_policy_replay"][
+        ("coverage", "strategic_choice_occurrences"): policy[
             "strategic_choice_occurrences"
         ],
-        "reviewed_route_occurrences": report["strategic_policy_replay"][
-            "reviewed_route_occurrences"
-        ],
-        "currently_supported_occurrences": report["strategic_policy_replay"][
+        ("coverage", "reviewed_route_occurrences"): policy["reviewed_route_occurrences"],
+        ("coverage", "currently_supported_occurrences"): policy[
             "currently_supported_occurrences"
         ],
-        "strategic_choice_classes_required": report["strategic_policy_replay"][
+        ("coverage", "strategic_choice_classes_required"): policy[
             "unique_strategic_choice_classes"
         ],
-        "strategic_choice_classes_unrouted": report["strategic_policy_replay"][
+        ("coverage", "strategic_choice_classes_with_reviewed_routes"): policy[
+            "reviewed_strategic_choice_classes"
+        ],
+        ("coverage", "strategic_choice_classes_unrouted"): policy[
             "unrouted_strategic_choice_classes"
         ],
+        ("coverage", "strategic_protocol_methods_required"): policy[
+            "protocol_methods_required"
+        ],
+        ("coverage", "strategic_protocol_methods_in_production_provider"): policy[
+            "protocol_methods_in_production_provider"
+        ],
+        ("coverage", "strategic_protocol_methods_in_recorded_replay_provider"): policy[
+            "protocol_methods_in_recorded_replay_provider"
+        ],
+        ("coverage", "engine_blocker_families"): report["engine_rules"][
+            "blocker_family_count"
+        ],
+        ("coverage", "live_policy_defects"): policy["live_policy_defect_count"],
+        ("coverage", "agent_a_findings_total"): agent_a["finding_count"],
+        ("coverage", "agent_a_findings_complete"): len(agent_a["complete_findings"]),
+        ("coverage", "agent_a_findings_pending"): agent_a["pending_count"],
+        ("remaining_engine_blockers",): report["engine_rules"]["blocker_families"],
+        ("remaining_policy_replay_findings", "records_requiring_strategic_policy"): policy[
+            "records_requiring_strategic_policy"
+        ],
+        ("remaining_policy_replay_findings", "records_currently_complete"): policy[
+            "current_support_complete_records"
+        ],
+        ("remaining_policy_replay_findings", "records_with_policy_replay_gaps"): policy[
+            "records_with_policy_replay_gaps"
+        ],
+        ("remaining_policy_replay_findings", "unrouted_strategic_choice_classes"): policy[
+            "unrouted_strategic_choice_classes"
+        ],
+        ("remaining_policy_replay_findings", "runtime_policy_handler_missing"): policy[
+            "unsupported_runtime_purposes"
+        ],
+        ("remaining_policy_replay_findings", "trigger_target_effect_policy_missing"): policy[
+            "missing_trigger_policy_effects"
+        ],
+        ("agent_a_findings", "artifact_sha256"): agent_a["artifact_sha256"],
+        ("agent_a_findings", "total"): agent_a["finding_count"],
+        ("agent_a_findings", "complete"): agent_a["complete_findings"],
+        ("agent_a_findings", "pending"): agent_a["pending_findings"],
     }
-    actual = ledger.get("coverage", {})
+
+
+def check_ledger(
+    report: dict[str, Any],
+    *,
+    ledger_path: Path = LEDGER_PATH,
+    emit: bool = True,
+) -> bool:
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    expected = _ledger_expectations(report)
     mismatches = {
-        key: {"expected": value, "actual": actual.get(key)}
-        for key, value in expected.items()
-        if actual.get(key) != value
+        ".".join(path): {"expected": wanted, "actual": _path_value(ledger, path)}
+        for path, wanted in expected.items()
+        if _path_value(ledger, path) != wanted
     }
-    if mismatches:
-        print(json.dumps({"status": "FAIL", "mismatches": mismatches}, indent=2, sort_keys=True))
-        return False
-    print(json.dumps({"status": "PASS", "checked": expected}, indent=2, sort_keys=True))
-    return True
+
+    expected_coverage_keys = {path[-1] for path in expected if path[:1] == ("coverage",)}
+    actual_coverage = ledger.get("coverage", {})
+    if not isinstance(actual_coverage, dict):
+        mismatches["coverage"] = {"expected": "object", "actual": type(actual_coverage).__name__}
+    elif set(actual_coverage) != expected_coverage_keys:
+        mismatches["coverage.keys"] = {
+            "expected": sorted(expected_coverage_keys),
+            "actual": sorted(actual_coverage),
+        }
+
+    result = {
+        "status": "FAIL" if mismatches else "PASS",
+        "checked_field_count": len(expected),
+        "mismatches": mismatches,
+    }
+    if emit:
+        print(json.dumps(result, indent=2, sort_keys=True))
+    return not mismatches
+
+
+def _check_ledger(report: dict[str, Any]) -> bool:
+    """Backward-compatible wrapper for callers that used the original private helper."""
+
+    return check_ledger(report)
 
 
 def main() -> int:
@@ -281,7 +510,7 @@ def main() -> int:
         args.output.write_text(text, encoding="utf-8")
     else:
         print(text, end="")
-    if args.check_ledger and not _check_ledger(report):
+    if args.check_ledger and not check_ledger(report):
         return 1
     return 0
 

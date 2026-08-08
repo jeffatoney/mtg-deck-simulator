@@ -1,14 +1,23 @@
 from __future__ import annotations
 
+import base64
+import gzip
+import hashlib
 import json
 from pathlib import Path
 import subprocess
+from typing import Any
 
-from scripts.build_interaction_integration_coverage import build_integration_coverage
+from scripts.build_interaction_integration_coverage import (
+    build_integration_coverage,
+    check_ledger,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 LOCK = ROOT / "automation/interaction-coverage-lock.json"
 LEDGER = ROOT / "automation/interaction-integration-coverage.json"
+AGENT_A_INVENTORY_DIR = ROOT / "automation/agent-a-deck-interaction-manifest"
+AGENT_A_ADJUDICATION = ROOT / "automation/agent-a-findings-adjudication.json"
 
 SOURCE_COORDINATOR_PATHS = (
     ".github/workflows/interaction-coverage.yml",
@@ -20,6 +29,13 @@ SOURCE_COORDINATOR_PATHS = (
     "docs/audit/interaction-coverage/INTERACTION_COVERAGE_CONTRACT.md",
     "scripts/build_interaction_coverage_manifest.py",
     "tests/interaction_coverage/test_interaction_coverage_contract.py",
+)
+
+SOURCE_AGENT_A_PATHS = (
+    "automation/agent-a-deck-interaction-manifest/part-000.b64",
+    "automation/agent-a-deck-interaction-manifest/part-001.b64",
+    "automation/agent-a-deck-interaction-manifest/part-002.b64",
+    "automation/agent-a-findings-adjudication.json",
 )
 
 SOURCE_B_PATHS = (
@@ -35,11 +51,17 @@ SOURCE_B_PATHS = (
 )
 
 SOURCE_C_BLOBS = {
-    ".github/workflows/policy-choice-replay-conformance.yml": "b9550fadb86925ae0a28c88b1583766bc3d91da6",
+    ".github/workflows/policy-choice-replay-conformance.yml": (
+        "b9550fadb86925ae0a28c88b1583766bc3d91da6"
+    ),
     "automation/strategic-choice-conformance.json": "40bc7db4a61cb98ac12c259bd4966067e1fafcbb",
-    "docs/audit/interaction-coverage/AGENT_C_POLICY_CHOICE_REPLAY.md": "d89b8d851e53db8baa5a27e0cfb3415ff0ea5422",
+    "docs/audit/interaction-coverage/AGENT_C_POLICY_CHOICE_REPLAY.md": (
+        "d89b8d851e53db8baa5a27e0cfb3415ff0ea5422"
+    ),
     "scripts/audit_policy_choice_replay_conformance.py": "4342dc34aa1a05c5636aac1a64f6dcd388ccd660",
-    "tests/interaction_coverage/test_policy_choice_replay_conformance.py": "425123b5a1b61a0c78c9aa90e5a6ad22385547c2",
+    "tests/interaction_coverage/test_policy_choice_replay_conformance.py": (
+        "425123b5a1b61a0c78c9aa90e5a6ad22385547c2"
+    ),
 }
 
 SOURCE_D_BLOBS = {
@@ -54,11 +76,22 @@ def _git_blob(path: str) -> str:
     return subprocess.check_output(["git", "hash-object", path], cwd=ROOT, text=True).strip()
 
 
-def test_frozen_denominator_and_integration_ledger_agree() -> None:
+def _canonical_digest(value: Any) -> str:
+    encoded = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode()
+    return "sha256:" + hashlib.sha256(encoded).hexdigest()
+
+
+def test_candidate_denominator_and_integration_ledger_agree() -> None:
     lock = json.loads(LOCK.read_text(encoding="utf-8"))
     ledger = json.loads(LEDGER.read_text(encoding="utf-8"))
     surface = ledger["surface"]
 
+    assert lock["status"] == "PROVISIONAL_PENDING_AGENT_A_INTEGRATION"
     assert lock["record_count"] == 216
     assert lock["card_composition_record_count"] == 80
     assert lock["card_effect_record_count"] == 126
@@ -78,29 +111,73 @@ def test_frozen_denominator_and_integration_ledger_agree() -> None:
     ):
         assert surface[key] == lock[key]
 
+    assert surface["candidate_status"] == lock["status"]
     assert ledger["coverage"]["requirements"] == lock["record_count"]
     assert ledger["coverage"]["inventory_mapped"] == lock["record_count"]
 
 
-def test_cross_lane_policy_coverage_is_record_addressable() -> None:
+def test_committed_ledger_matches_the_complete_recomputed_report() -> None:
     report = build_integration_coverage()
-    policy = report["strategic_policy_replay"]
 
+    assert report["status"] == "BLOCKED_PROVISIONAL_SURFACE"
     assert report["surface"]["record_count"] == 216
-    assert policy["records_requiring_strategic_policy"] == 94
-    assert policy["records_requiring_no_strategic_policy"] == 122
-    assert policy["current_support_complete_records"] == 51
-    assert policy["policy_ready_or_not_required_records"] == 173
-    assert policy["records_with_policy_replay_gaps"] == 43
-    assert policy["strategic_choice_occurrences"] == 145
-    assert policy["reviewed_route_occurrences"] == 98
-    assert policy["currently_supported_occurrences"] == 96
-    assert policy["unique_strategic_choice_classes"] == 49
-    assert policy["unrouted_strategic_choice_classes"] == 26
+    assert report["agent_a"]["finding_count"] == 16
+    assert report["agent_a"]["pending_count"] == 16
+    assert check_ledger(report, emit=False)
+
+
+def test_ledger_checker_rejects_headline_and_previously_unchecked_falsifications(
+    tmp_path: Path,
+) -> None:
+    report = build_integration_coverage()
+    baseline = json.loads(LEDGER.read_text(encoding="utf-8"))
+    mutations: tuple[tuple[tuple[str, ...], Any], ...] = (
+        (("status",), "PROVEN"),
+        (("coverage", "engine_blocker_families"), 0),
+        (("coverage", "live_policy_defects"), 0),
+        (("coverage", "records_requiring_no_strategic_policy"), 0),
+        (("coverage", "strategic_choice_classes_with_reviewed_routes"), 0),
+        (("coverage", "strategic_protocol_methods_required"), 0),
+        (("coverage", "strategic_protocol_methods_in_production_provider"), 0),
+        (("coverage", "strategic_protocol_methods_in_recorded_replay_provider"), 0),
+        (("remaining_engine_blockers",), []),
+    )
+
+    for index, (path, replacement) in enumerate(mutations):
+        falsified = json.loads(json.dumps(baseline))
+        target = falsified
+        for key in path[:-1]:
+            target = target[key]
+        target[path[-1]] = replacement
+        candidate = tmp_path / f"falsified-{index}.json"
+        candidate.write_text(json.dumps(falsified), encoding="utf-8")
+        assert not check_ledger(report, ledger_path=candidate, emit=False), path
+
+
+def test_agent_a_artifact_is_complete_bound_and_adjudicated() -> None:
+    encoded = "".join(
+        path.read_text(encoding="ascii").strip()
+        for path in sorted(AGENT_A_INVENTORY_DIR.glob("part-*.b64"))
+    )
+    inventory = json.loads(gzip.decompress(base64.b64decode(encoded)).decode("utf-8"))
+    adjudication = json.loads(AGENT_A_ADJUDICATION.read_text(encoding="utf-8"))
+    expected_digest = inventory.pop("agent_a_manifest_sha256")
+
+    assert _canonical_digest(inventory) == expected_digest
+    assert adjudication["agent_a_artifact_sha256"] == expected_digest
+    assert len(inventory["blocking_findings"]) == 16
+    assert {item["id"] for item in adjudication["findings"]} == {
+        item["id"] for item in inventory["blocking_findings"]
+    }
 
 
 def test_coordinator_output_paths_survive_integration() -> None:
     missing = [path for path in SOURCE_COORDINATOR_PATHS if not (ROOT / path).is_file()]
+    assert missing == []
+
+
+def test_agent_a_output_paths_survive_integration() -> None:
+    missing = [path for path in SOURCE_AGENT_A_PATHS if not (ROOT / path).is_file()]
     assert missing == []
 
 
