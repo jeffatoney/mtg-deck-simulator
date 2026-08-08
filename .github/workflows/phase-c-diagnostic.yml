@@ -1,0 +1,165 @@
+name: Phase C Pre-Pilot Diagnostic — 700 Seeds
+
+on:
+  workflow_dispatch:
+    inputs:
+      implementation_commit:
+        description: Exact non-authorized implementation commit to diagnose
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+    steps:
+      - name: Require dispatch from main
+        run: test "${GITHUB_REF}" = "refs/heads/main"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.implementation_commit }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Require exact clean implementation commit
+        env:
+          IMPLEMENTATION_COMMIT: ${{ inputs.implementation_commit }}
+        run: |
+          test "$(git rev-parse HEAD)" = "${IMPLEMENTATION_COMMIT}"
+          test -z "$(git status --porcelain)"
+      - name: Require non-authorized Phase C control plane
+        run: |
+          uv run python - <<'PY'
+          from mtg_runs.phase_c import load_phase_c_config
+
+          config = load_phase_c_config()
+          assert config.execution_allowed is False
+          assert config.authorization_status == "LOCKED_PENDING_OWNER_APPROVAL"
+          PY
+      - name: Reject pre-existing pilot artifact roots
+        run: |
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+      - name: Frozen identity lock integrity
+        run: uv run python scripts/check_identity_lock.py
+      - name: Clean engine boundary
+        run: uv run python scripts/check_clean_engine_boundary.py
+      - name: Durable Phase A certification
+        run: uv run python scripts/check_phase_a_certification.py
+      - name: Durable Phase B certification
+        run: uv run python scripts/check_phase_b_certification.py
+      - name: No-game Phase C readiness check
+        run: uv run mtg-engine phase-c-dry-run
+
+  shards:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        mode: [STANDARD, EXPLORATORY]
+        shard_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.implementation_commit }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Reject pilot artifact roots before diagnostic execution
+        run: |
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+      - name: Execute production-equivalent diagnostic shard
+        env:
+          MODE: ${{ matrix.mode }}
+          SHARD_INDEX: ${{ matrix.shard_index }}
+        run: |
+          uv run python -m mtg_runs.phase_c_diagnostic shard \
+            --mode "${MODE}" \
+            --shard-index "${SHARD_INDEX}" \
+            --output-root artifacts/phase-c-diagnostic
+      - name: Prove no pilot measurement artifacts were created
+        if: always()
+        run: |
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+          test -d artifacts/phase-c-diagnostic
+          if find artifacts/phase-c-diagnostic -type f ! -name '*.json' -print -quit | grep -q .; then
+            echo "Diagnostic output contains a non-JSON artifact" >&2
+            exit 1
+          fi
+      - name: Upload diagnostic shard even when games fail
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-c-diagnostic-${{ matrix.mode }}-${{ matrix.shard_index }}-${{ inputs.implementation_commit }}
+          path: artifacts/phase-c-diagnostic
+          if-no-files-found: error
+          retention-days: 30
+
+  aggregate:
+    needs: shards
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.implementation_commit }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Download every diagnostic shard
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase-c-diagnostic-*-${{ inputs.implementation_commit }}
+          path: artifacts/downloaded-diagnostic
+      - name: Aggregate all 700 results and distinct errors
+        run: |
+          uv run python -m mtg_runs.phase_c_diagnostic aggregate \
+            --shard-root artifacts/downloaded-diagnostic \
+            --output-root artifacts/phase-c-diagnostic-summary
+      - name: Prove aggregate created no pilot measurement artifacts
+        if: always()
+        run: |
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+      - name: Upload diagnostic summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-c-diagnostic-summary-${{ inputs.implementation_commit }}
+          path: artifacts/phase-c-diagnostic-summary
+          if-no-files-found: error
+          retention-days: 30
