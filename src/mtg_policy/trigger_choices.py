@@ -42,10 +42,10 @@ class PolicyStrategicChoiceProvider(_BaseProvider):
             opponents = [
                 card
                 for card in request.candidates
-                if "PLAYER" in card.card_types
-                and card.identity != f"Player {request.actor_id}"
+                if "PLAYER" in card.card_types and card.identity != f"Player {request.actor_id}"
             ]
             if opponents:
+
                 def opponent_key(card: Any) -> tuple[int, str, str]:
                     player_id = card.identity.removeprefix("Player ")
                     raw = life.get(player_id, 10**9)
