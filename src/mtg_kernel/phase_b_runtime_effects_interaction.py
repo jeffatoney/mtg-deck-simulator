@@ -52,8 +52,7 @@ def _resolve_counter_unless_pay(
     else:
         pool = self.state.players[payer].mana_pool
         can_pay_from_pool = (
-            sum(int(pool.get(symbol, 0)) for symbol in ("W", "U", "B", "R", "G", "C"))
-            >= amount
+            sum(int(pool.get(symbol, 0)) for symbol in ("W", "U", "B", "R", "G", "C")) >= amount
         )
         request = CounterPaymentRequest(
             request_id=self.identity.new_id("strategic-request"),
