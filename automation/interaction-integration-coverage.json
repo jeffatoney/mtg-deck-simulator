@@ -4,7 +4,7 @@
   "surface": {
     "candidate_status": "PROVISIONAL_PENDING_AGENT_A_INTEGRATION",
     "frozen_from_main_commit": "20b94f46038251d5fb2d56389d953c1e9d01b68b",
-    "manifest_sha256": "sha256:20d767ea754841bf0f9bda378068c4c705e0b9f8f8f4be20ca15be1f24bb2cdc",
+    "manifest_sha256": "sha256:f976526e34d7297521b9c949c7e3a54905cb8bdaa62e7e3225627de294f8a6b5",
     "record_count": 216,
     "card_composition_record_count": 80,
     "card_effect_record_count": 126,
@@ -32,14 +32,14 @@
     "record_level_direct_test_evidence_attached": 0,
     "records_requiring_strategic_policy": 94,
     "records_requiring_no_strategic_policy": 122,
-    "policy_ready_or_not_required_records": 173,
-    "records_with_policy_replay_gaps": 43,
-    "strategic_choice_occurrences": 145,
+    "policy_ready_or_not_required_records": 174,
+    "records_with_policy_replay_gaps": 42,
+    "strategic_choice_occurrences": 144,
     "reviewed_route_occurrences": 98,
     "currently_supported_occurrences": 98,
     "strategic_choice_classes_required": 49,
-    "strategic_choice_classes_with_reviewed_routes": 23,
-    "strategic_choice_classes_unrouted": 26,
+    "strategic_choice_classes_with_reviewed_routes": 24,
+    "strategic_choice_classes_unrouted": 25,
     "strategic_protocol_methods_required": 4,
     "strategic_protocol_methods_in_production_provider": 4,
     "strategic_protocol_methods_in_recorded_replay_provider": 4,
@@ -53,12 +53,12 @@
     {
       "id": "INTEGRATION-LOCK-DENOMINATOR",
       "status": "CORRECTED_TO_PROVISIONAL",
-      "detail": "The generator emits 216 candidate records, but Agent A prevents that candidate from being called frozen until all 16 accepted findings are implemented or rules-authoritatively resolved."
+      "detail": "The generator currently emits 216 candidate records. The candidate count is not a freeze target; Agent A findings may change it."
     },
     {
       "id": "INTEGRATION-PYTHON-VERSION",
       "status": "CORRECTED",
-      "detail": "Coordinator interaction workflows now use Python 3.12, matching pyproject.toml."
+      "detail": "Coordinator interaction workflows use Python 3.12, matching pyproject.toml."
     },
     {
       "id": "INTEGRATION-DERIVED-CERTIFICATE",
@@ -68,17 +68,22 @@
     {
       "id": "INTEGRATION-LEDGER-COMPLETE-CHECK",
       "status": "CORRECTED",
-      "detail": "The derived checker now validates the top-level status, the exact coverage key set, every coverage value, remaining blocker lists, policy findings, and Agent A findings; pytest calls the same checker."
+      "detail": "The derived checker validates top-level status, the exact coverage key set, every coverage value, remaining blocker lists, policy findings, and Agent A findings; pytest calls the same checker and uses non-vacuous adversarial mutations."
     },
     {
       "id": "INTEGRATION-BOUNCE-TARGET-POLICY",
       "status": "CORRECTED",
-      "detail": "The production mandatory-trigger provider now supports BOUNCE_TARGET using the reviewed lowest-contextual-value target strategy."
+      "detail": "The production mandatory-trigger provider supports BOUNCE_TARGET using the reviewed lowest-contextual-value target strategy."
     },
     {
       "id": "INTEGRATION-PRISMARI-DISCARD-POLICY",
       "status": "CORRECTED",
-      "detail": "The production policy provider now handles PRISMARI_DISCARD for the actual target player by delegating to the reviewed discard ranking with that actor's observation and legal hand candidates."
+      "detail": "The production policy provider handles PRISMARI_DISCARD for the actual target player by delegating to the reviewed discard ranking with that actor's observation and legal hand candidates."
+    },
+    {
+      "id": "AGENT-A-BLOCK-001-004-SLICE",
+      "status": "IMPLEMENTED_PENDING_FINAL_CI_ADJUDICATION",
+      "detail": "Boilerworks resolution selection, Sentinel Totem self-exile cost, Scavenger Grounds one-Desert cost, and mandatory Vedalken Aethermage target semantics are represented in the candidate tree. Formal Agent A completion remains zero until the synchronized tree passes CI."
     }
   ],
   "remaining_engine_blockers": [
@@ -95,12 +100,12 @@
   ],
   "remaining_policy_replay_findings": {
     "records_requiring_strategic_policy": 94,
-    "records_currently_complete": 51,
-    "records_with_policy_replay_gaps": 43,
-    "unrouted_strategic_choice_classes": 26,
+    "records_currently_complete": 52,
+    "records_with_policy_replay_gaps": 42,
+    "unrouted_strategic_choice_classes": 25,
     "runtime_policy_handler_missing": [],
     "trigger_target_effect_policy_missing": [],
-    "note": "All currently routed live policy handlers are present. The remaining 43 record-level gaps arise from missing reviewed routes and must remain blocking."
+    "note": "All currently routed live policy handlers are present. The remaining record-level gaps arise from missing reviewed routes and must remain blocking."
   },
   "agent_a_findings": {
     "artifact_sha256": "sha256:212b58f87e0b3082d0851becbf63b8c4298bb11338da33a4cbf6b303e12db90b",
@@ -125,5 +130,5 @@
       "A-REV-016"
     ]
   },
-  "evidence_boundary": "The 216-record output is a provisional generator candidate, not a reviewed frozen denominator. Agent A's 16 accepted findings must be implemented or explicitly mapped/rejected with rules authority; then the manifest, digest, strategic counts, and proof ledger must be regenerated before freeze."
+  "evidence_boundary": "This is a 216-record provisional candidate, not a frozen denominator. Four Agent A blockers have implementation changes in the current slice but remain formally pending until synchronized CI passes; the other twelve findings remain unimplemented or unresolved."
 }
