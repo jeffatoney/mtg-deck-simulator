@@ -6,6 +6,7 @@ on:
       - "automation/agent-a-*.json"
       - "automation/agent-a-deck-interaction-manifest/**"
       - "automation/interaction-*.json"
+      - "configs/**"
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
       - "scripts/check_interaction_candidate_lock.py"
@@ -25,6 +26,7 @@ on:
       - "automation/agent-a-*.json"
       - "automation/agent-a-deck-interaction-manifest/**"
       - "automation/interaction-*.json"
+      - "configs/**"
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
       - "scripts/check_interaction_candidate_lock.py"
@@ -77,6 +79,7 @@ jobs:
             .github
             .python-version
             automation
+            configs
             docs
             pyproject.toml
             scripts
