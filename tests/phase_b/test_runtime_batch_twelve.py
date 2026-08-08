@@ -117,7 +117,7 @@ def test_scavenger_grounds_executes_mana_and_graveyard_exile_modes() -> None:
         "P0",
         grounds.object_id,
         "grounds:exile",
-        choices={"additional_sacrifice_object_id": grounds.object_id},
+        choices={"sacrifice_permanent_object_id": grounds.object_id},
     )
     assert grounds.retired
     pass_all(executor)
