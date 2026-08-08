@@ -26,7 +26,7 @@ def test_exact_deck_interaction_surface_is_finite_and_explicit(tmp_path: Path) -
     manifest = _build(tmp_path)
     assert manifest["card_definition_count"] == 80
     assert manifest["physical_card_count"] == 100
-    assert manifest["global_rule_record_count"] == 8
+    assert manifest["global_rule_record_count"] == 9
     assert manifest["card_effect_record_count"] > 80
     assert manifest["record_count"] == (
         manifest["card_effect_record_count"] + manifest["global_rule_record_count"]
@@ -65,16 +65,21 @@ def test_global_choice_families_are_explicit(tmp_path: Path) -> None:
     manifest = _build(tmp_path)
     records = {record["record_id"]: record for record in manifest["records"]}
     expected = {
-        "GLOBAL-TRIGGER-ORDERING": "TRIGGER_ORDER",
-        "GLOBAL-REPLACEMENT-ORDERING": "REPLACEMENT_EFFECT_SELECTION",
-        "GLOBAL-CLEANUP-REENTRY": "CLEANUP_DISCARD_SELECTION",
-        "GLOBAL-SBA-TIMING": "LEGEND_RULE_KEEP_SELECTION",
-        "GLOBAL-COMMANDER-GRAVEYARD-EXILE-RETURN": "COMMANDER_RETURN_FROM_GRAVEYARD_OR_EXILE",
-        "GLOBAL-COMMANDER-HAND-LIBRARY-REPLACEMENT": "COMMANDER_HAND_LIBRARY_REPLACEMENT",
-        "GLOBAL-PRIORITY-STACK-LIFO": "PRIORITY_ACTION_OR_PASS",
+        "GLOBAL-TRIGGER-ORDERING": {"TRIGGER_ORDER"},
+        "GLOBAL-REPLACEMENT-ORDERING": {"REPLACEMENT_EFFECT_SELECTION"},
+        "GLOBAL-CLEANUP-REENTRY": {"CLEANUP_DISCARD_SELECTION"},
+        "GLOBAL-COMBAT-ATTACKERS": {"ATTACKER_SELECTION", "ATTACK_DESTINATION_SELECTION"},
+        "GLOBAL-SBA-TIMING": {"LEGEND_RULE_KEEP_SELECTION"},
+        "GLOBAL-COMMANDER-GRAVEYARD-EXILE-RETURN": {
+            "COMMANDER_RETURN_FROM_GRAVEYARD_OR_EXILE"
+        },
+        "GLOBAL-COMMANDER-HAND-LIBRARY-REPLACEMENT": {
+            "COMMANDER_HAND_LIBRARY_REPLACEMENT"
+        },
+        "GLOBAL-PRIORITY-STACK-LIFO": {"PRIORITY_ACTION_OR_PASS"},
     }
-    for record_id, purpose in expected.items():
-        assert purpose in {choice["purpose"] for choice in records[record_id]["choices"]}
+    for record_id, purposes in expected.items():
+        assert purposes <= {choice["purpose"] for choice in records[record_id]["choices"]}
     assert records["GLOBAL-ILLEGAL-ACTION-ROLLBACK"]["choices"] == []
 
 
