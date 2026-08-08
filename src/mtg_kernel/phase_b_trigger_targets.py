@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 
 from mtg_kernel.errors import IllegalAction
 from mtg_kernel.models import Choice, GameObject, ObjectKind, TargetRef, Zone
@@ -61,10 +61,7 @@ def _choose_trigger_targets(
     # Preserve every pre-recorded choice and the rules engine's sole/no-target
     # behavior. Only a genuine multi-candidate decision crosses the policy boundary.
     if ability_id in target_hints or len(candidates) <= 1:
-        return cast(
-            tuple[TargetRef, ...],
-            _runtime_choose_trigger_targets(self, trigger, ability),
-        )
+        return _runtime_choose_trigger_targets(self, trigger, ability)
 
     minimum = int(schema.get("min", 0) or 0)
     maximum_raw = schema.get("max")
@@ -130,10 +127,7 @@ def _choose_trigger_targets(
     target_hints[ability_id] = selected.object_id
     hints["trigger_targets"] = target_hints
     trigger.current_characteristics["choice_hints"] = hints
-    return cast(
-        tuple[TargetRef, ...],
-        _runtime_choose_trigger_targets(self, trigger, ability),
-    )
+    return _runtime_choose_trigger_targets(self, trigger, ability)
 
 
 def install_trigger_target_choices(executor_class: type[Any]) -> None:
