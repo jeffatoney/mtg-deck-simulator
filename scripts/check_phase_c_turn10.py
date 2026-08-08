@@ -45,7 +45,9 @@ def main() -> int:
     selected_actions = tuple(measurement.extra.get("selected_actions", ()))
     combo_blockers = dict(measurement.extra.get("combo_checkpoint_blockers", {}))
     malcolm_glint_horn = [
-        asdict(record) for record in measurement.combo_records if record.package == "malcolm_glint_horn"
+        asdict(record)
+        for record in measurement.combo_records
+        if record.package == "malcolm_glint_horn"
     ]
     relevant_cards = [
         asdict(record)
