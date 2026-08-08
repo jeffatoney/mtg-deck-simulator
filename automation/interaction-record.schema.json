@@ -165,6 +165,7 @@
           "enum": [
             "CONTROLLER",
             "OWNER",
+            "TARGET_PLAYER",
             "TARGET_CONTROLLER",
             "AFFECTED_PLAYER",
             "AFFECTED_PLAYER_OR_PERMANENT_CONTROLLER",
