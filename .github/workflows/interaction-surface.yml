@@ -3,9 +3,12 @@ name: Interaction Surface Artifact
 on:
   pull_request:
     paths:
+      - "automation/agent-a-*.json"
+      - "automation/agent-a-deck-interaction-manifest/**"
       - "automation/interaction-*.json"
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
+      - "scripts/audit_policy_choice_replay_conformance.py"
       - "src/mtg_cards/full_deck.py"
       - "src/mtg_cards/oracle.py"
       - "src/mtg_deck/**"
@@ -18,9 +21,12 @@ on:
   push:
     branches: [main]
     paths:
+      - "automation/agent-a-*.json"
+      - "automation/agent-a-deck-interaction-manifest/**"
       - "automation/interaction-*.json"
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
+      - "scripts/audit_policy_choice_replay_conformance.py"
       - "src/mtg_cards/full_deck.py"
       - "src/mtg_cards/oracle.py"
       - "src/mtg_deck/**"
@@ -45,14 +51,20 @@ jobs:
           cache: pip
       - name: Install project
         run: python -m pip install -e ".[dev]"
-      - name: Build interaction surface
+      - name: Build candidate interaction surface
         run: python scripts/build_interaction_coverage_manifest.py --output interaction-surface.json
-      - name: Publish interaction surface
+      - name: Publish candidate surface and proof provenance
         uses: actions/upload-artifact@v4
         with:
           name: interaction-surface-${{ github.sha }}
-          path: interaction-surface.json
+          path: |
+            interaction-surface.json
+            automation/interaction-coverage-lock.json
+            automation/agent-a-findings-adjudication.json
+            automation/agent-a-deck-interaction-manifest
+            scripts/build_interaction_coverage_manifest.py
+            scripts/audit_policy_choice_replay_conformance.py
           if-no-files-found: error
           retention-days: 14
-      - name: Verify frozen surface lock
+      - name: Verify candidate surface lock
         run: python scripts/build_interaction_coverage_manifest.py --check-lock
