@@ -8,6 +8,7 @@ on:
       - "automation/interaction-*.json"
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
+      - "scripts/check_interaction_candidate_lock.py"
       - "scripts/audit_policy_choice_replay_conformance.py"
       - "src/mtg_cards/full_deck.py"
       - "src/mtg_cards/oracle.py"
@@ -26,6 +27,7 @@ on:
       - "automation/interaction-*.json"
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
+      - "scripts/check_interaction_candidate_lock.py"
       - "scripts/audit_policy_choice_replay_conformance.py"
       - "src/mtg_cards/full_deck.py"
       - "src/mtg_cards/oracle.py"
@@ -63,8 +65,9 @@ jobs:
             automation/agent-a-findings-adjudication.json
             automation/agent-a-deck-interaction-manifest
             scripts/build_interaction_coverage_manifest.py
+            scripts/check_interaction_candidate_lock.py
             scripts/audit_policy_choice_replay_conformance.py
           if-no-files-found: error
           retention-days: 14
-      - name: Verify candidate surface lock
-        run: python scripts/build_interaction_coverage_manifest.py --check-lock
+      - name: Verify provisional or reviewed interaction lock
+        run: python scripts/check_interaction_candidate_lock.py
