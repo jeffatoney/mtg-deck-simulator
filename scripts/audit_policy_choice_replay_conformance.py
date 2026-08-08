@@ -29,6 +29,13 @@ class PurposeEmission:
 
 
 @dataclass(frozen=True)
+class UnresolvedPurpose:
+    path: str
+    function: str
+    parameter: str | None
+
+
+@dataclass(frozen=True)
 class SourceInvariantResult:
     name: str
     path: str
@@ -51,7 +58,11 @@ def _call_tail(node: ast.AST) -> str:
     return ""
 
 
-def _purpose_expr_pattern(node: ast.AST) -> str | None:
+def _purpose_expr_pattern(node: ast.AST | None, env: dict[str, str] | None = None) -> str | None:
+    if node is None:
+        return None
+    if isinstance(node, ast.Name) and env is not None:
+        return env.get(node.id)
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
         return node.value
     if isinstance(node, ast.JoinedStr):
@@ -65,8 +76,8 @@ def _purpose_expr_pattern(node: ast.AST) -> str | None:
                 return None
         return "".join(parts)
     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
-        left = _purpose_expr_pattern(node.left)
-        right = _purpose_expr_pattern(node.right)
+        left = _purpose_expr_pattern(node.left, env)
+        right = _purpose_expr_pattern(node.right, env)
         if left is not None and right is not None:
             return left + right
     return None
@@ -76,44 +87,153 @@ class _PurposeEmissionVisitor(ast.NodeVisitor):
     def __init__(self, path: str) -> None:
         self.path = path
         self.functions: list[str] = []
+        self.parameters: list[set[str]] = []
+        self.environments: list[dict[str, str]] = []
         self.emissions: list[PurposeEmission] = []
-        self.unresolved: list[str] = []
+        self.unresolved: list[UnresolvedPurpose] = []
+
+    @property
+    def _function(self) -> str:
+        return self.functions[-1] if self.functions else "<module>"
+
+    @property
+    def _env(self) -> dict[str, str]:
+        return self.environments[-1] if self.environments else {}
+
+    def _enter_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
+        args = {
+            item.arg
+            for item in (
+                *node.args.posonlyargs,
+                *node.args.args,
+                *node.args.kwonlyargs,
+            )
+        }
+        if node.args.vararg is not None:
+            args.add(node.args.vararg.arg)
+        if node.args.kwarg is not None:
+            args.add(node.args.kwarg.arg)
+        self.functions.append(node.name)
+        self.parameters.append(args)
+        self.environments.append({})
+        for child in node.body:
+            self.visit(child)
+        self.environments.pop()
+        self.parameters.pop()
+        self.functions.pop()
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
-        self.functions.append(node.name)
-        self.generic_visit(node)
-        self.functions.pop()
+        self._enter_function(node)
         return None
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> Any:
-        self.functions.append(node.name)
+        self._enter_function(node)
+        return None
+
+    def visit_Assign(self, node: ast.Assign) -> Any:
+        pattern = _purpose_expr_pattern(node.value, self._env)
+        if pattern is not None:
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    self._env[target.id] = pattern
         self.generic_visit(node)
-        self.functions.pop()
+        return None
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> Any:
+        pattern = _purpose_expr_pattern(node.value, self._env)
+        if pattern is not None and isinstance(node.target, ast.Name):
+            self._env[node.target.id] = pattern
+        self.generic_visit(node)
         return None
 
     def visit_Call(self, node: ast.Call) -> Any:
         if _call_tail(node.func) == "CardSelectionRequest":
             purpose = next((kw.value for kw in node.keywords if kw.arg == "purpose"), None)
-            function = self.functions[-1] if self.functions else "<module>"
-            pattern = _purpose_expr_pattern(purpose) if purpose is not None else None
-            if pattern is None:
-                self.unresolved.append(f"{self.path}:{function}")
+            pattern = _purpose_expr_pattern(purpose, self._env)
+            if pattern is not None:
+                self.emissions.append(PurposeEmission(pattern, self.path, self._function))
             else:
-                self.emissions.append(PurposeEmission(pattern, self.path, function))
+                parameter: str | None = None
+                if (
+                    isinstance(purpose, ast.Name)
+                    and self.parameters
+                    and purpose.id in self.parameters[-1]
+                ):
+                    parameter = purpose.id
+                self.unresolved.append(
+                    UnresolvedPurpose(self.path, self._function, parameter)
+                )
         self.generic_visit(node)
         return None
 
 
-def _runtime_purpose_emissions() -> tuple[list[PurposeEmission], list[str]]:
-    emissions: list[PurposeEmission] = []
-    unresolved: list[str] = []
+def _source_trees() -> list[tuple[str, ast.Module]]:
+    result: list[tuple[str, ast.Module]] = []
     for path in sorted((ROOT / "src").rglob("*.py")):
         relative = path.relative_to(ROOT).as_posix()
-        visitor = _PurposeEmissionVisitor(relative)
-        visitor.visit(ast.parse(path.read_text(encoding="utf-8"), filename=relative))
+        result.append(
+            (relative, ast.parse(path.read_text(encoding="utf-8"), filename=relative))
+        )
+    return result
+
+
+def _helper_callsite_patterns(
+    trees: list[tuple[str, ast.Module]], helper: UnresolvedPurpose
+) -> tuple[set[str], bool]:
+    if helper.parameter is None:
+        return set(), True
+    patterns: set[str] = set()
+    saw_unresolved = False
+    for _, tree in trees:
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call) or _call_tail(node.func) != helper.function:
+                continue
+            keyword = next(
+                (kw.value for kw in node.keywords if kw.arg == helper.parameter),
+                None,
+            )
+            if keyword is None:
+                continue
+            pattern = _purpose_expr_pattern(keyword)
+            if pattern is None:
+                saw_unresolved = True
+            else:
+                patterns.add(pattern)
+    if not patterns:
+        saw_unresolved = True
+    return patterns, saw_unresolved
+
+
+def _runtime_purpose_emissions() -> tuple[list[PurposeEmission], list[str]]:
+    trees = _source_trees()
+    emissions: list[PurposeEmission] = []
+    unresolved_helpers: list[UnresolvedPurpose] = []
+    for path, tree in trees:
+        visitor = _PurposeEmissionVisitor(path)
+        visitor.visit(tree)
         emissions.extend(visitor.emissions)
-        unresolved.extend(visitor.unresolved)
-    return emissions, unresolved
+        unresolved_helpers.extend(visitor.unresolved)
+
+    unresolved: list[str] = []
+    for helper in unresolved_helpers:
+        patterns, saw_unresolved = _helper_callsite_patterns(trees, helper)
+        for pattern in patterns:
+            emissions.append(PurposeEmission(pattern, helper.path, helper.function))
+        if saw_unresolved:
+            suffix = f":{helper.parameter}" if helper.parameter else ""
+            unresolved.append(f"{helper.path}:{helper.function}{suffix}")
+
+    deduped = {
+        (item.pattern, item.path, item.function): item
+        for item in emissions
+    }
+    return (
+        sorted(
+            deduped.values(),
+            key=lambda item: (item.pattern, item.path, item.function),
+        ),
+        sorted(set(unresolved)),
+    )
 
 
 def _is_request_purpose(node: ast.AST) -> bool:
@@ -379,6 +499,42 @@ def audit_conformance() -> dict[str, Any]:
                 f"{choice['timing']}:{choice['purpose']} [{choice['policy_class']}]"
             )
 
+    for route in routes:
+        mechanism = str(route.get("mechanism", ""))
+        protocol_method = route.get("protocol_method")
+        if mechanism == "PROTOCOL_METHOD":
+            method = str(protocol_method or "")
+            if not method:
+                violations.append("protocol route omits protocol_method")
+            else:
+                if method not in protocol_methods:
+                    violations.append(f"canonical route names unknown protocol method: {method}")
+                if method not in base_policy_methods:
+                    violations.append(
+                        f"canonical route protocol method lacks production policy support: {method}"
+                    )
+                if method not in replay_methods:
+                    violations.append(
+                        f"canonical route protocol method lacks recorded replay support: {method}"
+                    )
+
+        runtime_purpose = route.get("runtime_purpose")
+        if runtime_purpose:
+            runtime_pattern = str(runtime_purpose)
+            if not any(
+                _matches(value, runtime_pattern) or _matches(runtime_pattern, value)
+                for value in emitted_patterns
+            ):
+                violations.append(
+                    "canonical route names a runtime purpose that production does not emit: "
+                    + runtime_pattern
+                )
+            if not any(_matches(runtime_pattern, value) for value in policy_patterns):
+                violations.append(
+                    "canonical route runtime purpose lacks production policy support: "
+                    + runtime_pattern
+                )
+
     targeted_effects = _targeted_trigger_effects(manifest) if manifest else set()
     supported_trigger_effects = _trigger_policy_effect_kinds()
     missing_trigger_effects = sorted(targeted_effects - supported_trigger_effects)
@@ -387,25 +543,8 @@ def audit_conformance() -> dict[str, Any]:
             "triggered target effect requires a policy provider but is unsupported: " + effect
         )
 
-    for route in routes:
-        runtime_purpose = route.get("runtime_purpose")
-        if not runtime_purpose:
-            continue
-        runtime_pattern = str(runtime_purpose)
-        if not any(
-            _matches(value, runtime_pattern) or _matches(runtime_pattern, value)
-            for value in emitted_patterns
-        ):
-            violations.append(
-                "canonical route names a runtime purpose that production does not emit: "
-                + runtime_pattern
-            )
-        if not any(_matches(runtime_pattern, value) for value in policy_patterns):
-            violations.append(
-                "canonical route runtime purpose lacks production policy support: "
-                + runtime_pattern
-            )
-
+    violations = list(dict.fromkeys(violations))
+    warnings = list(dict.fromkeys(warnings))
     return {
         "schema_version": "policy-choice-replay-conformance-report-v1",
         "status": "PASS" if not violations else "FAIL",
