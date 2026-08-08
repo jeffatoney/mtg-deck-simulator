@@ -19,6 +19,7 @@ from mtg_deck import load_exact_deck_package  # noqa: E402
 
 CHOICE_CONTRACTS = ROOT / "automation/interaction-choice-contracts.json"
 LOCK_PATH = ROOT / "automation/interaction-coverage-lock.json"
+ORACLE_SNAPSHOT = ROOT / "docs/source/oracle/snapshot_v1.json"
 SOURCE_PATHS = (
     "src/mtg_cards/full_deck.py",
     "docs/source/oracle/snapshot_v1.json",
@@ -48,6 +49,17 @@ def _load_choice_contracts() -> dict[str, Any]:
     ):
         raise ValueError("interaction choice contracts must fail closed for unknown effects")
     return raw
+
+
+def _load_oracle_records() -> dict[str, dict[str, Any]]:
+    snapshot = json.loads(ORACLE_SNAPSHOT.read_text(encoding="utf-8"))
+    records = snapshot.get("cards")
+    if not isinstance(records, list):
+        raise ValueError("Oracle snapshot does not contain a card record list")
+    result = {str(record["name"]): record for record in records if isinstance(record, dict)}
+    if len(result) != len(records):
+        raise ValueError("Oracle snapshot contains duplicate or malformed card records")
+    return result
 
 
 def _choice(
@@ -92,8 +104,25 @@ def _base_rules(ability_kind: str) -> tuple[str, ...]:
     }.get(ability_kind, ("608",))
 
 
+def _oracle_face_mana_cost(behavior: dict[str, Any], oracle_record: dict[str, Any]) -> str:
+    if behavior.get("alternative_cost") is not None:
+        return str(behavior["alternative_cost"])
+    raw_faces = oracle_record.get("card_faces")
+    faces = raw_faces if isinstance(raw_faces, list) and raw_faces else [oracle_record]
+    face_index = int(behavior.get("face", 0))
+    if not 0 <= face_index < len(faces):
+        raise ValueError(
+            f"behavior face index {face_index} is outside Oracle face count for "
+            f"{oracle_record.get('name')}"
+        )
+    face = faces[face_index]
+    if not isinstance(face, dict):
+        raise ValueError(f"malformed Oracle face for {oracle_record.get('name')}")
+    return str(face.get("mana_cost", ""))
+
+
 def _structural_choices(
-    behavior: dict[str, Any], *, spell_sibling_count: int
+    behavior: dict[str, Any], *, spell_sibling_count: int, oracle_record: dict[str, Any]
 ) -> list[dict[str, Any]]:
     ability_kind = str(behavior.get("kind", "UNKNOWN"))
     choices: list[dict[str, Any]] = []
@@ -142,34 +171,78 @@ def _structural_choices(
         if effect.get("kicker") is not None:
             choices.append(
                 _choice(
-                    "KICKER_PAYMENT",
+                    "KICKER_DECLARATION",
                     "CAST_PROPOSAL",
+                    legality_owner="ENGINE_COST_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
                     rules_refs=("601.2b", "118.8", "702.33"),
                 )
             )
+        if effect.get("additional_sacrifice_subtype") is not None:
+            choices.append(
+                _choice(
+                    "ADDITIONAL_SACRIFICE_SELECTION",
+                    "COST_PAYMENT",
+                    legality_owner="ENGINE_COST_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
+                    rules_refs=("601.2h", "602.2b"),
+                )
+            )
 
-    if behavior.get("alternative_cost") is not None:
-        choices.append(
-            _choice(
-                "ALTERNATIVE_COST_DECLARATION",
-                "CAST_PROPOSAL",
-                rules_refs=("601.2b", "118.9"),
+    if ability_kind == "SPELL":
+        spell_cost = _oracle_face_mana_cost(behavior, oracle_record)
+        if "/" in spell_cost:
+            choices.append(
+                _choice(
+                    "HYBRID_COST_CONFIGURATION",
+                    "CAST_PROPOSAL",
+                    legality_owner="ENGINE_COST_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
+                    rules_refs=("107.4e", "601.2b"),
+                )
             )
-        )
-    if behavior.get("additional_cost") is not None:
-        choices.append(
-            _choice(
-                "ADDITIONAL_COST_CONFIGURATION",
-                "CAST_PROPOSAL",
-                rules_refs=("601.2b", "601.2f", "118.8"),
+        if behavior.get("alternative_cost") is not None and spell_sibling_count <= 1:
+            choices.append(
+                _choice(
+                    "ALTERNATIVE_COST_DECLARATION",
+                    "CAST_PROPOSAL",
+                    legality_owner="ENGINE_COST_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
+                    rules_refs=("601.2b", "118.9"),
+                )
             )
-        )
+
+    cost = behavior.get("cost")
+    if ability_kind == "ACTIVATED" and isinstance(cost, dict):
+        mana_cost = str(cost.get("mana", ""))
+        if "/" in mana_cost:
+            choices.append(
+                _choice(
+                    "HYBRID_COST_CONFIGURATION",
+                    "ACTIVATION_PROPOSAL",
+                    legality_owner="ENGINE_COST_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
+                    rules_refs=("107.4e", "601.2b", "602.2b"),
+                )
+            )
+        if int(cost.get("discard", 0)) > 0:
+            choices.append(
+                _choice(
+                    "DISCARD_COST_CARD_IDENTITY",
+                    "COST_PAYMENT",
+                    legality_owner="ENGINE_COST_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
+                    rules_refs=("601.2h", "602.2b"),
+                )
+            )
+
     if ability_kind == "TRIGGERED" and bool(behavior.get("optional")):
         choices.append(
             _choice(
                 "OPTIONAL_EFFECT_DECISION",
                 "RESOLUTION",
                 legality_owner="ENGINE_RESOLUTION_VALIDATOR",
+                policy_class="ACTOR_POLICY",
                 rules_refs=("608.2d",),
             )
         )
@@ -198,29 +271,52 @@ def _deduplicate_choices(choices: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(result, key=lambda item: (item["timing"], item["purpose"], item["actor"]))
 
 
+def _normalize_contextual_policy(
+    choices: list[dict[str, Any]], behavior: dict[str, Any]
+) -> list[dict[str, Any]]:
+    schema = behavior.get("target_schema")
+    target_kind = str(schema.get("kind", "")) if isinstance(schema, dict) else ""
+    opponent_only = target_kind.startswith("OPPONENT_")
+    for choice in choices:
+        if (
+            choice.get("actor") == "TARGET_CONTROLLER"
+            and choice.get("policy_class") == "OPPONENT_MINIMIZING"
+            and not opponent_only
+        ):
+            choice["policy_class"] = "ACTOR_POLICY"
+    return choices
+
+
 def _card_records(
     choice_contracts: dict[str, Any],
 ) -> tuple[list[dict[str, Any]], set[str], set[str]]:
     package = load_exact_deck_package()
     coverage_by_name = {record.name: record for record in package.coverage}
     specs_by_name = {spec.name: spec for spec in load_full_deck_specs().values()}
+    oracle_by_name = _load_oracle_records()
     effect_contracts = choice_contracts["effect_contracts"]
     records: list[dict[str, Any]] = []
     observed_effect_kinds: set[str] = set()
     observed_event_kinds: set[str] = set()
 
-    if set(specs_by_name) != set(RULES_BY_NAME) or set(coverage_by_name) != set(RULES_BY_NAME):
+    inventory = set(RULES_BY_NAME)
+    if (
+        set(specs_by_name) != inventory
+        or set(coverage_by_name) != inventory
+        or set(oracle_by_name) != inventory
+    ):
         raise ValueError(
-            "Oracle specs, coverage inventory, and behavior inventory must match exactly"
+            "Oracle snapshot, specs, coverage inventory, and behavior inventory must match exactly"
         )
 
     for card_name in sorted(RULES_BY_NAME):
         behaviors = RULES_BY_NAME[card_name]
         coverage = coverage_by_name[card_name]
         spec = specs_by_name[card_name]
+        oracle_record = oracle_by_name[card_name]
         if coverage.composition_status != "REVIEWED_COMPOSITION":
             raise ValueError(f"card composition is not reviewed: {card_name}")
-        if coverage.oracle_id != spec.oracle_id:
+        if coverage.oracle_id != spec.oracle_id or coverage.oracle_id != oracle_record.get("oracle_id"):
             raise ValueError(f"Oracle identity mismatch for {card_name}")
         spell_sibling_count = sum(1 for item in behaviors if item.get("kind") == "SPELL")
         for behavior_index, behavior in enumerate(behaviors):
@@ -233,7 +329,11 @@ def _card_records(
                 )
             event_kind = str(behavior.get("trigger") or behavior.get("event") or ability_kind)
             observed_event_kinds.add(event_kind)
-            structural = _structural_choices(behavior, spell_sibling_count=spell_sibling_count)
+            structural = _structural_choices(
+                behavior,
+                spell_sibling_count=spell_sibling_count,
+                oracle_record=oracle_record,
+            )
             for effect_path, effect_node in _walk_effects(effect, "effect"):
                 effect_kind = str(effect_node.get("kind", ""))
                 observed_effect_kinds.add(effect_kind)
@@ -249,6 +349,7 @@ def _card_records(
                 choices = deepcopy(extra_choices)
                 if effect_path == "effect":
                     choices.extend(deepcopy(structural))
+                choices = _normalize_contextual_policy(choices, behavior)
                 rules_refs = set(_base_rules(ability_kind))
                 for choice in choices:
                     rules_refs.update(str(value) for value in choice.get("rules_refs", ()))
@@ -367,10 +468,40 @@ def _global_records() -> list[dict[str, Any]]:
                 _choice(
                     "REPLACEMENT_EFFECT_SELECTION",
                     "REPLACEMENT_APPLICATION",
-                    actor="AFFECTED_PLAYER",
+                    actor="AFFECTED_PLAYER_OR_PERMANENT_CONTROLLER",
                     legality_owner="ENGINE_REPLACEMENT_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
                     rules_refs=("616.1",),
                 )
+            ],
+        ),
+        _global_record(
+            "GLOBAL-COST-PAYMENT",
+            "COST_PAYMENT",
+            "COST_PAYMENT",
+            ("601.2g", "601.2h", "602.2b", "118.3a", "118.3c"),
+            [
+                _choice(
+                    "MANA_ABILITY_ACTIVATION_SEQUENCE",
+                    "COST_PAYMENT",
+                    legality_owner="ENGINE_COST_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
+                    rules_refs=("601.2g", "602.2b", "605.3"),
+                ),
+                _choice(
+                    "MANA_PAYMENT_CONFIGURATION",
+                    "COST_PAYMENT",
+                    legality_owner="ENGINE_COST_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
+                    rules_refs=("601.2h", "118.3a", "118.3c"),
+                ),
+                _choice(
+                    "COST_PAYMENT_ORDER",
+                    "COST_PAYMENT",
+                    legality_owner="ENGINE_COST_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
+                    rules_refs=("601.2h", "602.2b"),
+                ),
             ],
         ),
         _global_record(
@@ -414,7 +545,7 @@ def _global_records() -> list[dict[str, Any]]:
             "GLOBAL-ILLEGAL-ACTION-ROLLBACK",
             "ILLEGAL_ACTION_ROLLBACK",
             "CAST_PROPOSAL",
-            ("601.2", "733"),
+            ("601.2", "602.2", "733"),
             [],
         ),
         _global_record(
@@ -442,6 +573,7 @@ def _global_records() -> list[dict[str, Any]]:
                     "STATE_BASED_ACTION",
                     actor="OWNER",
                     legality_owner="ENGINE_STATE_BASED_ACTION_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
                     rules_refs=("903.9a",),
                 )
             ],
@@ -457,6 +589,7 @@ def _global_records() -> list[dict[str, Any]]:
                     "REPLACEMENT_APPLICATION",
                     actor="OWNER",
                     legality_owner="ENGINE_REPLACEMENT_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
                     rules_refs=("903.9b",),
                 )
             ],
@@ -472,6 +605,7 @@ def _global_records() -> list[dict[str, Any]]:
                     "PRIORITY_WINDOW",
                     actor="PRIORITY_HOLDER",
                     legality_owner="ENGINE_SHARED_VALIDATOR",
+                    policy_class="ACTOR_POLICY",
                     rules_refs=("117",),
                 )
             ],
