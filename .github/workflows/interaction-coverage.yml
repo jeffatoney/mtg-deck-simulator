@@ -9,6 +9,7 @@ on:
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
       - "scripts/build_interaction_integration_coverage.py"
+      - "scripts/check_interaction_candidate_lock.py"
       - "scripts/audit_policy_choice_replay_conformance.py"
       - "src/mtg_cards/full_deck.py"
       - "src/mtg_cards/oracle.py"
@@ -31,6 +32,7 @@ on:
       - "docs/audit/interaction-coverage/**"
       - "scripts/build_interaction_coverage_manifest.py"
       - "scripts/build_interaction_integration_coverage.py"
+      - "scripts/check_interaction_candidate_lock.py"
       - "scripts/audit_policy_choice_replay_conformance.py"
       - "src/mtg_cards/full_deck.py"
       - "src/mtg_cards/oracle.py"
@@ -59,8 +61,8 @@ jobs:
           cache: pip
       - name: Install project
         run: python -m pip install -e ".[dev]"
-      - name: Verify candidate surface lock
-        run: python scripts/build_interaction_coverage_manifest.py --check-lock
+      - name: Verify provisional or reviewed interaction lock
+        run: python scripts/check_interaction_candidate_lock.py
       - name: Verify integrated coverage ledger
         run: >-
           python scripts/build_interaction_integration_coverage.py
