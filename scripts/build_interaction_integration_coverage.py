@@ -70,10 +70,7 @@ def _current_route_support(
         if method not in audit["recorded_replay_methods"]:
             return False, f"recorded replay protocol method missing: {method}"
 
-    if (
-        route.get("timing") == "TRIGGER_STACKING"
-        and route.get("purpose") == "TARGET_SELECTION"
-    ):
+    if route.get("timing") == "TRIGGER_STACKING" and route.get("purpose") == "TARGET_SELECTION":
         effect = record.get("effect", {})
         effect_kind = str(effect.get("kind", "")) if isinstance(effect, dict) else ""
         if effect_kind and effect_kind not in audit["trigger_policy_effects"]:
@@ -155,7 +152,9 @@ def build_integration_coverage() -> dict[str, Any]:
 
     total_records = int(manifest["record_count"])
     no_strategic_policy_required = total_records - strategic_record_count
-    policy_ready_or_not_required = no_strategic_policy_required + current_support_complete_record_count
+    policy_ready_or_not_required = (
+        no_strategic_policy_required + current_support_complete_record_count
+    )
 
     engine_evidence = sum(
         bool(record.get("implementation", {}).get("engine_handler")) for record in records
