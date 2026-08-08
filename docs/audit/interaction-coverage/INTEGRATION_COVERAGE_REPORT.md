@@ -6,9 +6,9 @@
 
 ## Executive result
 
-The denominator is now explicit and frozen:
+The denominator is explicit and frozen:
 
-`216 requirements / 216 inventoried / 0 record-level PROVEN`
+`216 requirements / 216 inventoried / 173 policy-ready-or-not-required / 43 policy/replay-gap records / 0 record-level PROVEN`
 
 The 216 records are:
 
@@ -20,9 +20,11 @@ The frozen manifest SHA-256 is:
 
 `sha256:20d767ea754841bf0f9bda378068c4c705e0b9f8f8f4be20ca15be1f24bb2cdc`
 
-This integration does **not** claim `216 / 216 engine-supported / 216 / 216 replay-supported / 216 / 216 directly tested`, because the four source lanes did not produce record-addressable proof bundles. They were prevented from doing so by the coordinator's bootstrap zero lock. Converting broad implementation audits or passing repository tests into 216 per-record proof claims would recreate the exact coverage ambiguity this work is intended to eliminate.
+Of the 216 records, 94 contain at least one strategic choice and 122 require no strategic policy. Of those 94 strategic records, 51 currently have a complete reviewed route whose live production-policy/replay support is present, while 43 have at least one missing route or live support defect. Therefore 173 of 216 records are currently policy-ready or require no strategic policy.
 
-The correct result at this point is therefore a frozen denominator plus explicit remaining evidence and implementation gaps.
+This integration does **not** claim `216 / 216 engine-supported / 216 / 216 replay-supported / 216 / 216 directly tested`, because the four source lanes did not produce record-addressable proof bundles. They ran before the coordinator denominator was frozen. Converting broad implementation audits or passing repository tests into 216 per-record proof claims would recreate the exact coverage ambiguity this work is intended to eliminate.
+
+The record-level policy/replay calculation is reproducible through `scripts/build_interaction_integration_coverage.py`; it cross-references each frozen record and each strategic choice occurrence against Agent C's reviewed routes and live provider/replay audit.
 
 ## Source lanes reconciled
 
@@ -39,16 +41,14 @@ There were no direct pathname collisions among the substantive outputs of the fo
 
 ### 1. Coordinator denominator contradiction — corrected
 
-The coordinator contract defines ten minimum global-rule records, but its bootstrap lock still declared seven global records, zero effect records, and zero total records. The deterministic generator reported the actual frozen surface as:
+The coordinator contract defines ten minimum global-rule records, but its bootstrap lock still declared seven global records, zero effect records, and zero total records. The deterministic generator reports and CI independently verifies:
 
 - 80 card-composition records;
 - 126 card-effect records;
 - 10 global-rule records;
 - 216 total records.
 
-The lock now contains those values and the generated manifest digest.
-
-This was the single inherited failing repository test on Agent B's head. It was a coordinator/integration defect, not an Agent B engine regression.
+The lock now contains those values and the generated manifest digest. This was the single inherited failing repository test on Agent B's standalone head. It was a coordinator/integration defect, not an Agent B engine regression.
 
 ### 2. Coordinator workflow Python contradiction — corrected
 
@@ -64,15 +64,21 @@ The integration therefore preserves Agent D's executable work but does not copy 
 
 | Coverage layer | Explicit denominator | Current integration evidence | Result |
 |---|---:|---|---|
-| Interaction inventory | 216 records | 216 deterministically generated and frozen | **216 / 216 mapped** |
-| Record-level engine proof | 216 records | Agent B supplies implementation audit and focused tests, but no 216-record proof overlay | **0 / 216 record-attested** |
-| Strategic policy/replay routes | 49 strategic `(timing, purpose, policy_class)` classes | Agent C has 23 reviewed routes and 26 unrouted classes | **23 / 49 routed** |
-| Strategic provider/replay protocol | 4 provider methods | Production provider and recorded replay provider both implement all four | **4 / 4 method parity** |
-| Record-level replay proof | 216 records | Replay invariants and Turn-10 fresh replay exist, but no per-record proof overlay | **0 / 216 record-attested** |
-| Record-level direct-test proof | 216 records | Many focused/direct tests exist, but evidence is not attached by `record_id` | **0 / 216 record-attested** |
+| Interaction inventory | 216 records | Deterministically generated, frozen, and CI-verified | **216 / 216 mapped** |
+| Record-level engine proof | 216 records | Agent B supplies implementation audit and focused tests, but no frozen-record proof overlay | **0 / 216 record-attested** |
+| Strategic policy requirement | 216 records | 94 require strategic policy; 122 do not | **94 require / 122 not required** |
+| Record-level policy/replay route completeness | 94 strategic records | 51 have all strategic choices currently routed and live-supported | **51 / 94 complete** |
+| Policy-ready or not required | 216 records | 122 no-policy-required + 51 complete strategic records | **173 / 216** |
+| Strategic choice occurrences | 145 occurrences | 98 have reviewed routes; 96 also have current live support | **98 / 145 routed; 96 / 145 live-supported** |
+| Strategic policy/replay classes | 49 unique classes | 23 reviewed routes; 26 unrouted | **23 / 49 routed** |
+| Strategic provider/replay protocol | 4 provider methods | Production provider and recorded replay provider implement all four | **4 / 4 method parity** |
+| Record-level replay proof | 216 records | Replay invariants and Turn-10 fresh replay exist, but no frozen-record proof overlay | **0 / 216 record-attested** |
+| Record-level direct-test proof | 216 records | Focused/direct tests exist, but evidence is not attached by `record_id` | **0 / 216 record-attested** |
 | Aggregate `PROVEN` ledger | 216 records | No frozen-surface proof bundles have yet been aggregated | **0 / 216 PROVEN** |
 
-`0 / 216 record-attested` does **not** mean the engine, replay system, or tests support zero interactions. It means zero of the 216 frozen interaction records currently carry the record-addressable evidence required by the coordinator contract. That distinction is important: implementation may exist, but the proof denominator has not yet been populated.
+`0 / 216 record-attested` does **not** mean the engine, replay system, or tests support zero interactions. It means zero of the 216 frozen interaction records currently carry the record-addressable evidence required by the coordinator contract. Implementation and broad test evidence exist; the proof overlay does not yet exist.
+
+Similarly, `173 / 216 policy-ready-or-not-required` is a policy/replay routing measure, not an aggregate proof score. It says that 122 records require no strategic policy and 51 strategic records have complete current routes. It does not imply those 173 records are engine-proven or directly tested by frozen `record_id` evidence.
 
 ## Remaining engine/rules blockers from Agent B
 
@@ -93,7 +99,7 @@ These are rules-owned blockers. They must not be closed by inserting a determini
 
 ## Remaining policy/replay blockers from Agent C
 
-Agent C inventories 49 strategic choice classes. Twenty-three have reviewed routes and twenty-six do not.
+Agent C inventories 49 unique strategic choice classes. Twenty-three have reviewed routes and twenty-six do not. At record level, those missing routes and live-support defects affect 43 of the 94 records that require strategic policy.
 
 Two additional concrete production-policy defects are independently exposed:
 
@@ -121,9 +127,15 @@ Agent D remains diagnostic infrastructure only:
 
 Its existence is validation infrastructure, not interaction proof. A 700-seed run may expose additional gaps, but a green 700-seed run cannot by itself convert any of the 216 records to `PROVEN` without the required record-level evidence.
 
+## Integrated CI evidence
+
+On the reconciled tree, the interaction-surface job independently verifies the 216-record lock and manifest digest. The main CI has cleared formatting, lint, strict type checking, clean-engine boundaries, and the exact-deck Turn-10 production-policy/fresh-replay smoke in the integrated tree.
+
+The interaction contract currently fails on the known policy gap `BOUNCE_TARGET`; its frozen-lock check passes. Agent C policy/replay conformance also remains intentionally red while substantive policy routes are missing. These red checks are evidence that the integration fails closed rather than hiding unresolved work.
+
 ## What must happen before the report can become `0 gaps`
 
-The next proof pass must use the now-frozen 216-record surface and attach evidence by exact `record_id`. For every record, the aggregate ledger must answer, without inference:
+The next proof pass must use the frozen 216-record surface and attach evidence by exact `record_id`. For every record, the aggregate ledger must answer, without inference:
 
 - engine handler/support present and rules-correct;
 - policy support present when the rules assign a strategic choice;
@@ -139,4 +151,4 @@ Only after those overlays are complete can the project truthfully publish a line
 
 At this integration point, the truthful summary is:
 
-`216 requirements / 216 inventoried / 23 of 49 strategic choice classes routed / 4 of 4 strategic replay-provider methods mirrored / 10 engine blocker families / 26 unrouted strategic choice classes / 2 concrete policy defects / 0 of 216 records PROVEN`
+`216 requirements / 216 inventoried / 173 policy-ready-or-not-required / 43 policy-replay-gap records / 10 engine blocker families / 26 unrouted strategic choice classes / 2 concrete policy defects / 0 of 216 records PROVEN`
