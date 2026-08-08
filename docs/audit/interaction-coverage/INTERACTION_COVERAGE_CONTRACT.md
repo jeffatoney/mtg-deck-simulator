@@ -6,6 +6,8 @@
 
 This contract does not rewrite the engine and does not replace the existing Phase A or Phase B certifications. It adds a stricter interaction-level definition of coverage so a card cannot be declared covered merely because its card name has a handler or one representative path has a passing test.
 
+This is an **exact-deck interaction contract**, not a claim that the engine implements every rule or card in Magic. Existing Phase A unsupported capabilities remain outside this contract unless a frozen exact-deck behavior or a required global interaction reaches them. If one becomes exact-deck-reachable, it becomes blocking here rather than remaining silently out of scope.
+
 ## 1. Coverage unit
 
 The atomic coverage unit is an **interaction record**.
@@ -62,8 +64,9 @@ The choice timing vocabulary is:
 - `RESOLUTION`: choices made while a spell or ability resolves. Activated mana abilities resolve immediately after activation and do not use the stack; choices made by their mana-producing effect are still resolution choices, not proposal choices.
 - `REPLACEMENT_APPLICATION`: choices required before or while applying a replacement/prevention effect.
 - `SPECIAL_ACTION`: choices made as part of a special action.
-- `TURN_BASED_ACTION`: choices made by a turn-based action, including choosing cleanup discards.
+- `TURN_BASED_ACTION`: choices made by a turn-based action, including declaring attackers and choosing cleanup discards.
 - `STATE_BASED_ACTION`: choices required by a state-based action, including the legend rule and Commander rule 903.9a.
+- `PRIORITY_WINDOW`: the priority holder chooses a legal action or passes priority.
 
 A downstream implementation may not move a choice to a more convenient stage. In particular, policy must not supply a target during resolution when the Comprehensive Rules require the target as a spell or ability is put on the stack.
 
@@ -142,13 +145,14 @@ The following engine-wide interactions are part of this contract even though the
 - `GLOBAL-TRIGGER-ORDERING`: simultaneous triggered abilities and the controller's required ordering when more than one controlled trigger is waiting.
 - `GLOBAL-REPLACEMENT-ORDERING`: competing replacement/prevention effects and the affected-player/controller choice required by rule 616.1.
 - `GLOBAL-CLEANUP-REENTRY`: maximum-hand-size discard selection under rule 514.1, trigger collection, the rule 514.3a priority exception, and complete additional cleanup steps.
+- `GLOBAL-COMBAT-ATTACKERS`: the active player explicitly chooses attackers and each attack destination under rules 508.1a-b; restrictions/requirements must be validated and an illegal declaration must roll back rather than partially mutate combat state.
 - `GLOBAL-ILLEGAL-ACTION-ROLLBACK`: illegal proposals are atomic and restore the prior state.
 - `GLOBAL-SBA-TIMING`: state-based actions occur at rules-defined checkpoints, not during resolution; when the legend rule applies, the controller explicitly chooses the one legendary permanent that remains under rule 704.5j.
 - `GLOBAL-COMMANDER-GRAVEYARD-EXILE-RETURN`: under rule 903.9a, the owner explicitly chooses during a state-based-action check whether a commander newly in a graveyard or exile moves to the command zone; the intermediate zone is real and observable.
 - `GLOBAL-COMMANDER-HAND-LIBRARY-REPLACEMENT`: under rule 903.9b, the owner explicitly chooses whether the command-zone replacement applies to a commander that would move to its hand or library.
-- `GLOBAL-PRIORITY-STACK-LIFO`: priority and stack last-in/first-out execution.
+- `GLOBAL-PRIORITY-STACK-LIFO`: the priority holder explicitly chooses a legal action or pass; stack objects resolve last-in/first-out only after the required passes.
 
-These eight records are minimum frozen global coverage. If downstream work discovers another rules interaction that can affect a frozen-deck run, it must be proposed as a coordinator/specification revision; it may not be hidden inside an implementation patch or omitted because no current random seed reaches it.
+These nine records are minimum frozen global coverage. If downstream work discovers another rules interaction that can affect a frozen-deck run, it must be proposed as a coordinator/specification revision; it may not be hidden inside an implementation patch or omitted because no current random seed reaches it.
 
 ## 11. Coordinator outputs and downstream change control
 
@@ -174,6 +178,7 @@ The supplied Comprehensive Rules dated 2026-06-19 establish the key timing disti
 - rule 608.2d: choices not already made as part of casting/activation/stack placement are made while resolving the effect;
 - rule 614.12a: a replacement-effect choice that modifies battlefield entry is made before the permanent enters;
 - rule 616.1: the affected player/controller chooses among competing applicable replacement/prevention effects;
+- rules 508.1 and 703.4i: declaring attackers is a turn-based action; the active player chooses the attacking creatures and their attack destinations and an illegal declaration is reversed;
 - rule 514.1: the active player chooses enough cards to discard to maximum hand size as a turn-based cleanup action;
 - rule 514.3a: cleanup SBAs/triggers create the priority exception and then another complete cleanup step;
 - rule 704.5j: the controller chooses one same-named legendary permanent to keep;
