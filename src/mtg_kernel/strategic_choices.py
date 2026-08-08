@@ -151,9 +151,7 @@ class StrategicChoiceProvider(Protocol):
         self, request: SpellCopyTargetRequest
     ) -> SpellCopyTargetSelection: ...
 
-    def choose_counter_payment(
-        self, request: CounterPaymentRequest
-    ) -> CounterPaymentSelection: ...
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection: ...
 
 
 class RecordedStrategicChoiceProvider:
@@ -278,9 +276,7 @@ class RecordedStrategicChoiceProvider:
             raise ReplayError("recorded copy target set is not legal in replay")
         return SpellCopyTargetSelection(handles, evaluator_id, evaluator_sha, diagnostics)
 
-    def choose_counter_payment(
-        self, request: CounterPaymentRequest
-    ) -> CounterPaymentSelection:
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection:
         if not self._counter_payments:
             raise ReplayError("replay transcript omits a recorded counter-payment decision")
         recorded = self._counter_payments.pop(0)
