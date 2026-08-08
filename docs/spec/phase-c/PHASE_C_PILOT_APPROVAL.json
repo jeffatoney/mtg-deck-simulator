@@ -1,7 +1,7 @@
 {
-  "approval_statement": null,
-  "approved_at": null,
-  "approved_by": null,
+  "approval_statement": "Jeff Toney APPROVES Phase C pilot execution bound to implementation commit b49e7929e530e61025ec1816a92e05b09138da5b, implementation tree 4514b04803c27538d323ab610f0895288da6ff77, locked config SHA c609c9a39e3187297fd83d275db4c94b5b5601a72918bd822a330bff1bfdfaca, workflow SHA e9525ce182a1914b53e25d771f8fa097cb657c23f863f0c437aaac2a337914fd, confirmation token SHA 1ffb5460831ae8725d40b72bc754e5104fcdc797b64e43d562c346632f3de448, exactly 500 STANDARD and 200 paired EXPLORATORY games, production decision-layer depth 1, standard_shards=10, exploratory_shards=10. This approval does not authorize the 20000/5000 full study.",
+  "approved_at": "2026-08-07T23:58:00Z",
+  "approved_by": "Jeff Toney",
   "authorized_counts": {
     "exploratory": 200,
     "standard": 500
@@ -11,11 +11,11 @@
     "standard": 10
   },
   "confirmation_token_sha256": "1ffb5460831ae8725d40b72bc754e5104fcdc797b64e43d562c346632f3de448",
-  "implementation_commit": null,
-  "implementation_tree": null,
-  "locked_pilot_config_sha256": null,
+  "implementation_commit": "b49e7929e530e61025ec1816a92e05b09138da5b",
+  "implementation_tree": "4514b04803c27538d323ab610f0895288da6ff77",
+  "locked_pilot_config_sha256": "c609c9a39e3187297fd83d275db4c94b5b5601a72918bd822a330bff1bfdfaca",
   "production_decision_layer_depth": 1,
   "schema_version": "phase-c-pilot-approval-v2",
-  "status": "PENDING_OWNER_APPROVAL",
-  "workflow_sha256": null
+  "status": "APPROVED",
+  "workflow_sha256": "e9525ce182a1914b53e25d771f8fa097cb657c23f863f0c437aaac2a337914fd"
 }
