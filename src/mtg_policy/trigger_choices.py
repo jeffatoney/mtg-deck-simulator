@@ -20,7 +20,7 @@ class PolicyStrategicChoiceProvider(_BaseProvider):
     """Extend the frozen provider to exact-deck trigger and actor-owned choices."""
 
     def choose_cards(self, request: CardSelectionRequest) -> CardSelection:
-        if request.purpose == "PRISMARI_DISCARD":
+        if request.purpose in {"PRISMARI_DISCARD", "RETURN_CONTROLLED_LAND"}:
             delegated = super().choose_cards(replace(request, purpose="DISCARD"))
             diagnostics = dict(delegated.diagnostics)
             diagnostics.update(
