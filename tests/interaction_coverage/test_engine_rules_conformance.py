@@ -70,6 +70,36 @@ def test_x_requires_explicit_cast_proposal_declaration_even_when_zero() -> None:
     assert state.stack
 
 
+def test_split_card_cast_path_requires_explicit_face_atomically() -> None:
+    state, executor, specs = funded_game("agent-b-split-face-explicit")
+    spell = add_card(executor, specs["Invert // Invent"], Zone.HAND, owner="P0")
+    before = state_hash(state)
+
+    with pytest.raises(IllegalAction, match="cast path requires an explicit card face"):
+        executor.cast("P0", spell.object_id, targets=())
+
+    assert state_hash(state) == before
+    assert spell.zone is Zone.HAND
+
+    executor.cast("P0", spell.object_id, face=0, targets=())
+    assert state.stack
+
+
+def test_variable_target_count_requires_explicit_target_selection_atomically() -> None:
+    state, executor, specs = funded_game("agent-b-variable-target-count")
+    spell = add_card(executor, specs["Twinflame"], Zone.HAND, owner="P0")
+    before = state_hash(state)
+
+    with pytest.raises(IllegalAction, match="variable target count requires an explicit"):
+        executor.cast("P0", spell.object_id)
+
+    assert state_hash(state) == before
+    assert spell.zone is Zone.HAND
+
+    executor.cast("P0", spell.object_id, targets=())
+    assert state.stack
+
+
 def test_kicker_requires_explicit_cast_proposal_declaration_atomically() -> None:
     state, executor, specs = funded_game("agent-b-kicker-explicit")
     target = add_card(executor, specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
