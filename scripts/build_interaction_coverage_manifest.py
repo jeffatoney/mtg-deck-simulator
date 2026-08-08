@@ -287,15 +287,62 @@ def _normalize_contextual_policy(
     return choices
 
 
+def _composition_record(
+    card_name: str,
+    coverage: Any,
+    spec: Any,
+    behaviors: tuple[dict[str, Any], ...],
+) -> dict[str, Any]:
+    behavior_digest = _sha256_value(behaviors)
+    return {
+        "record_id": f"CARD-COMPOSITION:{coverage.oracle_id}",
+        "record_class": "CARD_COMPOSITION",
+        "card": {
+            "name": card_name,
+            "oracle_id": coverage.oracle_id,
+            "oracle_record_sha256": "sha256:" + spec.oracle_record_sha256,
+            "composition_status": coverage.composition_status,
+            "ability_id": "oracle:composition",
+            "ability_kind": "SPECIFICATION",
+            "behavior_index": -1,
+        },
+        "effect": {
+            "path": "oracle",
+            "kind": "ORACLE_COMPOSITION",
+            "parameters_sha256": behavior_digest,
+        },
+        "event": {"kind": "ORACLE_COMPOSITION", "choice_stage": "CONTINUOUS"},
+        "choices": [],
+        "legality": {
+            "contract_sha256": _sha256_value(
+                {
+                    "oracle_record_sha256": spec.oracle_record_sha256,
+                    "behaviors": behaviors,
+                }
+            ),
+            "target_schema": None,
+        },
+        "authority": {"oracle_source": coverage.source, "rules_refs": ["108.1"]},
+        "implementation": {
+            "engine_handler": None,
+            "policy_handler": None,
+            "replay_handler": None,
+        },
+        "evidence": {"positive_tests": [], "negative_tests": [], "fresh_replay_tests": []},
+        "status": "MAPPED",
+    }
+
+
 def _card_records(
     choice_contracts: dict[str, Any],
-) -> tuple[list[dict[str, Any]], set[str], set[str]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[str], set[str]]:
     package = load_exact_deck_package()
     coverage_by_name = {record.name: record for record in package.coverage}
     specs_by_name = {spec.name: spec for spec in load_full_deck_specs().values()}
     oracle_by_name = _load_oracle_records()
     effect_contracts = choice_contracts["effect_contracts"]
-    records: list[dict[str, Any]] = []
+    composition_records: list[dict[str, Any]] = []
+    effect_records: list[dict[str, Any]] = []
     observed_effect_kinds: set[str] = set()
     observed_event_kinds: set[str] = set()
 
@@ -318,6 +365,7 @@ def _card_records(
             raise ValueError(f"card composition is not reviewed: {card_name}")
         if coverage.oracle_id != spec.oracle_id or coverage.oracle_id != oracle_record.get("oracle_id"):
             raise ValueError(f"Oracle identity mismatch for {card_name}")
+        composition_records.append(_composition_record(card_name, coverage, spec, behaviors))
         spell_sibling_count = sum(1 for item in behaviors if item.get("kind") == "SPELL")
         for behavior_index, behavior in enumerate(behaviors):
             ability_id = str(behavior.get("ability_id", ""))
@@ -358,7 +406,7 @@ def _card_records(
                     f"CARD:{coverage.oracle_id}:{behavior_index}:{ability_id}:"
                     f"{effect_path.replace('.', '/').replace('[', ':').replace(']', '')}"
                 )
-                records.append(
+                effect_records.append(
                     {
                         "record_id": record_id,
                         "record_class": "CARD_EFFECT",
@@ -403,7 +451,7 @@ def _card_records(
                         "status": "MAPPED",
                     }
                 )
-    return records, observed_effect_kinds, observed_event_kinds
+    return composition_records, effect_records, observed_effect_kinds, observed_event_kinds
 
 
 def _global_record(
@@ -615,7 +663,9 @@ def _global_records() -> list[dict[str, Any]]:
 
 def build_manifest() -> dict[str, Any]:
     choice_contracts = _load_choice_contracts()
-    card_records, observed_effect_kinds, observed_event_kinds = _card_records(choice_contracts)
+    composition_records, card_records, observed_effect_kinds, observed_event_kinds = _card_records(
+        choice_contracts
+    )
     declared_effect_kinds = set(choice_contracts["effect_contracts"])
     undeclared = sorted(observed_effect_kinds - declared_effect_kinds)
     unused = sorted(declared_effect_kinds - observed_effect_kinds)
@@ -625,7 +675,9 @@ def build_manifest() -> dict[str, Any]:
         )
 
     package = load_exact_deck_package()
-    records = sorted((*card_records, *_global_records()), key=lambda item: item["record_id"])
+    records = sorted(
+        (*composition_records, *card_records, *_global_records()), key=lambda item: item["record_id"]
+    )
     record_ids = [record["record_id"] for record in records]
     if len(record_ids) != len(set(record_ids)):
         duplicates = sorted(
@@ -640,8 +692,9 @@ def build_manifest() -> dict[str, Any]:
         "schema_version": "interaction-coverage-surface-v1",
         "card_definition_count": len(package.coverage),
         "physical_card_count": package.physical_card_count,
+        "card_composition_record_count": len(composition_records),
         "card_effect_record_count": len(card_records),
-        "global_rule_record_count": len(records) - len(card_records),
+        "global_rule_record_count": len(records) - len(composition_records) - len(card_records),
         "record_count": len(records),
         "observed_effect_kinds": sorted(observed_effect_kinds),
         "observed_event_kinds": sorted(observed_event_kinds),
@@ -659,6 +712,7 @@ def check_lock(manifest: dict[str, Any]) -> tuple[bool, dict[str, Any]]:
     expected = {
         "card_definition_count": lock.get("card_definition_count"),
         "physical_card_count": lock.get("physical_card_count"),
+        "card_composition_record_count": lock.get("card_composition_record_count"),
         "card_effect_record_count": lock.get("card_effect_record_count"),
         "global_rule_record_count": lock.get("global_rule_record_count"),
         "record_count": lock.get("record_count"),
@@ -710,6 +764,7 @@ def main() -> int:
                 "status": "PASS",
                 "card_definition_count": manifest["card_definition_count"],
                 "physical_card_count": manifest["physical_card_count"],
+                "card_composition_record_count": manifest["card_composition_record_count"],
                 "card_effect_record_count": manifest["card_effect_record_count"],
                 "global_rule_record_count": manifest["global_rule_record_count"],
                 "record_count": manifest["record_count"],
