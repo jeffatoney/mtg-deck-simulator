@@ -11,6 +11,7 @@
     "effect",
     "event",
     "choices",
+    "legality",
     "authority",
     "implementation",
     "evidence",
@@ -81,6 +82,15 @@
     "choices": {
       "type": "array",
       "items": {"$ref": "#/$defs/choice"}
+    },
+    "legality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_sha256", "target_schema"],
+      "properties": {
+        "contract_sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "target_schema": {"type": ["object", "null"]}
+      }
     },
     "authority": {
       "type": "object",
