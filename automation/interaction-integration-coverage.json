@@ -36,7 +36,7 @@
     "records_with_policy_replay_gaps": 43,
     "strategic_choice_occurrences": 145,
     "reviewed_route_occurrences": 98,
-    "currently_supported_occurrences": 96,
+    "currently_supported_occurrences": 97,
     "strategic_choice_classes_required": 49,
     "strategic_choice_classes_with_reviewed_routes": 23,
     "strategic_choice_classes_unrouted": 26,
@@ -44,7 +44,7 @@
     "strategic_protocol_methods_in_production_provider": 4,
     "strategic_protocol_methods_in_recorded_replay_provider": 4,
     "engine_blocker_families": 10,
-    "live_policy_defects": 2,
+    "live_policy_defects": 1,
     "agent_a_findings_total": 16,
     "agent_a_findings_complete": 0,
     "agent_a_findings_pending": 16
@@ -69,6 +69,11 @@
       "id": "INTEGRATION-LEDGER-COMPLETE-CHECK",
       "status": "CORRECTED",
       "detail": "The derived checker now validates the top-level status, the exact coverage key set, every coverage value, remaining blocker lists, policy findings, and Agent A findings; pytest calls the same checker."
+    },
+    {
+      "id": "INTEGRATION-BOUNCE-TARGET-POLICY",
+      "status": "CORRECTED",
+      "detail": "The production mandatory-trigger provider now supports BOUNCE_TARGET using the reviewed lowest-contextual-value target strategy."
     }
   ],
   "remaining_engine_blockers": [
@@ -89,7 +94,7 @@
     "records_with_policy_replay_gaps": 43,
     "unrouted_strategic_choice_classes": 26,
     "runtime_policy_handler_missing": ["PRISMARI_DISCARD"],
-    "trigger_target_effect_policy_missing": ["BOUNCE_TARGET"],
+    "trigger_target_effect_policy_missing": [],
     "note": "The Agent C audit emits multiple messages for some root causes; these lists identify the concrete live-support defects."
   },
   "agent_a_findings": {
