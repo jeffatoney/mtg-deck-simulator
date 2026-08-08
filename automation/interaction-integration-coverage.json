@@ -36,7 +36,7 @@
     "records_with_policy_replay_gaps": 43,
     "strategic_choice_occurrences": 145,
     "reviewed_route_occurrences": 98,
-    "currently_supported_occurrences": 97,
+    "currently_supported_occurrences": 98,
     "strategic_choice_classes_required": 49,
     "strategic_choice_classes_with_reviewed_routes": 23,
     "strategic_choice_classes_unrouted": 26,
@@ -44,7 +44,7 @@
     "strategic_protocol_methods_in_production_provider": 4,
     "strategic_protocol_methods_in_recorded_replay_provider": 4,
     "engine_blocker_families": 10,
-    "live_policy_defects": 1,
+    "live_policy_defects": 0,
     "agent_a_findings_total": 16,
     "agent_a_findings_complete": 0,
     "agent_a_findings_pending": 16
@@ -74,6 +74,11 @@
       "id": "INTEGRATION-BOUNCE-TARGET-POLICY",
       "status": "CORRECTED",
       "detail": "The production mandatory-trigger provider now supports BOUNCE_TARGET using the reviewed lowest-contextual-value target strategy."
+    },
+    {
+      "id": "INTEGRATION-PRISMARI-DISCARD-POLICY",
+      "status": "CORRECTED",
+      "detail": "The production policy provider now handles PRISMARI_DISCARD for the actual target player by delegating to the reviewed discard ranking with that actor's observation and legal hand candidates."
     }
   ],
   "remaining_engine_blockers": [
@@ -93,9 +98,9 @@
     "records_currently_complete": 51,
     "records_with_policy_replay_gaps": 43,
     "unrouted_strategic_choice_classes": 26,
-    "runtime_policy_handler_missing": ["PRISMARI_DISCARD"],
+    "runtime_policy_handler_missing": [],
     "trigger_target_effect_policy_missing": [],
-    "note": "The Agent C audit emits multiple messages for some root causes; these lists identify the concrete live-support defects."
+    "note": "All currently routed live policy handlers are present. The remaining 43 record-level gaps arise from missing reviewed routes and must remain blocking."
   },
   "agent_a_findings": {
     "artifact_sha256": "sha256:212b58f87e0b3082d0851becbf63b8c4298bb11338da33a4cbf6b303e12db90b",
