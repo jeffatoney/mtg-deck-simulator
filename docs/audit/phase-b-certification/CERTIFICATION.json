@@ -59,7 +59,7 @@
     "scripts/check_phase_b_authority.py": "sha256:3157adc84626f6d6668f17fc9175c68304949ebf060c52b9ee078db685461d68",
     "scripts/check_phase_b_certification.py": "sha256:eb6f3db5cf2dec62a4f1835f7e85410a07de01d8a7a9eee084651de623f01b8a",
     "scripts/check_phase_b_evaluator.py": "sha256:0f228306fb5ce5793d2c989b17829ae7212f0eef54136d8125d085d3f2f52b50",
-    "scripts/check_phase_b_golden_transcripts.py": "sha256:b5a4263c5686f7102347faf662454d6ad692efcde16d7302e43bd47195ff3778",
+    "scripts/check_phase_b_golden_transcripts.py": "sha256:b5a4263c5686f7102347faf662454d6ad692efcce16d7302e43bd47195ff3778",
     "scripts/check_phase_c_turn10.py": "sha256:0fbdd430e3ee908871a16c375128a9197b0be0bbf7e3f67d8221e07c331497ec",
     "scripts/record_phase_b_certification.py": "sha256:5e181e66dc1340e8f56e7dff0193aa6d6c13c705d5dc97e5ace16cbeb9f01dac",
     "src/mtg_cards": "sha256:c1862de86d072a62cf8e40f689718b1543be1976b48e10e52493ff1b0f0c488b",
