@@ -160,9 +160,7 @@ class _PurposeEmissionVisitor(ast.NodeVisitor):
                     and purpose.id in self.parameters[-1]
                 ):
                     parameter = purpose.id
-                self.unresolved.append(
-                    UnresolvedPurpose(self.path, self._function, parameter)
-                )
+                self.unresolved.append(UnresolvedPurpose(self.path, self._function, parameter))
         self.generic_visit(node)
         return None
 
@@ -171,9 +169,7 @@ def _source_trees() -> list[tuple[str, ast.Module]]:
     result: list[tuple[str, ast.Module]] = []
     for path in sorted((ROOT / "src").rglob("*.py")):
         relative = path.relative_to(ROOT).as_posix()
-        result.append(
-            (relative, ast.parse(path.read_text(encoding="utf-8"), filename=relative))
-        )
+        result.append((relative, ast.parse(path.read_text(encoding="utf-8"), filename=relative)))
     return result
 
 
@@ -223,10 +219,7 @@ def _runtime_purpose_emissions() -> tuple[list[PurposeEmission], list[str]]:
             suffix = f":{helper.parameter}" if helper.parameter else ""
             unresolved.append(f"{helper.path}:{helper.function}{suffix}")
 
-    deduped = {
-        (item.pattern, item.path, item.function): item
-        for item in emissions
-    }
+    deduped = {(item.pattern, item.path, item.function): item for item in emissions}
     return (
         sorted(
             deduped.values(),
@@ -381,9 +374,7 @@ def _strategic_surface_choices(manifest: dict[str, Any]) -> list[dict[str, str]]
                 "policy_class": policy_class,
                 "record_id": record_id,
             }
-            choices.setdefault(
-                (item["timing"], item["purpose"], item["policy_class"]), item
-            )
+            choices.setdefault((item["timing"], item["purpose"], item["policy_class"]), item)
     return sorted(
         choices.values(),
         key=lambda item: (item["timing"], item["purpose"], item["policy_class"]),
@@ -439,7 +430,9 @@ def audit_conformance() -> dict[str, Any]:
     ]
 
     for location in unresolved:
-        violations.append(f"runtime CardSelectionRequest purpose is not statically auditable: {location}")
+        violations.append(
+            f"runtime CardSelectionRequest purpose is not statically auditable: {location}"
+        )
     for pattern in emitted_patterns:
         if not any(_matches(pattern, value) for value in policy_patterns):
             violations.append(f"runtime purpose has no production policy handler: {pattern}")
@@ -466,7 +459,8 @@ def audit_conformance() -> dict[str, Any]:
     missing_replay_methods = sorted(protocol_methods - replay_methods)
     if missing_policy_methods:
         violations.append(
-            "production policy provider omits protocol methods: " + ", ".join(missing_policy_methods)
+            "production policy provider omits protocol methods: "
+            + ", ".join(missing_policy_methods)
         )
     if missing_replay_methods:
         violations.append(
