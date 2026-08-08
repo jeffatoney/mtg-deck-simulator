@@ -363,7 +363,9 @@ def _card_records(
         oracle_record = oracle_by_name[card_name]
         if coverage.composition_status != "REVIEWED_COMPOSITION":
             raise ValueError(f"card composition is not reviewed: {card_name}")
-        if coverage.oracle_id != spec.oracle_id or coverage.oracle_id != oracle_record.get("oracle_id"):
+        if coverage.oracle_id != spec.oracle_id or coverage.oracle_id != oracle_record.get(
+            "oracle_id"
+        ):
             raise ValueError(f"Oracle identity mismatch for {card_name}")
         composition_records.append(_composition_record(card_name, coverage, spec, behaviors))
         spell_sibling_count = sum(1 for item in behaviors if item.get("kind") == "SPELL")
@@ -676,7 +678,8 @@ def build_manifest() -> dict[str, Any]:
 
     package = load_exact_deck_package()
     records = sorted(
-        (*composition_records, *card_records, *_global_records()), key=lambda item: item["record_id"]
+        (*composition_records, *card_records, *_global_records()),
+        key=lambda item: item["record_id"],
     )
     record_ids = [record["record_id"] for record in records]
     if len(record_ids) != len(set(record_ids)):
