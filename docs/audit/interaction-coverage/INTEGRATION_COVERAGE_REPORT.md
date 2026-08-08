@@ -1,90 +1,111 @@
 # Integration Coverage Report
 
-**Status:** BLOCKED_NOT_PROVEN
+**Status:** BLOCKED_PROVISIONAL_SURFACE
 
 **Integration branch:** `agent/integration-interaction-coverage`
 
 ## Executive result
 
-The denominator is explicit and frozen:
+The repository currently emits a deterministic **candidate** surface:
 
-`216 requirements / 216 inventoried / 173 policy-ready-or-not-required / 43 policy/replay-gap records / 0 record-level PROVEN`
+`216 candidate requirements / 216 inventoried / 173 policy-ready-or-not-required / 43 policy-replay-gap records / 16 Agent A findings pending / 0 record-level PROVEN`
 
-The 216 records are:
+The 216 candidate records are:
 
 - 80 `CARD_COMPOSITION` records;
 - 126 `CARD_EFFECT` records; and
 - 10 `GLOBAL_RULE` records.
 
-The frozen manifest SHA-256 is:
+Candidate manifest SHA-256:
 
 `sha256:20d767ea754841bf0f9bda378068c4c705e0b9f8f8f4be20ca15be1f24bb2cdc`
 
-Of the 216 records, 94 contain at least one strategic choice and 122 require no strategic policy. Of those 94 strategic records, 51 currently have a complete reviewed route whose live production-policy/replay support is present, while 43 have at least one missing route or live support defect. Therefore 173 of 216 records are currently policy-ready or require no strategic policy.
+This digest is **not frozen**. Agent A reviewed the exact 100-card deck and identified 16 accepted findings that can alter the record set, choice taxonomy, actors, timing, dependencies, and digest. The candidate remains provisional until each finding is implemented, mapped to an equivalent verified record, or rejected with explicit Comprehensive Rules authority and direct evidence.
 
-This integration does **not** claim `216 / 216 engine-supported / 216 / 216 replay-supported / 216 / 216 directly tested`, because the four source lanes did not produce record-addressable proof bundles. They ran before the coordinator denominator was frozen. Converting broad implementation audits or passing repository tests into 216 per-record proof claims would recreate the exact coverage ambiguity this work is intended to eliminate.
-
-The record-level policy/replay calculation is reproducible through `scripts/build_interaction_integration_coverage.py`; it cross-references each frozen record and each strategic choice occurrence against Agent C's reviewed routes and live provider/replay audit.
+Of the current 216 candidate records, 94 contain at least one strategic choice and 122 require no strategic policy. Fifty-one of the 94 strategic records currently have complete reviewed routes with live production-policy/replay support; 43 have at least one route or support gap. These values describe only the current provisional candidate and must be recomputed after Agent A integration.
 
 ## Source lanes reconciled
 
-| Lane | PR | Head | Integrated treatment |
+| Lane | Source | Integrated treatment |
+|---|---|---|
+| Agent A / definitive deck interaction inventory | Artifact digest `sha256:212b58f87e0b3082d0851becbf63b8c4298bb11338da33a4cbf6b303e12db90b` | Imported, digest-verified, and represented by a 16-finding adjudication ledger. All 16 findings are accepted pending implementation. |
+| Coordinator / candidate interaction inventory | PR #88, head `0a6e90d6a0346b837986bfe54ac5e676f22bd5c4` | Preserved as the generator and contract foundation. Its 216-record output is now explicitly provisional. |
+| Agent B / engine + rules conformance | PR #91, head `8447444dc6b40f9315c99f5e153bd21166d3341b` | Engine/rules changes and focused tests preserved. |
+| Agent C / policy + replay conformance | PR #90, head `490960781ba8770cf5e0e9ac4f7bd69e58f5ae4a` | Registry, audit, workflow, and tests preserved, subject to integration corrections that prevent a provisional lock from being reported as frozen. |
+| Agent D / pre-pilot diagnostics | PR #89, head `751b98b33bf8556d28c96ee4bec990b2e0ff8429` | Diagnostic workflow, runner, Phase B covered-path update, and tests preserved byte-for-byte. Branch-specific derived certification was not transplanted. |
+
+## Independent-verification defects closed
+
+### D1 — headline status was unguarded
+
+Closed. The derived checker now compares the committed ledger's top-level `status` and surface candidate status against recomputed values.
+
+### D2 — coverage fields and blockers were partially unchecked
+
+Closed. The checker validates the exact coverage key set and every value, including:
+
+- engine blocker count and blocker list;
+- live policy defect count and concrete defect lists;
+- no-policy-required records;
+- reviewed strategic classes;
+- required/production/replay protocol-method counts; and
+- Agent A total, complete, and pending findings.
+
+### D3 — pytest did not validate the committed ledger
+
+Closed. The reconciliation suite calls the same ledger checker used by CI and includes adversarial mutations for the headline status, previously unchecked fields, and blocker list.
+
+The current checker verifies 44 report fields. The CI ledger step passes with zero mismatches.
+
+## Agent A adjudication
+
+All 16 Agent A findings are currently:
+
+`ACCEPTED / PENDING IMPLEMENTATION`
+
+The accepted set includes:
+
+- Izzet Boilerworks resolution-time land selection rather than targeting;
+- Sentinel Totem self-exile as an activation cost;
+- Scavenger Grounds one-Desert sacrifice cost;
+- mandatory Vedalken Aethermage Sliver targeting;
+- role-specific Prismari Command targets and target-player discard ownership;
+- contextual manifest controller ownership for Reality Shift;
+- Fact or Fiction opponent selection;
+- fixed self-discard for cycling/typecycling/transmute;
+- distinct delayed/generated-trigger records;
+- Electroduplicate's copiable token ability;
+- omitted global exact-deck rules;
+- Frostboil Snarl reveal identity;
+- X/target-count dependency;
+- Twinflame target-count/strive-cost dependency;
+- generated Treasure ability ownership; and
+- keyword/static/permission composition evidence.
+
+No finding may disappear. The integration checker requires the imported Agent A artifact digest and the adjudication finding IDs to match exactly.
+
+## Cross-lane candidate coverage matrix
+
+| Coverage layer | Candidate denominator | Current evidence | Result |
 |---|---:|---|---|
-| Coordinator / interaction inventory | #88 | `0a6e90d6a0346b837986bfe54ac5e676f22bd5c4` | Preserved through Agent B's stacked base; denominator corrected and frozen. |
-| Agent D / pre-pilot diagnostics | #89 | `751b98b33bf8556d28c96ee4bec990b2e0ff8429` | Diagnostic workflow, runner, Phase B path coverage, and tests preserved byte-for-byte. Branch-specific derived certification intentionally not copied. |
-| Agent C / policy + replay conformance | #90 | `490960781ba8770cf5e0e9ac4f7bd69e58f5ae4a` | Workflow, registry, audit, audit document, and tests preserved byte-for-byte. |
-| Agent B / engine + rules conformance | #91 | `8447444dc6b40f9315c99f5e153bd21166d3341b` | Used as the integration branch base, preserving all engine/rules changes and tests. |
+| Candidate interaction inventory | 216 records | Deterministically generated; candidate lock matches | **216 / 216 mapped, provisional** |
+| Agent A disposition | 16 findings | All accepted; none completed | **0 / 16 complete** |
+| Record-level engine proof | 216 candidate records | No record-addressable proof overlay | **0 / 216 attached** |
+| Strategic policy requirement | 216 candidate records | 94 require strategic policy; 122 do not | **94 require / 122 not required** |
+| Record-level policy/replay route completeness | 94 strategic candidate records | 51 currently complete | **51 / 94** |
+| Policy-ready or not required | 216 candidate records | 122 + 51 | **173 / 216** |
+| Strategic choice occurrences | 145 occurrences | 98 reviewed routes; 96 live-supported | **98 / 145 routed; 96 / 145 supported** |
+| Strategic policy/replay classes | 49 classes | 23 reviewed; 26 unrouted | **23 / 49** |
+| Strategic provider/replay protocol | 4 methods | Production and replay providers implement all four | **4 / 4 parity** |
+| Record-level replay proof | 216 candidate records | No record-addressable proof overlay | **0 / 216 attached** |
+| Record-level direct-test proof | 216 candidate records | No record-addressable proof overlay | **0 / 216 attached** |
+| Aggregate `PROVEN` ledger | 216 candidate records | No proof bundles aggregated | **0 / 216 PROVEN** |
 
-There were no direct pathname collisions among the substantive outputs of the four lanes.
-
-## Integration contradictions found and resolved
-
-### 1. Coordinator denominator contradiction — corrected
-
-The coordinator contract defines ten minimum global-rule records, but its bootstrap lock still declared seven global records, zero effect records, and zero total records. The deterministic generator reports and CI independently verifies:
-
-- 80 card-composition records;
-- 126 card-effect records;
-- 10 global-rule records;
-- 216 total records.
-
-The lock now contains those values and the generated manifest digest. This was the single inherited failing repository test on Agent B's standalone head. It was a coordinator/integration defect, not an Agent B engine regression.
-
-### 2. Coordinator workflow Python contradiction — corrected
-
-Both coordinator interaction workflows requested Python 3.11 while `pyproject.toml` requires Python 3.12. The workflows now request Python 3.12.
-
-### 3. Agent D certification cannot be transplanted — resolved by omission
-
-Agent D renewed `docs/audit/phase-b-certification/CERTIFICATION.json` for its standalone branch. That file is derived evidence bound to a specific covered tree. Once Agent D is combined with Agent B's kernel changes, that certificate is stale by definition.
-
-The integration therefore preserves Agent D's executable work but does not copy its branch-specific certificate. The combined tree must generate and install a fresh Phase B certification candidate after its substantive checks pass.
-
-## Cross-lane coverage matrix
-
-| Coverage layer | Explicit denominator | Current integration evidence | Result |
-|---|---:|---|---|
-| Interaction inventory | 216 records | Deterministically generated, frozen, and CI-verified | **216 / 216 mapped** |
-| Record-level engine proof | 216 records | Agent B supplies implementation audit and focused tests, but no frozen-record proof overlay | **0 / 216 record-attested** |
-| Strategic policy requirement | 216 records | 94 require strategic policy; 122 do not | **94 require / 122 not required** |
-| Record-level policy/replay route completeness | 94 strategic records | 51 have all strategic choices currently routed and live-supported | **51 / 94 complete** |
-| Policy-ready or not required | 216 records | 122 no-policy-required + 51 complete strategic records | **173 / 216** |
-| Strategic choice occurrences | 145 occurrences | 98 have reviewed routes; 96 also have current live support | **98 / 145 routed; 96 / 145 live-supported** |
-| Strategic policy/replay classes | 49 unique classes | 23 reviewed routes; 26 unrouted | **23 / 49 routed** |
-| Strategic provider/replay protocol | 4 provider methods | Production provider and recorded replay provider implement all four | **4 / 4 method parity** |
-| Record-level replay proof | 216 records | Replay invariants and Turn-10 fresh replay exist, but no frozen-record proof overlay | **0 / 216 record-attested** |
-| Record-level direct-test proof | 216 records | Focused/direct tests exist, but evidence is not attached by `record_id` | **0 / 216 record-attested** |
-| Aggregate `PROVEN` ledger | 216 records | No frozen-surface proof bundles have yet been aggregated | **0 / 216 PROVEN** |
-
-`0 / 216 record-attested` does **not** mean the engine, replay system, or tests support zero interactions. It means zero of the 216 frozen interaction records currently carry the record-addressable evidence required by the coordinator contract. Implementation and broad test evidence exist; the proof overlay does not yet exist.
-
-Similarly, `173 / 216 policy-ready-or-not-required` is a policy/replay routing measure, not an aggregate proof score. It says that 122 records require no strategic policy and 51 strategic records have complete current routes. It does not imply those 173 records are engine-proven or directly tested by frozen `record_id` evidence.
+These numerators are useful diagnostics, not a final denominator certification.
 
 ## Remaining engine/rules blockers from Agent B
 
-Agent B identifies ten unresolved blocker families:
-
-1. hybrid-cost and exact/generic mana-payment configuration;
+1. hybrid and exact/generic mana-payment configuration;
 2. simultaneous same-controller trigger ordering;
 3. optional-trigger decision timing;
 4. general replacement-effect ordering;
@@ -95,60 +116,31 @@ Agent B identifies ten unresolved blocker families:
 9. compound retarget metadata for copied Prismari Command spells; and
 10. global attack destinations beyond opponent players.
 
-These are rules-owned blockers. They must not be closed by inserting a deterministic strategic preference into the engine.
+## Remaining policy/replay defects from Agent C
 
-## Remaining policy/replay blockers from Agent C
+- runtime purpose `PRISMARI_DISCARD` lacks production policy support; and
+- targeted-trigger effect `BOUNCE_TARGET` lacks production trigger-target policy support.
 
-Agent C inventories 49 unique strategic choice classes. Twenty-three have reviewed routes and twenty-six do not. At record level, those missing routes and live-support defects affect 43 of the 94 records that require strategic policy.
+The current interaction suite completes **29 passed / 1 failed**. The sole failure is the known `BOUNCE_TARGET` defect. The broader integrated suite previously completed **357 passed / 1 failed** on the same defect. Formatting, lint, strict type checking, Phase A verification, and the exact-deck Turn-10 production-policy/fresh-replay smoke passed before that failure.
 
-Two additional concrete production-policy defects are independently exposed:
+## Certification boundary
 
-- runtime purpose `PRISMARI_DISCARD` is emitted and legality/replay checked, but the production policy provider has no handler for it; and
-- targeted trigger effect `BOUNCE_TARGET` reaches mandatory trigger targeting but is not supported by the production trigger-target policy provider.
+A fresh Phase A CI candidate was generated and validated on the integrated tree before the full test failure. Durable certification closeout is not complete. Phase B verification/certification did not run because the full suite failed first. Both final certifications must be renewed after the provisional surface is corrected and all blocking checks pass.
 
-The Agent C audit emits 29 violation messages because the `PRISMARI_DISCARD` defect is reported at two separate audit boundaries. Those 29 messages should not be described as 29 independent root causes.
+## Required sequence to freeze the denominator
 
-## Cross-lane evidence mismatches
+1. Implement or rules-authoritatively resolve all 16 Agent A findings.
+2. Regenerate the interaction manifest without preserving 216 as a target.
+3. Recompute the manifest digest and every strategic/policy/replay numerator.
+4. Mark the lock `FROZEN_REVIEWED` only after the adjudication ledger has zero pending findings.
+5. Attach engine, policy where required, replay, positive/negative test, and fresh-process replay evidence by exact final `record_id`.
+6. Clear all engine and policy blockers.
+7. Renew Phase A and Phase B certifications from CI on the final integrated tree.
 
-Several Agent B paths are engine-implemented while Agent C still reports the corresponding policy route as absent. These are not reasons to discard Agent B's work; they are exactly the links the integration coverage contract is meant to expose. Examples include kicker declaration, additional sacrifice selection, reveal-or-decline entry, color/mana choices, amass selection, counter-unless-pay decisions, Commander graveyard/exile return, and manifest face-up handling.
+Only then may the repository publish a line in the intended form:
 
-The strongest apparent contradiction is triggered targeting: Agent B correctly reports that the kernel now has an explicit fail-closed trigger-target bridge, while Agent C shows that at least one reachable targeted-trigger effect (`BOUNCE_TARGET`) still lacks production policy support. The integrated conclusion is therefore **kernel bridge implemented, policy coverage incomplete**, not “trigger targeting fully covered.”
+`N requirements / N engine-supported / policy-supported everywhere required / N replay-supported / N directly tested / 0 gaps`
 
-## Agent D diagnostic boundary
+Current truthful summary:
 
-Agent D remains diagnostic infrastructure only:
-
-- 700 frozen seeds;
-- production-equivalent game execution;
-- fresh replay validation;
-- `fail-fast: false` across shards;
-- distinct-error collection; and
-- explicit prevention of pilot measurement artifact creation.
-
-Its existence is validation infrastructure, not interaction proof. A 700-seed run may expose additional gaps, but a green 700-seed run cannot by itself convert any of the 216 records to `PROVEN` without the required record-level evidence.
-
-## Integrated CI evidence
-
-On the reconciled tree, the interaction-surface job independently verifies the 216-record lock and manifest digest. The main CI has cleared formatting, lint, strict type checking, clean-engine boundaries, and the exact-deck Turn-10 production-policy/fresh-replay smoke in the integrated tree.
-
-The interaction contract currently fails on the known policy gap `BOUNCE_TARGET`; its frozen-lock check passes. Agent C policy/replay conformance also remains intentionally red while substantive policy routes are missing. These red checks are evidence that the integration fails closed rather than hiding unresolved work.
-
-## What must happen before the report can become `0 gaps`
-
-The next proof pass must use the frozen 216-record surface and attach evidence by exact `record_id`. For every record, the aggregate ledger must answer, without inference:
-
-- engine handler/support present and rules-correct;
-- policy support present when the rules assign a strategic choice;
-- replay support records and revalidates the exact decision;
-- direct deterministic positive evidence exists;
-- required negative/atomic evidence exists;
-- fresh-process replay exists for Phase C-reachable choice paths; and
-- no blocking engine or policy finding remains.
-
-Only after those overlays are complete can the project truthfully publish a line in the intended form:
-
-`216 requirements / 216 engine-supported / policy-supported everywhere required / 216 replay-supported / 216 directly tested / 0 gaps`
-
-At this integration point, the truthful summary is:
-
-`216 requirements / 216 inventoried / 173 policy-ready-or-not-required / 43 policy-replay-gap records / 10 engine blocker families / 26 unrouted strategic choice classes / 2 concrete policy defects / 0 of 216 records PROVEN`
+`216 provisional candidate requirements / 216 inventoried / 173 policy-ready-or-not-required / 43 policy-replay-gap records / 10 engine blocker families / 2 concrete policy defects / 16 Agent A findings pending / 0 candidate records PROVEN`
