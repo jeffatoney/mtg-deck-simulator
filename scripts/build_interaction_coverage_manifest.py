@@ -275,9 +275,7 @@ def _card_records(choice_contracts: dict[str, Any]) -> tuple[list[dict[str, Any]
                         },
                         "event": {
                             "kind": str(
-                                behavior.get("trigger")
-                                or behavior.get("event")
-                                or ability_kind
+                                behavior.get("trigger") or behavior.get("event") or ability_kind
                             ),
                             "choice_stage": _base_stage(ability_kind),
                         },
@@ -376,8 +374,7 @@ def build_manifest() -> dict[str, Any]:
     unused = sorted(declared_effect_kinds - observed_effect_kinds)
     if undeclared or unused:
         raise ValueError(
-            "effect choice classification mismatch: "
-            f"undeclared={undeclared}, unused={unused}"
+            f"effect choice classification mismatch: undeclared={undeclared}, unused={unused}"
         )
 
     package = load_exact_deck_package()
@@ -394,9 +391,7 @@ def build_manifest() -> dict[str, Any]:
         "global_rule_record_count": len(records) - len(card_records),
         "record_count": len(records),
         "observed_effect_kinds": sorted(observed_effect_kinds),
-        "source_digests": {
-            relative: _sha256_file(ROOT / relative) for relative in SOURCE_PATHS
-        },
+        "source_digests": {relative: _sha256_file(ROOT / relative) for relative in SOURCE_PATHS},
         "choice_contract_sha256": _sha256_file(CHOICE_CONTRACTS),
         "records": records,
     }
