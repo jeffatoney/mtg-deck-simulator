@@ -8,7 +8,7 @@ from mtg_cards.full_deck import load_full_deck_specs
 from mtg_kernel.errors import IllegalAction
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.hashing import state_hash
-from mtg_kernel.models import GameObject, ObjectKind, Zone
+from mtg_kernel.models import GameObject, ObjectKind, TargetRef, Zone
 from mtg_kernel.strategic_choices import CardSelection, CardSelectionRequest
 
 PLAYERS = ("P0", "P1")
@@ -158,6 +158,14 @@ def test_prismari_command_executes_damage_and_artifact_destruction() -> None:
         choice.selected for choice in state.choices if choice.kind == "PRISMARI_COMMAND_TARGET"
     ]
     assert [choice["mode"] for choice in target_choices] == ["DAMAGE", "DESTROY_ARTIFACT"]
+    assert all(
+        next(
+            event for event in state.events if event.event_id == choice.cause_event_id
+        ).payload.get("timing")
+        == "CAST_PROPOSAL"
+        for choice in state.choices
+        if choice.kind in {"PRISMARI_COMMAND_MODES", "PRISMARI_COMMAND_TARGET"}
+    )
 
 
 def test_prismari_command_executes_target_player_draw_discard_and_treasure() -> None:
@@ -198,26 +206,57 @@ def test_prismari_command_executes_target_player_draw_discard_and_treasure() -> 
     assert len(discard_choice.selected["selected_handles"]) == 2
 
 
-def test_prismari_command_duplicate_modes_fail_atomically_at_resolution() -> None:
+def test_prismari_command_duplicate_modes_fail_atomically_during_cast() -> None:
     state, executor, specs = funded_game("runtime-twenty-eight-atomic")
     command = add_card(executor, specs["Prismari Command"], Zone.HAND, owner="P0")
-    executor.cast(
-        "P0",
-        command.object_id,
-        choices={
-            "prismari_modes": ["DAMAGE", "DAMAGE"],
-            "prismari_targets": {"DAMAGE": {"player_id": "P1"}},
-        },
-    )
-    executor.pass_priority("P0")
     before = state_hash(state)
 
-    with pytest.raises(IllegalAction, match="exactly two distinct modes"):
-        executor.pass_priority("P1")
+    with pytest.raises(IllegalAction, match="exactly two distinct modes while casting"):
+        executor.cast(
+            "P0",
+            command.object_id,
+            choices={
+                "prismari_modes": ["DAMAGE", "DAMAGE"],
+                "prismari_targets": {"DAMAGE": {"player_id": "P1"}},
+            },
+        )
 
     assert state_hash(state) == before
-    assert state.stack
+    assert command.zone is Zone.HAND
+    assert not state.stack
 
     # This exact mapped node also carries the final Niv-Mizzet direct evidence:
     # player targeting, permanent targeting, and missing-choice atomicity.
     _exercise_niv_mizzet_paths()
+
+
+def test_prismari_command_resolves_other_mode_when_artifact_target_becomes_illegal() -> None:
+    state, executor, specs = funded_game("runtime-twenty-eight-partial-target")
+    artifact = add_card(executor, specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
+    command = add_card(executor, specs["Prismari Command"], Zone.HAND, owner="P0")
+    answer = add_card(executor, specs["Resculpt"], Zone.HAND, owner="P1")
+
+    executor.cast(
+        "P0",
+        command.object_id,
+        choices={
+            "prismari_modes": ["CREATE_TREASURE", "DESTROY_ARTIFACT"],
+            "prismari_targets": {
+                "CREATE_TREASURE": {"player_id": "P0"},
+                "DESTROY_ARTIFACT": {"object_id": artifact.object_id},
+            },
+        },
+    )
+    executor.pass_priority("P0")
+    executor.cast("P1", answer.object_id, targets=(TargetRef(artifact.object_id),))
+    executor.pass_priority("P1")
+    executor.pass_priority("P0")
+
+    assert artifact.retired
+    assert active_objects(state, name="Resculpt", zone=Zone.GRAVEYARD)
+    assert state.stack
+
+    pass_all(executor)
+
+    assert active_objects(state, name="Treasure", zone=Zone.BATTLEFIELD, controller="P0")
+    assert active_objects(state, name="Prismari Command", zone=Zone.GRAVEYARD)

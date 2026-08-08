@@ -1,0 +1,13 @@
+{
+  "schema_version": "interaction-coverage-lock-v1",
+  "status": "PROVISIONAL_PENDING_AGENT_A_INTEGRATION",
+  "frozen_from_main_commit": "20b94f46038251d5fb2d56389d953c1e9d01b68b",
+  "card_definition_count": 80,
+  "physical_card_count": 100,
+  "card_composition_record_count": 80,
+  "card_effect_record_count": 126,
+  "global_rule_record_count": 10,
+  "record_count": 216,
+  "manifest_sha256": "sha256:20d767ea754841bf0f9bda378068c4c705e0b9f8f8f4be20ca15be1f24bb2cdc",
+  "note": "Provisional deterministic candidate emitted from main commit 20b94f46038251d5fb2d56389d953c1e9d01b68b. Agent A identified 16 accepted findings that must be implemented or rules-authoritatively resolved before this record set and digest may be marked FROZEN_REVIEWED."
+}

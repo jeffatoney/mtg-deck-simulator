@@ -1,0 +1,77 @@
+name: Interaction Coverage Contract
+
+on:
+  pull_request:
+    paths:
+      - "automation/agent-a-*.json"
+      - "automation/agent-a-deck-interaction-manifest/**"
+      - "automation/interaction-*.json"
+      - "docs/audit/interaction-coverage/**"
+      - "scripts/build_interaction_coverage_manifest.py"
+      - "scripts/build_interaction_integration_coverage.py"
+      - "scripts/audit_policy_choice_replay_conformance.py"
+      - "src/mtg_cards/full_deck.py"
+      - "src/mtg_cards/oracle.py"
+      - "src/mtg_deck/**"
+      - "src/mtg_kernel/**"
+      - "src/mtg_policy/**"
+      - "src/mtg_runs/phase_c_runner.py"
+      - "docs/source/oracle/snapshot_v1.json"
+      - "docs/source/decklist.txt"
+      - "docs/source/commanders.txt"
+      - "docs/source/MagicCompRules_2026-06-19.txt"
+      - "tests/interaction_coverage/**"
+      - ".github/workflows/interaction-coverage.yml"
+  push:
+    branches: [main]
+    paths:
+      - "automation/agent-a-*.json"
+      - "automation/agent-a-deck-interaction-manifest/**"
+      - "automation/interaction-*.json"
+      - "docs/audit/interaction-coverage/**"
+      - "scripts/build_interaction_coverage_manifest.py"
+      - "scripts/build_interaction_integration_coverage.py"
+      - "scripts/audit_policy_choice_replay_conformance.py"
+      - "src/mtg_cards/full_deck.py"
+      - "src/mtg_cards/oracle.py"
+      - "src/mtg_deck/**"
+      - "src/mtg_kernel/**"
+      - "src/mtg_policy/**"
+      - "src/mtg_runs/phase_c_runner.py"
+      - "docs/source/oracle/snapshot_v1.json"
+      - "docs/source/decklist.txt"
+      - "docs/source/commanders.txt"
+      - "docs/source/MagicCompRules_2026-06-19.txt"
+      - "tests/interaction_coverage/**"
+      - ".github/workflows/interaction-coverage.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install project
+        run: python -m pip install -e ".[dev]"
+      - name: Verify candidate surface lock
+        run: python scripts/build_interaction_coverage_manifest.py --check-lock
+      - name: Verify integrated coverage ledger
+        run: >-
+          python scripts/build_interaction_integration_coverage.py
+          --check-ledger
+          --output interaction-integration-derived.json
+      - name: Publish integrated coverage cross-reference
+        uses: actions/upload-artifact@v4
+        with:
+          name: interaction-integration-coverage-${{ github.sha }}
+          path: interaction-integration-derived.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Run interaction coverage contract tests
+        run: python -m pytest -q tests/interaction_coverage
