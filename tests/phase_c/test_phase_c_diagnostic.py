@@ -11,6 +11,7 @@ from mtg_runs.phase_c import PhaseCControlError
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github/workflows/phase-c-diagnostic.yml"
 SOURCE = ROOT / "src/mtg_runs/phase_c_diagnostic.py"
+PHASE_B_PATHS = ROOT / "scripts/_phase_b_paths.py"
 
 
 def test_diagnostic_workflow_is_non_authorized_and_does_not_fail_fast() -> None:
@@ -39,6 +40,11 @@ def test_diagnostic_workflow_requires_fresh_production_path_and_forbids_pilot_ro
     assert "aggregate_measurements" not in source
     assert "write_phase_c_shard" not in source
     assert "write_phase_c_aggregate" not in source
+
+
+def test_diagnostic_workflow_is_phase_b_certification_covered() -> None:
+    text = PHASE_B_PATHS.read_text(encoding="utf-8")
+    assert '".github/workflows/phase-c-diagnostic.yml"' in text
 
 
 def test_non_authorized_config_guard_rejects_authorized_state() -> None:
