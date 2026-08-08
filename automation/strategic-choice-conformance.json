@@ -1,0 +1,105 @@
+{
+  "schema_version": "strategic-choice-conformance-v1",
+  "purpose": "Fail-closed routing contract from rules-defined strategic choices to production policy, legality validation, and exact replay.",
+  "runtime_purpose_contracts": [
+    {"runtime_purpose": "DISCARD", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_COMMAND_ARGUMENT"},
+    {"runtime_purpose": "UNTAP_LANDS", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
+    {"runtime_purpose": "LOOK_SELECT", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
+    {"runtime_purpose": "ORDER_LIBRARY_BOTTOM", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
+    {"runtime_purpose": "TUTOR_*", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
+    {"runtime_purpose": "TRIGGER_TARGET:*", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"}
+  ],
+  "canonical_routes": [
+    {"timing": "CAST_PROPOSAL", "purpose": "CAST_PATH", "mechanism": "BROKER_ACTION"},
+    {"timing": "CAST_PROPOSAL", "purpose": "TARGET_COUNT", "mechanism": "BROKER_ACTION"},
+    {"timing": "CAST_PROPOSAL", "purpose": "TARGET_SELECTION", "mechanism": "BROKER_ACTION"},
+    {"timing": "CAST_PROPOSAL", "purpose": "X_VALUE", "mechanism": "BROKER_ACTION"},
+    {"timing": "ACTIVATION_PROPOSAL", "purpose": "TARGET_COUNT", "mechanism": "BROKER_ACTION"},
+    {"timing": "ACTIVATION_PROPOSAL", "purpose": "TARGET_SELECTION", "mechanism": "BROKER_ACTION"},
+    {"timing": "TRIGGER_STACKING", "purpose": "TARGET_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "TRIGGER_TARGET:*"},
+    {"timing": "RESOLUTION", "purpose": "COPY_NEW_TARGETS", "mechanism": "PROTOCOL_METHOD", "protocol_method": "choose_spell_copy_targets"},
+    {"timing": "RESOLUTION", "purpose": "FACT_OR_FICTION_SPLIT", "mechanism": "PROTOCOL_METHOD", "protocol_method": "choose_fact_or_fiction"},
+    {"timing": "RESOLUTION", "purpose": "FACT_OR_FICTION_PILE", "mechanism": "PROTOCOL_METHOD", "protocol_method": "choose_fact_or_fiction"},
+    {"timing": "RESOLUTION", "purpose": "SEARCH_SELECTION_OR_FAIL_TO_FIND_STATED_QUALITY", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "TUTOR_*"},
+    {"timing": "RESOLUTION", "purpose": "SEARCH_SELECTION_REQUIRED_IF_LIBRARY_NONEMPTY", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "TUTOR_*"},
+    {"timing": "RESOLUTION", "purpose": "TYPE_TUTOR_SELECTIONS_WITH_STATED_QUALITIES", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "TUTOR_*"},
+    {"timing": "RESOLUTION", "purpose": "DISCARD_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "DISCARD"},
+    {"timing": "RESOLUTION", "purpose": "DISCARD_SELECTION_IF_REQUIRED", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "DISCARD"},
+    {"timing": "RESOLUTION", "purpose": "DRAW_DISCARD_SELECTION_IF_CHOSEN", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "DISCARD"},
+    {"timing": "RESOLUTION", "purpose": "UNTAP_LAND_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "UNTAP_LANDS"},
+    {"timing": "RESOLUTION", "purpose": "LOOK_CARD_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "LOOK_SELECT"},
+    {"timing": "RESOLUTION", "purpose": "BOTTOM_ORDER_IF_MULTIPLE", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "ORDER_LIBRARY_BOTTOM"},
+    {"timing": "RESOLUTION", "purpose": "DELAYED_TRIGGER_DRAW_COUNT", "mechanism": "RUNNER_EXPLICIT_POLICY"},
+    {"timing": "TURN_BASED_ACTION", "purpose": "CLEANUP_DISCARD_SELECTION", "mechanism": "RUNNER_EXPLICIT_POLICY", "runtime_purpose": "DISCARD"},
+    {"timing": "TURN_BASED_ACTION", "purpose": "ATTACKER_SELECTION", "mechanism": "BROKER_ACTION"},
+    {"timing": "TURN_BASED_ACTION", "purpose": "ATTACK_DESTINATION_SELECTION", "mechanism": "BROKER_ACTION"},
+    {"timing": "PRIORITY_WINDOW", "purpose": "PRIORITY_ACTION_OR_PASS", "mechanism": "BROKER_ACTION"}
+  ],
+  "source_invariants": [
+    {
+      "name": "production exports trigger-aware provider",
+      "path": "src/mtg_policy/__init__.py",
+      "must_contain": ["from mtg_policy.trigger_choices import", "PolicyStrategicChoiceProvider", "bind_policy_strategic_choices"]
+    },
+    {
+      "name": "mandatory trigger targets cross the explicit policy boundary",
+      "path": "src/mtg_kernel/phase_b_trigger_targets.py",
+      "must_contain": ["_legal_candidates", "require_provider", "CardSelectionRequest", "TRIGGER_TARGET:", "selection.selected_handles", "by_handle", "strategic provider selected an illegal trigger target", "CARD_SELECTION"]
+    },
+    {
+      "name": "trigger policy fails closed on unknown target effects",
+      "path": "src/mtg_policy/trigger_choices.py",
+      "must_contain": ["TRIGGER_TARGET:", "mandatory trigger target policy is unsupported for effect", "request.candidates"]
+    },
+    {
+      "name": "cleanup discard policy validates returned handles and records the command input",
+      "path": "src/mtg_runs/phase_c_runner.py",
+      "must_contain": ["purpose=\"DISCARD\"", "selection.selected_handles", "by_handle", "cleanup policy returned an illegal discard selection", "_cleanup_discard_ids(executor, provider)", "\"discard_ids\": list(discard_ids)"]
+    },
+    {
+      "name": "production card selection policy selects only request candidates",
+      "path": "src/mtg_policy/choices.py",
+      "must_contain": ["request.candidates", "policy card-selection purpose is unsupported", "selected = tuple"]
+    },
+    {
+      "name": "production specialized choices are constrained to legal request sets",
+      "path": "src/mtg_policy/choices.py",
+      "must_contain": ["request.eligible_cards", "request.legal_splits", "if selected not in request.legal_target_sets"]
+    },
+    {
+      "name": "replay card selections recheck purpose candidate membership and count",
+      "path": "src/mtg_kernel/strategic_choices.py",
+      "must_contain": ["purpose != request.purpose", "not set(handles) <= legal", "not request.minimum <= len(handles) <= request.maximum"]
+    },
+    {
+      "name": "replay specialized choices recheck legality",
+      "path": "src/mtg_kernel/strategic_choices.py",
+      "must_contain": ["identity not in request.eligible_identities", "split_index not in {split.split_index for split in request.legal_splits}", "handles not in request.legal_target_sets"]
+    },
+    {
+      "name": "replay uses recorded provider and requires exact transcript equality",
+      "path": "src/mtg_kernel/replay.py",
+      "must_contain": ["RecordedStrategicChoiceProvider(recorded_choices)", "replaying=True", "if actual != expected", "production replay diverged from the recorded transcript"]
+    },
+    {
+      "name": "copy-target live path revalidates provider output",
+      "path": "src/mtg_kernel/engine.py",
+      "must_contain": ["selection.target_handles not in legal_handle_sets", "strategic provider selected an illegal copy target set", "self._validate_targets"]
+    },
+    {
+      "name": "broker action choices are production-probed",
+      "path": "src/mtg_policy/broker_core.py",
+      "must_contain": ["def _target_sets", "def _probe", "self._invoke(probe", "PASS_PRIORITY", "_candidate_attack_declarations"]
+    },
+    {
+      "name": "phase c chooses and executes broker actions through frozen policy",
+      "path": "src/mtg_runs/phase_c_runner.py",
+      "must_contain": ["policy.select_action", "broker.execute", "ActionBroker(executor, CONTROLLED_PLAYER)"]
+    },
+    {
+      "name": "arcane denial delayed decision is explicit in the production runner",
+      "path": "src/mtg_runs/phase_c_runner.py",
+      "must_contain": ["arcane_denial_draw_count", "count = 2 if optional_player == CONTROLLED_PLAYER else 0", "delayed_trigger_choices"]
+    }
+  ]
+}
