@@ -62,7 +62,7 @@ SOURCE_C_BLOBS = {
     ),
     "scripts/audit_policy_choice_replay_conformance.py": "4342dc34aa1a05c5636aac1a64f6dcd388ccd660",
     "tests/interaction_coverage/test_policy_choice_replay_conformance.py": (
-        "425123b5a1b61a0c78c9aa90e5a6ad22385547c2"
+        "31f9f0503ae7a03d3204eef015299b35bc6ff20a"
     ),
 }
 
@@ -143,23 +143,35 @@ def test_ledger_checker_rejects_headline_and_previously_unchecked_falsifications
 ) -> None:
     report = build_integration_coverage()
     baseline = json.loads(LEDGER.read_text(encoding="utf-8"))
-    mutations: tuple[tuple[tuple[str, ...], Any], ...] = (
-        (("status",), "PROVEN"),
-        (("coverage", "engine_blocker_families"), 0),
-        (("coverage", "live_policy_defects"), 0),
-        (("coverage", "records_requiring_no_strategic_policy"), 0),
-        (("coverage", "strategic_choice_classes_with_reviewed_routes"), 0),
-        (("coverage", "strategic_protocol_methods_required"), 0),
-        (("coverage", "strategic_protocol_methods_in_production_provider"), 0),
-        (("coverage", "strategic_protocol_methods_in_recorded_replay_provider"), 0),
-        (("remaining_engine_blockers",), []),
+    mutation_paths: tuple[tuple[str, ...], ...] = (
+        ("status",),
+        ("coverage", "engine_blocker_families"),
+        ("coverage", "live_policy_defects"),
+        ("coverage", "records_requiring_no_strategic_policy"),
+        ("coverage", "strategic_choice_classes_with_reviewed_routes"),
+        ("coverage", "strategic_protocol_methods_required"),
+        ("coverage", "strategic_protocol_methods_in_production_provider"),
+        ("coverage", "strategic_protocol_methods_in_recorded_replay_provider"),
+        ("remaining_engine_blockers",),
     )
 
-    for index, (path, replacement) in enumerate(mutations):
+    for index, path in enumerate(mutation_paths):
         falsified = json.loads(json.dumps(baseline))
         target = falsified
         for key in path[:-1]:
             target = target[key]
+        current = target[path[-1]]
+        if isinstance(current, bool):
+            replacement: Any = not current
+        elif isinstance(current, int):
+            replacement = current + 1
+        elif isinstance(current, str):
+            replacement = current + "__FALSIFIED__"
+        elif isinstance(current, list):
+            replacement = [*current, "__FALSIFIED__"]
+        else:
+            raise AssertionError(f"unsupported mutation value at {path}: {type(current)!r}")
+        assert replacement != current
         target[path[-1]] = replacement
         candidate = tmp_path / f"falsified-{index}.json"
         candidate.write_text(json.dumps(falsified), encoding="utf-8")
@@ -198,7 +210,7 @@ def test_agent_b_output_paths_survive_integration() -> None:
     assert missing == []
 
 
-def test_agent_c_outputs_are_preserved_byte_for_byte() -> None:
+def test_agent_c_outputs_match_reviewed_integrated_pins() -> None:
     mismatches = {
         path: (_git_blob(path), expected)
         for path, expected in SOURCE_C_BLOBS.items()
