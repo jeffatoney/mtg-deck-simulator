@@ -19,7 +19,7 @@
   ],
   "properties": {
     "record_id": {"type": "string", "minLength": 1},
-    "record_class": {"enum": ["CARD_EFFECT", "GLOBAL_RULE"]},
+    "record_class": {"enum": ["CARD_COMPOSITION", "CARD_EFFECT", "GLOBAL_RULE"]},
     "card": {
       "oneOf": [
         {"type": "null"},
@@ -42,7 +42,11 @@
             "composition_status": {"const": "REVIEWED_COMPOSITION"},
             "ability_id": {"type": "string", "minLength": 1},
             "ability_kind": {"type": "string", "minLength": 1},
-            "behavior_index": {"type": "integer", "minimum": 0}
+            "behavior_index": {
+              "type": "integer",
+              "minimum": -1,
+              "description": "Zero-based behavior index, or -1 for the card-wide Oracle composition guard."
+            }
           }
         }
       ]
