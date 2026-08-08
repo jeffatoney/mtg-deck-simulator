@@ -7,6 +7,7 @@
     {"runtime_purpose": "LOOK_SELECT", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
     {"runtime_purpose": "ORDER_LIBRARY_BOTTOM", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
     {"runtime_purpose": "PRISMARI_DISCARD", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
+    {"runtime_purpose": "RETURN_CONTROLLED_LAND", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
     {"runtime_purpose": "TRIGGER_TARGET:*", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"},
     {"runtime_purpose": "TUTOR_*", "policy_provider": "PolicyStrategicChoiceProvider.choose_cards", "replay_mode": "RECORDED_STRATEGIC_CHOICE"}
   ],
@@ -27,6 +28,7 @@
     {"timing": "RESOLUTION", "purpose": "DISCARD_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "DISCARD"},
     {"timing": "RESOLUTION", "purpose": "DISCARD_SELECTION_IF_REQUIRED", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "DISCARD"},
     {"timing": "RESOLUTION", "purpose": "DRAW_DISCARD_SELECTION_IF_CHOSEN", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "PRISMARI_DISCARD"},
+    {"timing": "RESOLUTION", "purpose": "RETURN_CONTROLLED_LAND_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "RETURN_CONTROLLED_LAND"},
     {"timing": "RESOLUTION", "purpose": "UNTAP_LAND_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "UNTAP_LANDS"},
     {"timing": "RESOLUTION", "purpose": "LOOK_CARD_SELECTION", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "LOOK_SELECT"},
     {"timing": "RESOLUTION", "purpose": "BOTTOM_ORDER_IF_MULTIPLE", "mechanism": "INJECTED_CARD_SELECTION", "runtime_purpose": "ORDER_LIBRARY_BOTTOM"},
