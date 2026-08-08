@@ -210,7 +210,9 @@ def _card_records(
     observed_event_kinds: set[str] = set()
 
     if set(specs_by_name) != set(RULES_BY_NAME) or set(coverage_by_name) != set(RULES_BY_NAME):
-        raise ValueError("Oracle specs, coverage inventory, and behavior inventory must match exactly")
+        raise ValueError(
+            "Oracle specs, coverage inventory, and behavior inventory must match exactly"
+        )
 
     for card_name in sorted(RULES_BY_NAME):
         behaviors = RULES_BY_NAME[card_name]
@@ -478,7 +480,9 @@ def build_manifest() -> dict[str, Any]:
     records = sorted((*card_records, *_global_records()), key=lambda item: item["record_id"])
     record_ids = [record["record_id"] for record in records]
     if len(record_ids) != len(set(record_ids)):
-        duplicates = sorted({record_id for record_id in record_ids if record_ids.count(record_id) > 1})
+        duplicates = sorted(
+            {record_id for record_id in record_ids if record_ids.count(record_id) > 1}
+        )
         raise ValueError(f"interaction record IDs are not unique: {duplicates}")
 
     choice_purposes = sorted(
