@@ -98,7 +98,9 @@ def test_standard_policy_tie_break_ignores_opaque_action_handles() -> None:
 
     selected_first = policy.select_action(observation, first)
     selected_second = policy.select_action(observation, second)
-    semantic_first = _semantic_action(next(action for action in first if action.handle == selected_first))
+    semantic_first = _semantic_action(
+        next(action for action in first if action.handle == selected_first)
+    )
     semantic_second = _semantic_action(
         next(action for action in second if action.handle == selected_second)
     )
@@ -136,7 +138,9 @@ def test_hidden_only_state_change_cannot_change_selected_semantic_action() -> No
     assert sorted(_semantic_action(action) for action in first_actions) == sorted(
         _semantic_action(action) for action in second_actions
     )
-    assert {action.handle for action in first_actions} != {action.handle for action in second_actions}
+    assert {action.handle for action in first_actions} != {
+        action.handle for action in second_actions
+    }
 
     policy = StandardPolicy(load_policy_matrix()[0])
     first_handle = policy.select_action(first_observation, first_actions)
