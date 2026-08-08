@@ -15,6 +15,15 @@ def test_mandatory_trigger_target_effects_have_explicit_policy_support() -> None
     assert report["missing_trigger_policy_effects"] == []
 
 
+def test_prismari_target_player_discard_has_production_policy_support() -> None:
+    report = audit_conformance()
+    assert "PRISMARI_DISCARD" in report["runtime_purpose_patterns"]
+    assert "PRISMARI_DISCARD" in report["production_policy_patterns"]
+    assert not [
+        violation for violation in report["violations"] if "PRISMARI_DISCARD" in violation
+    ]
+
+
 def test_source_legality_and_exact_replay_invariants_are_present() -> None:
     report = audit_conformance()
     failures = [item for item in report["source_invariants"] if item["missing_tokens"]]
