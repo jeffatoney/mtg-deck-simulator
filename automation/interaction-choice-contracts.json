@@ -67,7 +67,7 @@
     "PHASE_OUT": {"choices": []},
     "PRISMARI_COMMAND": {"choices": [{"purpose": "MODE_SELECTION", "timing": "CAST_PROPOSAL", "actor": "CONTROLLER", "legality_owner": "ENGINE_SHARED_VALIDATOR", "policy_class": "STRATEGIC_WHEN_MULTIPLE", "replay_required": true, "rules_refs": ["601.2b"]}, {"purpose": "DRAW_DISCARD_SELECTION_IF_CHOSEN", "timing": "RESOLUTION", "actor": "CONTROLLER", "legality_owner": "ENGINE_RESOLUTION_VALIDATOR", "policy_class": "STRATEGIC_WHEN_MULTIPLE", "replay_required": true, "rules_refs": ["608.2d"]}]},
     "RECORD_UNKNOWN_BREECHES_EXILES": {"choices": []},
-    "RETURN_CONTROLLED_LAND": {"choices": []},
+    "RETURN_CONTROLLED_LAND": {"choices": [{"purpose": "RETURN_CONTROLLED_LAND_SELECTION", "timing": "RESOLUTION", "actor": "CONTROLLER", "legality_owner": "ENGINE_RESOLUTION_VALIDATOR", "policy_class": "STRATEGIC_WHEN_MULTIPLE", "replay_required": true, "rules_refs": ["608.2d"]}]},
     "REVEAL_OR_ENTER_TAPPED": {"choices": [{"purpose": "REVEAL_ELIGIBLE_CARD_OR_NOT", "timing": "REPLACEMENT_APPLICATION", "actor": "CONTROLLER", "legality_owner": "ENGINE_REPLACEMENT_VALIDATOR", "policy_class": "STRATEGIC_WHEN_MULTIPLE", "replay_required": true, "rules_refs": ["614.12a"]}]},
     "SCRY": {"choices": [{"purpose": "SCRY_PARTITION_AND_ORDER", "timing": "RESOLUTION", "actor": "CONTROLLER", "legality_owner": "ENGINE_RESOLUTION_VALIDATOR", "policy_class": "STRATEGIC_WHEN_MULTIPLE", "replay_required": true, "rules_refs": ["608.2d", "701.22"]}]},
     "SEQUENCE": {"choices": []},
