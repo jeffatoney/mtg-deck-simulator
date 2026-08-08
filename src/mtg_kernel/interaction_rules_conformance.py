@@ -108,7 +108,10 @@ def _cast(
 
     selected_choices = dict(choices or {})
     resolved_face = _resolved_face(self, card_object_id, face)
-    if _spell_has_variable_target_count(self, card_object_id, resolved_face, mode) and targets is None:
+    if (
+        _spell_has_variable_target_count(self, card_object_id, resolved_face, mode)
+        and targets is None
+    ):
         raise IllegalAction("variable target count requires an explicit target selection")
     resolved_targets = () if targets is None else targets
     if _spell_requires_x(self, card_object_id, resolved_face, mode) and x_value is None:
@@ -186,9 +189,9 @@ def _activate_with_qualifying_sacrifice(
         if self.state.turn.priority_holder_id != actor:
             raise IllegalAction("the activating player does not have priority")
         mana_ability = bool(selected.get("mana_ability"))
-        if selected.get("restriction") == "SOURCE_ATTACKING" and not source.current_characteristics.get(
-            "attacking", False
-        ):
+        if selected.get(
+            "restriction"
+        ) == "SOURCE_ATTACKING" and not source.current_characteristics.get("attacking", False):
             raise IllegalAction("this ability may be activated only while the source attacks")
 
         schema = dict(
