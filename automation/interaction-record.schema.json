@@ -67,6 +67,7 @@
           "enum": [
             "CAST_PROPOSAL",
             "ACTIVATION_PROPOSAL",
+            "COST_PAYMENT",
             "TRIGGER_STACKING",
             "RESOLUTION",
             "REPLACEMENT_APPLICATION",
@@ -146,6 +147,7 @@
           "enum": [
             "CAST_PROPOSAL",
             "ACTIVATION_PROPOSAL",
+            "COST_PAYMENT",
             "TRIGGER_STACKING",
             "RESOLUTION",
             "REPLACEMENT_APPLICATION",
@@ -161,6 +163,7 @@
             "OWNER",
             "TARGET_CONTROLLER",
             "AFFECTED_PLAYER",
+            "AFFECTED_PLAYER_OR_PERMANENT_CONTROLLER",
             "OPPONENT_POLICY",
             "ACTIVE_PLAYER",
             "NONACTIVE_PLAYER",
@@ -172,6 +175,7 @@
           "enum": [
             "ENGINE_SHARED_VALIDATOR",
             "ENGINE_TARGET_SCHEMA",
+            "ENGINE_COST_VALIDATOR",
             "ENGINE_RESOLUTION_VALIDATOR",
             "ENGINE_REPLACEMENT_VALIDATOR",
             "ENGINE_SPECIAL_ACTION_VALIDATOR",
@@ -183,6 +187,7 @@
           "enum": [
             "NONE",
             "STRATEGIC_WHEN_MULTIPLE",
+            "ACTOR_POLICY",
             "MANDATORY_DETERMINISTIC",
             "OPPONENT_MINIMIZING"
           ]
