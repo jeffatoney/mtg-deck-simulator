@@ -60,7 +60,7 @@ class PolicyStrategicChoiceProvider(_BaseProvider):
                     key=lambda card: (evaluations[card.handle], card.identity, card.handle),
                 )
                 strategy = "LOWEST_VALUE_LEGAL_TARGET"
-        elif effect_kind in {"RETURN_CONTROLLED_LAND", "EXILE_TARGET"}:
+        elif effect_kind in {"BOUNCE_TARGET", "RETURN_CONTROLLED_LAND", "EXILE_TARGET"}:
             chosen = min(
                 request.candidates,
                 key=lambda card: (evaluations[card.handle], card.identity, card.handle),
