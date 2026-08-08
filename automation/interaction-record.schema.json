@@ -25,10 +25,20 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["name", "oracle_id", "ability_id", "ability_kind", "behavior_index"],
+          "required": [
+            "name",
+            "oracle_id",
+            "oracle_record_sha256",
+            "composition_status",
+            "ability_id",
+            "ability_kind",
+            "behavior_index"
+          ],
           "properties": {
             "name": {"type": "string", "minLength": 1},
             "oracle_id": {"type": "string", "minLength": 1},
+            "oracle_record_sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+            "composition_status": {"const": "REVIEWED_COMPOSITION"},
             "ability_id": {"type": "string", "minLength": 1},
             "ability_kind": {"type": "string", "minLength": 1},
             "behavior_index": {"type": "integer", "minimum": 0}
@@ -136,6 +146,7 @@
         "actor": {
           "enum": [
             "CONTROLLER",
+            "OWNER",
             "TARGET_CONTROLLER",
             "AFFECTED_PLAYER",
             "OPPONENT_POLICY",
@@ -150,7 +161,9 @@
             "ENGINE_TARGET_SCHEMA",
             "ENGINE_RESOLUTION_VALIDATOR",
             "ENGINE_REPLACEMENT_VALIDATOR",
-            "ENGINE_SPECIAL_ACTION_VALIDATOR"
+            "ENGINE_SPECIAL_ACTION_VALIDATOR",
+            "ENGINE_TURN_BASED_ACTION_VALIDATOR",
+            "ENGINE_STATE_BASED_ACTION_VALIDATOR"
           ]
         },
         "policy_class": {
