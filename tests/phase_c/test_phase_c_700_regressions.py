@@ -24,4 +24,7 @@ def test_700_diagnostic_technical_failure_seed_completes_with_fresh_replay(seed:
     )
 
     assert execution.technical_game.controlled_turns_completed == 10
-    assert execution.technical_game.fresh_replay_state_hash == execution.technical_game.final_state_hash
+    assert (
+        execution.technical_game.fresh_replay_state_hash
+        == execution.technical_game.final_state_hash
+    )
