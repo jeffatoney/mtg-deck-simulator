@@ -437,7 +437,7 @@ class HardenedGameExecutor(_CoreGameExecutor):
     ) -> GameObject:
         if not self._is_permanent(original):
             raise IllegalAction("token-copy source must be a permanent")
-        event = self._event("TOKEN_COPY_CREATED", action, copied_from=original.object_id)
+        event = self._event("TOKEN_COPY_CREATED", cause_action, copied_from=original.object_id)
         characteristics = deepcopy(original.current_characteristics)
         if haste:
             keywords = set(characteristics.get("keywords", []))
