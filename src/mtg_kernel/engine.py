@@ -22,6 +22,7 @@ from mtg_kernel.models import (
 )
 from mtg_kernel.observation import ObservationService
 from mtg_kernel.strategic_choices import (
+    OptionalTriggerRequest,
     PublicCard,
     SpellCopyTargetRequest,
     StrategicChoiceProvider,
@@ -84,6 +85,84 @@ class HardenedGameExecutor(_CoreGameExecutor):
                         kinds.add(child_kind)
         return tuple(sorted(kinds))
 
+    def _cleanup_iteration(self, discard_ids: tuple[str, ...]) -> None:
+        """Defer a repeated cleanup that needs a new explicit discard decision.
+
+        Rule 514.3a starts a new cleanup step after cleanup-trigger priority. The
+        production runner owns the strategic discard selection for that new step;
+        the kernel must not silently substitute an empty discard set when the hand
+        is now above maximum size.
+        """
+
+        if self.state.turn.cleanup_repeat_pending and not discard_ids:
+            active = self.state.turn.active_player_id
+            hand_key = self.zones.zone_key(Zone.HAND, active)
+            hand_size = len(self.state.zones.get(hand_key, ()))
+            maximum = int(self.state.players[active].maximum_hand_size)
+            if hand_size > maximum:
+                self.state.turn.priority_holder_id = None
+                self.state.turn.consecutive_priority_passes = 0
+                self._event(
+                    "CLEANUP_REPEAT_AWAITS_DISCARD",
+                    player_id=active,
+                    discard_count=hand_size - maximum,
+                )
+                return
+        super()._cleanup_iteration(discard_ids)
+
+    def put_waiting_triggers_on_stack(self) -> None:
+        """Put triggers on the stack without making optional effect choices early.
+
+        Rule 603.5 requires a triggered ability with an optional effect to go on the
+        stack normally; the yes/no choice is made only when that ability resolves.
+        """
+
+        if self.state.terminal.status != "ACTIVE" or self._resolution_depth:
+            return
+        if not self.state.waiting_triggers:
+            return
+        player_order = list(self.state.players)
+        active = self.state.turn.active_player_id
+        ordered_players = [active] + [player for player in player_order if player != active]
+        waiting = [self.state.objects[object_id] for object_id in self.state.waiting_triggers]
+        self.state.waiting_triggers.clear()
+        waiting.sort(key=lambda obj: ordered_players.index(obj.controller or active))
+        for trigger in waiting:
+            ability = dict(trigger.current_characteristics["ability"])
+            targets = self._choose_trigger_targets(trigger, ability)
+            if trigger.retired:
+                continue
+            hints = dict(trigger.current_characteristics.get("choice_hints", {}))
+            action = Action(
+                self.identity.new_id("action"),
+                "TRIGGER",
+                trigger.controller or "",
+                trigger.source_object_id,
+                targets,
+                (),
+                0,
+                {},
+                {
+                    "ability_id": ability["ability_id"],
+                    "target_schema": dict(ability.get("target_schema", {})),
+                    # The core resolver historically used this flag to suppress an
+                    # optional effect before resolution. Keep it true here and make
+                    # the actual choice in _apply_effect at the rules-defined time.
+                    "optional_selected": True,
+                    "optional_effect": bool(ability.get("optional")),
+                    "choices": hints,
+                },
+            )
+            self.state.actions.append(action)
+            event = self._event("TRIGGER_PUT_ON_STACK", action)
+            trigger.zone = Zone.STACK
+            trigger.created_by_event_id = event.event_id
+            self.zones.register(trigger)
+            self.state.pending_actions.append(action.action_id)
+        if self.state.stack:
+            self.state.turn.priority_holder_id = self.state.turn.active_player_id
+            self.state.turn.consecutive_priority_passes = 0
+
     def _choose_copy_targets(
         self,
         source: GameObject | None,
@@ -101,23 +180,18 @@ class HardenedGameExecutor(_CoreGameExecutor):
             tuple(TargetRef(candidate.object_id) for candidate in selected)
             for selected in combinations(candidates, count)
         )
-        if not legal_sets:
-            return None, None
         request_id = self.identity.new_id("strategic-request")
         handles = {
-            candidate.object_id: self._strategic_handle(request_id, candidate.object_id)
-            for candidate in candidates
+            object_id: self._strategic_handle(request_id, object_id)
+            for object_id in {
+                *(candidate.object_id for candidate in candidates),
+                *(target.object_id for target in original_action.targets),
+            }
         }
         legal_handle_sets = tuple(
             tuple(handles[target.object_id] for target in targets) for targets in legal_sets
         )
-        original_handles = tuple(
-            handles[target.object_id]
-            for target in original_action.targets
-            if target.object_id in handles
-        )
-        if len(original_handles) != len(original_action.targets):
-            raise IllegalAction("original copy targets are no longer legal")
+        original_handles = tuple(handles[target.object_id] for target in original_action.targets)
         source_identity = ""
         if source is not None and source.source_object_id:
             source_object = self.state.objects.get(source.source_object_id)
@@ -152,20 +226,93 @@ class HardenedGameExecutor(_CoreGameExecutor):
                 legal_target_sets=legal_handle_sets,
             )
         )
-        if selection.target_handles not in legal_handle_sets:
-            raise IllegalAction("strategic provider selected an illegal copy target set")
+        retaining_original = selection.target_handles == original_handles
+        if not retaining_original and selection.target_handles not in legal_handle_sets:
+            raise IllegalAction("strategic provider selected an illegal new copy target set")
         objects_by_handle = {handles[obj.object_id]: obj for obj in candidates}
-        selected_targets = tuple(
-            TargetRef(objects_by_handle[handle].object_id) for handle in selection.target_handles
-        )
+        selected_targets: tuple[TargetRef, ...] | None
+        if retaining_original:
+            selected_targets = None
+        else:
+            selected_targets = tuple(
+                TargetRef(objects_by_handle[handle].object_id) for handle in selection.target_handles
+            )
         record = {
             "target_handles": list(selection.target_handles),
             "evaluator_id": selection.evaluator_id,
             "evaluator_sha256": selection.evaluator_sha256,
             "diagnostics": dict(selection.diagnostics),
             "chosen_at": "RESOLUTION",
+            "retained_original_targets": retaining_original,
         }
         return selected_targets, record
+
+    def _optional_trigger_selected(
+        self,
+        source: GameObject,
+        action: Action,
+        effect: dict[str, Any],
+        choices: dict[str, Any],
+    ) -> bool:
+        ability = dict(source.current_characteristics.get("ability", {}))
+        ability_id = str(ability.get("ability_id", ""))
+        effect_kind = str(effect.get("kind", "NONE"))
+        actor = action.actor_id
+        explicit = dict(choices.get("optional", {}))
+        selected_record: dict[str, Any]
+        if ability_id in explicit:
+            take = bool(explicit[ability_id])
+            selected_record = {
+                "actor_id": actor,
+                "ability_id": ability_id,
+                "effect_kind": effect_kind,
+                "take": take,
+                "decision_source": "EXPLICIT_ACTION_CHOICE",
+                "chosen_at": "RESOLUTION",
+            }
+        else:
+            provider = require_provider(
+                self.strategic_choice_provider,
+                "optional triggered-effect selection",
+            )
+            selection = provider.choose_optional_trigger(
+                OptionalTriggerRequest(
+                    request_id=self.identity.new_id("strategic-request"),
+                    actor_id=actor,
+                    ability_id=ability_id,
+                    effect_kind=effect_kind,
+                    turn_number=self.state.turn.number,
+                    observation=self._strategic_observation(actor),
+                )
+            )
+            take = selection.take
+            selected_record = {
+                "actor_id": actor,
+                "ability_id": ability_id,
+                "effect_kind": effect_kind,
+                "take": take,
+                "decision_source": "STRATEGIC_PROVIDER",
+                "evaluator_id": selection.evaluator_id,
+                "evaluator_sha256": selection.evaluator_sha256,
+                "diagnostics": dict(selection.diagnostics),
+                "chosen_at": "RESOLUTION",
+            }
+        choice_event = self._event(
+            "OPTIONAL_TRIGGER_CHOICE",
+            action,
+            ability_id=ability_id,
+            selected=take,
+        )
+        self.state.choices.append(
+            Choice(
+                self.identity.new_id("choice"),
+                actor,
+                "OPTIONAL_TRIGGER",
+                selected_record,
+                choice_event.event_id,
+            )
+        )
+        return take
 
     def _apply_effect(
         self,
@@ -175,6 +322,12 @@ class HardenedGameExecutor(_CoreGameExecutor):
         targets: list[GameObject],
         choices: dict[str, Any],
     ) -> None:
+        if source is not None and source.object_kind is ObjectKind.TRIGGERED_ABILITY:
+            ability = dict(source.current_characteristics.get("ability", {}))
+            if ability.get("optional") and not self._optional_trigger_selected(
+                source, action, effect, choices
+            ):
+                return
         if str(effect.get("kind", "NONE")) != "CREATE_SPELL_COPY" or not targets:
             super()._apply_effect(source, action, effect, targets, choices)
             return
@@ -212,7 +365,11 @@ class HardenedGameExecutor(_CoreGameExecutor):
         original_action = self._created_action(original)
         targets = new_targets if new_targets is not None else original_action.targets
         schema = dict(original_action.metadata.get("target_schema", {}))
-        self._validate_targets(controller, targets, schema)
+        # Rule 707.10c allows unchanged copied targets to remain even when they
+        # are illegal. Only targets that are actually changed are chosen anew and
+        # therefore must pass target legality at copy creation.
+        if new_targets is not None:
+            self._validate_targets(controller, targets, schema)
         choice_event = self._event("COPY_TARGET_DECISION", cause_action)
         selected_choice: Any
         if choice_record is not None:
