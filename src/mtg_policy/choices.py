@@ -330,7 +330,10 @@ class PolicyStrategicChoiceProvider:
                 )
             selected, loop_diagnostics = _dualcaster_loop_selection(request)
             diagnostics.update(loop_diagnostics)
-        if selected != request.original_target_handles and selected not in request.legal_target_sets:
+        if (
+            selected != request.original_target_handles
+            and selected not in request.legal_target_sets
+        ):
             raise ValueError("policy selected a copy target set outside the legal choices")
         return SpellCopyTargetSelection(
             selected,
