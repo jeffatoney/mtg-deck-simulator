@@ -252,11 +252,16 @@ def apply_effect_common(
     if kind == "UNTAP_ATTACHED":
         aura = _source_permanent(self, source, action)
         if aura.attached_to_ref is None:
-            raise IllegalAction("Aura is not attached")
-        attached = self.identity.resolve_reference(aura.attached_to_ref)
-        if not isinstance(attached, GameObject):
-            raise IllegalAction("attached object is unavailable")
-        _untap(self, [attached], action)
+            return True
+        try:
+            attached = self.identity.resolve_reference(aura.attached_to_ref)
+        except IllegalAction:
+            # The formerly enchanted object left its expected zone. The resolving
+            # ability still exists independently of Crab Umbra (rule 113.7a), but
+            # there is no current permanent for the untap instruction to affect.
+            return True
+        if isinstance(attached, GameObject):
+            _untap(self, [attached], action)
         return True
 
     return False
