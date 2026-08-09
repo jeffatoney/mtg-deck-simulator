@@ -26,6 +26,20 @@ def test_diagnostic_workflow_is_non_authorized_and_does_not_fail_fast() -> None:
     assert "if: always()" in text
 
 
+def test_diagnostic_workflow_validates_input_and_certification_provenance() -> None:
+    text = WORKFLOW.read_text(encoding="utf-8")
+    assert "actions: read" in text
+    assert "Require exact commit input shape" in text
+    assert "^[0-9a-f]{40}$" in text
+    assert text.count("GITHUB_TOKEN: ${{ github.token }}") >= 2
+
+
+def test_diagnostic_aggregate_requires_successful_preflight_but_runs_after_shard_failure() -> None:
+    text = WORKFLOW.read_text(encoding="utf-8")
+    assert "needs: [preflight, shards]" in text
+    assert "if: ${{ always() && needs.preflight.result == 'success' }}" in text
+
+
 def test_diagnostic_workflow_requires_fresh_production_path_and_forbids_pilot_roots() -> None:
     text = WORKFLOW.read_text(encoding="utf-8")
     source = SOURCE.read_text(encoding="utf-8")

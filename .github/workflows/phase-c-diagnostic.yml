@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   preflight:
@@ -19,6 +20,14 @@ jobs:
     steps:
       - name: Require dispatch from main
         run: test "${GITHUB_REF}" = "refs/heads/main"
+      - name: Require exact commit input shape
+        env:
+          IMPLEMENTATION_COMMIT: ${{ inputs.implementation_commit }}
+        run: |
+          if [[ ! "${IMPLEMENTATION_COMMIT}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "implementation_commit must contain only one exact 40-character lowercase Git SHA" >&2
+            exit 1
+          fi
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -56,8 +65,12 @@ jobs:
       - name: Clean engine boundary
         run: uv run python scripts/check_clean_engine_boundary.py
       - name: Durable Phase A certification
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: uv run python scripts/check_phase_a_certification.py
       - name: Durable Phase B certification
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: uv run python scripts/check_phase_b_certification.py
       - name: No-game Phase C readiness check
         run: uv run mtg-engine phase-c-dry-run
@@ -121,8 +134,8 @@ jobs:
           retention-days: 30
 
   aggregate:
-    needs: shards
-    if: always()
+    needs: [preflight, shards]
+    if: ${{ always() && needs.preflight.result == 'success' }}
     runs-on: ubuntu-latest
     env:
       IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
