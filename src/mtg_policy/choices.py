@@ -11,6 +11,8 @@ from mtg_kernel.strategic_choices import (
     CardSelectionRequest,
     FactOrFictionRequest,
     FactOrFictionSelection,
+    OptionalTriggerRequest,
+    OptionalTriggerSelection,
     SpellCopyTargetRequest,
     SpellCopyTargetSelection,
     TutorChoiceRequest,
@@ -200,10 +202,6 @@ class PolicyStrategicChoiceProvider:
             )
             selected = tuple(card.handle for card in ordered)
         elif request.purpose.startswith("TUTOR_"):
-            # Search effects expose only the rules-eligible candidate set through
-            # opaque handles.  Rank those candidates with the same frozen tutor
-            # preference and contextual evaluator used by choose_tutor().  Hidden
-            # object IDs/library positions never cross the policy boundary.
             priority_name = str(self.bundle.value("tutor_priority"))
             priority_order = self.evaluator.config.tutor_priority_orders.get(priority_name, ())
             rank = {name: len(priority_order) - index for index, name in enumerate(priority_order)}
@@ -216,9 +214,6 @@ class PolicyStrategicChoiceProvider:
                     card.handle,
                 ),
             )
-            # A hidden-zone search may legally fail to find when minimum is zero,
-            # but the frozen maximizing policy chooses the best eligible card when
-            # one exists.  Exact-minimum searches (Long-Term Plans) remain exact.
             choose_count = (
                 request.minimum if request.minimum == request.maximum else request.maximum
             )
@@ -335,13 +330,30 @@ class PolicyStrategicChoiceProvider:
                 )
             selected, loop_diagnostics = _dualcaster_loop_selection(request)
             diagnostics.update(loop_diagnostics)
-        if selected not in request.legal_target_sets:
+        if selected != request.original_target_handles and selected not in request.legal_target_sets:
             raise ValueError("policy selected a copy target set outside the legal choices")
         return SpellCopyTargetSelection(
             selected,
             self.evaluator_id,
             self.evaluator_sha256,
             diagnostics,
+        )
+
+    def choose_optional_trigger(self, request: OptionalTriggerRequest) -> OptionalTriggerSelection:
+        if request.effect_kind != "DRAW":
+            raise UnsupportedCapability(
+                f"optional trigger policy is unsupported for effect: {request.effect_kind}"
+            )
+        return OptionalTriggerSelection(
+            True,
+            self.evaluator_id,
+            self.evaluator_sha256,
+            {
+                "policy_config_id": self.bundle.policy_config_id,
+                "strategy": "TAKE_SUPPORTED_OPTIONAL_DRAW",
+                "ability_id": request.ability_id,
+                "effect_kind": request.effect_kind,
+            },
         )
 
 
