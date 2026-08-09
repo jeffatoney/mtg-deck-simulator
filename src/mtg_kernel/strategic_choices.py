@@ -273,9 +273,7 @@ class RecordedStrategicChoiceProvider:
             raise ReplayError("recorded copy target set is not legal in replay")
         return SpellCopyTargetSelection(handles, evaluator_id, evaluator_sha, diagnostics)
 
-    def choose_optional_trigger(
-        self, request: OptionalTriggerRequest
-    ) -> OptionalTriggerSelection:
+    def choose_optional_trigger(self, request: OptionalTriggerRequest) -> OptionalTriggerSelection:
         if not self._optional_triggers:
             raise ReplayError("replay transcript omits a recorded optional-trigger choice")
         recorded = self._optional_triggers.pop(0)
