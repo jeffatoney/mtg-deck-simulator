@@ -164,3 +164,15 @@ def test_vedalken_aethermage_executes_entry_bounce_and_wizardcycling() -> None:
         owner="P0",
     )
     assert any(event.kind == "LIBRARY_SHUFFLED" for event in cycle_state.events)
+
+
+def test_vedalken_aethermage_mandatory_trigger_is_removed_without_legal_sliver() -> None:
+    state, executor, specs = funded_game("runtime-seventeen-aethermage-no-sliver")
+    card = add_card(executor, specs["Vedalken Aethermage"], Zone.HAND)
+
+    executor.cast("P0", card.object_id)
+    pass_all(executor)
+
+    assert not state.stack
+    assert active_objects(state, name="Vedalken Aethermage", zone=Zone.BATTLEFIELD)
+    assert any(event.kind == "TRIGGER_REMOVED_NO_LEGAL_TARGETS" for event in state.events)

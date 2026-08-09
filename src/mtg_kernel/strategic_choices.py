@@ -115,6 +115,29 @@ class SpellCopyTargetSelection:
     diagnostics: Mapping[str, Any]
 
 
+@dataclass(frozen=True)
+class CounterPaymentRequest:
+    request_id: str
+    actor_id: str
+    ability_id: str
+    turn_number: int
+    observation: Mapping[str, Any]
+    amount: int
+    can_pay_from_pool: bool
+
+    def __post_init__(self) -> None:
+        if self.amount < 0:
+            raise ValueError("counter-payment amount cannot be negative")
+
+
+@dataclass(frozen=True)
+class CounterPaymentSelection:
+    pay: bool
+    evaluator_id: str
+    evaluator_sha256: str
+    diagnostics: Mapping[str, Any]
+
+
 class StrategicChoiceProvider(Protocol):
     """Observation-only policy interface called at rules-defined choice times."""
 
@@ -127,6 +150,8 @@ class StrategicChoiceProvider(Protocol):
     def choose_spell_copy_targets(
         self, request: SpellCopyTargetRequest
     ) -> SpellCopyTargetSelection: ...
+
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection: ...
 
 
 class RecordedStrategicChoiceProvider:
@@ -156,6 +181,12 @@ class RecordedStrategicChoiceProvider:
             if str(choice.get("kind")) == "COPY_TARGETS"
             and isinstance(choice.get("selected"), Mapping)
             and "target_handles" in choice.get("selected", {})
+        ]
+        self._counter_payments = [
+            dict(choice)
+            for choice in choices
+            if str(choice.get("kind")) == "COUNTER_UNLESS_PAY"
+            and isinstance(choice.get("selected"), Mapping)
         ]
 
     @staticmethod
@@ -244,6 +275,25 @@ class RecordedStrategicChoiceProvider:
         if handles not in request.legal_target_sets:
             raise ReplayError("recorded copy target set is not legal in replay")
         return SpellCopyTargetSelection(handles, evaluator_id, evaluator_sha, diagnostics)
+
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection:
+        if not self._counter_payments:
+            raise ReplayError("replay transcript omits a recorded counter-payment decision")
+        recorded = self._counter_payments.pop(0)
+        selected = recorded.get("selected")
+        if not isinstance(selected, Mapping):
+            raise ReplayError("recorded counter-payment decision is malformed")
+        if str(selected.get("player_id", "")) != request.actor_id:
+            raise ReplayError("recorded counter-payment actor differs in replay")
+        if int(selected.get("amount", -1)) != request.amount:
+            raise ReplayError("recorded counter-payment amount differs in replay")
+        pay = selected.get("pay")
+        if not isinstance(pay, bool):
+            raise ReplayError("recorded counter-payment decision omits a boolean pay value")
+        if pay and not request.can_pay_from_pool:
+            raise ReplayError("recorded counter payment is not legal from the replay mana pool")
+        evaluator_id, evaluator_sha, diagnostics = self._metadata(selected)
+        return CounterPaymentSelection(pay, evaluator_id, evaluator_sha, diagnostics)
 
 
 def require_provider(

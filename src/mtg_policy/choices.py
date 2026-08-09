@@ -9,6 +9,8 @@ from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.strategic_choices import (
     CardSelection,
     CardSelectionRequest,
+    CounterPaymentRequest,
+    CounterPaymentSelection,
     FactOrFictionRequest,
     FactOrFictionSelection,
     SpellCopyTargetRequest,
@@ -200,10 +202,6 @@ class PolicyStrategicChoiceProvider:
             )
             selected = tuple(card.handle for card in ordered)
         elif request.purpose.startswith("TUTOR_"):
-            # Search effects expose only the rules-eligible candidate set through
-            # opaque handles.  Rank those candidates with the same frozen tutor
-            # preference and contextual evaluator used by choose_tutor().  Hidden
-            # object IDs/library positions never cross the policy boundary.
             priority_name = str(self.bundle.value("tutor_priority"))
             priority_order = self.evaluator.config.tutor_priority_orders.get(priority_name, ())
             rank = {name: len(priority_order) - index for index, name in enumerate(priority_order)}
@@ -216,9 +214,6 @@ class PolicyStrategicChoiceProvider:
                     card.handle,
                 ),
             )
-            # A hidden-zone search may legally fail to find when minimum is zero,
-            # but the frozen maximizing policy chooses the best eligible card when
-            # one exists.  Exact-minimum searches (Long-Term Plans) remain exact.
             choose_count = (
                 request.minimum if request.minimum == request.maximum else request.maximum
             )
@@ -342,6 +337,20 @@ class PolicyStrategicChoiceProvider:
             self.evaluator_id,
             self.evaluator_sha256,
             diagnostics,
+        )
+
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection:
+        pay = request.can_pay_from_pool
+        return CounterPaymentSelection(
+            pay,
+            self.evaluator_id,
+            self.evaluator_sha256,
+            {
+                "policy_config_id": self.bundle.policy_config_id,
+                "strategy": "PAY_IF_CURRENT_POOL_CAN_PAY",
+                "amount": request.amount,
+                "can_pay_from_pool": request.can_pay_from_pool,
+            },
         )
 
 

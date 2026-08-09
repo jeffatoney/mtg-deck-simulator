@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
 from mtg_kernel.errors import UnsupportedCapability
@@ -16,9 +17,26 @@ if TYPE_CHECKING:
 
 
 class PolicyStrategicChoiceProvider(_BaseProvider):
-    """Extend the frozen provider to rules-defined mandatory trigger targets."""
+    """Extend the frozen provider to exact-deck trigger and actor-owned choices."""
 
     def choose_cards(self, request: CardSelectionRequest) -> CardSelection:
+        if request.purpose in {"PRISMARI_DISCARD", "RETURN_CONTROLLED_LAND"}:
+            delegated = super().choose_cards(replace(request, purpose="DISCARD"))
+            diagnostics = dict(delegated.diagnostics)
+            diagnostics.update(
+                {
+                    "purpose": request.purpose,
+                    "delegated_purpose": "DISCARD",
+                    "actor_id": request.actor_id,
+                }
+            )
+            return CardSelection(
+                delegated.selected_handles,
+                delegated.evaluator_id,
+                delegated.evaluator_sha256,
+                diagnostics,
+            )
+
         if not request.purpose.startswith("TRIGGER_TARGET:"):
             return super().choose_cards(request)
         if request.minimum != 1 or request.maximum != 1 or not request.candidates:
@@ -60,7 +78,7 @@ class PolicyStrategicChoiceProvider(_BaseProvider):
                     key=lambda card: (evaluations[card.handle], card.identity, card.handle),
                 )
                 strategy = "LOWEST_VALUE_LEGAL_TARGET"
-        elif effect_kind in {"RETURN_CONTROLLED_LAND", "EXILE_TARGET"}:
+        elif effect_kind in {"BOUNCE_TARGET", "RETURN_CONTROLLED_LAND", "EXILE_TARGET"}:
             chosen = min(
                 request.candidates,
                 key=lambda card: (evaluations[card.handle], card.identity, card.handle),
@@ -103,7 +121,7 @@ def bind_policy_strategic_choices(
     bundle: PolicyBundle,
     evaluator: ContextualEvaluator,
 ) -> PolicyStrategicChoiceProvider:
-    """Bind the frozen policy plus trigger-target extension to one executor."""
+    """Bind the frozen policy plus exact-deck extensions to one executor."""
 
     provider = PolicyStrategicChoiceProvider(bundle, evaluator)
     executor.bind_strategic_choice_provider(provider)

@@ -33,6 +33,25 @@ class ActionBroker(_CoreActionBroker):
                 merged[key] = value
         return merged
 
+    def _land_choice_variants(self, obj: GameObject) -> tuple[dict[str, Any], ...]:
+        """Keep reveal-or-enter-tapped decline explicit at the broker boundary."""
+
+        variants = super()._land_choice_variants(obj)
+        requires_reveal_choice = any(
+            isinstance(ability, dict)
+            and ability.get("kind") == "REPLACEMENT"
+            and ability.get("event") == "ENTERS_BATTLEFIELD"
+            and isinstance(ability.get("effect"), dict)
+            and ability["effect"].get("kind") == "REVEAL_OR_ENTER_TAPPED"
+            for ability in obj.current_characteristics.get("abilities", ())
+        )
+        if not requires_reveal_choice:
+            return variants
+        return tuple(
+            variant if "reveal_object_id" in variant else {**variant, "reveal_object_id": None}
+            for variant in variants
+        )
+
     def _entry_trigger_choice_variants(
         self, obj: GameObject
     ) -> tuple[tuple[dict[str, Any], dict[str, Any]], ...]:

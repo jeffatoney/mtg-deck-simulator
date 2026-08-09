@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/mtg/interaction-record-v1.schema.json",
+  "title": "MTG interaction coverage record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id",
+    "record_class",
+    "card",
+    "effect",
+    "event",
+    "choices",
+    "legality",
+    "authority",
+    "implementation",
+    "evidence",
+    "status"
+  ],
+  "properties": {
+    "record_id": {"type": "string", "minLength": 1},
+    "record_class": {"enum": ["CARD_COMPOSITION", "CARD_EFFECT", "GLOBAL_RULE"]},
+    "card": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "oracle_id",
+            "oracle_record_sha256",
+            "composition_status",
+            "ability_id",
+            "ability_kind",
+            "behavior_index"
+          ],
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "oracle_id": {"type": "string", "minLength": 1},
+            "oracle_record_sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+            "composition_status": {"const": "REVIEWED_COMPOSITION"},
+            "ability_id": {"type": "string", "minLength": 1},
+            "ability_kind": {"type": "string", "minLength": 1},
+            "behavior_index": {
+              "type": "integer",
+              "minimum": -1,
+              "description": "Zero-based behavior index, or -1 for the card-wide Oracle composition guard."
+            }
+          }
+        }
+      ]
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "kind", "parameters_sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "kind": {"type": "string", "minLength": 1},
+        "parameters_sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "choice_stage"],
+      "properties": {
+        "kind": {"type": "string", "minLength": 1},
+        "choice_stage": {
+          "enum": [
+            "CAST_PROPOSAL",
+            "ACTIVATION_PROPOSAL",
+            "COST_PAYMENT",
+            "TRIGGER_STACKING",
+            "RESOLUTION",
+            "REPLACEMENT_APPLICATION",
+            "SPECIAL_ACTION",
+            "TURN_BASED_ACTION",
+            "STATE_BASED_ACTION",
+            "PRIORITY_WINDOW",
+            "CONTINUOUS"
+          ]
+        }
+      }
+    },
+    "choices": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/choice"}
+    },
+    "legality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_sha256", "target_schema"],
+      "properties": {
+        "contract_sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "target_schema": {"type": ["object", "null"]}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["oracle_source", "rules_refs"],
+      "properties": {
+        "oracle_source": {"type": "string", "minLength": 1},
+        "rules_refs": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    },
+    "implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engine_handler", "policy_handler", "replay_handler"],
+      "properties": {
+        "engine_handler": {"type": ["string", "null"]},
+        "policy_handler": {"type": ["string", "null"]},
+        "replay_handler": {"type": ["string", "null"]}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["positive_tests", "negative_tests", "fresh_replay_tests"],
+      "properties": {
+        "positive_tests": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "negative_tests": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "fresh_replay_tests": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "status": {"enum": ["UNMAPPED", "MAPPED", "IMPLEMENTED", "PROVEN"]}
+  },
+  "$defs": {
+    "choice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "purpose",
+        "timing",
+        "actor",
+        "legality_owner",
+        "policy_class",
+        "replay_required",
+        "rules_refs"
+      ],
+      "properties": {
+        "purpose": {"type": "string", "minLength": 1},
+        "timing": {
+          "enum": [
+            "CAST_PROPOSAL",
+            "ACTIVATION_PROPOSAL",
+            "COST_PAYMENT",
+            "TRIGGER_STACKING",
+            "RESOLUTION",
+            "REPLACEMENT_APPLICATION",
+            "SPECIAL_ACTION",
+            "TURN_BASED_ACTION",
+            "STATE_BASED_ACTION",
+            "PRIORITY_WINDOW"
+          ]
+        },
+        "actor": {
+          "enum": [
+            "CONTROLLER",
+            "OWNER",
+            "TARGET_PLAYER",
+            "TARGET_CONTROLLER",
+            "AFFECTED_PLAYER",
+            "AFFECTED_PLAYER_OR_PERMANENT_CONTROLLER",
+            "OPPONENT_POLICY",
+            "ACTIVE_PLAYER",
+            "NONACTIVE_PLAYER",
+            "PRIORITY_HOLDER",
+            "RULES_DETERMINED"
+          ]
+        },
+        "legality_owner": {
+          "enum": [
+            "ENGINE_SHARED_VALIDATOR",
+            "ENGINE_TARGET_SCHEMA",
+            "ENGINE_COST_VALIDATOR",
+            "ENGINE_RESOLUTION_VALIDATOR",
+            "ENGINE_REPLACEMENT_VALIDATOR",
+            "ENGINE_SPECIAL_ACTION_VALIDATOR",
+            "ENGINE_TURN_BASED_ACTION_VALIDATOR",
+            "ENGINE_STATE_BASED_ACTION_VALIDATOR"
+          ]
+        },
+        "policy_class": {
+          "enum": [
+            "NONE",
+            "STRATEGIC_WHEN_MULTIPLE",
+            "ACTOR_POLICY",
+            "MANDATORY_DETERMINISTIC",
+            "OPPONENT_MINIMIZING"
+          ]
+        },
+        "replay_required": {"type": "boolean"},
+        "rules_refs": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

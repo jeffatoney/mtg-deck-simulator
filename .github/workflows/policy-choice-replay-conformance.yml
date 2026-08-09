@@ -1,0 +1,50 @@
+name: Policy Choice Replay Conformance
+
+on:
+  pull_request:
+    paths:
+      - "automation/strategic-choice-conformance.json"
+      - "automation/interaction-choice-contracts.json"
+      - "automation/interaction-coverage-lock.json"
+      - "scripts/audit_policy_choice_replay_conformance.py"
+      - "scripts/build_interaction_coverage_manifest.py"
+      - "src/mtg_kernel/**"
+      - "src/mtg_policy/**"
+      - "src/mtg_runs/phase_c_runner.py"
+      - "tests/interaction_coverage/**"
+      - ".github/workflows/policy-choice-replay-conformance.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install project
+        run: python -m pip install -e ".[dev]"
+      - name: Run Agent C audit
+        id: audit
+        continue-on-error: true
+        run: >-
+          python scripts/audit_policy_choice_replay_conformance.py
+          --output agent-c-conformance.json
+      - name: Upload Agent C report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-c-policy-choice-replay-conformance
+          path: agent-c-conformance.json
+          if-no-files-found: warn
+      - name: Run Agent C structural tests
+        run: pytest -q tests/interaction_coverage/test_policy_choice_replay_conformance.py
+      - name: Enforce Agent C audit result
+        if: always() && steps.audit.outcome == 'failure'
+        run: |
+          cat agent-c-conformance.json
+          exit 1

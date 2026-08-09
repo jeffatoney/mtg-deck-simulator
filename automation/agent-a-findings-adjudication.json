@@ -1,0 +1,154 @@
+{
+  "agent_a_artifact_sha256": "sha256:212b58f87e0b3082d0851becbf63b8c4298bb11338da33a4cbf6b303e12db90b",
+  "base_main_commit": "20b94f46038251d5fb2d56389d953c1e9d01b68b",
+  "coordinator_candidate_head": "0a6e90d6a0346b837986bfe54ac5e676f22bd5c4",
+  "findings": [
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Izzet Boilerworks",
+      "disposition": "ACCEPTED",
+      "id": "A-BLOCK-001",
+      "implementation_status": "PENDING",
+      "required_change": "Replace target schema with no target and add explicit RESOLUTION land-selection choice.",
+      "severity": "BLOCKING_COMPOSITION"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Sentinel Totem",
+      "disposition": "ACCEPTED",
+      "id": "A-BLOCK-002",
+      "implementation_status": "PENDING",
+      "required_change": "Represent self-exile as a cost and preserve zone/object identity accordingly.",
+      "severity": "BLOCKING_COMPOSITION"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Scavenger Grounds",
+      "disposition": "ACCEPTED",
+      "id": "A-BLOCK-003",
+      "implementation_status": "PENDING",
+      "required_change": "Use one sacrifice-permanent cost with subtype Desert; allow the source itself to be chosen.",
+      "severity": "BLOCKING_COMPOSITION"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Vedalken Aethermage",
+      "disposition": "ACCEPTED",
+      "id": "A-BLOCK-004",
+      "implementation_status": "PENDING",
+      "required_change": "Target schema must be exactly 1 when a legal Sliver exists; if none exists, triggered ability is removed when stacked per 603.3d.",
+      "severity": "BLOCKING_COMPOSITION"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Prismari Command",
+      "disposition": "ACCEPTED",
+      "id": "A-BLOCK-005",
+      "implementation_status": "PENDING",
+      "required_change": "Create role-specific mode target slots, exact two selected modes, per-target-word uniqueness, target-player actor, and actor vocabulary/schema support.",
+      "severity": "BLOCKING_SURFACE"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Reality Shift",
+      "disposition": "ACCEPTED",
+      "id": "A-BLOCK-006",
+      "implementation_status": "PENDING",
+      "required_change": "Use contextual affected/manifested-permanent controller actor.",
+      "severity": "BLOCKING_SURFACE"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Fact or Fiction",
+      "disposition": "ACCEPTED",
+      "id": "A-BLOCK-007",
+      "implementation_status": "PENDING",
+      "required_change": "Add CHOOSE_OPPONENT_FOR_SPLIT at RESOLUTION, then chosen-opponent split, then controller pile choice.",
+      "severity": "BLOCKING_SURFACE"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Ash Barrens / Dizzy Spell / Drift of Phantasms / Muddle the Mixture / Rebuild / Step Through / Vedalken Aethermage",
+      "disposition": "ACCEPTED",
+      "id": "A-BLOCK-008",
+      "implementation_status": "PENDING",
+      "required_change": "Distinguish FIXED_SELF_DISCARD from strategic DISCARD_CARD_SELECTION; Glint-Horn remains a genuine discard-card identity choice.",
+      "severity": "BLOCKING_SURFACE"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Arcane Denial / Twinflame / Electroduplicate",
+      "disposition": "ACCEPTED",
+      "id": "A-BLOCK-009",
+      "implementation_status": "PENDING",
+      "required_change": "Emit distinct trigger/event records with ordering, actor, replay, and copy semantics.",
+      "severity": "BLOCKING_SURFACE"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Electroduplicate",
+      "disposition": "ACCEPTED",
+      "id": "A-BLOCK-010",
+      "implementation_status": "PENDING",
+      "required_change": "Represent the token's added triggered ability in its copiable characteristics and separately prove copies of that token.",
+      "severity": "BLOCKING_COMPOSITION"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "GLOBAL",
+      "disposition": "ACCEPTED",
+      "id": "A-REV-011",
+      "implementation_status": "PENDING",
+      "required_change": "Add explicit global records or show equivalent card-bound records before freezing interaction surface.",
+      "severity": "COORDINATOR_REVISION"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Frostboil Snarl",
+      "disposition": "ACCEPTED",
+      "id": "A-REV-012",
+      "implementation_status": "PENDING",
+      "required_change": "Split decision and revealed-card selection or make one structured choice that records exact revealed object.",
+      "severity": "COORDINATOR_REVISION"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "By Force / Curse of the Swine",
+      "disposition": "ACCEPTED",
+      "id": "A-REV-013",
+      "implementation_status": "PENDING",
+      "required_change": "Encode target-count dependency on X, not independent policy choices.",
+      "severity": "COORDINATOR_REVISION"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Twinflame",
+      "disposition": "ACCEPTED",
+      "id": "A-REV-014",
+      "implementation_status": "PENDING",
+      "required_change": "Encode dependent target-count/cost relationship and copy preservation of that choice.",
+      "severity": "COORDINATOR_REVISION"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Breeches / Malcolm / Wily Goblin / Prismari Command",
+      "disposition": "ACCEPTED",
+      "id": "A-REV-015",
+      "implementation_status": "PENDING",
+      "required_change": "Include generated-object ability records or a globally frozen Treasure token interaction record.",
+      "severity": "COORDINATOR_REVISION"
+    },
+    {
+      "authority": "Agent A inventory bound to Magic Comprehensive Rules 2026-06-19",
+      "card": "Oracle keyword/static surface",
+      "disposition": "ACCEPTED",
+      "id": "A-REV-016",
+      "implementation_status": "PENDING",
+      "required_change": "Make composition evidence explicitly account for keyword/static rules and generated permissions.",
+      "severity": "COORDINATOR_REVISION"
+    }
+  ],
+  "policy": "Rules-governed findings are accepted unless later rejected with explicit Comprehensive Rules authority and direct evidence.",
+  "schema_version": "agent-a-findings-adjudication-v1",
+  "status": "ACCEPTED_PENDING_IMPLEMENTATION"
+}

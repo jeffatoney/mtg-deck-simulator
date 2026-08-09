@@ -6,12 +6,19 @@ from mtg_cards.full_deck import load_full_deck_specs
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.land_actions import play_land
 from mtg_kernel.models import GameObject, Zone
+from mtg_policy import ContextualEvaluator, bind_policy_strategic_choices, load_evaluator_config
+from mtg_policy.config import load_policy_matrix
 
 
 def funded_game(seed: str):
     state, executor = new_game(("P0", "P1"), seed)
     for symbol in ("W", "U", "B", "R", "G", "C"):
         state.players["P0"].mana_pool[symbol] = 30
+    bind_policy_strategic_choices(
+        executor,
+        load_policy_matrix()[0],
+        ContextualEvaluator(load_evaluator_config()),
+    )
     specs = {spec.name: spec for spec in load_full_deck_specs().values()}
     return state, executor, specs
 
@@ -43,12 +50,7 @@ def test_izzet_boilerworks_executes_entry_trigger_and_mana() -> None:
     island = add_card(executor, specs["Island"], Zone.BATTLEFIELD)
     card = add_card(executor, specs["Izzet Boilerworks"], Zone.HAND)
 
-    boilerworks = play_land(
-        executor,
-        "P0",
-        card.object_id,
-        {"trigger_targets": {"boilerworks:etb": island.object_id}},
-    )
+    boilerworks = play_land(executor, "P0", card.object_id)
 
     assert boilerworks.permanent_status is not None
     assert boilerworks.permanent_status["tap"] == "TAPPED"
@@ -56,6 +58,14 @@ def test_izzet_boilerworks_executes_entry_trigger_and_mana() -> None:
     pass_all(executor)
     assert island.retired
     assert active_object(state, "Island").zone is Zone.HAND
+    resolution_choice = next(
+        choice
+        for choice in state.choices
+        if choice.kind == "CARD_SELECTION"
+        and isinstance(choice.selected, dict)
+        and choice.selected.get("purpose") == "RETURN_CONTROLLED_LAND"
+    )
+    assert resolution_choice.selected["chosen_at"] == "RESOLUTION"
 
     boilerworks.permanent_status["tap"] = "UNTAPPED"
     reset_pool(state)
@@ -103,6 +113,15 @@ def test_sentinel_totem_scries_then_exiles_all_graveyards() -> None:
     add_card(executor, specs["Mountain"], Zone.GRAVEYARD, owner="P1")
     executor.activate("P0", totem.object_id, "totem:exile")
     assert totem.retired
+    assert active_object(state, "Sentinel Totem").zone is Zone.EXILE
+    assert not [
+        obj
+        for obj in state.objects.values()
+        if not obj.retired
+        and not obj.ceased_to_exist
+        and obj.current_characteristics.get("name") == "Sentinel Totem"
+        and obj.zone is Zone.GRAVEYARD
+    ]
     pass_all(executor)
 
     assert not [

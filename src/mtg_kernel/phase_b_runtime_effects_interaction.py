@@ -12,6 +12,7 @@ from mtg_kernel.phase_b_runtime_helpers import (
     _mark_eot_original,
     _spell_satisfies,
 )
+from mtg_kernel.strategic_choices import CounterPaymentRequest, require_provider
 
 
 def _resolve_counter_unless_pay(
@@ -30,18 +31,49 @@ def _resolve_counter_unless_pay(
     if payer is None or payer not in self.state.players:
         raise IllegalAction("counter-unless-pay target has no available controller")
 
-    raw_decision = choices.get("counter_payment")
-    if not isinstance(raw_decision, dict):
-        raise IllegalAction("counter-unless-pay requires an explicit controller payment decision")
-    if raw_decision.get("player_id") != payer:
-        raise IllegalAction("counter payment decision must be anchored to the target controller")
-    pay = raw_decision.get("pay")
-    if not isinstance(pay, bool):
-        raise IllegalAction("counter payment decision must record a boolean pay value")
-
     amount = action.x_value if effect.get("amount_from_x") else int(effect.get("amount", 0))
     if amount < 0:
         raise IllegalAction("counter payment amount cannot be negative")
+
+    raw_decision = choices.get("counter_payment")
+    evaluator_id = "explicit-action-choice"
+    evaluator_sha256 = "0" * 64
+    diagnostics: dict[str, Any] = {"source": "EXPLICIT_ACTION_CHOICE"}
+    if raw_decision is not None:
+        if not isinstance(raw_decision, dict):
+            raise IllegalAction("counter-unless-pay payment decision is malformed")
+        if raw_decision.get("player_id") != payer:
+            raise IllegalAction(
+                "counter payment decision must be anchored to the target controller"
+            )
+        pay = raw_decision.get("pay")
+        if not isinstance(pay, bool):
+            raise IllegalAction("counter payment decision must record a boolean pay value")
+    else:
+        pool = self.state.players[payer].mana_pool
+        can_pay_from_pool = (
+            sum(int(pool.get(symbol, 0)) for symbol in ("W", "U", "B", "R", "G", "C")) >= amount
+        )
+        request = CounterPaymentRequest(
+            request_id=self.identity.new_id("strategic-request"),
+            actor_id=payer,
+            ability_id=str(action.metadata.get("ability_id", "")),
+            turn_number=self.state.turn.number,
+            observation=self._strategic_observation(payer),
+            amount=amount,
+            can_pay_from_pool=can_pay_from_pool,
+        )
+        provider = require_provider(
+            getattr(self, "strategic_choice_provider", None),
+            "counter-unless-pay resolution decision",
+        )
+        selection = provider.choose_counter_payment(request)
+        pay = selection.pay
+        evaluator_id = selection.evaluator_id
+        evaluator_sha256 = selection.evaluator_sha256
+        diagnostics = dict(selection.diagnostics)
+        if pay and not can_pay_from_pool:
+            raise IllegalAction("strategic provider selected an unavailable counter payment")
 
     payment: dict[str, int] = {}
     if pay:
@@ -62,10 +94,15 @@ def _resolve_counter_unless_pay(
             payer,
             "COUNTER_UNLESS_PAY",
             {
+                "player_id": payer,
                 "pay": pay,
                 "amount": amount,
                 "payment": payment,
                 "target_object_id": target.object_id,
+                "evaluator_id": evaluator_id,
+                "evaluator_sha256": evaluator_sha256,
+                "diagnostics": diagnostics,
+                "chosen_at": "RESOLUTION",
             },
             decision_event.event_id,
         )
@@ -115,7 +152,7 @@ def apply_effect_interaction(
 
     if kind == "MODIFY_POWER_TOUGHNESS":
         if len(targets) != 1:
-            raise IllegalAction("power/toughness effect requires one target")
+            raise IllegalAction("power/toughness modification requires one target")
         target = targets[0]
         power = target.current_characteristics.get("power")
         toughness = target.current_characteristics.get("toughness")

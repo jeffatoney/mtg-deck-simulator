@@ -113,7 +113,12 @@ def test_scavenger_grounds_executes_mana_and_graveyard_exile_modes() -> None:
     add_card(executor, specs["Opt"], Zone.GRAVEYARD)
     add_card(executor, specs["Mountain"], Zone.GRAVEYARD, owner="P1")
 
-    executor.activate("P0", grounds.object_id, "grounds:exile")
+    executor.activate(
+        "P0",
+        grounds.object_id,
+        "grounds:exile",
+        choices={"sacrifice_permanent_object_id": grounds.object_id},
+    )
     assert grounds.retired
     pass_all(executor)
 

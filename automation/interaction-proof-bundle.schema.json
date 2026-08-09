@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/mtg/interaction-proof-bundle-v1.schema.json",
+  "title": "MTG interaction proof bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface_sha256",
+    "slice_id",
+    "assigned_record_ids",
+    "records"
+  ],
+  "properties": {
+    "schema_version": {"const": "interaction-proof-bundle-v1"},
+    "surface_sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "slice_id": {"type": "string", "minLength": 1},
+    "assigned_record_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "https://example.invalid/mtg/interaction-record-v1.schema.json"}
+    }
+  }
+}
