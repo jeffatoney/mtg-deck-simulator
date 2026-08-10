@@ -184,6 +184,7 @@ class RecordedStrategicChoiceProvider:
             for choice in choices
             if str(choice.get("kind")) == "OPTIONAL_TRIGGER"
             and isinstance(choice.get("selected"), Mapping)
+            and str(choice["selected"].get("decision_source", "")) == "STRATEGIC_PROVIDER"
         ]
 
     @staticmethod
