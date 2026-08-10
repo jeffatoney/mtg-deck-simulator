@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 DUALCASTER_LOOP_ADJUDICATOR = "VISIBLE_LIFE_AND_BLOCKER_RESERVE_V1"
 MAX_DUALCASTER_LOOP_TOKENS = 512
 _SUPPORTED_DUALCASTER_LOOP_MODES = frozenset({"FAIL_CLOSED_UNTIL_DETERMINISTIC_LOOP_ADJUDICATOR"})
+_SUPPORTED_OPTIONAL_TRIGGERS = frozenset({("curiosity:damage", "DRAW")})
 
 
 def dualcaster_loop_adjudication_supported(config: EvaluatorConfig) -> bool:
@@ -343,9 +344,10 @@ class PolicyStrategicChoiceProvider:
         )
 
     def choose_optional_trigger(self, request: OptionalTriggerRequest) -> OptionalTriggerSelection:
-        if request.effect_kind != "DRAW":
+        if (request.ability_id, request.effect_kind) not in _SUPPORTED_OPTIONAL_TRIGGERS:
             raise UnsupportedCapability(
-                f"optional trigger policy is unsupported for effect: {request.effect_kind}"
+                "optional trigger policy is unsupported for ability/effect: "
+                f"{request.ability_id}/{request.effect_kind}"
             )
         return OptionalTriggerSelection(
             True,
@@ -353,7 +355,7 @@ class PolicyStrategicChoiceProvider:
             self.evaluator_sha256,
             {
                 "policy_config_id": self.bundle.policy_config_id,
-                "strategy": "TAKE_SUPPORTED_OPTIONAL_DRAW",
+                "strategy": "TAKE_REVIEWED_OPTIONAL_TRIGGER",
                 "ability_id": request.ability_id,
                 "effect_kind": request.effect_kind,
             },
