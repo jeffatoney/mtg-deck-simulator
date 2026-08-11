@@ -234,10 +234,7 @@ def build_handoff(
     phase_a = _load_json(phase_a_path)
     phase_b = _load_json(phase_b_path)
 
-    bindings = {
-        relative: {"sha256": _sha256(root / relative)}
-        for relative in BINDING_PATHS
-    }
+    bindings = {relative: {"sha256": _sha256(root / relative)} for relative in BINDING_PATHS}
 
     github: dict[str, Any] | None = None
     if github_token:
