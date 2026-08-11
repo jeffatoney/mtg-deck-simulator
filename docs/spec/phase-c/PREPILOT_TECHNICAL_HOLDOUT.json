@@ -1,0 +1,30 @@
+{
+  "schema_version": "phase-c-prepilot-technical-holdout-v1",
+  "purpose": "VALIDATION_ONLY_RULES_POLICY_REPLAY_CONFORMANCE",
+  "authorized_pilot_measurement": false,
+  "authorized_full_study_measurement": false,
+  "result_interpretation": "TECHNICAL_CONFORMANCE_ONLY_NOT_STUDY_OUTCOME",
+  "seed_plan": {
+    "namespace": "phase-c-prepilot-holdout-v1",
+    "count": 64,
+    "derivation": "UINT64_BIG_ENDIAN_FIRST_8_BYTES_SHA256(namespace + ':' + one_based_index)",
+    "canonical_tuple_sha256": "3398c75698f6211955cbc0e1772e22913261b85381ba39eac1b4936e23236f83",
+    "one_based_indexes": [1, 64]
+  },
+  "domain_separation": {
+    "must_not_overlap_pilot_environment_seeds": true,
+    "must_not_overlap_exploratory_search_seeds": true,
+    "pilot_environment_namespace_source": "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json#/pilot/environment_seed_namespace",
+    "exploratory_search_namespace_source": "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json#/pilot/exploratory_search_seed_namespace"
+  },
+  "execution_contract": {
+    "implementation_must_be_frozen_before_first_execution": true,
+    "production_equivalent_game_path": true,
+    "fresh_replay_required": true,
+    "fail_fast": false,
+    "collect_distinct_error_signatures": true,
+    "pilot_artifact_creation_forbidden": true,
+    "policy_or_card_behavior_mutation_from_holdout_results_forbidden_before_reporting": true
+  },
+  "acceptance_role": "Use after the policy correction is certification-current as an independent technical conformance check; the complete non-authorized 700-environment diagnostic remains the final acceptance diagnostic before pilot review."
+}
