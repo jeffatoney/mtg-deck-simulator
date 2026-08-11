@@ -239,7 +239,7 @@ def _bound_policy(executor: GameExecutor, policy_config_id: str) -> tuple[Standa
         raise ValueError("Phase C technical runner requires the exact frozen evaluator snapshot")
     evaluator = ContextualEvaluator(evaluator_config)
     provider = bind_policy_strategic_choices(executor, bundle, evaluator)
-    return StandardPolicy(bundle), provider, evaluator_config
+    return StandardPolicy(bundle, opponent_interaction_modeled=False), provider, evaluator_config
 
 
 def _candidate_hand_from_probe(
@@ -1098,6 +1098,7 @@ def run_phase_c_game_execution(
                 attackers = any(
                     not obj.retired
                     and obj.zone is Zone.BATTLEFIELD
+                    and obj.controller == CONTROLLED_PLAYER
                     and obj.current_characteristics.get("attacking") is True
                     for obj in state.objects.values()
                 )
