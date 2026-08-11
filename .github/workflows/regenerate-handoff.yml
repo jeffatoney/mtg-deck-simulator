@@ -1,0 +1,56 @@
+name: Regenerate Repository Handoff
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: repository-handoff
+  cancel-in-progress: true
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    env:
+      SUBJECT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.SUBJECT_SHA }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Generate handoff from repository and GitHub state
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf "${RUNNER_TEMP}/repository-handoff"
+          python scripts/generate_current_handoff.py \
+            --repo "${GITHUB_REPOSITORY}" \
+            --subject-ref "${SUBJECT_SHA}" \
+            --owner-issue 51 \
+            --output-dir "${RUNNER_TEMP}/repository-handoff" \
+            --require-github
+      - name: Publish machine-owned handoff branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B handoff/current "${SUBJECT_SHA}"
+          mkdir -p docs/audit/handoff
+          cp "${RUNNER_TEMP}/repository-handoff/CURRENT_HANDOFF.json" \
+            docs/audit/handoff/CURRENT_HANDOFF.json
+          cp "${RUNNER_TEMP}/repository-handoff/CURRENT_HANDOFF.md" \
+            docs/audit/handoff/CURRENT_HANDOFF.md
+          git add docs/audit/handoff/CURRENT_HANDOFF.json docs/audit/handoff/CURRENT_HANDOFF.md
+          git commit -m "Regenerate machine handoff for ${SUBJECT_SHA} [skip ci]"
+          git push --force origin HEAD:refs/heads/handoff/current
