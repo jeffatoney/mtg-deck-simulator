@@ -1,0 +1,562 @@
+name: Phase C Pre-Pilot Technical Holdout — 64 STANDARD Seeds
+
+on:
+  push:
+    branches:
+      - audit/phase-c-prepilot-holdout-b04b2ec7
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: phase-c-prepilot-holdout-b04b2ec7
+  cancel-in-progress: false
+
+env:
+  IMPLEMENTATION_COMMIT: b04b2ec7dc622a7afe4a6432f5f466926333c87f
+  HOLDOUT_BRANCH: audit/phase-c-prepilot-holdout-b04b2ec7
+  HOLDOUT_WORKFLOW_PATH: .github/workflows/phase-c-prepilot-holdout.yml
+  HOLDOUT_CONTRACT_PATH: docs/spec/phase-c/PREPILOT_TECHNICAL_HOLDOUT.json
+  HOLDOUT_CONTRACT_SHA256: 029fc7066f9dbb407f0d874f7618a2157580bdf1586a48ac881981243d5598c4
+  HOLDOUT_SHARD_COUNT: "8"
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Inspect the audit-only branch commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - name: Require an exact one-file audit descendant
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/${HOLDOUT_BRANCH}"
+          test "$(git rev-parse HEAD^)" = "${IMPLEMENTATION_COMMIT}"
+          mapfile -t changed < <(git diff --name-only "${IMPLEMENTATION_COMMIT}" "${GITHUB_SHA}")
+          test "${#changed[@]}" -eq 1
+          test "${changed[0]}" = "${HOLDOUT_WORKFLOW_PATH}"
+      - name: Require exact current main and successful exact-head CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          main_sha="$(gh api "/repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          test "${main_sha}" = "${IMPLEMENTATION_COMMIT}"
+          ci_count="$(
+            gh api --method GET "/repos/${GITHUB_REPOSITORY}/actions/runs" \
+              -f branch=main \
+              -f event=push \
+              -f status=completed \
+              -f per_page=100 \
+              --jq "[.workflow_runs[] | select(.name == \"CI\" and .head_sha == \"${IMPLEMENTATION_COMMIT}\" and .conclusion == \"success\")] | length"
+          )"
+          test "${ci_count}" -ge 1
+      - name: Checkout the exact merged implementation
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.IMPLEMENTATION_COMMIT }}
+      - name: Require a current machine-generated handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin refs/heads/handoff/current:refs/remotes/origin/handoff/current
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          commit = os.environ["IMPLEMENTATION_COMMIT"]
+          raw = subprocess.check_output(
+              [
+                  "git",
+                  "show",
+                  "origin/handoff/current:docs/audit/handoff/CURRENT_HANDOFF.json",
+              ],
+              text=True,
+          )
+          handoff = json.loads(raw)
+          assert handoff["generated_from_machine_state"] is True
+          assert handoff["repository"]["subject_commit"] == commit
+          pilot = handoff["governance"]["pilot"]
+          assert pilot["execution_allowed"] is False
+          assert pilot["authorization_status"] == "LOCKED_PENDING_OWNER_APPROVAL"
+          assert pilot["approval_status"] == "PENDING_OWNER_APPROVAL"
+          full_study = handoff["governance"]["full_study"]
+          assert full_study["execution_allowed"] is False
+          assert any(
+              run["name"] == "CI"
+              and run["head_sha"] == commit
+              and run["status"] == "completed"
+              and run["conclusion"] == "success"
+              for run in handoff["github"]["subject_workflow_runs"]
+          )
+          PY
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Require exact clean implementation and locked governance
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${IMPLEMENTATION_COMMIT}"
+          test -z "$(git status --porcelain)"
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+          uv run python - <<'PY'
+          from mtg_runs.phase_c import load_phase_c_config
+
+          config = load_phase_c_config()
+          assert config.execution_allowed is False
+          assert config.authorization_status == "LOCKED_PENDING_OWNER_APPROVAL"
+          PY
+      - name: Repository and durable certification gates
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python scripts/check_identity_lock.py
+          uv run python scripts/check_clean_engine_boundary.py
+          uv run python scripts/check_phase_a_certification.py
+          uv run python scripts/check_phase_b_certification.py
+          uv run mtg-engine phase-c-dry-run
+      - name: Verify the frozen holdout contract and domain separation
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          from mtg_runs.phase_c import _derive_seeds, build_pilot_seed_plan, load_phase_c_config
+
+          path = Path(os.environ["HOLDOUT_CONTRACT_PATH"])
+          raw = path.read_bytes()
+          assert hashlib.sha256(raw).hexdigest() == os.environ["HOLDOUT_CONTRACT_SHA256"]
+          holdout = json.loads(raw)
+          assert holdout["authorized_pilot_measurement"] is False
+          assert holdout["authorized_full_study_measurement"] is False
+          contract = holdout["execution_contract"]
+          assert contract["implementation_must_be_frozen_before_first_execution"] is True
+          assert contract["production_equivalent_game_path"] is True
+          assert contract["fresh_replay_required"] is True
+          assert contract["fail_fast"] is False
+          assert contract["collect_distinct_error_signatures"] is True
+          assert contract["pilot_artifact_creation_forbidden"] is True
+          seed_plan = holdout["seed_plan"]
+          seeds = _derive_seeds(str(seed_plan["namespace"]), int(seed_plan["count"]))
+          canonical = json.dumps(
+              seeds,
+              sort_keys=True,
+              separators=(",", ":"),
+              ensure_ascii=False,
+              allow_nan=False,
+          ).encode("utf-8")
+          assert len(seeds) == 64
+          assert len(set(seeds)) == 64
+          assert hashlib.sha256(canonical).hexdigest() == seed_plan["canonical_tuple_sha256"]
+          pilot = build_pilot_seed_plan(load_phase_c_config())
+          assert not set(seeds).intersection(pilot.standard)
+          assert not set(seeds).intersection(pilot.exploratory_search)
+          PY
+
+  shards:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard_index: [0, 1, 2, 3, 4, 5, 6, 7]
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+      SHARD_INDEX: ${{ matrix.shard_index }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.IMPLEMENTATION_COMMIT }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Reject pilot artifact roots before holdout execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+      - name: Execute the production-equivalent holdout shard
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          from mtg_runs.phase_c import _derive_seeds
+          from mtg_runs.phase_c_runner import run_phase_c_game_execution
+
+          shard_index = int(os.environ["SHARD_INDEX"])
+          shard_count = int(os.environ["HOLDOUT_SHARD_COUNT"])
+          contract_path = Path(os.environ["HOLDOUT_CONTRACT_PATH"])
+          holdout = json.loads(contract_path.read_text(encoding="utf-8"))
+          seed_plan = holdout["seed_plan"]
+          all_seeds = _derive_seeds(str(seed_plan["namespace"]), int(seed_plan["count"]))
+          shard_seeds = tuple(all_seeds[shard_index::shard_count])
+          if len(shard_seeds) != 8:
+              raise RuntimeError("each technical holdout shard must contain exactly eight seeds")
+
+          records = []
+          for position, seed in enumerate(shard_seeds):
+              game_index = shard_index + 1 + (position * shard_count)
+              try:
+                  execution = run_phase_c_game_execution(
+                      seed=seed,
+                      mode="STANDARD",
+                      policy_config_id="anchor_balanced",
+                      through_turn=10,
+                      validate_fresh_replay=True,
+                      policy_actions=True,
+                  )
+                  technical = execution.technical_game
+                  if technical.final_state_hash != technical.fresh_replay_state_hash:
+                      raise RuntimeError("fresh replay state hash mismatch")
+                  records.append(
+                      {
+                          "game_index": game_index,
+                          "seed": seed,
+                          "status": "PASS",
+                          "controlled_turns_completed": technical.controlled_turns_completed,
+                          "terminal_status": technical.terminal_status,
+                          "command_count": technical.command_count,
+                          "replay_digest": technical.replay_digest,
+                          "final_state_hash": technical.final_state_hash,
+                          "fresh_replay_state_hash": technical.fresh_replay_state_hash,
+                          "error_type": None,
+                          "reason": None,
+                          "error_signature": None,
+                      }
+                  )
+              except Exception as exc:
+                  error_type = type(exc).__name__
+                  reason = str(exc)
+                  signature = hashlib.sha256(
+                      json.dumps(
+                          {"error_type": error_type, "reason": reason},
+                          sort_keys=True,
+                          separators=(",", ":"),
+                      ).encode("utf-8")
+                  ).hexdigest()
+                  records.append(
+                      {
+                          "game_index": game_index,
+                          "seed": seed,
+                          "status": "FAIL",
+                          "controlled_turns_completed": None,
+                          "terminal_status": None,
+                          "command_count": None,
+                          "replay_digest": None,
+                          "final_state_hash": None,
+                          "fresh_replay_state_hash": None,
+                          "error_type": error_type,
+                          "reason": reason,
+                          "error_signature": signature,
+                      }
+                  )
+
+          failures = [record for record in records if record["status"] == "FAIL"]
+          grouped = {}
+          for record in failures:
+              item = grouped.setdefault(
+                  record["error_signature"],
+                  {
+                      "error_signature": record["error_signature"],
+                      "error_type": record["error_type"],
+                      "reason": record["reason"],
+                      "count": 0,
+                      "occurrences": [],
+                  },
+              )
+              item["count"] += 1
+              item["occurrences"].append(
+                  {"game_index": record["game_index"], "seed": record["seed"]}
+              )
+
+          payload = {
+              "schema_version": "phase-c-prepilot-technical-holdout-shard-v1",
+              "diagnostic_only": True,
+              "authorized_execution": False,
+              "authorized_pilot_measurement": False,
+              "authorized_full_study_measurement": False,
+              "pilot_measurement_artifacts_created": 0,
+              "implementation_commit": os.environ["IMPLEMENTATION_COMMIT"],
+              "holdout_contract_sha256": os.environ["HOLDOUT_CONTRACT_SHA256"],
+              "mode": "STANDARD",
+              "shard_index": shard_index,
+              "shard_count": shard_count,
+              "game_count": len(records),
+              "pass_count": len(records) - len(failures),
+              "fail_count": len(failures),
+              "production_equivalent_execution": True,
+              "fresh_replay_required": True,
+              "policy_actions": True,
+              "through_turn": 10,
+              "records": records,
+              "distinct_errors": [grouped[key] for key in sorted(grouped)],
+          }
+          output = (
+              Path("artifacts/phase-c-prepilot-holdout")
+              / f"shard-{shard_index:02d}"
+              / "holdout-shard.json"
+          )
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print(
+              json.dumps(
+                  {
+                      "shard_index": shard_index,
+                      "game_count": len(records),
+                      "pass_count": len(records) - len(failures),
+                      "fail_count": len(failures),
+                      "distinct_errors": payload["distinct_errors"],
+                  },
+                  indent=2,
+                  sort_keys=True,
+              )
+          )
+          if failures:
+              raise SystemExit(1)
+          PY
+      - name: Prove no pilot measurement artifacts were created
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+          test -d artifacts/phase-c-prepilot-holdout
+          if find artifacts/phase-c-prepilot-holdout -type f ! -name '*.json' -print -quit | grep -q .; then
+            echo "Technical holdout output contains a non-JSON artifact" >&2
+            exit 1
+          fi
+      - name: Upload the holdout shard even when games fail
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-c-prepilot-holdout-${{ matrix.shard_index }}-${{ env.IMPLEMENTATION_COMMIT }}
+          path: artifacts/phase-c-prepilot-holdout
+          if-no-files-found: error
+          retention-days: 30
+
+  aggregate:
+    needs: [preflight, shards]
+    if: ${{ always() && needs.preflight.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.IMPLEMENTATION_COMMIT }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Download every holdout shard
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase-c-prepilot-holdout-*-${{ env.IMPLEMENTATION_COMMIT }}
+          path: artifacts/downloaded-holdout
+      - name: Aggregate all 64 technical results and distinct errors
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          contract = json.loads(
+              Path(os.environ["HOLDOUT_CONTRACT_PATH"]).read_text(encoding="utf-8")
+          )
+          namespace = str(contract["seed_plan"]["namespace"])
+          expected_seeds = [
+              int.from_bytes(
+                  hashlib.sha256(f"{namespace}:{index}".encode()).digest()[:8],
+                  "big",
+              )
+              for index in range(1, 65)
+          ]
+          paths = sorted(Path("artifacts/downloaded-holdout").rglob("holdout-shard.json"))
+          if len(paths) != int(os.environ["HOLDOUT_SHARD_COUNT"]):
+              raise RuntimeError(
+                  f"technical holdout requires exactly {os.environ['HOLDOUT_SHARD_COUNT']} shard reports, found {len(paths)}"
+              )
+
+          reports = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
+          seen_shards = set()
+          records = []
+          for report in reports:
+              assert report["schema_version"] == "phase-c-prepilot-technical-holdout-shard-v1"
+              assert report["diagnostic_only"] is True
+              assert report["authorized_execution"] is False
+              assert report["authorized_pilot_measurement"] is False
+              assert report["authorized_full_study_measurement"] is False
+              assert report["pilot_measurement_artifacts_created"] == 0
+              assert report["implementation_commit"] == os.environ["IMPLEMENTATION_COMMIT"]
+              assert report["holdout_contract_sha256"] == os.environ["HOLDOUT_CONTRACT_SHA256"]
+              assert report["mode"] == "STANDARD"
+              assert report["game_count"] == 8
+              assert report["production_equivalent_execution"] is True
+              assert report["fresh_replay_required"] is True
+              assert report["policy_actions"] is True
+              assert report["through_turn"] == 10
+              shard_index = int(report["shard_index"])
+              if shard_index in seen_shards:
+                  raise RuntimeError(f"duplicate holdout shard {shard_index}")
+              seen_shards.add(shard_index)
+              records.extend(report["records"])
+
+          assert seen_shards == set(range(int(os.environ["HOLDOUT_SHARD_COUNT"])))
+          assert len(records) == 64
+          records.sort(key=lambda item: int(item["game_index"]))
+          assert [int(item["game_index"]) for item in records] == list(range(1, 65))
+          assert [int(item["seed"]) for item in records] == expected_seeds
+          assert len({int(item["seed"]) for item in records}) == 64
+
+          failures = [item for item in records if item["status"] == "FAIL"]
+          grouped = {}
+          for record in failures:
+              item = grouped.setdefault(
+                  record["error_signature"],
+                  {
+                      "error_signature": record["error_signature"],
+                      "error_type": record["error_type"],
+                      "reason": record["reason"],
+                      "count": 0,
+                      "occurrences": [],
+                  },
+              )
+              item["count"] += 1
+              item["occurrences"].append(
+                  {"game_index": record["game_index"], "seed": record["seed"]}
+              )
+
+          summary = {
+              "schema_version": "phase-c-prepilot-technical-holdout-summary-v1",
+              "status": "PASS" if not failures else "FAIL",
+              "diagnostic_only": True,
+              "authorized_execution": False,
+              "authorized_pilot_measurement": False,
+              "authorized_full_study_measurement": False,
+              "pilot_measurement_artifacts_created": 0,
+              "result_interpretation": "TECHNICAL_CONFORMANCE_ONLY_NOT_STUDY_OUTCOME",
+              "implementation_commit": os.environ["IMPLEMENTATION_COMMIT"],
+              "holdout_contract_sha256": os.environ["HOLDOUT_CONTRACT_SHA256"],
+              "canonical_seed_tuple_sha256": contract["seed_plan"]["canonical_tuple_sha256"],
+              "mode": "STANDARD",
+              "expected_game_count": 64,
+              "game_count": len(records),
+              "pass_count": len(records) - len(failures),
+              "fail_count": len(failures),
+              "distinct_error_count": len(grouped),
+              "distinct_errors": [grouped[key] for key in sorted(grouped)],
+              "production_equivalent_execution": True,
+              "fresh_replay_required": True,
+              "policy_actions": True,
+              "through_turn": 10,
+              "complete_700_environment_diagnostic_required_after_pass": True,
+          }
+          output = Path("artifacts/phase-c-prepilot-holdout-summary/holdout-summary.json")
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          if failures:
+              raise SystemExit(1)
+          PY
+      - name: Prove aggregate created no pilot measurement artifacts
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+      - name: Upload the technical holdout summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-c-prepilot-holdout-summary-${{ env.IMPLEMENTATION_COMMIT }}
+          path: artifacts/phase-c-prepilot-holdout-summary
+          if-no-files-found: error
+          retention-days: 30
+
+  dispatch-diagnostic:
+    needs: aggregate
+    if: ${{ needs.aggregate.result == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Reconfirm exact current main before diagnostic dispatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          main_sha="$(gh api "/repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          test "${main_sha}" = "${IMPLEMENTATION_COMMIT}"
+      - name: Dispatch the non-authorized 700-environment diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --method POST \
+            "/repos/${GITHUB_REPOSITORY}/actions/workflows/phase-c-diagnostic.yml/dispatches" \
+            -f ref=main \
+            -f "inputs[implementation_commit]=${IMPLEMENTATION_COMMIT}"
+          mkdir -p artifacts/phase-c-prepilot-holdout-dispatch
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          receipt = {
+              "schema_version": "phase-c-prepilot-technical-holdout-dispatch-v1",
+              "technical_holdout_status": "PASS",
+              "dispatched_workflow": ".github/workflows/phase-c-diagnostic.yml",
+              "dispatch_ref": "main",
+              "implementation_commit": os.environ["IMPLEMENTATION_COMMIT"],
+              "authorized_pilot_measurement": False,
+              "authorized_full_study_measurement": False,
+          }
+          Path(
+              "artifacts/phase-c-prepilot-holdout-dispatch/diagnostic-dispatch.json"
+          ).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+      - name: Upload diagnostic dispatch receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-c-prepilot-holdout-dispatch-${{ env.IMPLEMENTATION_COMMIT }}
+          path: artifacts/phase-c-prepilot-holdout-dispatch
+          if-no-files-found: error
+          retention-days: 30
