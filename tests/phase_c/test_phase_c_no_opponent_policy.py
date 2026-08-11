@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+import mtg_policy.standard as standard_module
 from mtg_policy.broker import ObservedAction
 from mtg_policy.config import load_policy_matrix
 from mtg_policy.standard import (
@@ -74,6 +75,34 @@ def test_machine_guardrail_contract_matches_policy_effect_classes() -> None:
     ) == set(_NO_OPPONENT_NEUTRAL_SELF_EFFECTS)
     assert contract["model_binding"]["required_value"] is False
     assert contract["exploratory_boundary"]["legal_actions_removed"] is False
+
+
+def test_no_opponent_mode_fails_closed_if_machine_binding_drifts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config_path = tmp_path / "pilot.json"
+    guardrail_path = tmp_path / "guardrail.json"
+    config_path.write_text(
+        json.dumps({"game_model": {"opponent_interaction_modeled": True}}),
+        encoding="utf-8",
+    )
+    guardrail_path.write_text(
+        json.dumps(
+            {
+                "model_binding": {
+                    "config_path": "pilot.json",
+                    "json_pointer": "/game_model/opponent_interaction_modeled",
+                    "required_value": False,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(standard_module, "ROOT", tmp_path)
+    monkeypatch.setattr(standard_module, "_GUARDRAIL_PATH", guardrail_path)
+
+    with pytest.raises(ValueError, match="disagrees with the frozen Phase C config"):
+        StandardPolicy(_bundle(), opponent_interaction_modeled=False)
 
 
 def test_no_opponent_model_ranks_pure_defensive_self_effects_below_pass() -> None:
