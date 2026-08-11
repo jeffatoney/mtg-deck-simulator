@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from mtg_policy.broker import ObservedAction
 from mtg_policy.config import PolicyBundle
+
+ROOT = Path(__file__).resolve().parents[2]
+_GUARDRAIL_PATH = ROOT / "docs/spec/phase-c/NO_OPPONENT_POLICY_GUARDRAIL.json"
 
 _FORBIDDEN_OBSERVATION_KEYS = {
     "library_order",
@@ -39,6 +44,39 @@ _NO_OPPONENT_REVIEWED_SELF_EFFECTS = (
 )
 
 
+def _validated_opponent_interaction_mode(requested: bool) -> bool:
+    """Bind the reviewed no-opponent mode to the frozen Phase C machine config.
+
+    Interactive use remains the default and needs no Phase C dependency. Requesting
+    the special no-opponent ranking is fail-closed: the guardrail must name the
+    canonical config field, the config must contain a boolean, and it must equal the
+    guardrail-required value. A future study-config change therefore cannot silently
+    leave STANDARD in a stale hardcoded mode.
+    """
+    if requested:
+        return True
+    guardrail = json.loads(_GUARDRAIL_PATH.read_text(encoding="utf-8"))
+    binding = guardrail.get("model_binding")
+    if not isinstance(binding, dict):
+        raise ValueError("no-opponent policy guardrail omits its model binding")
+    if binding.get("json_pointer") != "/game_model/opponent_interaction_modeled":
+        raise ValueError("no-opponent policy guardrail points at an unexpected config field")
+    config_path = binding.get("config_path")
+    if not isinstance(config_path, str) or not config_path:
+        raise ValueError("no-opponent policy guardrail omits its config path")
+    config = json.loads((ROOT / config_path).read_text(encoding="utf-8"))
+    game_model = config.get("game_model")
+    if not isinstance(game_model, dict):
+        raise ValueError("Phase C config omits game_model for no-opponent policy binding")
+    actual = game_model.get("opponent_interaction_modeled")
+    required = binding.get("required_value")
+    if not isinstance(actual, bool) or not isinstance(required, bool):
+        raise ValueError("no-opponent policy binding values must be booleans")
+    if actual != required:
+        raise ValueError("no-opponent policy guardrail disagrees with the frozen Phase C config")
+    return actual
+
+
 @dataclass(frozen=True)
 class KeepDecision:
     keep: bool
@@ -52,7 +90,9 @@ class StandardPolicy:
 
     def __init__(self, bundle: PolicyBundle, *, opponent_interaction_modeled: bool = True) -> None:
         self.bundle = bundle
-        self.opponent_interaction_modeled = opponent_interaction_modeled
+        self.opponent_interaction_modeled = _validated_opponent_interaction_mode(
+            opponent_interaction_modeled
+        )
 
     @staticmethod
     def hand_features(
