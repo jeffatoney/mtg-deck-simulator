@@ -167,9 +167,9 @@ def test_reviewed_effect_targeting_opponent_retains_normal_baseline_ranking() ->
         "COUNTER_UNLESS_PAY",
     )
 
-    assert policy.select_action(
-        _observation(target_owner="P1"), (_pass(), spell_pierce)
-    ) == "pierce"
+    assert (
+        policy.select_action(_observation(target_owner="P1"), (_pass(), spell_pierce)) == "pierce"
+    )
 
 
 def test_interactive_context_retains_existing_protection_preference() -> None:
