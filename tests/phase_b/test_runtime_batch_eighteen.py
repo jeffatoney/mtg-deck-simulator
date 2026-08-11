@@ -78,4 +78,8 @@ def test_curiosity_requires_and_executes_each_explicit_optional_choice() -> None
     assert active_objects(state, name="Mountain", zone=Zone.HAND)
     assert not first_draw.retired
     optional_choices = [choice for choice in state.choices if choice.kind == "OPTIONAL_TRIGGER"]
-    assert [choice.selected for choice in optional_choices] == [False, True]
+    assert [choice.selected["take"] for choice in optional_choices] == [False, True]
+    assert [choice.selected["chosen_at"] for choice in optional_choices] == [
+        "RESOLUTION",
+        "RESOLUTION",
+    ]

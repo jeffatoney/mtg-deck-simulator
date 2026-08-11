@@ -115,6 +115,24 @@ class SpellCopyTargetSelection:
     diagnostics: Mapping[str, Any]
 
 
+@dataclass(frozen=True)
+class OptionalTriggerRequest:
+    request_id: str
+    actor_id: str
+    ability_id: str
+    effect_kind: str
+    turn_number: int
+    observation: Mapping[str, Any]
+
+
+@dataclass(frozen=True)
+class OptionalTriggerSelection:
+    take: bool
+    evaluator_id: str
+    evaluator_sha256: str
+    diagnostics: Mapping[str, Any]
+
+
 class StrategicChoiceProvider(Protocol):
     """Observation-only policy interface called at rules-defined choice times."""
 
@@ -127,6 +145,10 @@ class StrategicChoiceProvider(Protocol):
     def choose_spell_copy_targets(
         self, request: SpellCopyTargetRequest
     ) -> SpellCopyTargetSelection: ...
+
+    def choose_optional_trigger(
+        self, request: OptionalTriggerRequest
+    ) -> OptionalTriggerSelection: ...
 
 
 class RecordedStrategicChoiceProvider:
@@ -156,6 +178,13 @@ class RecordedStrategicChoiceProvider:
             if str(choice.get("kind")) == "COPY_TARGETS"
             and isinstance(choice.get("selected"), Mapping)
             and "target_handles" in choice.get("selected", {})
+        ]
+        self._optional_triggers = [
+            dict(choice)
+            for choice in choices
+            if str(choice.get("kind")) == "OPTIONAL_TRIGGER"
+            and isinstance(choice.get("selected"), Mapping)
+            and str(choice["selected"].get("decision_source", "")) == "STRATEGIC_PROVIDER"
         ]
 
     @staticmethod
@@ -241,9 +270,28 @@ class RecordedStrategicChoiceProvider:
             evaluator_id, evaluator_sha, diagnostics = self._metadata(selected)
         else:
             raise ReplayError("recorded copy targets do not use opaque handles")
-        if handles not in request.legal_target_sets:
+        if handles != request.original_target_handles and handles not in request.legal_target_sets:
             raise ReplayError("recorded copy target set is not legal in replay")
         return SpellCopyTargetSelection(handles, evaluator_id, evaluator_sha, diagnostics)
+
+    def choose_optional_trigger(self, request: OptionalTriggerRequest) -> OptionalTriggerSelection:
+        if not self._optional_triggers:
+            raise ReplayError("replay transcript omits a recorded optional-trigger choice")
+        recorded = self._optional_triggers.pop(0)
+        selected = recorded.get("selected")
+        if not isinstance(selected, Mapping):
+            raise ReplayError("recorded optional-trigger choice is malformed")
+        if str(selected.get("actor_id", "")) != request.actor_id:
+            raise ReplayError("recorded optional-trigger actor differs in replay")
+        if str(selected.get("ability_id", "")) != request.ability_id:
+            raise ReplayError("recorded optional-trigger ability differs in replay")
+        if str(selected.get("effect_kind", "")) != request.effect_kind:
+            raise ReplayError("recorded optional-trigger effect differs in replay")
+        take = selected.get("take")
+        if not isinstance(take, bool):
+            raise ReplayError("recorded optional-trigger choice omits a boolean decision")
+        evaluator_id, evaluator_sha, diagnostics = self._metadata(selected)
+        return OptionalTriggerSelection(take, evaluator_id, evaluator_sha, diagnostics)
 
 
 def require_provider(

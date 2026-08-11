@@ -155,7 +155,13 @@ class ActionBroker:
             live.replay_commands = replay_commands
         state.replay_initial_state = replay_initial
         state.replay_commands = list(replay_commands)
-        probe = GameExecutor(state, self.executor.seed, replaying=True, probing=True)
+        probe = GameExecutor(
+            state,
+            self.executor.seed,
+            replaying=True,
+            probing=True,
+            strategic_choice_provider=self.executor.strategic_choice_provider,
+        )
         try:
             self._invoke(probe, operation, arguments, record=False)
         except (IllegalAction, UnsupportedCapability, KeyError, ValueError):

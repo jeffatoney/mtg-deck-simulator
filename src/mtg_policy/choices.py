@@ -11,6 +11,8 @@ from mtg_kernel.strategic_choices import (
     CardSelectionRequest,
     FactOrFictionRequest,
     FactOrFictionSelection,
+    OptionalTriggerRequest,
+    OptionalTriggerSelection,
     SpellCopyTargetRequest,
     SpellCopyTargetSelection,
     TutorChoiceRequest,
@@ -26,6 +28,7 @@ if TYPE_CHECKING:
 DUALCASTER_LOOP_ADJUDICATOR = "VISIBLE_LIFE_AND_BLOCKER_RESERVE_V1"
 MAX_DUALCASTER_LOOP_TOKENS = 512
 _SUPPORTED_DUALCASTER_LOOP_MODES = frozenset({"FAIL_CLOSED_UNTIL_DETERMINISTIC_LOOP_ADJUDICATOR"})
+_SUPPORTED_OPTIONAL_TRIGGERS = frozenset({("curiosity:damage", "DRAW")})
 
 
 def dualcaster_loop_adjudication_supported(config: EvaluatorConfig) -> bool:
@@ -201,8 +204,8 @@ class PolicyStrategicChoiceProvider:
             selected = tuple(card.handle for card in ordered)
         elif request.purpose.startswith("TUTOR_"):
             # Search effects expose only the rules-eligible candidate set through
-            # opaque handles.  Rank those candidates with the same frozen tutor
-            # preference and contextual evaluator used by choose_tutor().  Hidden
+            # opaque handles. Rank those candidates with the same frozen tutor
+            # preference and contextual evaluator used by choose_tutor(). Hidden
             # object IDs/library positions never cross the policy boundary.
             priority_name = str(self.bundle.value("tutor_priority"))
             priority_order = self.evaluator.config.tutor_priority_orders.get(priority_name, ())
@@ -218,7 +221,7 @@ class PolicyStrategicChoiceProvider:
             )
             # A hidden-zone search may legally fail to find when minimum is zero,
             # but the frozen maximizing policy chooses the best eligible card when
-            # one exists.  Exact-minimum searches (Long-Term Plans) remain exact.
+            # one exists. Exact-minimum searches (Long-Term Plans) remain exact.
             choose_count = (
                 request.minimum if request.minimum == request.maximum else request.maximum
             )
@@ -335,13 +338,34 @@ class PolicyStrategicChoiceProvider:
                 )
             selected, loop_diagnostics = _dualcaster_loop_selection(request)
             diagnostics.update(loop_diagnostics)
-        if selected not in request.legal_target_sets:
+        if (
+            selected != request.original_target_handles
+            and selected not in request.legal_target_sets
+        ):
             raise ValueError("policy selected a copy target set outside the legal choices")
         return SpellCopyTargetSelection(
             selected,
             self.evaluator_id,
             self.evaluator_sha256,
             diagnostics,
+        )
+
+    def choose_optional_trigger(self, request: OptionalTriggerRequest) -> OptionalTriggerSelection:
+        if (request.ability_id, request.effect_kind) not in _SUPPORTED_OPTIONAL_TRIGGERS:
+            raise UnsupportedCapability(
+                "optional trigger policy is unsupported for ability/effect: "
+                f"{request.ability_id}/{request.effect_kind}"
+            )
+        return OptionalTriggerSelection(
+            True,
+            self.evaluator_id,
+            self.evaluator_sha256,
+            {
+                "policy_config_id": self.bundle.policy_config_id,
+                "strategy": "TAKE_REVIEWED_OPTIONAL_TRIGGER",
+                "ability_id": request.ability_id,
+                "effect_kind": request.effect_kind,
+            },
         )
 
 
