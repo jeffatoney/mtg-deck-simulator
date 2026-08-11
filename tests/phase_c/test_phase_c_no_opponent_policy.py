@@ -1,10 +1,20 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
 from mtg_policy.broker import ObservedAction
 from mtg_policy.config import load_policy_matrix
-from mtg_policy.standard import StandardPolicy
+from mtg_policy.standard import (
+    StandardPolicy,
+    _NO_OPPONENT_DEFENSIVE_SELF_EFFECTS,
+    _NO_OPPONENT_NEUTRAL_SELF_EFFECTS,
+)
+
+ROOT = Path(__file__).resolve().parents[2]
+GUARDRAIL_PATH = ROOT / "docs/spec/phase-c/NO_OPPONENT_POLICY_GUARDRAIL.json"
 
 
 def _bundle():
@@ -50,6 +60,20 @@ def _targeted_action(handle: str, identity: str, *tags: str) -> ObservedAction:
         1,
         {"target_handles": ("target",)},
     )
+
+
+def test_machine_guardrail_contract_matches_policy_effect_classes() -> None:
+    contract = json.loads(GUARDRAIL_PATH.read_text(encoding="utf-8"))
+    classes = contract["effect_classes"]
+
+    assert set(classes["defensive_self_only_below_pass"]) == set(
+        _NO_OPPONENT_DEFENSIVE_SELF_EFFECTS
+    )
+    assert set(
+        classes["neutral_self_tradeoff_ties_pass_without_independent_standard_utility"]
+    ) == set(_NO_OPPONENT_NEUTRAL_SELF_EFFECTS)
+    assert contract["model_binding"]["required_value"] is False
+    assert contract["exploratory_boundary"]["legal_actions_removed"] is False
 
 
 def test_no_opponent_model_ranks_pure_defensive_self_effects_below_pass() -> None:
