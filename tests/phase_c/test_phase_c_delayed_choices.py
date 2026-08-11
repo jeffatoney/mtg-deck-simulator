@@ -4,13 +4,19 @@ from mtg_runs.phase_c_runner import run_phase_c_game_execution
 FAILED_STANDARD_SHARD_ZERO_SEED = 6304405178442445102
 
 
-def test_failed_standard_seed_records_arcane_denial_delayed_draw_choice() -> None:
+def test_failed_standard_seed_avoids_arcane_denial_self_interaction() -> None:
     execution = run_phase_c_game_execution(
         seed=FAILED_STANDARD_SHARD_ZERO_SEED,
         mode="STANDARD",
         through_turn=10,
-        validate_fresh_replay=False,
+        validate_fresh_replay=True,
         policy_actions=True,
+    )
+
+    selected_actions = tuple(execution.measurement.extra["selected_actions"])
+    assert not any(
+        action.get("kind") == "CAST" and action.get("identity") == "Arcane Denial"
+        for action in selected_actions
     )
 
     arcane_choices: list[dict[str, object]] = []
@@ -27,10 +33,7 @@ def test_failed_standard_seed_records_arcane_denial_delayed_draw_choice() -> Non
             if isinstance(value, dict):
                 arcane_choices.append(value)
 
-    assert arcane_choices
-    assert all(
-        choice["count"] == (2 if choice["player_id"] == "P0" else 0) for choice in arcane_choices
-    )
+    assert arcane_choices == []
     assert execution.technical_game.controlled_turns_completed == 10
     assert (
         execution.technical_game.fresh_replay_state_hash

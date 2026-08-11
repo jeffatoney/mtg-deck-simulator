@@ -1,0 +1,42 @@
+{
+  "schema_version": "phase-c-no-opponent-policy-guardrail-v1",
+  "owner_decision_issue": 51,
+  "owner_direction_comment_id": 5239298433,
+  "implementation_refinement_comment_id": 5239383415,
+  "model_binding": {
+    "config_path": "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json",
+    "json_pointer": "/game_model/opponent_interaction_modeled",
+    "required_value": false
+  },
+  "standard_policy": {
+    "searching": false,
+    "pass_behavior": "neutral_within_reviewed_no_opponent_self_interaction_class",
+    "ordinary_action_behavior": "preserve_legacy_non_searching_order",
+    "protection_bonus_when_opponent_interaction_not_modeled": false
+  },
+  "effect_classes": {
+    "defensive_self_only_below_pass": [
+      "COUNTER",
+      "COUNTER_IF",
+      "COUNTER_UNLESS_PAY",
+      "COUNTER_UNLESS_PAY_EXILE",
+      "COUNTER_TARGETING_CONTROLLER",
+      "LIBRARY_SECOND"
+    ],
+    "neutral_self_tradeoff_ties_pass_without_independent_standard_utility": [
+      "COUNTER_WITH_DELAYED_DRAWS"
+    ]
+  },
+  "target_rule": {
+    "scope": "complete visible selected target set",
+    "self_definition": "every selected target is owned or controlled by the acting player",
+    "unresolved_target_handle": "FAIL_CLOSED",
+    "opponent_target": "PRESERVE_ORDINARY_BASELINE_RANKING"
+  },
+  "exploratory_boundary": {
+    "legal_actions_removed": false,
+    "self_interaction_remains_searchable": true,
+    "production_decision_layer_depth_changed": false
+  },
+  "interpretation": "This is a strategic ranking rule for the frozen no-opponent model, not a Magic legality or targeting rule."
+}

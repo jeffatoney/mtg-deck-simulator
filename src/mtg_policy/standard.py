@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from mtg_policy.broker import ObservedAction
 from mtg_policy.config import PolicyBundle
+
+ROOT = Path(__file__).resolve().parents[2]
+_GUARDRAIL_PATH = ROOT / "docs/spec/phase-c/NO_OPPONENT_POLICY_GUARDRAIL.json"
 
 _FORBIDDEN_OBSERVATION_KEYS = {
     "library_order",
@@ -15,6 +20,61 @@ _FORBIDDEN_OBSERVATION_KEYS = {
     "card_instance_ids",
     "object_ids",
 }
+
+# In the frozen no-opponent-action model these effect kinds have no represented
+# positive consequence when every selected target is P0-owned/controlled. They
+# remain legal and remain visible to EXPLORATORY; this is STANDARD ranking only.
+_NO_OPPONENT_DEFENSIVE_SELF_EFFECTS = frozenset(
+    {
+        "COUNTER",
+        "COUNTER_IF",
+        "COUNTER_UNLESS_PAY",
+        "COUNTER_UNLESS_PAY_EXILE",
+        "COUNTER_TARGETING_CONTROLLER",
+        "LIBRARY_SECOND",
+    }
+)
+
+# Arcane Denial is deliberately distinct: its delayed draws are represented by
+# the frozen evaluator, so the legal action stays searchable. STANDARD should not
+# be forced into it merely because legacy PASS carried a -100 score, however.
+_NO_OPPONENT_NEUTRAL_SELF_EFFECTS = frozenset({"COUNTER_WITH_DELAYED_DRAWS"})
+_NO_OPPONENT_REVIEWED_SELF_EFFECTS = (
+    _NO_OPPONENT_DEFENSIVE_SELF_EFFECTS | _NO_OPPONENT_NEUTRAL_SELF_EFFECTS
+)
+
+
+def _validated_opponent_interaction_mode(requested: bool) -> bool:
+    """Bind the reviewed no-opponent mode to the frozen Phase C machine config.
+
+    Interactive use remains the default and needs no Phase C dependency. Requesting
+    the special no-opponent ranking is fail-closed: the guardrail must name the
+    canonical config field, the config must contain a boolean, and it must equal the
+    guardrail-required value. A future study-config change therefore cannot silently
+    leave STANDARD in a stale hardcoded mode.
+    """
+    if requested:
+        return True
+    guardrail = json.loads(_GUARDRAIL_PATH.read_text(encoding="utf-8"))
+    binding = guardrail.get("model_binding")
+    if not isinstance(binding, dict):
+        raise ValueError("no-opponent policy guardrail omits its model binding")
+    if binding.get("json_pointer") != "/game_model/opponent_interaction_modeled":
+        raise ValueError("no-opponent policy guardrail points at an unexpected config field")
+    config_path = binding.get("config_path")
+    if not isinstance(config_path, str) or not config_path:
+        raise ValueError("no-opponent policy guardrail omits its config path")
+    config = json.loads((ROOT / config_path).read_text(encoding="utf-8"))
+    game_model = config.get("game_model")
+    if not isinstance(game_model, dict):
+        raise ValueError("Phase C config omits game_model for no-opponent policy binding")
+    actual = game_model.get("opponent_interaction_modeled")
+    required = binding.get("required_value")
+    if not isinstance(actual, bool) or not isinstance(required, bool):
+        raise ValueError("no-opponent policy binding values must be booleans")
+    if actual != required:
+        raise ValueError("no-opponent policy guardrail disagrees with the frozen Phase C config")
+    return actual
 
 
 @dataclass(frozen=True)
@@ -28,8 +88,11 @@ class KeepDecision:
 class StandardPolicy:
     """One precommitted strategy hypothesis, not an asserted optimal policy."""
 
-    def __init__(self, bundle: PolicyBundle) -> None:
+    def __init__(self, bundle: PolicyBundle, *, opponent_interaction_modeled: bool = True) -> None:
         self.bundle = bundle
+        self.opponent_interaction_modeled = _validated_opponent_interaction_mode(
+            opponent_interaction_modeled
+        )
 
     @staticmethod
     def hand_features(
@@ -118,6 +181,47 @@ class StandardPolicy:
         if "generation" not in observation or "turn" not in observation:
             raise ValueError("policy observation is incomplete")
 
+    @staticmethod
+    def _targets_are_all_actor_owned_or_controlled(
+        observation: dict[str, Any], action: ObservedAction
+    ) -> bool:
+        player = observation.get("player")
+        if not isinstance(player, str) or not player:
+            raise ValueError("no-opponent policy observation omits the acting player")
+        target_handles = action.metadata.get("target_handles")
+        if not isinstance(target_handles, (list, tuple)) or not target_handles:
+            raise ValueError("reviewed no-opponent self-action omits target handles")
+        raw_objects = observation.get("objects")
+        if not isinstance(raw_objects, (list, tuple)):
+            raise ValueError("no-opponent policy observation omits visible objects")
+        objects_by_handle = {
+            str(raw["handle"]): raw
+            for raw in raw_objects
+            if isinstance(raw, dict) and raw.get("handle") is not None
+        }
+        for raw_handle in target_handles:
+            handle = str(raw_handle)
+            if handle not in objects_by_handle:
+                raise ValueError(
+                    f"reviewed no-opponent self-action target handle is unresolved: {handle}"
+                )
+            raw = objects_by_handle[handle]
+            if raw.get("controller") != player and raw.get("owner") != player:
+                return False
+        return True
+
+    def _no_opponent_self_class(self, observation: dict[str, Any], action: ObservedAction) -> str:
+        if self.opponent_interaction_modeled:
+            return "INTERACTIVE"
+        effect_kinds = _NO_OPPONENT_REVIEWED_SELF_EFFECTS.intersection(action.tags)
+        if not effect_kinds:
+            return "ORDINARY"
+        if not self._targets_are_all_actor_owned_or_controlled(observation, action):
+            return "ORDINARY"
+        if effect_kinds.intersection(_NO_OPPONENT_DEFENSIVE_SELF_EFFECTS):
+            return "DEFENSIVE_SELF_ONLY"
+        return "NEUTRAL_SELF_TRADEOFF"
+
     def choose_optional_trigger(self, effect_kind: str) -> bool:
         """Choose a supported optional trigger from public effect classification.
 
@@ -136,7 +240,7 @@ class StandardPolicy:
         if not actions:
             raise ValueError("standard policy received no legal actions")
 
-        def score(action: ObservedAction) -> tuple[int, int, int, str]:
+        def score(action: ObservedAction) -> tuple[int, int, int, int, int, str]:
             tags = set(action.tags)
             value = 0
             if action.kind == "PLAY_LAND":
@@ -145,7 +249,7 @@ class StandardPolicy:
                 value += 65
             if "COMBO_COMPONENT" in tags:
                 value += 50 if self.bundle.value("glint_horn_use") == "cast_for_value" else 35
-            if "PROTECTION" in tags:
+            if "PROTECTION" in tags and self.opponent_interaction_modeled:
                 value += 45 if self.bundle.value("protection_plan") == "protected" else 10
             if "DRAW" in tags or "SCRY" in tags:
                 value += 35 if self.bundle.value("velocity_plan") == "cantrip_first" else 20
@@ -167,8 +271,36 @@ class StandardPolicy:
                     value += 20
                 if attacker_count == 0:
                     value -= 60
-            if action.kind == "PASS_PRIORITY":
-                value -= 100
-            return (value, -action.mana_value, -action.target_count, action.handle)
+
+            if self.opponent_interaction_modeled:
+                if action.kind == "PASS_PRIORITY":
+                    value -= 100
+                return (0, value, 0, -action.mana_value, -action.target_count, action.handle)
+
+            classification = self._no_opponent_self_class(observation, action)
+            if classification == "DEFENSIVE_SELF_ONLY":
+                modeled_utility_class = -1
+                pass_preference = 0
+            elif classification == "NEUTRAL_SELF_TRADEOFF":
+                modeled_utility_class = 0
+                pass_preference = 0
+            elif action.kind == "PASS_PRIORITY":
+                modeled_utility_class = 0
+                value = 0
+                pass_preference = 1
+            else:
+                # Preserve the existing non-searching baseline for every action
+                # outside the reviewed no-opponent self-interaction class. This is
+                # why zero-scored productive actions such as Transmute still beat PASS.
+                modeled_utility_class = 1
+                pass_preference = 0
+            return (
+                modeled_utility_class,
+                value,
+                pass_preference,
+                -action.mana_value,
+                -action.target_count,
+                action.handle,
+            )
 
         return max(actions, key=score).handle
