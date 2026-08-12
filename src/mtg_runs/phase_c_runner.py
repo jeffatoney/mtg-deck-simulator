@@ -1076,6 +1076,8 @@ def run_phase_c_game_execution(
                             if policy_actions and _policy_window_required("CLEANUP", executor)
                             else _resolve_required_stack(executor)
                         )
+                    if state.terminal.status != "ACTIVE":
+                        break
                 continue
             if step == "DECLARE_BLOCKERS":
                 attackers = any(
