@@ -1,4 +1,4 @@
-name: Fix bootstrap payload padding
+name: Run Phase C study-binding transform
 
 on:
   push:
@@ -9,31 +9,87 @@ permissions:
   contents: write
 
 jobs:
-  repair:
+  apply:
+    if: github.event.head_commit.message == 'Run corrected Phase C transform'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Repair truncated Base64 padding
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Extract, verify, and run pinned transform
         run: |
           python - <<'PY'
+          import base64
+          import gzip
+          import hashlib
           from pathlib import Path
-          path = Path('.github/workflows/bootstrap-phase-c-study-binding.yml')
-          text = path.read_text(encoding='utf-8')
-          old = 'HNUAAA\n          PAYLOAD'
-          new = 'HNUAAA==\n          PAYLOAD'
-          if text.count(old) != 1:
-              raise SystemExit(f'expected exactly one payload tail, found {text.count(old)}')
-          path.write_text(text.replace(old, new), encoding='utf-8')
+
+          workflow = Path('.github/workflows/bootstrap-phase-c-study-binding.yml')
+          payload_lines = [
+              line.strip()
+              for line in workflow.read_text(encoding='utf-8').splitlines()
+              if line.strip().startswith('H4sI')
+          ]
+          if len(payload_lines) != 1:
+              raise SystemExit(f'expected one embedded payload, found {len(payload_lines)}')
+          payload = payload_lines[0]
+          payload += '=' * (-len(payload) % 4)
+          script = gzip.decompress(base64.b64decode(payload, validate=True))
+          digest = hashlib.sha256(script).hexdigest()
+          expected = '5781a0a00a21fb58c324496daef3a8f180bad2dc17b9de9b8aedb7a5fd991034'
+          if digest != expected:
+              raise SystemExit(f'transform SHA-256 mismatch: {digest} != {expected}')
+          out = Path('/tmp/bootstrap_phase_c_study_binding.py')
+          out.write_bytes(script)
+          print(f'verified transform_sha256={digest} bytes={len(script)}')
           PY
-          git diff --check
-      - name: Commit repair and remove helper
+          python /tmp/bootstrap_phase_c_study_binding.py
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Format and lint
+        run: |
+          uv run ruff format .
+          uv run ruff check --fix .
+          uv run ruff format .
+          uv run ruff check .
+      - name: Strict typing
+        run: uv run mypy src
+      - name: Focused Phase C tests
+        run: |
+          uv run pytest -q \
+            tests/phase_c/test_phase_c_study_binding.py \
+            tests/phase_c/test_phase_c_governance_binding.py \
+            tests/phase_c/test_phase_c_diagnostic.py \
+            tests/phase_c/test_phase_c_diagnostic_provenance.py \
+            tests/phase_c/test_phase_c_artifacts.py \
+            tests/phase_c/test_phase_c_control.py \
+            tests/phase_c/test_phase_c_timing.py
+      - name: Diff integrity
+        run: git diff --check
+      - name: Commit substantive correction only
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm .github/workflows/fix-bootstrap-padding.yml
-          git add .github/workflows/bootstrap-phase-c-study-binding.yml
+          git add \
+            .github/workflows/phase-c-diagnostic.yml \
+            src/mtg_runs/phase_c.py \
+            src/mtg_runs/phase_c_pairing.py \
+            src/mtg_runs/phase_c_artifacts.py \
+            src/mtg_runs/phase_c_timing.py \
+            src/mtg_runs/phase_c_diagnostic.py \
+            scripts/_phase_b_paths.py \
+            docs/audit/handoff/PROTOCOL.md \
+            tests/phase_c/test_phase_c_study_binding.py \
+            tests/phase_c/test_phase_c_governance_binding.py \
+            tests/phase_c/test_phase_c_diagnostic.py \
+            tests/phase_c/test_phase_c_diagnostic_provenance.py
           git diff --cached --check
-          git commit -m "Repair bootstrap payload padding"
+          git commit -m "Bind Phase C study definitions and governance"
           git push origin HEAD:phase-c/study-definition-binding
