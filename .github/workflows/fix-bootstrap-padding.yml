@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   repair:
-    if: github.event.head_commit.message == 'Add bootstrap padding repair'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
