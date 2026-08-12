@@ -11,7 +11,6 @@ import argparse
 import hashlib
 import json
 import os
-import subprocess
 import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
@@ -22,6 +21,7 @@ from mtg_runs.phase_c import (
     DEFAULT_CONFIG,
     PhaseCConfiguration,
     PhaseCControlError,
+    _git as _phase_c_git,
     build_pilot_seed_plan,
     build_pilot_shard_assignment,
     load_phase_c_config,
@@ -110,16 +110,10 @@ def _repository_file_sha256(path: Path) -> str:
 
 
 def _git_identity(root: Path) -> tuple[str, str]:
-    try:
-        implementation_sha = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=root, text=True
-        ).strip()
-        implementation_tree = subprocess.check_output(
-            ["git", "rev-parse", "HEAD^{tree}"], cwd=root, text=True
-        ).strip()
-    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
-        raise PhaseCControlError("diagnostic cannot establish implementation Git identity") from exc
-    return implementation_sha, implementation_tree
+    return (
+        _phase_c_git(root, "rev-parse", "HEAD"),
+        _phase_c_git(root, "rev-parse", "HEAD^{tree}"),
+    )
 
 
 def _repository_provenance(config: PhaseCConfiguration) -> dict[str, str]:
