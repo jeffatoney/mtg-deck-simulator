@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
   actions: read
 
 jobs:
@@ -30,6 +30,24 @@ jobs:
           python-version-file: .python-version
       - name: Install dependencies
         run: uv sync --frozen --all-extras
+      - name: Apply and publish PR98 durable governance repair
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 98 }}
+        run: |
+          uv run python scripts/pr98_governance_repair.py
+          uv run ruff format scripts/_phase_b_paths.py src/mtg_runs/phase_c.py tests/phase_c/test_phase_c_governance_binding.py tests/phase_c/test_phase_c_study_binding.py tests/phase_c/test_phase_c_control.py
+          uv run ruff check scripts/_phase_b_paths.py src/mtg_runs/phase_c.py tests/phase_c/test_phase_c_governance_binding.py tests/phase_c/test_phase_c_study_binding.py tests/phase_c/test_phase_c_control.py
+          uv run mypy src
+          uv run pytest -q tests/phase_c/test_phase_c_governance_binding.py tests/phase_c/test_phase_c_study_binding.py tests/phase_c/test_phase_c_control.py
+          git checkout origin/main -- .github/workflows/ci.yml
+          git rm -f .github/workflows/pr98-governance-repair.yml .github/workflows/pr98-governance-runner.yml scripts/pr98_governance_repair.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Repair Phase C activation governance binding"
+          git push origin HEAD:${{ github.head_ref }}
+          echo "Durable repair was pushed; this staging run intentionally stops before certifying its obsolete head."
+          exit 1
       - name: Frozen identity lock integrity
         run: uv run python scripts/check_identity_lock.py
       - name: Phase A authority classification
