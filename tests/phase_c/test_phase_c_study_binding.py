@@ -57,6 +57,12 @@ def _write(path: Path, payload: dict[str, object]) -> Path:
         ),
         ("deck", "exact_library_count", 97, "exact library count"),
         ("deck", "physical_card_count", 99, "physical card count"),
+        (
+            "deck",
+            "commanders",
+            ["Malcolm, Keen-Eyed Navigator", "Not Breeches"],
+            "deck commanders",
+        ),
         ("deck", "source", "docs/source/not-the-deck.txt", "deck source"),
         (
             "pilot",
