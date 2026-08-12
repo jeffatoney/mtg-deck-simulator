@@ -1,4 +1,4 @@
-name: Run Phase C study-binding transform
+name: Execute verified Phase C study-binding transform
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   apply:
-    if: github.event.head_commit.message == 'Run corrected Phase C transform'
+    if: github.event.head_commit.message == 'Execute verified Phase C transform payload'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version-file: .python-version
-      - name: Extract, verify, and run pinned transform
+      - name: Reconstruct and verify transform
         run: |
           python - <<'PY'
           import base64
@@ -31,16 +31,23 @@ jobs:
           import hashlib
           from pathlib import Path
 
-          workflow = Path('.github/workflows/bootstrap-phase-c-study-binding.yml')
-          payload_lines = [
-              line.strip()
-              for line in workflow.read_text(encoding='utf-8').splitlines()
-              if line.strip().startswith('H4sI')
+          parts = [
+              ('.tmp/phase_c_transform.part1', 3333, 'aa06aaa243dba34c4ed6056dbab292343e30a8aeb4f9456cfd9509c86a95f9ea'),
+              ('.tmp/phase_c_transform.part2', 3333, 'ac5dbf51d3e129496f0be442202b6e833a65bbcac8a08c7db0a8bec678186b54'),
+              ('.tmp/phase_c_transform.part3', 3333, 'e0d6405c6dced4bf6c7fc42707ee907db68e22ce1fdef78d79e336795f2115fc'),
+              ('.tmp/phase_c_transform.part4', 3333, 'ce70fe1e49215ea4b83fc45b6bea50e080f0d23e9cfe88ccec3bc6d6e764b39c'),
           ]
-          if len(payload_lines) != 1:
-              raise SystemExit(f'expected one embedded payload, found {len(payload_lines)}')
-          payload = payload_lines[0]
-          payload += '=' * (-len(payload) % 4)
+          chunks = []
+          for name, expected_len, expected_sha in parts:
+              text = Path(name).read_text(encoding='utf-8')
+              actual_sha = hashlib.sha256(text.encode()).hexdigest()
+              if len(text) != expected_len or actual_sha != expected_sha:
+                  raise SystemExit(f'{name}: len={len(text)} sha256={actual_sha}')
+              chunks.append(text)
+              print(f'verified {name}: len={len(text)} sha256={actual_sha}')
+          payload = ''.join(chunks)
+          if len(payload) != 13332:
+              raise SystemExit(f'payload length mismatch: {len(payload)}')
           script = gzip.decompress(base64.b64decode(payload, validate=True))
           digest = hashlib.sha256(script).hexdigest()
           expected = '5781a0a00a21fb58c324496daef3a8f180bad2dc17b9de9b8aedb7a5fd991034'
@@ -48,7 +55,7 @@ jobs:
               raise SystemExit(f'transform SHA-256 mismatch: {digest} != {expected}')
           out = Path('/tmp/bootstrap_phase_c_study_binding.py')
           out.write_bytes(script)
-          print(f'verified transform_sha256={digest} bytes={len(script)}')
+          print(f'verified transform: bytes={len(script)} sha256={digest}')
           PY
           python /tmp/bootstrap_phase_c_study_binding.py
       - name: Install dependencies
