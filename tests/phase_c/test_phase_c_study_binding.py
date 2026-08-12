@@ -64,6 +64,11 @@ def _write(path: Path, payload: dict[str, object]) -> Path:
             "deck commanders",
         ),
         ("deck", "source", "docs/source/not-the-deck.txt", "deck source"),
+        ("game_model", "opponent_interaction_modeled", True, "interaction"),
+        ("game_model", "blocking_modeled", True, "blocking"),
+        ("game_model", "opponent_wins_modeled", True, "opponent wins"),
+        ("game_model", "glint_horn_may_attack_when_legal", False, "Glint-Horn attack model"),
+        ("game_model", "malcolm_may_connect_when_legal", False, "Malcolm connection model"),
         (
             "pilot",
             "environment_seed_namespace",
