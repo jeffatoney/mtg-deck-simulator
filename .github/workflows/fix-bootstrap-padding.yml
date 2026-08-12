@@ -53,9 +53,19 @@ jobs:
           expected = '5781a0a00a21fb58c324496daef3a8f180bad2dc17b9de9b8aedb7a5fd991034'
           if digest != expected:
               raise SystemExit(f'transform SHA-256 mismatch: {digest} != {expected}')
+          text = script.decode('utf-8')
+          needle = '        class PhaseCConfiguration:\n'
+          if text.count(needle) != 2:
+              raise SystemExit(f'PhaseCConfiguration transform target count={text.count(needle)}')
+          text = text.replace(needle, '        @dataclass(frozen=True)\n        class PhaseCConfiguration:\n')
+          script = text.encode('utf-8')
+          patched_digest = hashlib.sha256(script).hexdigest()
+          patched_expected = 'd00cc9701198c91c9516937118d01aa7ac3811ba20bb9106499059e04bec38a1'
+          if patched_digest != patched_expected:
+              raise SystemExit(f'patched transform SHA-256 mismatch: {patched_digest}')
           out = Path('/tmp/bootstrap_phase_c_study_binding.py')
           out.write_bytes(script)
-          print(f'verified transform: bytes={len(script)} sha256={digest}')
+          print(f'verified patched transform: bytes={len(script)} sha256={patched_digest}')
           PY
           python /tmp/bootstrap_phase_c_study_binding.py
       - name: Install dependencies
