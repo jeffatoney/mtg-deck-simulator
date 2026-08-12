@@ -1,0 +1,103 @@
+name: Phase C Terminal Seed Reproduction
+
+on:
+  push:
+    branches:
+      - audit/phase-c-terminal-seed-reproduction-b04b2ec7
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase-c-terminal-seed-reproduction-b04b2ec7
+  cancel-in-progress: false
+
+env:
+  IMPLEMENTATION_COMMIT: b04b2ec7dc622a7afe4a6432f5f466926333c87f
+  AUDIT_BRANCH: audit/phase-c-terminal-seed-reproduction-b04b2ec7
+  AUDIT_WORKFLOW_PATH: .github/workflows/phase-c-terminal-seed-reproduction.yml
+  FAILURE_SEED: "391730338978874520"
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+    steps:
+      - name: Inspect the audit-only branch commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+
+      - name: Require an exact one-file audit descendant and unchanged main
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/${AUDIT_BRANCH}"
+          test "$(git rev-parse HEAD^)" = "${IMPLEMENTATION_COMMIT}"
+          mapfile -t changed < <(git diff --name-only "${IMPLEMENTATION_COMMIT}" "${GITHUB_SHA}")
+          test "${#changed[@]}" -eq 1
+          test "${changed[0]}" = "${AUDIT_WORKFLOW_PATH}"
+          main_sha="$(gh api "/repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          test "${main_sha}" = "${IMPLEMENTATION_COMMIT}"
+
+      - name: Checkout the exact failed implementation
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.IMPLEMENTATION_COMMIT }}
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+
+      - name: Reproduce the exact uncaught terminal-game call
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python - <<'PY'
+          import os
+          import traceback
+          from pathlib import Path
+
+          from mtg_kernel.errors import IllegalAction
+          from mtg_runs.phase_c_runner import run_phase_c_game_execution
+
+          seed = int(os.environ["FAILURE_SEED"])
+          try:
+              run_phase_c_game_execution(
+                  seed=seed,
+                  mode="STANDARD",
+                  through_turn=10,
+                  validate_fresh_replay=True,
+                  policy_actions=True,
+              )
+          except IllegalAction as exc:
+              rendered = traceback.format_exc()
+              print(rendered)
+              Path("terminal-seed-traceback.txt").write_text(rendered, encoding="utf-8")
+              if str(exc) != "game is terminal":
+                  raise
+          else:
+              raise RuntimeError("the exact diagnostic failure seed no longer reproduces")
+          PY
+
+      - name: Upload the exact traceback
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-c-terminal-seed-traceback-${{ env.IMPLEMENTATION_COMMIT }}
+          path: terminal-seed-traceback.txt
+          if-no-files-found: error
+          retention-days: 30
