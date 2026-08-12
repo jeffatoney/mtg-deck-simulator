@@ -1,0 +1,40 @@
+name: Fix bootstrap payload padding
+
+on:
+  push:
+    branches:
+      - phase-c/study-definition-binding
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.event.head_commit.message == 'Add bootstrap padding repair'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Repair truncated Base64 padding
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('.github/workflows/bootstrap-phase-c-study-binding.yml')
+          text = path.read_text(encoding='utf-8')
+          old = 'HNUAAA\n          PAYLOAD'
+          new = 'HNUAAA==\n          PAYLOAD'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected exactly one payload tail, found {text.count(old)}')
+          path.write_text(text.replace(old, new), encoding='utf-8')
+          PY
+          git diff --check
+      - name: Commit repair and remove helper
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/fix-bootstrap-padding.yml
+          git add .github/workflows/bootstrap-phase-c-study-binding.yml
+          git diff --cached --check
+          git commit -m "Repair bootstrap payload padding"
+          git push origin HEAD:phase-c/study-definition-binding
