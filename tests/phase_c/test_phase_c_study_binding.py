@@ -70,8 +70,17 @@ def _write(path: Path, payload: dict[str, object]) -> Path:
             "mutated-standard-namespace",
             "standard environment seed namespace",
         ),
+        (
+            "pilot",
+            "exploratory_search_seed_namespace",
+            "mutated-search-namespace",
+            "exploratory search seed namespace",
+        ),
         ("policy", "standard_policy_config_id", "mutated-policy", "standard policy config ID"),
+        ("policy", "standard_policy_config_hash", "0" * 64, "standard policy config hash"),
         ("policy", "evaluator_snapshot_id", "mutated-evaluator", "evaluator snapshot ID"),
+        ("policy", "evaluator_snapshot_sha256", "1" * 64, "evaluator snapshot hash"),
+        ("policy", "learning_plan_sha256", "2" * 64, "learning plan hash"),
     ],
 )
 def test_frozen_study_definition_mutations_fail_closed(
