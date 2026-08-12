@@ -1,0 +1,60 @@
+name: PR98 boundary fix
+
+on:
+  push:
+    branches:
+      - phase-c/study-definition-binding
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Apply centralized Git-identity fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/mtg_runs/phase_c_diagnostic.py')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('import subprocess\n', '')
+          old_import = '''    PhaseCControlError,\n    build_pilot_seed_plan,\n'''
+          new_import = '''    PhaseCControlError,\n    _git as _phase_c_git,\n    build_pilot_seed_plan,\n'''
+          if text.count(old_import) != 1:
+              raise SystemExit('phase_c import target changed')
+          text = text.replace(old_import, new_import)
+          old = '''def _git_identity(root: Path) -> tuple[str, str]:\n    try:\n        implementation_sha = subprocess.check_output(\n            ["git", "rev-parse", "HEAD"], cwd=root, text=True\n        ).strip()\n        implementation_tree = subprocess.check_output(\n            ["git", "rev-parse", "HEAD^{tree}"], cwd=root, text=True\n        ).strip()\n    except (subprocess.CalledProcessError, FileNotFoundError) as exc:\n        raise PhaseCControlError("diagnostic cannot establish implementation Git identity") from exc\n    return implementation_sha, implementation_tree\n'''
+          new = '''def _git_identity(root: Path) -> tuple[str, str]:\n    return (\n        _phase_c_git(root, "rev-parse", "HEAD"),\n        _phase_c_git(root, "rev-parse", "HEAD^{tree}"),\n    )\n'''
+          if text.count(old) != 1:
+              raise SystemExit('git identity target changed')
+          path.write_text(text.replace(old, new), encoding='utf-8')
+          PY
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Validate boundary correction
+        run: |
+          uv run ruff format src/mtg_runs/phase_c_diagnostic.py
+          uv run ruff check src/mtg_runs/phase_c_diagnostic.py
+          uv run mypy src
+          uv run python scripts/check_clean_engine_boundary.py
+          uv run pytest -q tests/phase_c/test_phase_c_diagnostic.py tests/phase_c/test_phase_c_diagnostic_provenance.py tests/phase_c/test_phase_c_study_binding.py tests/phase_c/test_phase_c_governance_binding.py
+          git diff --check
+      - name: Commit only substantive correction
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/mtg_runs/phase_c_diagnostic.py
+          git diff --cached --check
+          git commit -m "Centralize Phase C diagnostic Git identity"
+          git push origin HEAD:phase-c/study-definition-binding
