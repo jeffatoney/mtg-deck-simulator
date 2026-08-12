@@ -19,6 +19,7 @@ CONFIG_PATH = "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json"
 GUARDRAIL_PATH = "docs/spec/phase-c/NO_OPPONENT_POLICY_GUARDRAIL.json"
 HANDOFF_PROTOCOL = ROOT / "docs/audit/handoff/PROTOCOL.md"
 PILOT_WORKFLOW = ROOT / ".github/workflows/phase-c-pilot.yml"
+PHASE_C_SOURCE = ROOT / "src/mtg_runs/phase_c.py"
 
 
 def test_phase_b_certification_surface_is_disjoint_from_activation_allowlist() -> None:
@@ -34,6 +35,15 @@ def test_pilot_workflow_checks_phase_b_before_authorization_without_deadlock() -
         "Validate implementation and governance-only activation"
     )
     assert set(_phase_b_paths.COVERED_PATHS).isdisjoint(phase_c._ACTIVATION_ALLOWLIST)
+
+
+def test_locked_config_digest_is_read_from_implementation_commit() -> None:
+    text = PHASE_C_SOURCE.read_text(encoding="utf-8")
+    locked_read = "locked_config_sha = _git_file_sha256(root, implementation_commit, config_path)"
+    activation_read = "locked_config_sha = _git_file_sha256(root, activation_commit, config_path)"
+    assert locked_read in text
+    assert activation_read not in text
+    assert "if locked_config_sha != expected_locked_config_sha256:" in text
 
 
 def test_activation_config_mutation_does_not_stale_phase_b_surface(
