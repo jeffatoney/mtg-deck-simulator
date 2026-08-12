@@ -28,6 +28,10 @@ jobs:
             echo "implementation_commit must contain only one exact 40-character lowercase Git SHA" >&2
             exit 1
           fi
+      - name: Require implementation is the dispatched main head
+        env:
+          IMPLEMENTATION_COMMIT: ${{ inputs.implementation_commit }}
+        run: test "${IMPLEMENTATION_COMMIT}" = "${GITHUB_SHA}"
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
