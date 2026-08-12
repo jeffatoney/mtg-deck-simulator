@@ -45,6 +45,145 @@ _ACTIVATION_ALLOWLIST = {
     "docs/spec/phase-c/PHASE_C_PILOT_APPROVAL.json",
     "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json",
 }
+_CONFIG_TOP_LEVEL_KEYS = frozenset(
+    {
+        "authorization",
+        "deck",
+        "exploratory_search",
+        "full_study",
+        "game_model",
+        "measurement",
+        "mulligan",
+        "paired_analysis",
+        "pilot",
+        "policy",
+        "prerequisites",
+        "schema_version",
+        "stop_conditions",
+    }
+)
+_CONFIG_SECTION_KEYS: dict[str, frozenset[str]] = {
+    "authorization": frozenset(
+        {"approved_at", "approved_by", "confirmation_token", "execution_allowed", "status"}
+    ),
+    "deck": frozenset({"commanders", "exact_library_count", "physical_card_count", "source"}),
+    "exploratory_search": frozenset(
+        {
+            "bounded",
+            "future_information_allowed",
+            "post_result_optimization_allowed",
+            "production_decision_layer_depth",
+            "reported_separately",
+            "rules_validation_required",
+        }
+    ),
+    "full_study": frozenset(
+        {"authorization_status", "execution_allowed", "exploratory_games", "standard_games"}
+    ),
+    "game_model": frozenset(
+        {
+            "blocking_modeled",
+            "breeches_unknown_cards_added_as_deterministic_resources",
+            "controlled_player_draws_on_turn_one",
+            "end_after_controlled_turn",
+            "glint_horn_may_attack_when_legal",
+            "malcolm_may_connect_when_legal",
+            "opponent_interaction_modeled",
+            "opponent_wins_modeled",
+            "opponents",
+            "players",
+        }
+    ),
+    "measurement": frozenset(
+        {"additional_checkpoints", "objective", "primary_checkpoint", "required_outputs"}
+    ),
+    "mulligan": frozenset(
+        {
+            "candidate_hand_sizes",
+            "refill_kept_hand_to",
+            "rejected_hands_returned_and_shuffled",
+            "stop_below_four",
+        }
+    ),
+    "paired_analysis": frozenset(
+        {
+            "bootstrap_resamples",
+            "checkpoint_turn",
+            "confidence_interval_method",
+            "confidence_level",
+            "effect_threshold_rule",
+            "mcnemar_test",
+            "outcome_name",
+            "paired_game_count",
+            "pairs_per_standard_shard",
+            "pair_selection_rule",
+            "primary_outcome",
+            "required_reporting_sentence",
+            "secondary_censoring_rule",
+            "secondary_outcome",
+        }
+    ),
+    "pilot": frozenset(
+        {
+            "environment_seed_namespace",
+            "exploratory_games",
+            "exploratory_search_seed_namespace",
+            "exploratory_shards",
+            "standard_games",
+            "standard_shards",
+        }
+    ),
+    "policy": frozenset(
+        {
+            "evaluator_snapshot_id",
+            "evaluator_snapshot_sha256",
+            "exploratory_continuation_policy_config_id",
+            "learning_plan_sha256",
+            "policy_mutation_allowed",
+            "standard_policy_config_hash",
+            "standard_policy_config_id",
+        }
+    ),
+    "prerequisites": frozenset(
+        {
+            "clean_engine_only",
+            "legacy_import_allowed",
+            "phase_a_verifier_required",
+            "phase_b_certification_required",
+            "phase_b_verifier_required",
+            "post_merge_main_ci_required",
+        }
+    ),
+}
+_REQUIRED_OUTPUTS = (
+    "opening_hand_records",
+    "mulligan_depth",
+    "checkpoint_table_win_access",
+    "combo_access",
+    "earliest_legal_attempt_turn",
+    "actual_first_attempt_turn",
+    "failure_labels",
+    "card_measurements",
+    "terminal_status",
+    "replay_transcript",
+    "immutable_run_manifest",
+    "paired_turn8_analysis",
+    "paired_earliest_access_timing",
+    "aggregation_digest",
+)
+_STOP_CONDITIONS = (
+    "PHASE_A_OR_PHASE_B_GATE_FAILURE",
+    "SOURCE_OR_CONFIGURATION_DIGEST_DRIFT",
+    "UNSUPPORTED_CAPABILITY_OR_STRATEGIC_BLOCKER",
+    "HIDDEN_FUTURE_ACCESS",
+    "POST_RESULT_POLICY_OPTIMIZATION",
+    "LEGACY_EXECUTION_OR_IMPORT",
+    "GAME_COUNT_OR_SEED_ASSIGNMENT_MISMATCH",
+    "PAIRED_ENVIRONMENT_OR_SEARCH_SEED_MISMATCH",
+    "STANDARD_EXPLORATORY_MODE_MIXING",
+    "MANIFEST_REPLAY_OR_AGGREGATION_MISMATCH",
+    "FULL_STUDY_ATTEMPT_BEFORE_SEPARATE_AUTHORIZATION",
+)
 
 
 class PhaseCControlError(ValueError):
@@ -86,6 +225,16 @@ def _mapping(value: object, label: str) -> Mapping[str, Any]:
 def _exact(value: object, expected: object, label: str) -> None:
     if value != expected:
         raise PhaseCControlError(f"{label} must be {expected!r}, received {value!r}")
+
+
+def _exact_keys(mapping: Mapping[str, Any], expected: frozenset[str], label: str) -> None:
+    actual = set(mapping)
+    if actual != expected:
+        missing = sorted(expected - actual)
+        unknown = sorted(actual - expected)
+        raise PhaseCControlError(
+            f"{label} field set mismatch: missing={missing}, unknown={unknown}"
+        )
 
 
 def _is_sha256(value: str) -> bool:
@@ -349,6 +498,8 @@ def _parse_paired_analysis_configuration(
 
 
 def _validate_scope(payload: Mapping[str, Any]) -> None:
+    _exact_keys(payload, _CONFIG_TOP_LEVEL_KEYS, "Phase C pilot configuration")
+    authorization = _mapping(payload.get("authorization"), "authorization")
     full_study = _mapping(payload.get("full_study"), "full_study")
     search = _mapping(payload.get("exploratory_search"), "exploratory_search")
     model = _mapping(payload.get("game_model"), "game_model")
@@ -357,7 +508,28 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
     mulligan = _mapping(payload.get("mulligan"), "mulligan")
     prerequisites = _mapping(payload.get("prerequisites"), "prerequisites")
     paired = _mapping(payload.get("paired_analysis"), "paired_analysis")
+    pilot = _mapping(payload.get("pilot"), "pilot")
+    policy = _mapping(payload.get("policy"), "policy")
+    for label, section in (
+        ("authorization", authorization),
+        ("deck", deck),
+        ("exploratory_search", search),
+        ("full_study", full_study),
+        ("game_model", model),
+        ("measurement", measurement),
+        ("mulligan", mulligan),
+        ("paired_analysis", paired),
+        ("pilot", pilot),
+        ("policy", policy),
+        ("prerequisites", prerequisites),
+    ):
+        _exact_keys(section, _CONFIG_SECTION_KEYS[label], label)
 
+    _exact(
+        full_study.get("authorization_status"),
+        "LOCKED_PENDING_POST_PILOT_REVIEW",
+        "full-study authorization status",
+    )
     _exact(full_study.get("execution_allowed"), False, "full-study flag")
     _exact(full_study.get("standard_games"), 20_000, "full-study count")
     _exact(full_study.get("exploratory_games"), 5_000, "full-study count")
@@ -379,6 +551,8 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
     _exact(model.get("opponent_interaction_modeled"), False, "interaction")
     _exact(model.get("blocking_modeled"), False, "blocking")
     _exact(model.get("opponent_wins_modeled"), False, "opponent wins")
+    _exact(model.get("glint_horn_may_attack_when_legal"), True, "Glint-Horn attack model")
+    _exact(model.get("malcolm_may_connect_when_legal"), True, "Malcolm connection model")
     _exact(
         model.get("breeches_unknown_cards_added_as_deterministic_resources"),
         False,
@@ -406,6 +580,7 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
         "MAXIMIZE_LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS",
         "measurement objective",
     )
+    _exact(measurement.get("required_outputs"), list(_REQUIRED_OUTPUTS), "required outputs")
     _exact(mulligan.get("candidate_hand_sizes"), [7, 7, 6, 5, 4], "mulligan")
     _exact(mulligan.get("refill_kept_hand_to"), 7, "mulligan refill")
     _exact(mulligan.get("stop_below_four"), True, "mulligan floor")
@@ -446,6 +621,7 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
     _exact(
         paired.get("required_reporting_sentence"), REPORTING_SENTENCE, "paired reporting sentence"
     )
+    _exact(payload.get("stop_conditions"), list(_STOP_CONDITIONS), "stop conditions")
 
 
 def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
@@ -467,14 +643,16 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
     _exact(pilot.get("exploratory_shards"), EXPLORATORY_SHARDS, "exploratory pilot shard count")
     environment_namespace = str(pilot.get("environment_seed_namespace", ""))
     search_namespace = str(pilot.get("exploratory_search_seed_namespace", ""))
-    if not environment_namespace or not search_namespace:
-        raise PhaseCControlError(
-            "environment and exploratory search seed namespaces must be nonempty"
-        )
-    if environment_namespace == search_namespace:
-        raise PhaseCControlError(
-            "environment and exploratory search seed namespaces must be distinct"
-        )
+    _exact(
+        environment_namespace,
+        "phase-c-pilot-standard-v1",
+        "standard environment seed namespace",
+    )
+    _exact(
+        search_namespace,
+        "phase-c-pilot-exploratory-search-v1",
+        "exploratory search seed namespace",
+    )
 
     policy_id = str(policy.get("standard_policy_config_id", ""))
     policy_hash = str(policy.get("standard_policy_config_hash", ""))
@@ -485,6 +663,23 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
         raise PhaseCControlError("Phase C policy identity is incomplete")
     if not all(_is_sha256(value) for value in (policy_hash, evaluator_hash, learning_hash)):
         raise PhaseCControlError("Phase C policy digests are incomplete")
+    _exact(policy_id, "anchor_balanced", "standard policy config ID")
+    _exact(
+        policy_hash,
+        "d10bc384f254ab7684ea62b45340d86349f36e4d9786a9d639a9c7c6ce38f800",
+        "standard policy config hash",
+    )
+    _exact(evaluator_id, "contextual_combo_v1", "evaluator snapshot ID")
+    _exact(
+        evaluator_hash,
+        "86c5e07daaa86362a38fad7a66d712443e32ba8af743bcaaa15576207264eca2",
+        "evaluator snapshot hash",
+    )
+    _exact(
+        learning_hash,
+        "4884586c492c62cfd009c0a53c6d4ddd888274771c10efddc2b1853745a685e2",
+        "learning plan hash",
+    )
     _exact(policy.get("policy_mutation_allowed"), False, "policy mutation")
     _exact(
         policy.get("exploratory_continuation_policy_config_id"),

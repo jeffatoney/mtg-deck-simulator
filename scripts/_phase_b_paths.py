@@ -47,7 +47,6 @@ COVERED_PATHS = (
     "docs/source/oracle/snapshot_v1.json",
     "docs/source/decklist.txt",
     "docs/source/commanders.txt",
-    "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json",
     "docs/spec/phase-c/NO_OPPONENT_POLICY_GUARDRAIL.json",
     "docs/architecture/decisions/0015-strategic-choice-boundary-and-learning-snapshots.md",
     "docs/spec/ENGINE_BUILD_PHASE_B.md",

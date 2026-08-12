@@ -40,12 +40,7 @@ def _write(path: Path, payload: dict[str, object]) -> Path:
             "ACT_ON_ANYTHING",
             "paired effect-threshold rule",
         ),
-        (
-            "paired_analysis",
-            "secondary_outcome",
-            "INVALID_SECONDARY",
-            "paired secondary outcome",
-        ),
+        ("paired_analysis", "secondary_outcome", "INVALID_SECONDARY", "paired secondary outcome"),
         (
             "paired_analysis",
             "secondary_censoring_rule",
@@ -62,21 +57,60 @@ def _write(path: Path, payload: dict[str, object]) -> Path:
         ),
         ("deck", "exact_library_count", 97, "exact library count"),
         ("deck", "physical_card_count", 99, "physical card count"),
+        ("deck", "source", "docs/source/not-the-deck.txt", "deck source"),
+        (
+            "pilot",
+            "environment_seed_namespace",
+            "mutated-standard-namespace",
+            "standard environment seed namespace",
+        ),
+        ("policy", "standard_policy_config_id", "mutated-policy", "standard policy config ID"),
+        ("policy", "evaluator_snapshot_id", "mutated-evaluator", "evaluator snapshot ID"),
     ],
 )
 def test_frozen_study_definition_mutations_fail_closed(
-    tmp_path: Path,
-    section: str,
-    key: str,
-    value: object,
-    message: str,
+    tmp_path: Path, section: str, key: str, value: object, message: str
 ) -> None:
     payload = _payload()
     section_payload = payload[section]
     assert isinstance(section_payload, dict)
+    assert section_payload.get(key) != value, "mutation must not be vacuous"
     section_payload[key] = value
     with pytest.raises(PhaseCControlError, match=message):
         load_phase_c_config(_write(tmp_path / f"{section}-{key}.json", payload))
+
+
+@pytest.mark.parametrize(
+    "section",
+    [
+        None,
+        "authorization",
+        "deck",
+        "exploratory_search",
+        "full_study",
+        "game_model",
+        "measurement",
+        "mulligan",
+        "paired_analysis",
+        "pilot",
+        "policy",
+        "prerequisites",
+    ],
+)
+def test_unknown_configuration_keys_fail_closed(tmp_path: Path, section: str | None) -> None:
+    payload = _payload()
+    if section is None:
+        assert "injected_unreviewed_key" not in payload
+        payload["injected_unreviewed_key"] = True
+        filename = "top-level"
+    else:
+        section_payload = payload[section]
+        assert isinstance(section_payload, dict)
+        assert "injected_unreviewed_key" not in section_payload
+        section_payload["injected_unreviewed_key"] = True
+        filename = section
+    with pytest.raises(PhaseCControlError, match="field set mismatch"):
+        load_phase_c_config(_write(tmp_path / f"unknown-{filename}.json", payload))
 
 
 def _controlled_analysis_fixture():
@@ -128,15 +162,16 @@ def test_analysis_default_path_consults_loaded_typed_configuration(
         "load_phase_c_config",
         lambda: SimpleNamespace(paired_analysis=fixture),
     )
-
     primary = build_paired_turn8_analysis(_primary_rows())
     secondary = build_paired_earliest_access_timing(_secondary_rows())
-
     assert primary["primary_outcome"] == fixture.primary_outcome
     assert primary["reporting_metric"] == fixture.outcome_name
     assert primary["checkpoint_turn"] == fixture.checkpoint_turn
     assert primary["effect_threshold_rule"] == fixture.effect_threshold_rule
     assert primary["required_reporting_sentence"] == fixture.required_reporting_sentence
+    assert primary["confidence_interval_method"] == fixture.confidence_interval_method
+    assert primary["confidence_level"] == fixture.confidence_level
+    assert primary["bootstrap_resamples"] == fixture.bootstrap_resamples
     assert secondary["outcome_name"] == fixture.secondary_outcome
     assert secondary["censoring_rule"] == fixture.secondary_censoring_rule
     assert secondary["effect_threshold_rule"] == fixture.effect_threshold_rule
