@@ -12,7 +12,9 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Callable
 
+from mtg_deck import load_exact_deck_package
 from mtg_runs.phase_c_pairing import (
+    OUTCOME_NAME,
     PAIR_SELECTION_RULE,
     PAIRED_BOOTSTRAP_RESAMPLES,
     PAIRED_CHECKPOINT_TURN,
@@ -20,7 +22,12 @@ from mtg_runs.phase_c_pairing import (
     PAIRED_CI_METHOD,
     PAIRED_GAME_COUNT,
     PAIRS_PER_STANDARD_SHARD,
+    PILOT_EFFECT_THRESHOLD_RULE,
+    PRIMARY_OUTCOME,
     REPORTING_SENTENCE,
+    SECONDARY_CENSORING_RULE,
+    SECONDARY_OUTCOME,
+    PairedAnalysisConfiguration,
     build_pairing_plan,
 )
 
@@ -198,6 +205,11 @@ class PhaseCConfiguration:
     path: Path
     payload: Mapping[str, Any]
     sha256: str
+    paired_analysis: PairedAnalysisConfiguration
+    deck_exact_library_count: int
+    deck_physical_card_count: int
+    deck_commanders: tuple[str, ...]
+    deck_source: str
     confirmation_token: str
     execution_allowed: bool
     authorization_status: str
@@ -282,10 +294,65 @@ class PhaseCDryRunReport:
         return asdict(self)
 
 
+def _required_text(mapping: Mapping[str, Any], key: str, label: str) -> str:
+    value = mapping.get(key)
+    if not isinstance(value, str) or not value:
+        raise PhaseCControlError(f"{label} must be a nonempty string")
+    return value
+
+
+def _required_int(mapping: Mapping[str, Any], key: str, label: str) -> int:
+    value = mapping.get(key)
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise PhaseCControlError(f"{label} must be an integer")
+    return value
+
+
+def _required_float(mapping: Mapping[str, Any], key: str, label: str) -> float:
+    value = mapping.get(key)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise PhaseCControlError(f"{label} must be numeric")
+    return float(value)
+
+
+def _parse_paired_analysis_configuration(
+    paired: Mapping[str, Any],
+) -> PairedAnalysisConfiguration:
+    return PairedAnalysisConfiguration(
+        primary_outcome=_required_text(paired, "primary_outcome", "paired primary outcome"),
+        outcome_name=_required_text(paired, "outcome_name", "paired outcome name"),
+        secondary_outcome=_required_text(paired, "secondary_outcome", "paired secondary outcome"),
+        secondary_censoring_rule=_required_text(
+            paired, "secondary_censoring_rule", "paired secondary censoring rule"
+        ),
+        effect_threshold_rule=_required_text(
+            paired, "effect_threshold_rule", "paired effect-threshold rule"
+        ),
+        required_reporting_sentence=_required_text(
+            paired, "required_reporting_sentence", "paired reporting sentence"
+        ),
+        paired_game_count=_required_int(paired, "paired_game_count", "paired game count"),
+        pairs_per_standard_shard=_required_int(
+            paired, "pairs_per_standard_shard", "pairs per standard shard"
+        ),
+        pair_selection_rule=_required_text(paired, "pair_selection_rule", "pair selection rule"),
+        checkpoint_turn=_required_int(paired, "checkpoint_turn", "paired checkpoint"),
+        mcnemar_test=_required_text(paired, "mcnemar_test", "paired test"),
+        confidence_interval_method=_required_text(
+            paired, "confidence_interval_method", "paired confidence interval"
+        ),
+        confidence_level=_required_float(paired, "confidence_level", "paired confidence level"),
+        bootstrap_resamples=_required_int(
+            paired, "bootstrap_resamples", "paired bootstrap resamples"
+        ),
+    )
+
+
 def _validate_scope(payload: Mapping[str, Any]) -> None:
     full_study = _mapping(payload.get("full_study"), "full_study")
     search = _mapping(payload.get("exploratory_search"), "exploratory_search")
     model = _mapping(payload.get("game_model"), "game_model")
+    deck = _mapping(payload.get("deck"), "deck")
     measurement = _mapping(payload.get("measurement"), "measurement")
     mulligan = _mapping(payload.get("mulligan"), "mulligan")
     prerequisites = _mapping(payload.get("prerequisites"), "prerequisites")
@@ -318,6 +385,20 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
         "Breeches boundary",
     )
 
+    package = load_exact_deck_package()
+    _exact(deck.get("exact_library_count"), package.library_count, "exact library count")
+    _exact(
+        deck.get("physical_card_count"),
+        package.physical_card_count,
+        "physical card count",
+    )
+    _exact(
+        deck.get("commanders"),
+        [entry.name for entry in package.commanders],
+        "deck commanders",
+    )
+    _exact(deck.get("source"), "docs/source/decklist.txt", "deck source")
+
     _exact(measurement.get("primary_checkpoint"), 8, "primary checkpoint")
     _exact(measurement.get("additional_checkpoints"), [5, 6, 10], "checkpoints")
     _exact(
@@ -337,6 +418,19 @@ def _validate_scope(payload: Mapping[str, Any]) -> None:
     _exact(prerequisites.get("phase_b_certification_required"), "PASS", "Phase B certification")
     _exact(prerequisites.get("post_merge_main_ci_required"), "PASS", "post-merge main CI")
 
+    _exact(paired.get("primary_outcome"), PRIMARY_OUTCOME, "paired primary outcome")
+    _exact(paired.get("outcome_name"), OUTCOME_NAME, "paired outcome name")
+    _exact(paired.get("secondary_outcome"), SECONDARY_OUTCOME, "paired secondary outcome")
+    _exact(
+        paired.get("secondary_censoring_rule"),
+        SECONDARY_CENSORING_RULE,
+        "paired secondary censoring rule",
+    )
+    _exact(
+        paired.get("effect_threshold_rule"),
+        PILOT_EFFECT_THRESHOLD_RULE,
+        "paired effect-threshold rule",
+    )
     _exact(paired.get("paired_game_count"), PAIRED_GAME_COUNT, "paired game count")
     _exact(
         paired.get("pairs_per_standard_shard"), PAIRS_PER_STANDARD_SHARD, "pairs per standard shard"
@@ -361,6 +455,9 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
     pilot = _mapping(payload.get("pilot"), "pilot")
     policy = _mapping(payload.get("policy"), "policy")
     search = _mapping(payload.get("exploratory_search"), "exploratory_search")
+    deck = _mapping(payload.get("deck"), "deck")
+    paired = _mapping(payload.get("paired_analysis"), "paired_analysis")
+    paired_analysis = _parse_paired_analysis_configuration(paired)
     _validate_scope(payload)
 
     _exact(authorization.get("confirmation_token"), CONFIRMATION_TOKEN, "confirmation token")
@@ -399,6 +496,11 @@ def load_phase_c_config(path: Path = DEFAULT_CONFIG) -> PhaseCConfiguration:
         path=path,
         payload=payload,
         sha256=file_sha256(path),
+        paired_analysis=paired_analysis,
+        deck_exact_library_count=int(deck["exact_library_count"]),
+        deck_physical_card_count=int(deck["physical_card_count"]),
+        deck_commanders=tuple(str(value) for value in deck["commanders"]),
+        deck_source=str(deck["source"]),
         confirmation_token=str(authorization["confirmation_token"]),
         execution_allowed=bool(authorization.get("execution_allowed")),
         authorization_status=str(authorization.get("status", "")),
@@ -1059,6 +1161,7 @@ def aggregate_phase_c_pilot_artifacts(
         expected_paired_standard_game_indexes=seeds.paired_standard_game_indexes,
         expected_standard_shards=config.standard_shards,
         expected_exploratory_shards=config.exploratory_shards,
+        analysis_config=config.paired_analysis,
     )
     output_root.mkdir(parents=True, exist_ok=True)
     aggregate_dir = write_phase_c_aggregate(

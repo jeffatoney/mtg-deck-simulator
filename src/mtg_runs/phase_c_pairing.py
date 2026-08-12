@@ -18,6 +18,7 @@ PAIRED_CI_CONFIDENCE = 0.95
 PAIRED_BOOTSTRAP_RESAMPLES = 10_000
 PAIR_SELECTION_RULE = "FIRST_20_OF_EACH_STANDARD_SHARD"
 PRIMARY_OUTCOME = "LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS_BY_TURN_8"
+OUTCOME_NAME = "LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS"
 SECONDARY_OUTCOME = "EARLIEST_LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS_TURN"
 SECONDARY_CENSORING_RULE = "NO_IMPUTATION_BOTH_ACCESS_TURN_SHIFT_ONLY"
 PILOT_EFFECT_THRESHOLD_RULE = "NO_NUMERIC_ACTION_THRESHOLD_PRECOMMITTED"
@@ -25,6 +26,57 @@ REPORTING_SENTENCE = (
     "These figures measure combo assembly speed against opponents who take no actions. "
     "They are not win rates and do not predict performance against interactive opponents."
 )
+
+
+@dataclass(frozen=True)
+class PairedAnalysisConfiguration:
+    primary_outcome: str
+    outcome_name: str
+    secondary_outcome: str
+    secondary_censoring_rule: str
+    effect_threshold_rule: str
+    required_reporting_sentence: str
+    paired_game_count: int
+    pairs_per_standard_shard: int
+    pair_selection_rule: str
+    checkpoint_turn: int
+    mcnemar_test: str
+    confidence_interval_method: str
+    confidence_level: float
+    bootstrap_resamples: int
+
+    def __post_init__(self) -> None:
+        text_fields = (
+            self.primary_outcome,
+            self.outcome_name,
+            self.secondary_outcome,
+            self.secondary_censoring_rule,
+            self.effect_threshold_rule,
+            self.required_reporting_sentence,
+            self.pair_selection_rule,
+            self.mcnemar_test,
+            self.confidence_interval_method,
+        )
+        if any(not value for value in text_fields):
+            raise ValueError("paired analysis configuration text fields must be nonempty")
+        if self.paired_game_count < 1 or self.pairs_per_standard_shard < 1:
+            raise ValueError("paired analysis configuration counts must be positive")
+        if not 1 <= self.checkpoint_turn <= 10:
+            raise ValueError("paired analysis checkpoint must be Turn 1-10")
+        if not 0.0 < self.confidence_level <= 1.0:
+            raise ValueError("paired analysis confidence level must be in (0,1]")
+        if self.bootstrap_resamples < 1:
+            raise ValueError("paired analysis bootstrap resamples must be positive")
+
+
+def _resolve_analysis_configuration(
+    analysis_config: PairedAnalysisConfiguration | None,
+) -> PairedAnalysisConfiguration:
+    if analysis_config is not None:
+        return analysis_config
+    from mtg_runs.phase_c import load_phase_c_config
+
+    return load_phase_c_config().paired_analysis
 
 
 def _canonical(value: Any) -> bytes:
@@ -158,15 +210,17 @@ def _mcnemar_exact_two_sided(exploratory_only: int, standard_only: int) -> float
 def _paired_bootstrap_percentile_ci(
     differences: Sequence[int],
     *,
-    resamples: int = PAIRED_BOOTSTRAP_RESAMPLES,
-    confidence: float = PAIRED_CI_CONFIDENCE,
+    resamples: int,
+    confidence: float,
+    method: str,
+    pair_count: int,
 ) -> tuple[float, float]:
     values = tuple(int(value) for value in differences)
-    if len(values) != PAIRED_GAME_COUNT or any(value not in {-1, 0, 1} for value in values):
-        raise ValueError("paired bootstrap requires exactly 200 {-1,0,1} differences")
+    if len(values) != pair_count or any(value not in {-1, 0, 1} for value in values):
+        raise ValueError(f"paired bootstrap requires exactly {pair_count} {{-1,0,1}} differences")
     seed_material = _digest(
         {
-            "method": PAIRED_CI_METHOD,
+            "method": method,
             "confidence": confidence,
             "resamples": resamples,
             "differences": values,
@@ -190,13 +244,20 @@ def _validated_turn(value: object, label: str) -> int | None:
     return value
 
 
-def build_paired_earliest_access_timing(records: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+def build_paired_earliest_access_timing(
+    records: Sequence[Mapping[str, Any]],
+    *,
+    analysis_config: PairedAnalysisConfiguration | None = None,
+) -> dict[str, Any]:
     """Build the secondary paired timing description without imputing censored turns."""
+    config = _resolve_analysis_configuration(analysis_config)
     rows = [dict(record) for record in records]
-    if len(rows) != PAIRED_GAME_COUNT:
-        raise ValueError("paired earliest-access timing requires exactly 200 records")
+    if len(rows) != config.paired_game_count:
+        raise ValueError(
+            f"paired earliest-access timing requires exactly {config.paired_game_count} records"
+        )
     pair_ids = [str(row.get("pair_id", "")) for row in rows]
-    if any(not pair_id for pair_id in pair_ids) or len(set(pair_ids)) != PAIRED_GAME_COUNT:
+    if any(not pair_id for pair_id in pair_ids) or len(set(pair_ids)) != config.paired_game_count:
         raise ValueError("paired earliest-access timing requires 200 unique pair IDs")
 
     both = standard_only = exploratory_only = neither = 0
@@ -228,15 +289,15 @@ def build_paired_earliest_access_timing(records: Sequence[Mapping[str, Any]]) ->
     return {
         "schema_version": "phase-c-paired-earliest-access-timing-v1",
         "analysis_role": "SECONDARY_DESCRIPTIVE",
-        "outcome_name": SECONDARY_OUTCOME,
-        "censoring_rule": SECONDARY_CENSORING_RULE,
-        "pair_count": PAIRED_GAME_COUNT,
+        "outcome_name": config.secondary_outcome,
+        "censoring_rule": config.secondary_censoring_rule,
+        "pair_count": config.paired_game_count,
         "both_access_by_turn10": both,
         "standard_only_access_by_turn10": standard_only,
         "exploratory_only_access_by_turn10": exploratory_only,
         "neither_access_by_turn10": neither,
         "paired_turn_shift_count": len(shifts),
-        "paired_turn_shift_excluded_censored_count": PAIRED_GAME_COUNT - len(shifts),
+        "paired_turn_shift_excluded_censored_count": config.paired_game_count - len(shifts),
         "paired_turn_shift_mean_exploratory_minus_standard": (
             sum(shifts) / len(shifts) if shifts else None
         ),
@@ -247,17 +308,22 @@ def build_paired_earliest_access_timing(records: Sequence[Mapping[str, Any]]) ->
         "exploratory_earliest_access_turn_counts": {
             str(key): exploratory_turns[key] for key in sorted(exploratory_turns)
         },
-        "effect_threshold_rule": PILOT_EFFECT_THRESHOLD_RULE,
+        "effect_threshold_rule": config.effect_threshold_rule,
         "pair_records_sha256": _digest(rows),
     }
 
 
-def build_paired_turn8_analysis(records: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+def build_paired_turn8_analysis(
+    records: Sequence[Mapping[str, Any]],
+    *,
+    analysis_config: PairedAnalysisConfiguration | None = None,
+) -> dict[str, Any]:
+    config = _resolve_analysis_configuration(analysis_config)
     rows = [dict(record) for record in records]
-    if len(rows) != PAIRED_GAME_COUNT:
-        raise ValueError("paired Turn-8 analysis requires exactly 200 records")
+    if len(rows) != config.paired_game_count:
+        raise ValueError(f"paired analysis requires exactly {config.paired_game_count} records")
     pair_ids = [str(row.get("pair_id", "")) for row in rows]
-    if any(not pair_id for pair_id in pair_ids) or len(set(pair_ids)) != PAIRED_GAME_COUNT:
+    if any(not pair_id for pair_id in pair_ids) or len(set(pair_ids)) != config.paired_game_count:
         raise ValueError("paired Turn-8 analysis requires 200 unique pair IDs")
     both = standard_only = exploratory_only = neither = 0
     differences: list[int] = []
@@ -275,39 +341,46 @@ def build_paired_turn8_analysis(records: Sequence[Mapping[str, Any]]) -> dict[st
         differences.append(int(exploratory) - int(standard))
     standard_access_count = both + standard_only
     exploratory_access_count = both + exploratory_only
-    difference = (exploratory_only - standard_only) / PAIRED_GAME_COUNT
-    lower, upper = _paired_bootstrap_percentile_ci(differences)
+    difference = (exploratory_only - standard_only) / config.paired_game_count
+    lower, upper = _paired_bootstrap_percentile_ci(
+        differences,
+        resamples=config.bootstrap_resamples,
+        confidence=config.confidence_level,
+        method=config.confidence_interval_method,
+        pair_count=config.paired_game_count,
+    )
     p_value = _mcnemar_exact_two_sided(exploratory_only, standard_only)
     return {
         "schema_version": "phase-c-paired-turn8-analysis-v2",
         "analysis_role": "PRIMARY",
-        "primary_outcome": PRIMARY_OUTCOME,
-        "checkpoint_turn": PAIRED_CHECKPOINT_TURN,
-        "pair_count": PAIRED_GAME_COUNT,
+        "primary_outcome": config.primary_outcome,
+        "checkpoint_turn": config.checkpoint_turn,
+        "pair_count": config.paired_game_count,
         "both_access": both,
         "standard_only_access": standard_only,
         "exploratory_only_access": exploratory_only,
         "neither_access": neither,
         "standard_access_count": standard_access_count,
         "exploratory_access_count": exploratory_access_count,
-        "standard_access_rate": standard_access_count / PAIRED_GAME_COUNT,
-        "exploratory_access_rate": exploratory_access_count / PAIRED_GAME_COUNT,
+        "standard_access_rate": standard_access_count / config.paired_game_count,
+        "exploratory_access_rate": exploratory_access_count / config.paired_game_count,
         "paired_access_rate_difference": difference,
         "discordant_pair_count": standard_only + exploratory_only,
-        "mcnemar_test": "EXACT_TWO_SIDED",
+        "mcnemar_test": config.mcnemar_test,
         "mcnemar_exact_two_sided_p_value": p_value,
-        "confidence_interval_method": PAIRED_CI_METHOD,
-        "confidence_level": PAIRED_CI_CONFIDENCE,
-        "bootstrap_resamples": PAIRED_BOOTSTRAP_RESAMPLES,
+        "confidence_interval_method": config.confidence_interval_method,
+        "confidence_level": config.confidence_level,
+        "bootstrap_resamples": config.bootstrap_resamples,
         "paired_access_rate_difference_ci": {"lower": lower, "upper": upper},
-        "reporting_metric": "LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS",
-        "required_reporting_sentence": REPORTING_SENTENCE,
-        "effect_threshold_rule": PILOT_EFFECT_THRESHOLD_RULE,
+        "reporting_metric": config.outcome_name,
+        "required_reporting_sentence": config.required_reporting_sentence,
+        "effect_threshold_rule": config.effect_threshold_rule,
         "pair_records_sha256": _digest(rows),
     }
 
 
 __all__ = [
+    "OUTCOME_NAME",
     "PAIR_SELECTION_RULE",
     "PAIRED_BOOTSTRAP_RESAMPLES",
     "PAIRED_CHECKPOINT_TURN",
@@ -317,6 +390,7 @@ __all__ = [
     "PAIRS_PER_STANDARD_SHARD",
     "PILOT_EFFECT_THRESHOLD_RULE",
     "PRIMARY_OUTCOME",
+    "PairedAnalysisConfiguration",
     "PairingPlan",
     "REPORTING_SENTENCE",
     "SECONDARY_CENSORING_RULE",

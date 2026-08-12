@@ -16,6 +16,7 @@ from typing import Any, Mapping, Sequence
 
 from mtg_runs.phase_c_pairing import (
     PAIRED_GAME_COUNT,
+    PairedAnalysisConfiguration,
     build_paired_turn8_analysis,
 )
 
@@ -665,9 +666,14 @@ def validate_phase_c_aggregate(
     expected_paired_standard_game_indexes: Sequence[int],
     expected_standard_shards: int,
     expected_exploratory_shards: int,
+    analysis_config: PairedAnalysisConfiguration | None = None,
 ) -> tuple[PhaseCAggregateManifest, Mapping[str, Any], Mapping[str, Any], Mapping[str, Any]]:
     if not shard_dirs:
         raise ValueError("Phase C aggregation requires shard artifacts")
+    if analysis_config is None:
+        from mtg_runs.phase_c import load_phase_c_config
+
+        analysis_config = load_phase_c_config().paired_analysis
     loaded = [load_phase_c_shard(path) for path in shard_dirs]
     manifests = [value[0] for value in loaded]
     invariant_fields = (
@@ -709,7 +715,7 @@ def validate_phase_c_aggregate(
         == len(expected_search)
         == len(expected_pairs)
         == len(expected_standard_indexes)
-        == PAIRED_GAME_COUNT
+        == analysis_config.paired_game_count
     ):
         raise ValueError("Phase C paired aggregate expectations must contain exactly 200 pairs")
     pair_by_standard_index = dict(zip(expected_standard_indexes, expected_pairs, strict=True))
@@ -823,12 +829,16 @@ def validate_phase_c_aggregate(
                 "exploratory_game_index": exploratory_index,
                 "environment_seed": environment_seed,
                 "search_seed": search_seed,
-                "standard_access": bool(standard_record.checkpoint_table_win_access[8]),
-                "exploratory_access": bool(exploratory_record.checkpoint_table_win_access[8]),
+                "standard_access": bool(
+                    standard_record.checkpoint_table_win_access[analysis_config.checkpoint_turn]
+                ),
+                "exploratory_access": bool(
+                    exploratory_record.checkpoint_table_win_access[analysis_config.checkpoint_turn]
+                ),
             }
         )
 
-    paired_analysis = build_paired_turn8_analysis(pair_records)
+    paired_analysis = build_paired_turn8_analysis(pair_records, analysis_config=analysis_config)
     standard_summary = summaries["STANDARD"]
     exploratory_summary = summaries["EXPLORATORY"]
     pair_assignment_rows = [
@@ -860,7 +870,7 @@ def validate_phase_c_aggregate(
         "exploratory_seed_sha256": _digest(expected_exploratory),
         "exploratory_search_seed_sha256": _digest(expected_search),
         "pair_assignment_sha256": _digest(pair_assignment_rows),
-        "paired_game_count": PAIRED_GAME_COUNT,
+        "paired_game_count": analysis_config.paired_game_count,
         "paired_analysis_sha256": _digest(paired_analysis),
         "standard_shard_count": expected_standard_shards,
         "exploratory_shard_count": expected_exploratory_shards,
