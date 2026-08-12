@@ -62,9 +62,13 @@ jobs:
               raise SystemExit('replace_once normalization targets changed')
           text = text.replace(old_line, '    old_clean = dedent(old).strip("\\n")\n')
           text = text.replace(new_line, '    new_clean = dedent(new).strip("\\n")\n')
+          newline_needle = 'json.dumps(payload) + "\\n"'
+          if text.count(newline_needle) != 2:
+              raise SystemExit(f'diagnostic newline transform target count={text.count(newline_needle)}')
+          text = text.replace(newline_needle, 'json.dumps(payload) + "\\\\n"')
           script = text.encode('utf-8')
           patched_digest = hashlib.sha256(script).hexdigest()
-          if patched_digest != 'c815af948097854cafb95c809c51f80af5a5877e4fc1132ad1cb9dfc53b17171':
+          if patched_digest != 'b4443c1a801abfdf695bddf8f593dd129809d98f7e6b1ce2a43d24fdc14f6bd4':
               raise SystemExit(f'patched transform SHA-256 mismatch: {patched_digest}')
           out = Path('/tmp/bootstrap_phase_c_study_binding.py')
           out.write_bytes(script)
