@@ -48,8 +48,11 @@ def test_locked_config_digest_is_read_from_implementation_commit() -> None:
 
 def test_activation_validator_requires_non_authorization_config_identity() -> None:
     text = PHASE_C_SOURCE.read_text(encoding="utf-8")
-    assert 'locked_non_auth = {key: value for key, value in locked_config.items() if key != "authorization"}' in text
-    assert 'current_non_auth = {' in text
+    assert (
+        'locked_non_auth = {key: value for key, value in locked_config.items() if key != "authorization"}'
+        in text
+    )
+    assert "current_non_auth = {" in text
     assert '"activation changed the study configuration outside authorization fields"' in text
 
 
