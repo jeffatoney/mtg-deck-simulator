@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
@@ -20,6 +21,7 @@ from mtg_runs.phase_c import (
     DEFAULT_CONFIG,
     PhaseCConfiguration,
     PhaseCControlError,
+    _git as _phase_c_git,
     build_pilot_seed_plan,
     build_pilot_shard_assignment,
     load_phase_c_config,
@@ -32,6 +34,21 @@ DIAGNOSTIC_SUMMARY_SCHEMA = "phase-c-prepilot-diagnostic-summary-v1"
 FORBIDDEN_PILOT_ARTIFACT_ROOTS = (
     Path("artifacts/phase-c-shards"),
     Path("artifacts/phase-c-pilot"),
+)
+NO_OPPONENT_GUARDRAIL = ROOT / "docs/spec/phase-c/NO_OPPONENT_POLICY_GUARDRAIL.json"
+PHASE_A_CERTIFICATION = ROOT / "docs/audit/phase-a-certification/CERTIFICATION.json"
+PHASE_B_CERTIFICATION = ROOT / "docs/audit/phase-b-certification/CERTIFICATION.json"
+DIAGNOSTIC_WORKFLOW = ROOT / ".github/workflows/phase-c-diagnostic.yml"
+PROVENANCE_FIELDS = (
+    "implementation_sha",
+    "implementation_tree",
+    "config_sha256",
+    "no_opponent_policy_guardrail_sha256",
+    "phase_a_certification_sha256",
+    "phase_b_certification_sha256",
+    "diagnostic_workflow_sha256",
+    "diagnostic_run_id",
+    "workflow_head_sha",
 )
 
 
@@ -84,6 +101,34 @@ def _canonical(value: Any) -> bytes:
         ensure_ascii=False,
         allow_nan=False,
     ).encode("utf-8")
+
+
+def _repository_file_sha256(path: Path) -> str:
+    if not path.is_file():
+        raise PhaseCControlError(f"diagnostic provenance file is missing: {path}")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _git_identity(root: Path) -> tuple[str, str]:
+    return (
+        _phase_c_git(root, "rev-parse", "HEAD"),
+        _phase_c_git(root, "rev-parse", "HEAD^{tree}"),
+    )
+
+
+def _repository_provenance(config: PhaseCConfiguration) -> dict[str, str]:
+    implementation_sha, implementation_tree = _git_identity(ROOT)
+    return {
+        "implementation_sha": implementation_sha,
+        "implementation_tree": implementation_tree,
+        "config_sha256": config.sha256,
+        "no_opponent_policy_guardrail_sha256": _repository_file_sha256(NO_OPPONENT_GUARDRAIL),
+        "phase_a_certification_sha256": _repository_file_sha256(PHASE_A_CERTIFICATION),
+        "phase_b_certification_sha256": _repository_file_sha256(PHASE_B_CERTIFICATION),
+        "diagnostic_workflow_sha256": _repository_file_sha256(DIAGNOSTIC_WORKFLOW),
+        "diagnostic_run_id": os.environ.get("GITHUB_RUN_ID", "LOCAL"),
+        "workflow_head_sha": os.environ.get("GITHUB_SHA", implementation_sha),
+    }
 
 
 def _error_metadata(exc: Exception) -> tuple[str, str, str]:
@@ -173,6 +218,7 @@ def run_diagnostic_shard(
     _assert_no_pilot_artifacts(root)
     config = load_phase_c_config(config_path)
     _require_non_authorized_config(config)
+    provenance = _repository_provenance(config)
     seeds = build_pilot_seed_plan(config)
     assignment = build_pilot_shard_assignment(config, seeds, mode=mode, shard_index=shard_index)
 
@@ -230,11 +276,13 @@ def run_diagnostic_shard(
 
     failed = sum(record.status == "FAIL" for record in records)
     payload: dict[str, Any] = {
+        **provenance,
         "schema_version": DIAGNOSTIC_SCHEMA,
         "diagnostic_only": True,
         "authorized_execution": False,
         "pilot_result": False,
         "pilot_measurement_artifacts_created": 0,
+        "pilot_artifact_count": 0,
         "mode": mode,
         "shard_index": assignment.shard_index,
         "shard_count": assignment.shard_count,
@@ -281,6 +329,18 @@ def aggregate_diagnostic_reports(
         raise PhaseCControlError(
             f"diagnostic aggregate requires exactly 20 shard reports, found {len(reports)}"
         )
+    provenance = {field: reports[0].get(field) for field in PROVENANCE_FIELDS}
+    missing_provenance = [field for field, value in provenance.items() if not value]
+    if missing_provenance:
+        raise PhaseCControlError(f"diagnostic shard provenance is incomplete: {missing_provenance}")
+    for report in reports[1:]:
+        mismatched = [
+            field for field in PROVENANCE_FIELDS if report.get(field) != provenance[field]
+        ]
+        if mismatched:
+            raise PhaseCControlError(
+                f"diagnostic aggregate rejects mixed provenance fields: {mismatched}"
+            )
 
     seen_shards: set[tuple[str, int]] = set()
     records: list[DiagnosticGameRecord] = []
@@ -322,24 +382,43 @@ def aggregate_diagnostic_reports(
         raise PhaseCControlError("diagnostic aggregate contains duplicate game indexes")
 
     failed = sum(record.status == "FAIL" for record in records)
+    standard_failed = sum(
+        record.status == "FAIL" and record.mode == "STANDARD" for record in records
+    )
+    exploratory_failed = sum(
+        record.status == "FAIL" and record.mode == "EXPLORATORY" for record in records
+    )
     distinct = _distinct_errors(records)
+    fresh_replay_pass_count = len(records) - failed
     summary: dict[str, Any] = {
+        **provenance,
         "schema_version": DIAGNOSTIC_SUMMARY_SCHEMA,
         "status": "PASS" if failed == 0 else "FAIL",
         "diagnostic_only": True,
         "authorized_execution": False,
         "pilot_result": False,
         "pilot_measurement_artifacts_created": 0,
+        "pilot_artifact_count": 0,
         "expected_game_count": 700,
         "game_count": len(records),
         "standard_game_count": standard_count,
         "exploratory_game_count": exploratory_count,
+        "standard_attempted": standard_count,
+        "standard_passed": standard_count - standard_failed,
+        "standard_failed": standard_failed,
+        "exploratory_attempted": exploratory_count,
+        "exploratory_passed": exploratory_count - exploratory_failed,
+        "exploratory_failed": exploratory_failed,
         "pass_count": len(records) - failed,
         "fail_count": failed,
         "distinct_error_count": len(distinct),
         "distinct_errors": distinct,
         "production_equivalent_execution": True,
         "fresh_replay_required": True,
+        "fresh_replay_pass_count": fresh_replay_pass_count,
+        "fresh_replay_validation_status": (
+            "PASS" if fresh_replay_pass_count == len(records) else "INCOMPLETE"
+        ),
     }
     _write_json(output_root / "diagnostic-summary.json", summary)
     _assert_no_pilot_artifacts(root)

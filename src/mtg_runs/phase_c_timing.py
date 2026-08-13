@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from mtg_measure import GameMeasurement
+from mtg_runs.phase_c import load_phase_c_config
 from mtg_runs.phase_c_artifacts import PhaseCAggregateManifest, load_phase_c_shard
 from mtg_runs.phase_c_pairing import PAIRED_GAME_COUNT, build_paired_earliest_access_timing
 
@@ -137,7 +138,8 @@ def build_phase_c_paired_timing_artifact(
             }
         )
 
-    analysis = build_paired_earliest_access_timing(rows)
+    analysis_config = load_phase_c_config().paired_analysis
+    analysis = build_paired_earliest_access_timing(rows, analysis_config=analysis_config)
     data: dict[str, Any] = {
         "schema_version": "phase-c-paired-timing-artifact-v1",
         "source_aggregate_sha256": aggregate_manifest.aggregation_sha256,

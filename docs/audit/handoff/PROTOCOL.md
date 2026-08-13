@@ -96,6 +96,42 @@ At the end of an independent audit, state:
 
 If repository state changes during the audit, refresh it before issuing the final verdict.
 
+## Machine-state reconciliation checklist
+
+A planned action is not complete because it was attempted or intended. Before any status prose
+claims completion, the reviewer must read back the resulting machine state and reconcile it to
+the exact subject state.
+
+Required read-back evidence by claim:
+
+- **PR merged:** read the PR after the merge operation and verify its merged state, merge commit,
+  and expected head.
+- **Exact `main` identified:** read the branch ref and the referenced commit; record the exact
+  commit SHA and tree SHA.
+- **CI green:** read the completed workflow run; record workflow run ID, conclusion, and exact
+  head SHA. A run for a different SHA is not evidence.
+- **Certification current:** read the durable certification record and its exact checker result;
+  verify its certified content commit/tree and covered-content digest against the subject state.
+- **Handoff current:** read the generated handoff after publication and verify its subject SHA/tree
+  against current `main`.
+- **Diagnostic completed:** read the completed workflow run and its produced summary/artifacts;
+  verify run ID, head/implementation SHA, counts, replay status, error set, and prohibited pilot
+  artifact count.
+- **Audit completed:** read the committed audit record from GitHub and verify it names the exact
+  audited SHA/tree and supporting run/artifact identities.
+- **Report created:** read the committed report back from GitHub and verify its repository path,
+  content, and digest.
+- **Owner package ready:** reconcile every cited SHA, tree, workflow run, certification, diagnostic,
+  handoff, and report to the same final repository state before presenting it.
+
+For every claimed file artifact, record and verify the exact path, existence, a byte count greater
+than zero, and a SHA-256 digest where practical. For GitHub state, record the exact commit SHA,
+exact tree SHA when relevant, workflow run ID and head SHA for workflow claims, and the PR merged
+state when claiming a merge.
+
+Narrative state must never outrun machine state. If a read-back differs from the expected SHA,
+status, artifact, digest, or count, the action remains incomplete until reconciled.
+
 ## Authorization boundary
 
 The handoff is evidence only. It cannot authorize the 500 STANDARD / 200 paired EXPLORATORY pilot, cannot

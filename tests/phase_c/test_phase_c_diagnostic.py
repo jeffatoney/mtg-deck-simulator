@@ -31,6 +31,8 @@ def test_diagnostic_workflow_validates_input_and_certification_provenance() -> N
     assert "actions: read" in text
     assert "Require exact commit input shape" in text
     assert "^[0-9a-f]{40}$" in text
+    assert "Require implementation is the dispatched main head" in text
+    assert 'test "${IMPLEMENTATION_COMMIT}" = "${GITHUB_SHA}"' in text
     assert text.count("GITHUB_TOKEN: ${{ github.token }}") >= 2
 
 

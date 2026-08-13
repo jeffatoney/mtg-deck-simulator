@@ -491,6 +491,7 @@ def test_activation_is_governance_only_descendant_not_self_referential(
     assert loaded_approval.implementation_commit == implementation
     assert context.implementation_tree == tree
     assert activation != implementation
+    assert not (root / "artifacts").exists()
 
 
 def test_activation_rejects_unexpected_code_change_and_git_sha256_domain_mix(
