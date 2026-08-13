@@ -1,0 +1,38 @@
+{
+  "schema_version": "phase-c-prepilot-artifact-manifest-v1",
+  "audited_main_commit": "150671a8e7a78e5fa14b6b3aca2308f6af647df3",
+  "audited_main_tree": "37cf737691d516a0b7316270364724f91dd28856",
+  "audit_branch": "audit/phase-c-prepilot-independent-150671a8",
+  "substantive_records_commit": "68e8a5cd97ed14c1efe73a07facaf2639de37dd5",
+  "expected_manifest_parent_commit": "68e8a5cd97ed14c1efe73a07facaf2639de37dd5",
+  "substantive_records_commit_parent": "150671a8e7a78e5fa14b6b3aca2308f6af647df3",
+  "substantive_record_inventory": [
+    {
+      "repository_path": "docs/audit/phase-c-prepilot-independent/PHASE_C_PREPILOT_INDEPENDENT_AUDIT.md",
+      "audit_branch": "audit/phase-c-prepilot-independent-150671a8",
+      "introduced_in_commit": "68e8a5cd97ed14c1efe73a07facaf2639de37dd5",
+      "byte_count": 10069,
+      "sha256": "62338e8c2644918e562e8eb8288383e36b9d5f70811c3fc9dc07f9790341de9c",
+      "git_blob_sha": "d98588b329fb5168a9e7ae7dfd4e45a873a3a1c3",
+      "verified_content_classification": "SUBSTANTIVE_INDEPENDENT_AUDIT_REPORT"
+    },
+    {
+      "repository_path": "docs/audit/phase-c-prepilot-independent/PHASE_C_PREPILOT_COMPLETION_SUMMARY.md",
+      "audit_branch": "audit/phase-c-prepilot-independent-150671a8",
+      "introduced_in_commit": "68e8a5cd97ed14c1efe73a07facaf2639de37dd5",
+      "byte_count": 1976,
+      "sha256": "29d8b09440889709e538b81acd1d7ba83813a841ce8319a5dbd7e3d9e08ff6d6",
+      "git_blob_sha": "597c7cf38fe3a3ef3c2d91e2aafc5a6d36c2923d",
+      "verified_content_classification": "SUBSTANTIVE_COMPLETION_SUMMARY"
+    },
+    {
+      "repository_path": "docs/audit/phase-c-prepilot-independent/PHASE_C_PREPILOT_INDEPENDENT_AUDIT.json",
+      "audit_branch": "audit/phase-c-prepilot-independent-150671a8",
+      "introduced_in_commit": "68e8a5cd97ed14c1efe73a07facaf2639de37dd5",
+      "byte_count": 17959,
+      "sha256": "d8ed48933ea8b7e470ecc0386445085a5338be986ef48ffeccd416dd884afbe0",
+      "git_blob_sha": "ec0d0ab9d54b0ef9391a1e502a3ad16f25cc7a44",
+      "verified_content_classification": "MACHINE_READABLE_INDEPENDENT_AUDIT_RECORD"
+    }
+  ]
+}
