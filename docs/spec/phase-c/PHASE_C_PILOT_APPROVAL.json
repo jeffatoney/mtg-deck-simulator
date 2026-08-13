@@ -1,7 +1,7 @@
 {
-  "approval_statement": null,
-  "approved_at": null,
-  "approved_by": null,
+  "approval_statement": "Jeff Toney authorizes the exact Phase C pilot for implementation_commit=150671a8e7a78e5fa14b6b3aca2308f6af647df3 implementation_tree=37cf737691d516a0b7316270364724f91dd28856 locked_pilot_config_sha256=c609c9a39e3187297fd83d275db4c94b5b5601a72918bd822a330bff1bfdfaca workflow_sha256=e9525ce182a1914b53e25d771f8fa097cb657c23f863f0c437aaac2a337914fd confirmation_token_sha256=1ffb5460831ae8725d40b72bc754e5104fcdc797b64e43d562c346632f3de448 standard=500 exploratory=200 production_decision_layer_depth=1 standard_shards=10 exploratory_shards=10.",
+  "approved_at": "2026-08-13T21:34:51Z",
+  "approved_by": "Jeff Toney",
   "authorized_counts": {
     "exploratory": 200,
     "standard": 500
@@ -11,11 +11,11 @@
     "standard": 10
   },
   "confirmation_token_sha256": "1ffb5460831ae8725d40b72bc754e5104fcdc797b64e43d562c346632f3de448",
-  "implementation_commit": null,
-  "implementation_tree": null,
-  "locked_pilot_config_sha256": null,
+  "implementation_commit": "150671a8e7a78e5fa14b6b3aca2308f6af647df3",
+  "implementation_tree": "37cf737691d516a0b7316270364724f91dd28856",
+  "locked_pilot_config_sha256": "c609c9a39e3187297fd83d275db4c94b5b5601a72918bd822a330bff1bfdfaca",
   "production_decision_layer_depth": 1,
   "schema_version": "phase-c-pilot-approval-v2",
-  "status": "PENDING_OWNER_APPROVAL",
-  "workflow_sha256": null
+  "status": "APPROVED",
+  "workflow_sha256": "e9525ce182a1914b53e25d771f8fa097cb657c23f863f0c437aaac2a337914fd"
 }
