@@ -55,6 +55,12 @@ def _write(path: Path, payload: dict[str, object]) -> Path:
             "This is a renamed statement.",
             "paired reporting sentence",
         ),
+        (
+            "measurement",
+            "required_outputs",
+            ["opening_hand_records"],
+            "required outputs",
+        ),
         ("deck", "exact_library_count", 97, "exact library count"),
         ("deck", "physical_card_count", 99, "physical card count"),
         (
@@ -98,6 +104,17 @@ def test_frozen_study_definition_mutations_fail_closed(
     section_payload[key] = value
     with pytest.raises(PhaseCControlError, match=message):
         load_phase_c_config(_write(tmp_path / f"{section}-{key}.json", payload))
+
+
+def test_stop_condition_mutation_fails_closed(tmp_path: Path) -> None:
+    payload = _payload()
+    stop_conditions = payload["stop_conditions"]
+    assert isinstance(stop_conditions, list)
+    mutated = [*stop_conditions, "UNREVIEWED_STOP_CONDITION"]
+    assert stop_conditions != mutated, "mutation must not be vacuous"
+    payload["stop_conditions"] = mutated
+    with pytest.raises(PhaseCControlError, match="stop conditions"):
+        load_phase_c_config(_write(tmp_path / "stop-conditions.json", payload))
 
 
 @pytest.mark.parametrize(
