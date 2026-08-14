@@ -290,6 +290,10 @@ class ExploratoryStrategicChoiceProviderV2(ExploratoryStrategicChoiceProvider):
                 "identity": GLINT_HORN,
                 "candidate_handle": handle,
                 "reason": "ARM_CONSTRAINT_NO_GLINT_HORN_TUTOR",
+                "legal_alternative_identities": sorted(
+                    card.identity for card in request.candidates if card.identity != GLINT_HORN
+                ),
+                "fail_to_find_legally_available": request.minimum == 0,
             }
         semantic = _semantic_key(
             purpose=request.purpose,
@@ -373,9 +377,7 @@ class ExploratoryStrategicChoiceProviderV2(ExploratoryStrategicChoiceProvider):
                 }
             )
             if candidate.pruned_reason is not None:
-                filtered = tuple(
-                    card for card in request.candidates if card.identity != GLINT_HORN
-                )
+                filtered = tuple(card for card in request.candidates if card.identity != GLINT_HORN)
                 if len(filtered) < request.minimum:
                     raise ValueError("Arm 2 has no legal non-Glint selection inside bounded choice")
                 alternative_request = replace(request, candidates=filtered)
@@ -527,15 +529,23 @@ class ExploratoryStrategicChoiceProviderV2(ExploratoryStrategicChoiceProvider):
         directed: list[DirectedCandidate] = []
         signatures: dict[str, str] = {}
         selection_by_handle: dict[str, tuple[int, str]] = {}
+        opponent_pruning = [
+            {
+                "split_index": split.split_index,
+                "reason": "OPPONENT_CHOICE_FIXED_TO_FROZEN_STANDARD_MINIMIZER",
+            }
+            for split in request.legal_splits
+            if split.split_index != baseline.split_index
+        ]
         for split in request.legal_splits:
+            if split.split_index != baseline.split_index:
+                continue
             for pile_name, pile_handles in (
                 ("A", split.pile_a_handles),
                 ("B", split.pile_b_handles),
             ):
                 chosen_cards = tuple(
-                    cards_by_handle[handle]
-                    for handle in pile_handles
-                    if handle in cards_by_handle
+                    cards_by_handle[handle] for handle in pile_handles if handle in cards_by_handle
                 )
                 identities = tuple(card.identity for card in chosen_cards)
                 handle = f"FOF:{split.split_index}:{pile_name}"
@@ -578,6 +588,7 @@ class ExploratoryStrategicChoiceProviderV2(ExploratoryStrategicChoiceProvider):
             candidates=directed,
             baseline_handle=baseline_handle,
             novelty_before=novelty_before,
+            extra_pruning=opponent_pruning,
             replay_binding={"opponent_id": request.opponent_id},
         )
         split_index, chosen_pile = selection_by_handle[selection.selected_handle]

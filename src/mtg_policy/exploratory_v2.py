@@ -766,16 +766,31 @@ class ExploratoryStrategicChoiceProvider:
 
 
 def assert_no_glint_tutor_selection(records: Sequence[Mapping[str, Any]]) -> None:
-    """Fail closed if an Arm 2 strategic record selects Glint-Horn as a tutor target."""
+    """Fail closed if Arm 2 selects Glint-Horn through any library-search choice."""
 
+    markers = ("TUTOR", "SEARCH", "TRANSMUTE", "TYPECYCLE", "LANDCYCLE")
     for record in records:
         if str(record.get("arm_id", "")) != ALT_PACKAGE_ARM:
             continue
-        if str(record.get("strategic_choice_purpose", "")) != "TUTOR":
+        purpose = str(record.get("strategic_choice_purpose", "")).upper()
+        if not any(marker in purpose for marker in markers):
             continue
         selected = str(record.get("selected_action", ""))
         if selected == f"TUTOR:{GLINT_HORN}":
             raise ValueError("Arm 2 selected prohibited Glint-Horn tutor target")
+        evaluations = record.get("candidate_evaluations", ())
+        if not isinstance(evaluations, Sequence):
+            continue
+        selected_rows = [
+            row
+            for row in evaluations
+            if isinstance(row, Mapping) and str(row.get("handle", "")) == selected
+        ]
+        if len(selected_rows) != 1:
+            continue
+        semantic = str(selected_rows[0].get("semantic_key", ""))
+        if GLINT_HORN.upper() in semantic.upper():
+            raise ValueError("Arm 2 selected Glint-Horn through a prohibited search choice")
 
 
 __all__ = [
