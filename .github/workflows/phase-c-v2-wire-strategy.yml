@@ -1,0 +1,137 @@
+name: TEMP Wire Phase C V2 Strategy
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Wire directed mulligan and complete strategic provider
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/mtg_runs/phase_c_exploratory_v2.py")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace(
+              "from mtg_policy.exploratory_v2 import (\n    ExploratoryStrategicChoiceProvider,\n",
+              "from mtg_policy.exploratory_v2 import (\n",
+              1,
+          )
+          marker = ")\nfrom mtg_runs.phase_c_runner import (\n"
+          insert = ")\nfrom mtg_policy.exploratory_v2_strategic import ExploratoryStrategicChoiceProviderV2\nfrom mtg_runs.phase_c_mulligan_v2 import choose_exploratory_mulligan\nfrom mtg_runs.phase_c_runner import (\n"
+          if marker not in text:
+              raise SystemExit("runner import marker missing")
+          text = text.replace(marker, insert, 1)
+          text = text.replace("    _choose_mulligan,\n", "", 1)
+          text = text.replace(
+              "    provider = ExploratoryStrategicChoiceProvider(\n",
+              "    provider = ExploratoryStrategicChoiceProviderV2(\n",
+              1,
+          )
+          old = "    keep_index, opening = _choose_mulligan(initial_state, seed_text, policy)\n"
+          new = '''    keep_index, opening, mulligan_records = choose_exploratory_mulligan(
+              initial_state=initial_state,
+              seed_text=seed_text,
+              policy=policy,
+              config=config,
+              exploration_seed=exploration_seed,
+              environment_seed=seed,
+              game_index=game_index,
+              combo_packages=evaluator_config.combo_packages,
+          )
+          '''
+          if old not in text:
+              raise SystemExit("mulligan call marker missing")
+          text = text.replace(old, new, 1)
+          assertion = "    assert_no_glint_tutor_selection(provider.records)\n"
+          if assertion not in text:
+              raise SystemExit("strategic evidence marker missing")
+          text = text.replace(
+              assertion,
+              assertion + "    strategic_choice_records = (*mulligan_records, *provider.records)\n",
+              1,
+          )
+          text = text.replace(
+              '            "strategic_choice_records": tuple(provider.records),\n',
+              '            "strategic_choice_records": strategic_choice_records,\n',
+              1,
+          )
+          text = text.replace(
+              '        "strategic_choices": provider.records,\n',
+              '        "strategic_choices": strategic_choice_records,\n',
+              1,
+          )
+          text = text.replace(
+              "        strategic_choice_records=tuple(provider.records),\n",
+              "        strategic_choice_records=strategic_choice_records,\n",
+              1,
+          )
+          count_marker = "    ) = _evidence_counts(decisions)\n"
+          count_insert = '''    ) = _evidence_counts(decisions)
+              for strategic_record in strategic_choice_records:
+                  evaluations = strategic_record.get("candidate_evaluations", ())
+                  if not evaluations:
+                      continue
+                  baseline_required += 1
+                  handles = {
+                      str(item.get("handle", ""))
+                      for item in evaluations
+                      if isinstance(item, Mapping)
+                  }
+                  baseline_handle = strategic_record.get("standard_baseline_handle")
+                  if isinstance(baseline_handle, str) and baseline_handle in handles:
+                      baseline_retained += 1
+                  vectors_required += len(evaluations)
+                  vectors_persisted += sum(
+                      isinstance(item, Mapping) and isinstance(item.get("score"), Mapping)
+                      for item in evaluations
+                  )
+          '''
+          if count_marker not in text:
+              raise SystemExit("evidence count marker missing")
+          text = text.replace(count_marker, count_insert, 1)
+          path.write_text(text, encoding="utf-8")
+          PY
+      - name: Format and compile V2 files
+        run: |
+          uv run ruff format \
+            src/mtg_policy/exploratory_v2_strategic.py \
+            src/mtg_runs/phase_c_mulligan_v2.py \
+            src/mtg_runs/phase_c_exploratory_v2.py \
+            tests/phase_c/test_exploratory_v2_mulligan.py \
+            tests/phase_c/test_exploratory_v2_hidden_info.py \
+            tests/phase_c/test_exploratory_v2_strategic_choices.py
+          python -m py_compile \
+            src/mtg_policy/exploratory_v2_strategic.py \
+            src/mtg_runs/phase_c_mulligan_v2.py \
+            src/mtg_runs/phase_c_exploratory_v2.py
+      - name: Run focused V2 tests
+        run: uv run pytest tests/phase_c/test_exploratory_v2_*.py
+      - name: Commit wired implementation
+        run: |
+          rm .github/workflows/phase-c-v2-wire-strategy.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "feat: wire hidden-safe strategic exploration into V2 runner"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
