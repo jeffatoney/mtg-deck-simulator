@@ -1,0 +1,116 @@
+name: TEMP Phase C V2 Source Fix 2
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Apply focused source corrections
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          policy = Path("src/mtg_policy/exploratory_v2.py")
+          text = policy.read_text(encoding="utf-8")
+          text = text.replace(
+              "from dataclasses import asdict, dataclass",
+              "from dataclasses import dataclass",
+          )
+          old = '''    phase = str(observation.get("phase", ""))
+              land_available = any(candidate.kind == "PLAY_LAND" for candidate in all_actions)
+              if action.kind == "PASS_PRIORITY" and phase in {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"} and land_available:
+          '''
+          new = '''    phase = str(observation.get("phase", ""))
+              step = str(observation.get("step", ""))
+              main_phase = phase in {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"} or step in {
+                  "PRECOMBAT_MAIN",
+                  "POSTCOMBAT_MAIN",
+              }
+              land_available = any(candidate.kind == "PLAY_LAND" for candidate in all_actions)
+              if action.kind == "PASS_PRIORITY" and main_phase and land_available:
+          '''
+          if old not in text:
+              raise SystemExit("expected priority guardrail source not found")
+          policy.write_text(text.replace(old, new), encoding="utf-8")
+
+          runner = Path("src/mtg_runs/phase_c_exploratory_v2.py")
+          text = runner.read_text(encoding="utf-8")
+          text = text.replace("    CandidateScoreVector,\n", "")
+          old_seed = '    seed_text = f"phase-c-v2:{arm_id}:{seed}"'
+          if old_seed not in text:
+              raise SystemExit("expected V2 environment seed source not found")
+          text = text.replace(old_seed, '    seed_text = f"phase-c:standard:{seed}"')
+          old_after = '''        broker.execute(int(observation["generation"]), match.handle)
+              after = _combo_evaluation(clone, tracker)
+              continuation: list[str] = []
+          '''
+          new_after = '''        broker.execute(int(observation["generation"]), match.handle)
+              after_deviation = _combo_evaluation(clone, tracker)
+              projected = after_deviation
+              continuation: list[str] = []
+          '''
+          if old_after not in text:
+              raise SystemExit("expected projection source not found")
+          text = text.replace(old_after, new_after)
+          text = text.replace(
+              "            after = _combo_evaluation(clone, tracker)\n",
+              "            projected = _combo_evaluation(clone, tracker)\n",
+          )
+          old_return = '''        projected_turn = None if after.expected_win_turn >= 99 else after.expected_win_turn
+              return PublicProjection(
+                  immediate_deterministic_access=after.immediate_legal_table_win,
+                  projected_deterministic_access=after.immediate_legal_table_win,
+          '''
+          new_return = '''        projected_turn = None if projected.expected_win_turn >= 99 else projected.expected_win_turn
+              return PublicProjection(
+                  immediate_deterministic_access=after_deviation.immediate_legal_table_win,
+                  projected_deterministic_access=projected.immediate_legal_table_win,
+          '''
+          if old_return not in text:
+              raise SystemExit("expected projection return source not found")
+          runner.write_text(text.replace(old_return, new_return), encoding="utf-8")
+          PY
+      - name: Format corrected sources
+        run: |
+          uv run ruff format \
+            src/mtg_policy/exploratory_v2.py \
+            src/mtg_runs/phase_c_exploratory_v2.py \
+            src/mtg_runs/phase_c_exploratory_v2_diagnostic.py \
+            src/mtg_search/directed_v2.py
+      - name: Compile corrected sources
+        run: |
+          python -m py_compile \
+            src/mtg_policy/exploratory_v2.py \
+            src/mtg_runs/phase_c_exploratory_v2.py \
+            src/mtg_runs/phase_c_exploratory_v2_diagnostic.py \
+            src/mtg_search/directed_v2.py
+      - name: Remove temporary workflows and commit source result
+        run: |
+          rm .github/workflows/phase-c-v2-source-autofix.yml
+          rm .github/workflows/phase-c-v2-apply-source.yml
+          rm .github/workflows/phase-c-v2-source-fix2.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "fix: correct and format exploratory V2 source"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
