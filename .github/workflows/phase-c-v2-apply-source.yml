@@ -1,0 +1,58 @@
+name: TEMP Apply Phase C V2 Corrected Source
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Reuse correction script from staged workflow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          source = Path(".github/workflows/phase-c-v2-source-autofix.yml").read_text(
+              encoding="utf-8"
+          )
+          marker = "          python - <<'PY'\n"
+          start = source.index(marker) + len(marker)
+          end = source.index("\n          PY\n", start)
+          lines = source[start:end].splitlines()
+          script = "\n".join(line[10:] if line.startswith("          ") else line for line in lines)
+          exec(compile(script, "phase-c-v2-corrections", "exec"), {})
+          PY
+      - name: Apply repository formatter
+        run: |
+          uv run ruff format \
+            src/mtg_policy/exploratory_v2.py \
+            src/mtg_runs/phase_c_exploratory_v2.py \
+            src/mtg_runs/phase_c_exploratory_v2_diagnostic.py \
+            src/mtg_search/directed_v2.py
+      - name: Remove temporary workflows and commit corrected source
+        run: |
+          rm .github/workflows/phase-c-v2-source-autofix.yml
+          rm .github/workflows/phase-c-v2-apply-source.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "fix: harden and format exploratory V2 source"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
