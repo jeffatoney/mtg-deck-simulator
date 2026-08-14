@@ -11,7 +11,11 @@ from mtg_policy.exploratory_v2 import (
     _public_card_score,
     canonical_interaction_signature,
 )
-from mtg_search.directed_v2 import CandidateScoreVector, DirectedCandidate, select_directed_candidate
+from mtg_search.directed_v2 import (
+    CandidateScoreVector,
+    DirectedCandidate,
+    select_directed_candidate,
+)
 
 _FAIL_TO_FIND = "__LEGAL_FAIL_TO_FIND__"
 _SEARCH_PURPOSE_MARKERS = ("TUTOR", "SEARCH", "TRANSMUTE", "TYPECYCLE", "LANDCYCLE")
@@ -31,7 +35,9 @@ class ExploratoryStrategicChoiceProviderV2(ExploratoryStrategicChoiceProvider):
         baseline = self.baseline.choose_cards(request)
         if len(baseline.selected_handles) > 1:
             raise ValueError("optional zero-or-one selection produced an invalid STANDARD baseline")
-        baseline_handle = baseline.selected_handles[0] if baseline.selected_handles else _FAIL_TO_FIND
+        baseline_handle = (
+            baseline.selected_handles[0] if baseline.selected_handles else _FAIL_TO_FIND
+        )
         purpose_upper = request.purpose.upper()
         glint_restricted = self.config.no_glint_horn_tutoring and any(
             marker in purpose_upper for marker in _SEARCH_PURPOSE_MARKERS
@@ -153,7 +159,9 @@ class ExploratoryStrategicChoiceProviderV2(ExploratoryStrategicChoiceProvider):
                 "selection_reason": selection.selection_reason,
                 "candidate_evaluations": [
                     {
-                        "identity": cards_by_handle[handle].identity if handle in cards_by_handle else None,
+                        "identity": cards_by_handle[handle].identity
+                        if handle in cards_by_handle
+                        else None,
                         "handle": handle,
                         "score": ranked[handle].score.to_dict(),
                         "pruned_reason": ranked[handle].pruned_reason,

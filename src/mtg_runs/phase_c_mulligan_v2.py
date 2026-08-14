@@ -70,7 +70,9 @@ def _mulligan_score(
     features = StandardPolicy.hand_features(names, types)
     mana_deficit = max(0, 2 - features["mana"])
     action_deficit = max(0, 1 - features["actions"])
-    improvement_need = min(100, mana_deficit * 45 + action_deficit * 35 + (0 if baseline_keep else 35))
+    improvement_need = min(
+        100, mana_deficit * 45 + action_deficit * 35 + (0 if baseline_keep else 35)
+    )
     return CandidateScoreVector(
         immediate_deterministic_access=False,
         projected_deterministic_access=False,
@@ -194,7 +196,9 @@ def choose_exploratory_mulligan(
                 "selected_plan_or_package_id": None,
                 "continuation_method": "EXPECTED_REPLACEMENT_NO_FUTURE_HAND_INSPECTION",
                 "continuation_horizon": {"future_candidate_hands_inspected": 0},
-                "plan_termination_or_fallback_reason": "KEEP" if keep else "NEXT_HAND_BECOMES_VISIBLE",
+                "plan_termination_or_fallback_reason": "KEEP"
+                if keep
+                else "NEXT_HAND_BECOMES_VISIBLE",
                 "resulting_public_state_digest": public_digest if keep else None,
                 "replay_binding": {"mulligan_candidate_index": index},
             }

@@ -28,7 +28,6 @@ from mtg_measure import ComboAccessTracker, GameMeasurement, bind_combo_access_t
 from mtg_policy import ActionBroker, StandardPolicy
 from mtg_policy.broker_core import ObservedAction
 from mtg_policy.exploratory_v2 import (
-    ExploratoryStrategicChoiceProvider,
     NoveltyLedger,
     PublicProjection,
     assert_no_glint_tutor_selection,
@@ -36,6 +35,8 @@ from mtg_policy.exploratory_v2 import (
     score_priority_candidate,
     semantic_action_key,
 )
+from mtg_policy.exploratory_v2_strategic import ExploratoryStrategicChoiceProviderV2
+from mtg_runs.phase_c_mulligan_v2 import choose_exploratory_mulligan
 from mtg_runs.phase_c_runner import (
     CONTROLLED_PLAYER,
     MAX_ACTIONS_PER_PRIORITY_WINDOW,
@@ -47,7 +48,6 @@ from mtg_runs.phase_c_runner import (
     _auto_pass_opponents_until_control,
     _bound_policy,
     _build_game_measurement,
-    _choose_mulligan,
     _cleanup_discard_ids,
     _combat_optional_trigger_choices,
     _combo_evaluation,
@@ -618,7 +618,7 @@ def run_exploratory_v2_game_execution(
     environment_initial_state_hash = state_hash(state)
     policy, baseline_provider, evaluator_config = _bound_policy(executor, policy_config_id)
     novelty = NoveltyLedger()
-    provider = ExploratoryStrategicChoiceProvider(
+    provider = ExploratoryStrategicChoiceProviderV2(
         baseline_provider,
         config,
         exploration_seed=exploration_seed,
@@ -632,7 +632,16 @@ def run_exploratory_v2_game_execution(
     )
     capture = _GameMeasurementCapture()
     initial_state = deepcopy(state)
-    keep_index, opening = _choose_mulligan(initial_state, seed_text, policy)
+    keep_index, opening, mulligan_records = choose_exploratory_mulligan(
+        initial_state=initial_state,
+        seed_text=seed_text,
+        policy=policy,
+        config=config,
+        exploration_seed=exploration_seed,
+        environment_seed=seed,
+        game_index=game_index,
+        combo_packages=evaluator_config.combo_packages,
+    )
     executor.league_mulligan(CONTROLLED_PLAYER, keep_index)
     opening = _finalize_refill_names(executor, opening)
     explorer = DirectedExplorerV2(
@@ -732,6 +741,7 @@ def run_exploratory_v2_game_execution(
     if any(record.resulting_public_state_digest is None for record in decisions):
         raise UnsupportedCapability("V2 decision record is missing resulting public-state digest")
     assert_no_glint_tutor_selection(provider.records)
+    strategic_choice_records = (*mulligan_records, *provider.records)
     summary_records = _decision_summary_records(decisions)
     measurement = _build_game_measurement(
         executor=executor,
@@ -755,7 +765,7 @@ def run_exploratory_v2_game_execution(
             "exploratory_v2_arm_id": arm_id,
             "exploratory_v2_arm_config_sha256": config.config_sha256,
             "artifact_classification": "NON_AUTHORIZED_DIAGNOSTIC",
-            "strategic_choice_records": tuple(provider.records),
+            "strategic_choice_records": strategic_choice_records,
         },
     )
     earliest = {
@@ -774,9 +784,23 @@ def run_exploratory_v2_game_execution(
         land_compliant,
         land_applicable,
     ) = _evidence_counts(decisions)
+    for strategic_record in strategic_choice_records:
+        evaluations = strategic_record.get("candidate_evaluations", ())
+        if not evaluations:
+            continue
+        baseline_required += 1
+        handles = {str(item.get("handle", "")) for item in evaluations if isinstance(item, Mapping)}
+        baseline_handle = strategic_record.get("standard_baseline_handle")
+        if isinstance(baseline_handle, str) and baseline_handle in handles:
+            baseline_retained += 1
+        vectors_required += len(evaluations)
+        vectors_persisted += sum(
+            isinstance(item, Mapping) and isinstance(item.get("score"), Mapping)
+            for item in evaluations
+        )
     evidence_payload = {
         "decisions": [record.to_dict() for record in decisions],
-        "strategic_choices": provider.records,
+        "strategic_choices": strategic_choice_records,
     }
     technical = ExploratoryV2TechnicalGame(
         schema_version=TECHNICAL_SCHEMA,
@@ -798,7 +822,7 @@ def run_exploratory_v2_game_execution(
         combo_earliest_legal_turn=earliest,
         combo_checkpoint_access=checkpoints,
         decisions=decisions,
-        strategic_choice_records=tuple(provider.records),
+        strategic_choice_records=strategic_choice_records,
         decision_evidence_sha256=canonical_sha256(evidence_payload),
         baseline_candidate_retained=baseline_retained,
         baseline_candidate_required=baseline_required,

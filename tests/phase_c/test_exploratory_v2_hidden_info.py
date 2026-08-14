@@ -30,8 +30,12 @@ def test_reordering_hidden_future_library_does_not_change_semantic_priority_choi
     second_executor, second_policy = _prepared_executor(seed_text)
     library = second_executor.zones.zone_key(Zone.LIBRARY, CONTROLLED_PLAYER)
     second_executor.state.zones[library] = list(reversed(second_executor.state.zones[library]))
-    first_observation = ObservationService(first_executor.state).observe_for_policy(CONTROLLED_PLAYER)
-    second_observation = ObservationService(second_executor.state).observe_for_policy(CONTROLLED_PLAYER)
+    first_observation = ObservationService(first_executor.state).observe_for_policy(
+        CONTROLLED_PLAYER
+    )
+    second_observation = ObservationService(second_executor.state).observe_for_policy(
+        CONTROLLED_PLAYER
+    )
     assert first_observation == second_observation
 
     config = load_directed_arm_config(AGGRESSIVE_ARM)

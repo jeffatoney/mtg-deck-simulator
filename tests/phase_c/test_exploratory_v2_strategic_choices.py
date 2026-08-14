@@ -25,7 +25,9 @@ class _OptionalBaseline:
     bundle = SimpleNamespace(policy_config_id="anchor_balanced")
 
     def choose_cards(self, request: CardSelectionRequest) -> CardSelection:
-        return CardSelection((request.candidates[0].handle,), self.evaluator_id, self.evaluator_sha256, {})
+        return CardSelection(
+            (request.candidates[0].handle,), self.evaluator_id, self.evaluator_sha256, {}
+        )
 
 
 def test_arm_2_optional_search_excludes_glint_and_retains_fail_to_find() -> None:
@@ -75,9 +77,21 @@ def test_arm_2_does_not_suppress_naturally_drawn_glint_cast_action() -> None:
 
 def test_modal_and_activated_actions_remain_distinct_strategic_candidates() -> None:
     config = load_directed_arm_config(ALT_PACKAGE_ARM)
-    modal_a = ObservedAction("m1", "CAST", "Prismari Command", 3, ("INSTANT",), 0, {"modes": ("DRAW_DISCARD", "TREASURE")})
-    modal_b = ObservedAction("m2", "CAST", "Prismari Command", 3, ("INSTANT",), 0, {"modes": ("DAMAGE", "TREASURE")})
-    activation = ObservedAction("a1", "ACTIVATE", "Lightning-Rig Crew", 0, ("ACTIVATED_ABILITY",), 3, {})
+    modal_a = ObservedAction(
+        "m1",
+        "CAST",
+        "Prismari Command",
+        3,
+        ("INSTANT",),
+        0,
+        {"modes": ("DRAW_DISCARD", "TREASURE")},
+    )
+    modal_b = ObservedAction(
+        "m2", "CAST", "Prismari Command", 3, ("INSTANT",), 0, {"modes": ("DAMAGE", "TREASURE")}
+    )
+    activation = ObservedAction(
+        "a1", "ACTIVATE", "Lightning-Rig Crew", 0, ("ACTIVATED_ABILITY",), 3, {}
+    )
     from mtg_policy.exploratory_v2 import semantic_action_key
 
     assert semantic_action_key(modal_a) != semantic_action_key(modal_b)
