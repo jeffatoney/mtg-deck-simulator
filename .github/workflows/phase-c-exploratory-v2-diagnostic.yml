@@ -1,6 +1,17 @@
 name: Phase C Exploratory V2 Non-Authorized Diagnostic
 
 on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'src/mtg_search/directed_v2.py'
+      - 'src/mtg_policy/exploratory_v2*.py'
+      - 'src/mtg_runs/phase_c_exploratory_v2*.py'
+      - 'src/mtg_runs/phase_c_mulligan_v2.py'
+      - 'configs/evaluators/exploratory*_v2.yaml'
+      - 'tests/phase_c/test_exploratory_v2_*.py'
+      - '.github/workflows/phase-c-exploratory-v2-diagnostic.yml'
   workflow_dispatch:
     inputs:
       implementation_commit:
@@ -12,26 +23,25 @@ permissions:
   contents: read
   actions: read
 
+env:
+  IMPLEMENTATION_COMMIT: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || inputs.implementation_commit }}
+  IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+
 jobs:
   integrity-and-standard-regression:
     runs-on: ubuntu-latest
     timeout-minutes: 180
-    env:
-      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
     steps:
       - name: Require exact commit input shape
-        env:
-          IMPLEMENTATION_COMMIT: ${{ inputs.implementation_commit }}
         run: |
           if [[ ! "${IMPLEMENTATION_COMMIT}" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "implementation_commit must be one lowercase 40-character Git SHA" >&2
+            echo "implementation commit must be one lowercase 40-character Git SHA" >&2
             exit 1
           fi
-          test "${IMPLEMENTATION_COMMIT}" = "${GITHUB_SHA}"
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.implementation_commit }}
+          ref: ${{ env.IMPLEMENTATION_COMMIT }}
       - uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
@@ -42,11 +52,24 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --all-extras
       - name: Require clean exact implementation
-        env:
-          IMPLEMENTATION_COMMIT: ${{ inputs.implementation_commit }}
         run: |
           test "$(git rev-parse HEAD)" = "${IMPLEMENTATION_COMMIT}"
           test -z "$(git status --porcelain)"
+      - name: Prove frozen STANDARD production path is source-identical
+        run: |
+          BASE=150671a8e7a78e5fa14b6b3aca2308f6af647df3
+          test -z "$(git diff --name-only "${BASE}"..HEAD -- \
+            src/mtg_kernel \
+            src/mtg_cards \
+            src/mtg_deck \
+            src/mtg_measure \
+            src/mtg_policy/standard.py \
+            src/mtg_policy/evaluation.py \
+            src/mtg_policy/broker.py \
+            src/mtg_policy/broker_core.py \
+            src/mtg_policy/strategic_broker.py \
+            src/mtg_runs/phase_c.py \
+            src/mtg_runs/phase_c_runner.py)"
       - name: Reject pilot authorization and artifact roots
         run: |
           uv run python - <<'PY'
@@ -92,14 +115,120 @@ jobs:
         run: uv run python scripts/check_phase_b_certification.py
       - name: Full deck coverage
         run: uv run python scripts/check_full_deck_coverage.py
-      - name: Existing Phase C controls and 700-seed regression contract
+      - name: Existing Phase C controls and failure-seed regressions
         run: |
           uv run pytest \
             tests/phase_c/test_phase_c_control.py \
             tests/phase_c/test_phase_c_700_regressions.py \
             tests/phase_c/test_phase_c_workflow_contract.py
-      - name: Exploratory V2 gates
+      - name: Exploratory V2 targeted gates
         run: uv run pytest tests/phase_c/test_exploratory_v2_*.py
+
+  legacy-700-shards:
+    needs: integrity-and-standard-regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        mode: [STANDARD, EXPLORATORY]
+        shard_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.IMPLEMENTATION_COMMIT }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Reject pilot artifact roots
+        run: |
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+      - name: Execute existing production-equivalent non-authorized validation shard
+        env:
+          MODE: ${{ matrix.mode }}
+          SHARD_INDEX: ${{ matrix.shard_index }}
+        run: |
+          uv run python -m mtg_runs.phase_c_diagnostic shard \
+            --mode "${MODE}" \
+            --shard-index "${SHARD_INDEX}" \
+            --output-root artifacts/phase-c-diagnostic
+      - name: Prove no pilot artifacts were created
+        if: always()
+        run: |
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+      - name: Upload legacy diagnostic shard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NON_AUTHORIZED_LEGACY_700-${{ matrix.mode }}-${{ matrix.shard_index }}-${{ env.IMPLEMENTATION_COMMIT }}
+          path: artifacts/phase-c-diagnostic
+          if-no-files-found: error
+          retention-days: 30
+
+  legacy-700-aggregate:
+    needs: [integrity-and-standard-regression, legacy-700-shards]
+    if: ${{ always() && needs.integrity-and-standard-regression.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.IMPLEMENTATION_COMMIT }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Download all 20 validation shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: NON_AUTHORIZED_LEGACY_700-*-${{ env.IMPLEMENTATION_COMMIT }}
+          path: artifacts/downloaded-diagnostic
+      - name: Aggregate all 700 results and distinct errors
+        run: |
+          uv run python -m mtg_runs.phase_c_diagnostic aggregate \
+            --shard-root artifacts/downloaded-diagnostic \
+            --output-root artifacts/phase-c-diagnostic-summary
+      - name: Require 500 STANDARD and 200 historical EXPLORATORY validation passes
+        run: |
+          uv run python - <<'PY'
+          import json
+          from pathlib import Path
+
+          summary = json.loads(Path("artifacts/phase-c-diagnostic-summary/diagnostic-summary.json").read_text())
+          assert summary["status"] == "PASS"
+          assert summary["game_count"] == 700
+          assert summary["standard_attempted"] == 500
+          assert summary["standard_failed"] == 0
+          assert summary["exploratory_attempted"] == 200
+          assert summary["exploratory_failed"] == 0
+          assert summary["fresh_replay_pass_count"] == 700
+          assert summary["pilot_measurement_artifacts_created"] == 0
+          PY
+          test ! -e artifacts/phase-c-shards
+          test ! -e artifacts/phase-c-pilot
+      - name: Upload 700-seed validation summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NON_AUTHORIZED_LEGACY_700-SUMMARY-${{ env.IMPLEMENTATION_COMMIT }}
+          path: artifacts/phase-c-diagnostic-summary
+          if-no-files-found: error
+          retention-days: 30
 
   arm-diagnostics:
     needs: integrity-and-standard-regression
@@ -113,13 +242,11 @@ jobs:
           - EXPLORATORY_AGGRESSIVE_V2
           - EXPLORATORY_ALT_PACKAGE_NO_GLINT_TUTOR_V2
           - EXPLORATORY_INTERACTION_DISCOVERY_V2
-    env:
-      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.implementation_commit }}
+          ref: ${{ env.IMPLEMENTATION_COMMIT }}
       - uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
@@ -151,9 +278,7 @@ jobs:
 
           arm = os.environ["ARM_ID"]
           root = Path("artifacts/phase-c-exploratory-v2-diagnostic") / arm.lower()
-          summary = json.loads(
-              (root / "NON_AUTHORIZED_DIAGNOSTIC-summary.json").read_text()
-          )
+          summary = json.loads((root / "NON_AUTHORIZED_DIAGNOSTIC-summary.json").read_text())
           assert summary["artifact_classification"] == "NON_AUTHORIZED_DIAGNOSTIC"
           assert summary["authorized_execution"] is False
           assert summary["pilot_measurement_artifacts_created"] == 0
@@ -162,6 +287,9 @@ jobs:
           assert summary["baseline_candidate_retained"] == summary["baseline_candidate_required"]
           assert summary["candidate_score_vectors_persisted"] == summary["candidate_score_vectors_required"]
           assert summary["land_guardrail_compliant"] == summary["land_guardrail_applicable"]
+          assert summary["priority_decision_count"] > 0
+          assert summary["selected_nonpass_action_count"] > 0
+          assert summary["games_with_productive_priority_action"] == summary["game_count"]
           PY
       - name: Prove no official pilot artifacts were created
         if: always()
@@ -179,7 +307,22 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: NON_AUTHORIZED_DIAGNOSTIC-${{ matrix.arm_id }}-${{ inputs.implementation_commit }}
-          path: artifacts/phase-c-exploratory-v2-diagnostic/${{ matrix.arm_id }}/
+          name: NON_AUTHORIZED_DIAGNOSTIC-${{ matrix.arm_id }}-${{ env.IMPLEMENTATION_COMMIT }}
+          path: artifacts/phase-c-exploratory-v2-diagnostic
           if-no-files-found: error
           retention-days: 30
+
+  validation-complete:
+    needs: [integrity-and-standard-regression, legacy-700-aggregate, arm-diagnostics]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every V2 validation gate
+        env:
+          INTEGRITY: ${{ needs.integrity-and-standard-regression.result }}
+          LEGACY_700: ${{ needs.legacy-700-aggregate.result }}
+          V2_ARMS: ${{ needs.arm-diagnostics.result }}
+        run: |
+          test "${INTEGRITY}" = success
+          test "${LEGACY_700}" = success
+          test "${V2_ARMS}" = success
