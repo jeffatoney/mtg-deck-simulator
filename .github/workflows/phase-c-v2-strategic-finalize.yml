@@ -1,0 +1,148 @@
+name: TEMP Finalize Phase C V2 Strategic Evidence
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Finalize strategic evidence boundaries
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/mtg_policy/exploratory_v2_strategic.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''            exclusion = {
+                          "identity": GLINT_HORN,
+                          "candidate_handle": handle,
+                          "reason": "ARM_CONSTRAINT_NO_GLINT_HORN_TUTOR",
+                      }
+          '''
+          new = '''            exclusion = {
+                          "identity": GLINT_HORN,
+                          "candidate_handle": handle,
+                          "reason": "ARM_CONSTRAINT_NO_GLINT_HORN_TUTOR",
+                          "legal_alternative_identities": sorted(
+                              card.identity
+                              for card in request.candidates
+                              if card.identity != GLINT_HORN
+                          ),
+                          "fail_to_find_legally_available": request.minimum == 0,
+                      }
+          '''
+          if old not in text:
+              raise SystemExit("card-selection exclusion marker missing")
+          text = text.replace(old, new, 1)
+
+          marker = '''        directed: list[DirectedCandidate] = []
+              signatures: dict[str, str] = {}
+              selection_by_handle: dict[str, tuple[int, str]] = {}
+              for split in request.legal_splits:
+                  for pile_name, pile_handles in (
+          '''
+          replacement = '''        directed: list[DirectedCandidate] = []
+              signatures: dict[str, str] = {}
+              selection_by_handle: dict[str, tuple[int, str]] = {}
+              opponent_pruning = [
+                  {
+                      "split_index": split.split_index,
+                      "reason": "OPPONENT_CHOICE_FIXED_TO_FROZEN_STANDARD_MINIMIZER",
+                  }
+                  for split in request.legal_splits
+                  if split.split_index != baseline.split_index
+              ]
+              for split in request.legal_splits:
+                  if split.split_index != baseline.split_index:
+                      continue
+                  for pile_name, pile_handles in (
+          '''
+          if marker not in text:
+              raise SystemExit("Fact or Fiction candidate marker missing")
+          text = text.replace(marker, replacement, 1)
+          fof_call = '''            baseline_handle=baseline_handle,
+                  novelty_before=novelty_before,
+                  replay_binding={"opponent_id": request.opponent_id},
+          '''
+          fof_replacement = '''            baseline_handle=baseline_handle,
+                  novelty_before=novelty_before,
+                  extra_pruning=opponent_pruning,
+                  replay_binding={"opponent_id": request.opponent_id},
+          '''
+          if fof_call not in text:
+              raise SystemExit("Fact or Fiction selection marker missing")
+          text = text.replace(fof_call, fof_replacement, 1)
+          path.write_text(text, encoding="utf-8")
+
+          policy = Path("src/mtg_policy/exploratory_v2.py")
+          text = policy.read_text(encoding="utf-8")
+          start = text.index("def assert_no_glint_tutor_selection(")
+          end = text.index("\n\n__all__ = [", start)
+          function = '''def assert_no_glint_tutor_selection(records: Sequence[Mapping[str, Any]]) -> None:
+              """Fail closed if Arm 2 selects Glint-Horn through any library-search choice."""
+
+              markers = ("TUTOR", "SEARCH", "TRANSMUTE", "TYPECYCLE", "LANDCYCLE")
+              for record in records:
+                  if str(record.get("arm_id", "")) != ALT_PACKAGE_ARM:
+                      continue
+                  purpose = str(record.get("strategic_choice_purpose", "")).upper()
+                  if not any(marker in purpose for marker in markers):
+                      continue
+                  selected = str(record.get("selected_action", ""))
+                  if selected == f"TUTOR:{GLINT_HORN}":
+                      raise ValueError("Arm 2 selected prohibited Glint-Horn tutor target")
+                  evaluations = record.get("candidate_evaluations", ())
+                  if not isinstance(evaluations, Sequence):
+                      continue
+                  selected_rows = [
+                      row
+                      for row in evaluations
+                      if isinstance(row, Mapping) and str(row.get("handle", "")) == selected
+                  ]
+                  if len(selected_rows) != 1:
+                      continue
+                  semantic = str(selected_rows[0].get("semantic_key", ""))
+                  if GLINT_HORN.upper() in semantic.upper():
+                      raise ValueError("Arm 2 selected Glint-Horn through a prohibited search choice")
+          '''
+          policy.write_text(text[:start] + function + text[end:], encoding="utf-8")
+          PY
+      - name: Format and validate V2 source
+        run: |
+          uv run ruff format \
+            src/mtg_policy/exploratory_v2.py \
+            src/mtg_policy/exploratory_v2_strategic.py \
+            tests/phase_c/test_exploratory_v2_strategic_choices.py
+          uv run ruff check \
+            src/mtg_policy/exploratory_v2.py \
+            src/mtg_policy/exploratory_v2_strategic.py \
+            tests/phase_c/test_exploratory_v2_strategic_choices.py
+          uv run mypy src/mtg_policy/exploratory_v2.py src/mtg_policy/exploratory_v2_strategic.py
+          uv run pytest tests/phase_c/test_exploratory_v2_*.py
+      - name: Remove temporary workflow and commit validated source
+        run: |
+          rm .github/workflows/phase-c-v2-strategic-finalize.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "feat: complete exploratory V2 strategic-choice evidence"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
