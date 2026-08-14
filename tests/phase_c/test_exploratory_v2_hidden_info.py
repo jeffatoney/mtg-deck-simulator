@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from copy import deepcopy
-
 from mtg_deck import build_exact_game
 from mtg_kernel.models import Zone
 from mtg_kernel.observation import ObservationService
@@ -27,10 +25,9 @@ def _prepared_executor(seed_text: str):
 
 
 def test_reordering_hidden_future_library_does_not_change_semantic_priority_choice() -> None:
-    first_executor, first_policy = _prepared_executor("phase-c:standard:881001")
-    second_executor = deepcopy(first_executor)
-    second_policy, _provider, evaluator = _bound_policy(second_executor, "anchor_balanced")
-    bind_combo_access_tracker(second_executor, CONTROLLED_PLAYER, evaluator.combo_packages)
+    seed_text = "phase-c:standard:881001"
+    first_executor, first_policy = _prepared_executor(seed_text)
+    second_executor, second_policy = _prepared_executor(seed_text)
     library = second_executor.zones.zone_key(Zone.LIBRARY, CONTROLLED_PLAYER)
     second_executor.state.zones[library] = list(reversed(second_executor.state.zones[library]))
     first_observation = ObservationService(first_executor.state).observe_for_policy(CONTROLLED_PLAYER)
