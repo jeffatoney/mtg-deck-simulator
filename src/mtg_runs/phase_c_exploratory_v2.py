@@ -58,7 +58,6 @@ from mtg_runs.phase_c_runner import (
 )
 from mtg_search.directed_v2 import (
     ARM_IDS,
-    CandidateScoreVector,
     DirectedArmConfig,
     DirectedCandidate,
     canonical_sha256,
@@ -298,7 +297,9 @@ class DirectedExplorerV2:
 
         broker = ActionBroker(clone, CONTROLLED_PLAYER)
         observation, actions = broker.refresh()
-        match = next((candidate for candidate in actions if candidate.handle == action.handle), None)
+        match = next(
+            (candidate for candidate in actions if candidate.handle == action.handle), None
+        )
         if match is None:
             key = semantic_action_key(action)
             matches = [candidate for candidate in actions if semantic_action_key(candidate) == key]
@@ -306,7 +307,8 @@ class DirectedExplorerV2:
                 raise UnsupportedCapability("V2 projection could not identify candidate in clone")
             match = matches[0]
         broker.execute(int(observation["generation"]), match.handle)
-        after = _combo_evaluation(clone, tracker)
+        after_deviation = _combo_evaluation(clone, tracker)
+        projected = after_deviation
         continuation: list[str] = []
         stop_reason = "STANDARD_PASS"
         for _ in range(self.config.continuation_action_limit):
@@ -331,14 +333,14 @@ class DirectedExplorerV2:
                 stop_reason = "HIDDEN_INFORMATION_BOUNDARY"
                 break
             next_broker.execute(int(next_observation["generation"]), selected.handle)
-            after = _combo_evaluation(clone, tracker)
+            projected = _combo_evaluation(clone, tracker)
         else:
             stop_reason = "CONTINUATION_ACTION_LIMIT"
 
-        projected_turn = None if after.expected_win_turn >= 99 else after.expected_win_turn
+        projected_turn = None if projected.expected_win_turn >= 99 else projected.expected_win_turn
         return PublicProjection(
-            immediate_deterministic_access=after.immediate_legal_table_win,
-            projected_deterministic_access=after.immediate_legal_table_win,
+            immediate_deterministic_access=after_deviation.immediate_legal_table_win,
+            projected_deterministic_access=projected.immediate_legal_table_win,
             earliest_projected_access_turn=projected_turn,
             continuation_actions=tuple(continuation),
             stop_reason=stop_reason,
@@ -423,7 +425,9 @@ class DirectedExplorerV2:
             for candidate in selection.candidates
             if candidate.score.arm_constraint_status.startswith("PROHIBITED_")
         )
-        first_divergence = selection.selected_handle != standard_handle and not self._divergence_seen
+        first_divergence = (
+            selection.selected_handle != standard_handle and not self._divergence_seen
+        )
         self._divergence_seen = self._divergence_seen or first_divergence
         record = ExploratoryV2DecisionRecord(
             schema_version=DECISION_SCHEMA,
@@ -609,7 +613,7 @@ def run_exploratory_v2_game_execution(
         raise ValueError("V2 turn horizon must be within 1..10")
     if game_index < 1:
         raise ValueError("V2 game_index must be positive")
-    seed_text = f"phase-c-v2:{arm_id}:{seed}"
+    seed_text = f"phase-c:standard:{seed}"
     state, executor, _ = build_exact_game(seed_text, PLAYER_IDS)
     environment_initial_state_hash = state_hash(state)
     policy, baseline_provider, evaluator_config = _bound_policy(executor, policy_config_id)

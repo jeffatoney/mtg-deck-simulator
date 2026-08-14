@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from enum import StrEnum
 from itertools import combinations
 from typing import Any, Mapping, Sequence
@@ -229,8 +229,7 @@ def _land_hold_evidence(
 ) -> LandHoldEvidence:
     objects = _visible_objects(observation)
     glint_visible = any(
-        str(item.get("identity", "")) == GLINT_HORN
-        and str(item.get("zone", "")) == "BATTLEFIELD"
+        str(item.get("identity", "")) == GLINT_HORN and str(item.get("zone", "")) == "BATTLEFIELD"
         for item in objects
     )
     hand_lands = sum(
@@ -239,8 +238,7 @@ def _land_hold_evidence(
         for item in objects
     )
     bounce = any(
-        action.kind == "PLAY_LAND"
-        and action.identity in {"Izzet Boilerworks", "Guildless Commons"}
+        action.kind == "PLAY_LAND" and action.identity in {"Izzet Boilerworks", "Guildless Commons"}
         for action in actions
     )
     land_search = any(
@@ -308,9 +306,7 @@ def _mana_development(action: ObservedAction) -> int:
         return 30
     if action.kind == "CAST" and "ARTIFACT" in upper_tags and action.mana_value <= 2:
         return 70
-    if action.kind == "CAST" and upper_tags.intersection(
-        {"ARTIFACT", "CREATURE", "ENCHANTMENT"}
-    ):
+    if action.kind == "CAST" and upper_tags.intersection({"ARTIFACT", "CREATURE", "ENCHANTMENT"}):
         return 20
     return 0
 
@@ -343,8 +339,13 @@ def score_priority_candidate(
     prune: str | None = None
     reasons = [f"ACTION_KIND_{action.kind}", f"CONTINUATION_{projection.stop_reason}"]
     phase = str(observation.get("phase", ""))
+    step = str(observation.get("step", ""))
+    main_phase = phase in {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"} or step in {
+        "PRECOMBAT_MAIN",
+        "POSTCOMBAT_MAIN",
+    }
     land_available = any(candidate.kind == "PLAY_LAND" for candidate in all_actions)
-    if action.kind == "PASS_PRIORITY" and phase in {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"} and land_available:
+    if action.kind == "PASS_PRIORITY" and main_phase and land_available:
         hold = permitted_main_phase_pass_reason(observation, all_actions)
         if hold is None:
             constraint = "FAIL_CLOSED_MANA_DEVELOPMENT"
@@ -404,9 +405,7 @@ def _public_card_score(
         mana_development_value=0,
         relevant_resource_preservation=max(0, 100 - min(100, card.mana_value * 10)),
         card_selection_or_tutor_value=selection,
-        conditional_access_status=(
-            "PROGRESS" if conditional and progress > 0 else "NONE"
-        ),
+        conditional_access_status=("PROGRESS" if conditional and progress > 0 else "NONE"),
         novelty_value=novelty_value,
         arm_constraint_status=constraint_status,
         action_cost=0,
@@ -549,7 +548,9 @@ class ExploratoryStrategicChoiceProvider:
             exploration_seed=self.exploration_seed,
             decision_id=decision_id,
         )
-        selected_card = next(card for card in request.candidates if card.handle == selection.selected_handle)
+        selected_card = next(
+            card for card in request.candidates if card.handle == selection.selected_handle
+        )
         signature = canonical_interaction_signature(
             purpose=request.purpose,
             action_kind="CARD_SELECTION",
@@ -580,7 +581,9 @@ class ExploratoryStrategicChoiceProvider:
                         "score": candidate.score.to_dict(),
                         "pruned_reason": candidate.pruned_reason,
                     }
-                    for card, candidate in zip(request.candidates, selection.candidates, strict=False)
+                    for card, candidate in zip(
+                        request.candidates, selection.candidates, strict=False
+                    )
                 ],
                 "arm_specific_exclusions": exclusions,
             },

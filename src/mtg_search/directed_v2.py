@@ -112,7 +112,10 @@ class CandidateScoreVector:
     final_candidate_rank: int | None = None
 
     def __post_init__(self) -> None:
-        if self.earliest_projected_access_turn is not None and self.earliest_projected_access_turn < 1:
+        if (
+            self.earliest_projected_access_turn is not None
+            and self.earliest_projected_access_turn < 1
+        ):
             raise ValueError("earliest projected access turn must be positive")
         for field_name in (
             "known_package_progress",
@@ -147,7 +150,10 @@ class DirectedCandidate:
     def __post_init__(self) -> None:
         if not self.handle or not self.semantic_key:
             raise ValueError("directed candidate requires a handle and semantic key")
-        if self.pruned_reason is None and self.score.arm_constraint_status not in _ALLOWED_CONSTRAINT_STATUS:
+        if (
+            self.pruned_reason is None
+            and self.score.arm_constraint_status not in _ALLOWED_CONSTRAINT_STATUS
+        ):
             raise ValueError("ineligible candidate requires an explicit pruning reason")
 
 
@@ -259,7 +265,10 @@ def _rank_candidates(
         key=lambda item: (_objective_key(arm_id, item), item.semantic_key),
         reverse=True,
     )
-    return tuple(replace(candidate, score=replace(candidate.score, final_candidate_rank=index)) for index, candidate in enumerate(ordered, start=1))
+    return tuple(
+        replace(candidate, score=replace(candidate.score, final_candidate_rank=index))
+        for index, candidate in enumerate(ordered, start=1)
+    )
 
 
 def _inside_equivalence_window(
@@ -319,7 +328,10 @@ def select_directed_candidate(
 
     ranked = _rank_candidates(config.arm_id, candidates)
     permitted = [
-        candidate for candidate in ranked if candidate.score.arm_constraint_status in _ALLOWED_CONSTRAINT_STATUS and candidate.pruned_reason is None
+        candidate
+        for candidate in ranked
+        if candidate.score.arm_constraint_status in _ALLOWED_CONSTRAINT_STATUS
+        and candidate.pruned_reason is None
     ]
     if not permitted:
         raise ValueError("exploratory V2 has no permitted legal candidate")

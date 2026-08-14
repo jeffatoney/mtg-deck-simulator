@@ -120,7 +120,9 @@ def run_arm_diagnostic(*, arm_id: str, output_root: Path = DEFAULT_OUTPUT) -> Ma
                 discovery_signatures[signature] += 1
             kind = str(json.loads(signature).get("kind", "")) if signature.startswith("{") else ""
             discovery_types[
-                _discovery_type(kind, decision.strategic_choice_purpose, decision.selected_plan_or_package_id)
+                _discovery_type(
+                    kind, decision.strategic_choice_purpose, decision.selected_plan_or_package_id
+                )
             ] += 1
         for strategic in game.strategic_choice_records:
             if strategic.get("strategic_choice_purpose") == "TUTOR":
