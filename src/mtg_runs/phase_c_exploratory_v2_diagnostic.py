@@ -94,7 +94,9 @@ def _useful_discovery_classification(
         return "NEW_ACTIVATED_ABILITY_LINE"
     if identity in _COMMANDERS:
         return "NEW_COMMANDER_SEQUENCE"
-    interaction_text = " ".join((identity, kind, *tags, json.dumps(metadata_map, sort_keys=True))).upper()
+    interaction_text = " ".join(
+        (identity, kind, *tags, json.dumps(metadata_map, sort_keys=True))
+    ).upper()
     if "DRAW" in interaction_text or "DISCARD" in interaction_text:
         return "NEW_DRAW_OR_DISCARD_SEQUENCE"
     if decision.selected_plan_or_package_id:
@@ -124,9 +126,7 @@ def _record_useful_discovery(
     )
     prior = signatures[signature]
     signatures[signature] += 1
-    classifications[
-        "REVISITED_UNDEREXPLORED_LINE" if prior else classification
-    ] += 1
+    classifications["REVISITED_UNDEREXPLORED_LINE" if prior else classification] += 1
     return True
 
 
@@ -158,9 +158,7 @@ def _record_strategic_discovery(
     )
     prior = signatures[signature]
     signatures[signature] += 1
-    classifications[
-        "REVISITED_UNDEREXPLORED_LINE" if prior else "NEW_TUTOR_TARGET"
-    ] += 1
+    classifications["REVISITED_UNDEREXPLORED_LINE" if prior else "NEW_TUTOR_TARGET"] += 1
     return True
 
 
