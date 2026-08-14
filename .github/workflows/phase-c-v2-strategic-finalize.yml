@@ -32,65 +32,54 @@ jobs:
 
           path = Path("src/mtg_policy/exploratory_v2_strategic.py")
           text = path.read_text(encoding="utf-8")
-          old = '''            exclusion = {
-                          "identity": GLINT_HORN,
-                          "candidate_handle": handle,
-                          "reason": "ARM_CONSTRAINT_NO_GLINT_HORN_TUTOR",
-                      }
-          '''
-          new = '''            exclusion = {
-                          "identity": GLINT_HORN,
-                          "candidate_handle": handle,
-                          "reason": "ARM_CONSTRAINT_NO_GLINT_HORN_TUTOR",
-                          "legal_alternative_identities": sorted(
-                              card.identity
-                              for card in request.candidates
-                              if card.identity != GLINT_HORN
-                          ),
-                          "fail_to_find_legally_available": request.minimum == 0,
-                      }
-          '''
-          if old not in text:
-              raise SystemExit("card-selection exclusion marker missing")
-          text = text.replace(old, new, 1)
 
-          marker = '''        directed: list[DirectedCandidate] = []
-              signatures: dict[str, str] = {}
-              selection_by_handle: dict[str, tuple[int, str]] = {}
-              for split in request.legal_splits:
-                  for pile_name, pile_handles in (
+          exclusion_start = text.index(
+              '        if prohibited:\n            exclusion = {\n',
+              text.index("def _card_combo_candidate("),
+          )
+          exclusion_end = text.index("\n        semantic = _semantic_key(", exclusion_start)
+          exclusion = '''        if prohibited:
+              exclusion = {
+                  "identity": GLINT_HORN,
+                  "candidate_handle": handle,
+                  "reason": "ARM_CONSTRAINT_NO_GLINT_HORN_TUTOR",
+                  "legal_alternative_identities": sorted(
+                      card.identity
+                      for card in request.candidates
+                      if card.identity != GLINT_HORN
+                  ),
+                  "fail_to_find_legally_available": request.minimum == 0,
+              }
           '''
-          replacement = '''        directed: list[DirectedCandidate] = []
-              signatures: dict[str, str] = {}
-              selection_by_handle: dict[str, tuple[int, str]] = {}
-              opponent_pruning = [
-                  {
-                      "split_index": split.split_index,
-                      "reason": "OPPONENT_CHOICE_FIXED_TO_FROZEN_STANDARD_MINIMIZER",
-                  }
-                  for split in request.legal_splits
-                  if split.split_index != baseline.split_index
-              ]
-              for split in request.legal_splits:
-                  if split.split_index != baseline.split_index:
-                      continue
-                  for pile_name, pile_handles in (
+          text = text[:exclusion_start] + exclusion + text[exclusion_end:]
+
+          fof_start = text.index("    def choose_fact_or_fiction(")
+          insert_at = text.index(
+              "        for split in request.legal_splits:\n", fof_start
+          )
+          opponent_pruning = '''        opponent_pruning = [
+              {
+                  "split_index": split.split_index,
+                  "reason": "OPPONENT_CHOICE_FIXED_TO_FROZEN_STANDARD_MINIMIZER",
+              }
+              for split in request.legal_splits
+              if split.split_index != baseline.split_index
+          ]
           '''
-          if marker not in text:
-              raise SystemExit("Fact or Fiction candidate marker missing")
-          text = text.replace(marker, replacement, 1)
-          fof_call = '''            baseline_handle=baseline_handle,
-                  novelty_before=novelty_before,
-                  replay_binding={"opponent_id": request.opponent_id},
-          '''
-          fof_replacement = '''            baseline_handle=baseline_handle,
-                  novelty_before=novelty_before,
-                  extra_pruning=opponent_pruning,
-                  replay_binding={"opponent_id": request.opponent_id},
-          '''
-          if fof_call not in text:
-              raise SystemExit("Fact or Fiction selection marker missing")
-          text = text.replace(fof_call, fof_replacement, 1)
+          text = text[:insert_at] + opponent_pruning + text[insert_at:]
+          loop = "        for split in request.legal_splits:\n            for pile_name, pile_handles in (\n"
+          loop_pos = text.index(loop, fof_start)
+          replacement = "        for split in request.legal_splits:\n            if split.split_index != baseline.split_index:\n                continue\n            for pile_name, pile_handles in (\n"
+          text = text[:loop_pos] + replacement + text[loop_pos + len(loop):]
+          selection_pos = text.index(
+              '            replay_binding={"opponent_id": request.opponent_id},\n',
+              fof_start,
+          )
+          text = (
+              text[:selection_pos]
+              + "            extra_pruning=opponent_pruning,\n"
+              + text[selection_pos:]
+          )
           path.write_text(text, encoding="utf-8")
 
           policy = Path("src/mtg_policy/exploratory_v2.py")
