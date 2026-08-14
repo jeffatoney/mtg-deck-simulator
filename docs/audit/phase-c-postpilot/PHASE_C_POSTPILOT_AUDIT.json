@@ -1,0 +1,390 @@
+{
+  "activation_commit": "319fd3f273899e8808888240ff881e97ae3976c1",
+  "artifact_inventory": {
+    "aggregate_artifact_id": 9204412474,
+    "aggregate_count": 1,
+    "all_github_zip_digests_matched": true,
+    "exploratory_shard_artifact_ids": [
+      9203060791,
+      9203053865,
+      9203134865,
+      9202868729,
+      9203012419,
+      9202970159,
+      9203138127,
+      9202927624,
+      9203127219,
+      9203066403
+    ],
+    "exploratory_shard_count": 10,
+    "manifest_path": "docs/audit/phase-c-postpilot/PHASE_C_POSTPILOT_ARTIFACT_MANIFEST.json",
+    "standard_shard_artifact_ids": [
+      9204326243,
+      9204237185,
+      9204176715,
+      9203625839,
+      9204085852,
+      9203762941,
+      9204272672,
+      9204358700,
+      9204282833,
+      9204039538
+    ],
+    "standard_shard_count": 10
+  },
+  "audit_verdict": "PILOT AUDIT PASS",
+  "deck_findings": [
+    {
+      "classification": "STRONG PILOT SIGNAL",
+      "finding": "Glint-Horn and Malcolm/Glint-Horn dominated deterministic access."
+    },
+    {
+      "classification": "STRONG PILOT SIGNAL",
+      "finding": "Psychosis Crawler was conditional, not deterministic full-table access; opening copies were often slow or stranded."
+    },
+    {
+      "classification": "MODERATE PILOT SIGNAL",
+      "finding": "Drift of Phantasms and Long-Term Plans had the clearest useful tutor associations."
+    },
+    {
+      "classification": "WEAK / INSUFFICIENT PILOT SIGNAL",
+      "finding": "Most other singleton associations cannot justify card changes."
+    }
+  ],
+  "exploratory": {
+    "T10_access": 0,
+    "T5_access": 0,
+    "T6_access": 0,
+    "T8_access": 0,
+    "actual_depth_summary": {
+      "depth_1_games": 200
+    },
+    "attempted": 200,
+    "first_divergence_summary": {
+      "exploratory_action": "PASS_PRIORITY",
+      "games": 200,
+      "phase": "PRECOMBAT_MAIN",
+      "standard_action": "PLAY_LAND",
+      "turn": 1
+    },
+    "node_summary": {
+      "decisions": 8006,
+      "nodes": 29105
+    },
+    "replay_pass": 200,
+    "valid_records": 200
+  },
+  "full_study_authorized": false,
+  "full_study_options": {
+    "AUTHORIZE FULL STUDY": "Not recommended unchanged.",
+    "REQUIRE CORRECTED PILOT": "Not required for the completed pilot; required only after exploratory redesign.",
+    "REVISE / NARROW STUDY": "Recommended: about 5,000 STANDARD for core questions; remove or redesign and separately pilot EXPLORATORY.",
+    "STOP STUDY": "Not recommended for the STANDARD questions."
+  },
+  "generated_at_utc": "2026-08-14T02:35:28Z",
+  "implementation_commit": "150671a8e7a78e5fa14b6b3aca2308f6af647df3",
+  "implementation_tree": "37cf737691d516a0b7316270364724f91dd28856",
+  "integrity": {
+    "aggregation_valid": true,
+    "manifest_valid": true,
+    "measurement_binding_valid": true,
+    "pairing_valid": true,
+    "policy_binding_valid": true,
+    "provenance_valid": true,
+    "replay_valid": true,
+    "seed_assignment_valid": true,
+    "shard_count_valid": true,
+    "total_replay_fail": 0,
+    "total_replay_pass": 700
+  },
+  "measurement_findings": [
+    "Frozen checkpoints, objective, paired outcomes, McNemar, 10,000-resample bootstrap, and no-imputation timing bindings passed.",
+    "Independent reconstruction matched aggregate 6bd1ea110dd030075180565b6c1e5856b8cec986970614c5545b8494cd899732 and timing artifact 346b1b5ab4a92607b20a9594713e7e04ae0e720478ac6d78109cab70e5ca2c11.",
+    "Legal package availability was separated from deterministic full-table access."
+  ],
+  "paired_analysis": {
+    "access_rate_difference": -0.185,
+    "bootstrap_interval": {
+      "lower": -0.24,
+      "upper": -0.13
+    },
+    "both_access": 0,
+    "both_access_turn_shift": {
+      "distribution": {},
+      "sample_count": 0
+    },
+    "discordant_pairs": 37,
+    "exploratory_only_access": 0,
+    "mcnemar_p_value": 1.4551915228366852e-11,
+    "neither_access": 163,
+    "secondary_censoring_counts": {
+      "both_access_by_T10": 0,
+      "exploratory_only_access_by_T10": 0,
+      "neither_access_by_T10": 149,
+      "standard_only_access_by_T10": 51,
+      "turn_shift_excluded_censored": 200
+    },
+    "standard_only_access": 37
+  },
+  "policy_findings": {
+    "exploratory": [
+      "0/200 access and no attempts through T10.",
+      "All 200 first divergences were T1 PLAY_LAND versus PASS_PRIORITY.",
+      "The authorized depth-1 search replaced baseline continuation and repeatedly selected poor pass continuations.",
+      "This was a study-design limitation, not a technical defect; numeric candidate scores were not persisted."
+    ],
+    "standard": [
+      "T8 82/500; T10 113/500.",
+      "Action-density shortage was the larger primary failure category.",
+      "Malcolm/Glint-Horn dominated; earlier Malcolm and tutor use correlated with access.",
+      "Invert // Invent used Invert 109 times and never used Invent."
+    ]
+  },
+  "recommended_owner_decision": "REVISE / NARROW STUDY",
+  "repository": "jeffatoney/mtg-deck-simulator",
+  "schema_version": "phase-c-postpilot-audit-v1",
+  "standard": {
+    "T10_access": 113,
+    "T5_access": 19,
+    "T6_access": 37,
+    "T8_access": 82,
+    "attempted": 500,
+    "combo_package_summary": {
+      "dualcaster_electroduplicate": {
+        "deterministic_full_table_T5_T6_T8_T10": [
+          0,
+          0,
+          2,
+          2
+        ],
+        "earliest_legal_turn_counts": {
+          "T8": 2
+        },
+        "first_attempt_games": 2,
+        "legal_T5_T6_T8_T10": [
+          0,
+          0,
+          2,
+          2
+        ]
+      },
+      "dualcaster_twinflame": {
+        "deterministic_full_table_T5_T6_T8_T10": [
+          0,
+          2,
+          3,
+          5
+        ],
+        "earliest_legal_turn_counts": {
+          "T10": 1,
+          "T6": 2,
+          "T8": 1,
+          "T9": 1
+        },
+        "first_attempt_games": 4,
+        "legal_T5_T6_T8_T10": [
+          0,
+          2,
+          3,
+          5
+        ]
+      },
+      "lightning_rig_crab_umbra_malcolm": {
+        "deterministic_full_table_T5_T6_T8_T10": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "earliest_legal_turn_counts": {
+          "T9": 1
+        },
+        "first_attempt_games": 1,
+        "legal_T5_T6_T8_T10": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "malcolm_glint_horn": {
+        "deterministic_full_table_T5_T6_T8_T10": [
+          19,
+          35,
+          77,
+          107
+        ],
+        "earliest_legal_turn_counts": {
+          "T10": 19,
+          "T3": 1,
+          "T4": 8,
+          "T5": 10,
+          "T6": 16,
+          "T7": 20,
+          "T8": 22,
+          "T9": 12
+        },
+        "first_attempt_games": 44,
+        "legal_T5_T6_T8_T10": [
+          19,
+          35,
+          77,
+          108
+        ]
+      },
+      "niv_mizzet_curiosity": {
+        "deterministic_full_table_T5_T6_T8_T10": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "earliest_legal_turn_counts": {},
+        "first_attempt_games": 0,
+        "legal_T5_T6_T8_T10": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "psychosis_crawler_draw": {
+        "deterministic_full_table_T5_T6_T8_T10": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "earliest_legal_turn_counts": {
+          "T10": 15,
+          "T4": 3,
+          "T5": 19,
+          "T6": 21,
+          "T7": 12,
+          "T8": 17,
+          "T9": 11
+        },
+        "first_attempt_games": 74,
+        "legal_T5_T6_T8_T10": [
+          22,
+          43,
+          72,
+          98
+        ]
+      }
+    },
+    "failure_summary": {
+      "10": {
+        "all_label_counts": {
+          "action_density_shortage": 387,
+          "mana_shortage": 85,
+          "sequencing_failure": 387
+        },
+        "failed_games": 387,
+        "primary_failure_counts": {
+          "action_density_shortage": 302,
+          "mana_shortage": 85
+        }
+      },
+      "5": {
+        "all_label_counts": {
+          "action_density_shortage": 481,
+          "mana_shortage": 78,
+          "sequencing_failure": 481
+        },
+        "failed_games": 481,
+        "primary_failure_counts": {
+          "action_density_shortage": 403,
+          "mana_shortage": 78
+        }
+      },
+      "6": {
+        "all_label_counts": {
+          "action_density_shortage": 463,
+          "mana_shortage": 82,
+          "sequencing_failure": 463
+        },
+        "failed_games": 463,
+        "primary_failure_counts": {
+          "action_density_shortage": 381,
+          "mana_shortage": 82
+        }
+      },
+      "8": {
+        "all_label_counts": {
+          "action_density_shortage": 418,
+          "mana_shortage": 70,
+          "sequencing_failure": 418
+        },
+        "failed_games": 418,
+        "primary_failure_counts": {
+          "action_density_shortage": 348,
+          "mana_shortage": 70
+        }
+      }
+    },
+    "first_access_summary": {
+      "no_access_through_T10": 387,
+      "observed_access_games": 113,
+      "turn_distribution": {
+        "T10": 18,
+        "T3": 1,
+        "T4": 8,
+        "T5": 10,
+        "T6": 18,
+        "T7": 20,
+        "T8": 25,
+        "T9": 13
+      }
+    },
+    "first_attempt_summary": {
+      "never_attempted": 375,
+      "package_distribution": {
+        "dualcaster_electroduplicate": 2,
+        "dualcaster_twinflame": 4,
+        "lightning_rig_crab_umbra_malcolm": 1,
+        "malcolm_glint_horn": 44,
+        "none": 375,
+        "psychosis_crawler_draw": 74
+      },
+      "turn_distribution": {
+        "T10": 19,
+        "T4": 3,
+        "T5": 13,
+        "T6": 20,
+        "T7": 25,
+        "T8": 26,
+        "T9": 19
+      }
+    },
+    "mulligan_distribution": {
+      "final_keep_level": {
+        "4": 6,
+        "5": 9,
+        "6": 10,
+        "7": 475
+      },
+      "kept_at_4": 6,
+      "kept_at_5": 9,
+      "kept_at_6": 10,
+      "kept_first_7": 379,
+      "kept_free_second_7": 96,
+      "used_free_second_7": 121
+    },
+    "replay_pass": 500,
+    "valid_records": 500
+  },
+  "study_limitations": [
+    "These figures measure combo assembly speed against opponents who take no actions. They are not win rates and do not predict performance against interactive opponents.",
+    "No opponent interaction, blocking, or opponent wins; Breeches unknown cards excluded; controlled Turn-10 horizon.",
+    "Associations are not causal, and 500 STANDARD games are too small for broad singleton optimization.",
+    "EXPLORATORY findings apply only to this authorized depth-1 mechanism."
+  ],
+  "technical_findings": [
+    "All 21 artifact ZIP digests, 20 shard manifests, 700 record bundles, seeds, pairs, identities, and fresh replays passed.",
+    "policy_actions=True and validate_fresh_replay=True; clean engine only; no legacy, future-information, policy-mutation, or post-result-optimization path.",
+    "The differing summary/manifest measurement digests were intentional canonicalization, not a defect."
+  ],
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31752039318
+}
