@@ -36,19 +36,8 @@ jobs:
               "from dataclasses import asdict, dataclass",
               "from dataclasses import dataclass",
           )
-          old = '''    phase = str(observation.get("phase", ""))
-              land_available = any(candidate.kind == "PLAY_LAND" for candidate in all_actions)
-              if action.kind == "PASS_PRIORITY" and phase in {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"} and land_available:
-          '''
-          new = '''    phase = str(observation.get("phase", ""))
-              step = str(observation.get("step", ""))
-              main_phase = phase in {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"} or step in {
-                  "PRECOMBAT_MAIN",
-                  "POSTCOMBAT_MAIN",
-              }
-              land_available = any(candidate.kind == "PLAY_LAND" for candidate in all_actions)
-              if action.kind == "PASS_PRIORITY" and main_phase and land_available:
-          '''
+          old = '    phase = str(observation.get("phase", ""))\n    land_available = any(candidate.kind == "PLAY_LAND" for candidate in all_actions)\n    if action.kind == "PASS_PRIORITY" and phase in {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"} and land_available:\n'
+          new = '    phase = str(observation.get("phase", ""))\n    step = str(observation.get("step", ""))\n    main_phase = phase in {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"} or step in {\n        "PRECOMBAT_MAIN",\n        "POSTCOMBAT_MAIN",\n    }\n    land_available = any(candidate.kind == "PLAY_LAND" for candidate in all_actions)\n    if action.kind == "PASS_PRIORITY" and main_phase and land_available:\n'
           if old not in text:
               raise SystemExit("expected priority guardrail source not found")
           policy.write_text(text.replace(old, new), encoding="utf-8")
@@ -60,35 +49,26 @@ jobs:
           if old_seed not in text:
               raise SystemExit("expected V2 environment seed source not found")
           text = text.replace(old_seed, '    seed_text = f"phase-c:standard:{seed}"')
-          old_after = '''        broker.execute(int(observation["generation"]), match.handle)
-              after = _combo_evaluation(clone, tracker)
-              continuation: list[str] = []
-          '''
-          new_after = '''        broker.execute(int(observation["generation"]), match.handle)
-              after_deviation = _combo_evaluation(clone, tracker)
-              projected = after_deviation
-              continuation: list[str] = []
-          '''
-          if old_after not in text:
-              raise SystemExit("expected projection source not found")
-          text = text.replace(old_after, new_after)
+          first = "        after = _combo_evaluation(clone, tracker)\n        continuation: list[str] = []\n"
+          replacement = "        after_deviation = _combo_evaluation(clone, tracker)\n        projected = after_deviation\n        continuation: list[str] = []\n"
+          if first not in text:
+              raise SystemExit("expected initial projection source not found")
+          text = text.replace(first, replacement, 1)
+          future = "            after = _combo_evaluation(clone, tracker)\n"
+          if future not in text:
+              raise SystemExit("expected continuation projection source not found")
+          text = text.replace(future, "            projected = _combo_evaluation(clone, tracker)\n", 1)
           text = text.replace(
-              "            after = _combo_evaluation(clone, tracker)\n",
-              "            projected = _combo_evaluation(clone, tracker)\n",
+              "        projected_turn = None if after.expected_win_turn >= 99 else after.expected_win_turn\n",
+              "        projected_turn = (\n            None if projected.expected_win_turn >= 99 else projected.expected_win_turn\n        )\n",
+              1,
           )
-          old_return = '''        projected_turn = None if after.expected_win_turn >= 99 else after.expected_win_turn
-              return PublicProjection(
-                  immediate_deterministic_access=after.immediate_legal_table_win,
-                  projected_deterministic_access=after.immediate_legal_table_win,
-          '''
-          new_return = '''        projected_turn = None if projected.expected_win_turn >= 99 else projected.expected_win_turn
-              return PublicProjection(
-                  immediate_deterministic_access=after_deviation.immediate_legal_table_win,
-                  projected_deterministic_access=projected.immediate_legal_table_win,
-          '''
-          if old_return not in text:
-              raise SystemExit("expected projection return source not found")
-          runner.write_text(text.replace(old_return, new_return), encoding="utf-8")
+          text = text.replace(
+              "            immediate_deterministic_access=after.immediate_legal_table_win,\n            projected_deterministic_access=after.immediate_legal_table_win,\n",
+              "            immediate_deterministic_access=after_deviation.immediate_legal_table_win,\n            projected_deterministic_access=projected.immediate_legal_table_win,\n",
+              1,
+          )
+          runner.write_text(text, encoding="utf-8")
           PY
       - name: Format corrected sources
         run: |
