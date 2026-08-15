@@ -1,4 +1,5 @@
 name: Phase C Exploratory V2 Non-Authorized Diagnostic
+# Closeout trigger only: PR synchronization runs this same exact-head diagnostic graph.
 
 on:
   pull_request:
