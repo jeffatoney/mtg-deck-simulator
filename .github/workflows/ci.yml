@@ -101,10 +101,25 @@ jobs:
       # covered content changed. The committed record still must pass the separate durable
       # gate below before the pull request can merge.
       - name: Tests
+        id: tests
+        continue-on-error: true
         env:
           PHASE_A_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-a-certification-candidate/CERTIFICATION.json
           GITHUB_TOKEN: ${{ github.token }}
-        run: uv run pytest -q
+        run: |
+          set -o pipefail
+          uv run pytest -q --tb=short 2>&1 | tee "${RUNNER_TEMP}/pytest.log"
+      - name: Upload pytest failure evidence
+        if: steps.tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-failure-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/pytest.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Enforce tests
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
       - name: Manifest integrity
         run: uv run python scripts/check_manifest.py
       # Phase B is a blocking gate. The exact deck, strategic model, owner-approved
