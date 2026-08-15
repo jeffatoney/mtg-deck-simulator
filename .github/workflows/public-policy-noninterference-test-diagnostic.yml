@@ -1,0 +1,62 @@
+name: Public policy prerequisite test diagnostic
+
+on:
+  push:
+    branches:
+      - hardening/public-policy-noninterference
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  first-failure:
+    runs-on: ubuntu-latest
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Phase A production verifier
+        env:
+          PHASE_A_ARTIFACT_ROOT: ${{ runner.temp }}/phase-a-result
+        run: uv run mtg-engine verify-phase-a
+      - name: Build Phase A CI certification candidate
+        run: |
+          RESULT="$(uv run python -m mtg_verify.result_selection \
+            --phase phase-a \
+            --root "${RUNNER_TEMP}/phase-a-result")"
+          uv run python scripts/record_phase_a_certification.py \
+            --verifier-result "${RESULT}" \
+            --output "${RUNNER_TEMP}/phase-a-certification-candidate/CERTIFICATION.json"
+      - name: First failing repository test
+        id: tests
+        continue-on-error: true
+        env:
+          PHASE_A_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-a-certification-candidate/CERTIFICATION.json
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          uv run pytest -q -x --tb=short 2>&1 | tee "${RUNNER_TEMP}/pytest-first-failure.log"
+      - name: Upload first-failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prerequisite-pytest-first-failure-${{ github.sha }}
+          path: ${{ runner.temp }}/pytest-first-failure.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Enforce tests
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
