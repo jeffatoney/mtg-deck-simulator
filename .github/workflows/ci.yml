@@ -38,6 +38,8 @@ jobs:
         run: uv run python scripts/check_phase_b_evaluator.py
       - name: Public policy information boundary
         run: uv run python scripts/check_policy_information_boundary.py
+      - name: Public policy noninterference regression
+        run: uv run pytest -q tests/phase_b/test_policy_information_boundary.py
       - name: Clean engine and support-package boundary
         run: uv run python scripts/check_clean_engine_boundary.py
       - name: Legacy package is not importable
