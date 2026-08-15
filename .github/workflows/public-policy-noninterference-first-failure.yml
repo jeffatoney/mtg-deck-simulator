@@ -1,0 +1,64 @@
+name: Public policy prerequisite first failure
+
+on:
+  push:
+    branches:
+      - hardening/public-policy-noninterference
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  first-failure:
+    runs-on: ubuntu-latest
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: uv sync --frozen --all-extras
+      - name: Build Phase A candidate
+        run: |
+          PHASE_A_ARTIFACT_ROOT="${RUNNER_TEMP}/phase-a-result" uv run mtg-engine verify-phase-a
+          RESULT="$(uv run python -m mtg_verify.result_selection --phase phase-a --root "${RUNNER_TEMP}/phase-a-result")"
+          uv run python scripts/record_phase_a_certification.py \
+            --verifier-result "${RESULT}" \
+            --output "${RUNNER_TEMP}/phase-a-certification-candidate/CERTIFICATION.json"
+      - name: Run to first failure
+        id: tests
+        continue-on-error: true
+        env:
+          PHASE_A_CERTIFICATION_RECORD: ${{ runner.temp }}/phase-a-certification-candidate/CERTIFICATION.json
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          uv run pytest -q -x --tb=short 2>&1 | tee "${RUNNER_TEMP}/pytest-first-failure.log"
+      - name: Annotate first failure
+        if: steps.tests.outcome == 'failure'
+        run: |
+          FAILURE="$(grep -m1 '^FAILED ' "${RUNNER_TEMP}/pytest-first-failure.log" || true)"
+          if [ -z "${FAILURE}" ]; then
+            FAILURE="$(tail -1 "${RUNNER_TEMP}/pytest-first-failure.log")"
+          fi
+          echo "::error title=Prerequisite first failing test::${FAILURE}"
+      - name: Upload first-failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prerequisite-first-failure-${{ github.sha }}
+          path: ${{ runner.temp }}/pytest-first-failure.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Enforce tests
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
