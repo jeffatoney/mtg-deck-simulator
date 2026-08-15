@@ -133,6 +133,47 @@ class OptionalTriggerSelection:
     diagnostics: Mapping[str, Any]
 
 
+@dataclass(frozen=True)
+class CounterPaymentRequest:
+    """Public resolution-time choice for a controlled counter-unless-pay target."""
+
+    request_id: str
+    actor_id: str
+    parent_priority_decision_id: str | None
+    effect_kind: str
+    turn_number: int
+    observation: Mapping[str, Any]
+    target: PublicCard
+    payment_amount: int
+    legal_outcomes: tuple[str, ...]
+    pay_mana_ability_plan: tuple[Mapping[str, Any], ...]
+    public_mana_pool: Mapping[str, int]
+
+    def __post_init__(self) -> None:
+        if self.payment_amount < 0:
+            raise ValueError("counter payment amount cannot be negative")
+        if not self.legal_outcomes or any(
+            outcome not in {"PAY", "DECLINE"} for outcome in self.legal_outcomes
+        ):
+            raise ValueError("counter payment outcomes are invalid")
+        if "DECLINE" not in self.legal_outcomes:
+            raise ValueError("counter payment must always permit declining")
+        if "PAY" not in self.legal_outcomes and self.pay_mana_ability_plan:
+            raise ValueError("counter payment plan cannot exist when PAY is unavailable")
+
+
+@dataclass(frozen=True)
+class CounterPaymentSelection:
+    outcome: str
+    evaluator_id: str
+    evaluator_sha256: str
+    diagnostics: Mapping[str, Any]
+
+    def __post_init__(self) -> None:
+        if self.outcome not in {"PAY", "DECLINE"}:
+            raise ValueError("counter payment selection is invalid")
+
+
 class StrategicChoiceProvider(Protocol):
     """Observation-only policy interface called at rules-defined choice times."""
 
@@ -149,6 +190,10 @@ class StrategicChoiceProvider(Protocol):
     def choose_optional_trigger(
         self, request: OptionalTriggerRequest
     ) -> OptionalTriggerSelection: ...
+
+    def choose_counter_payment(
+        self, request: CounterPaymentRequest
+    ) -> CounterPaymentSelection: ...
 
 
 class RecordedStrategicChoiceProvider:
@@ -183,6 +228,13 @@ class RecordedStrategicChoiceProvider:
             dict(choice)
             for choice in choices
             if str(choice.get("kind")) == "OPTIONAL_TRIGGER"
+            and isinstance(choice.get("selected"), Mapping)
+            and str(choice["selected"].get("decision_source", "")) == "STRATEGIC_PROVIDER"
+        ]
+        self._counter_payments = [
+            dict(choice)
+            for choice in choices
+            if str(choice.get("kind")) == "COUNTER_UNLESS_PAY"
             and isinstance(choice.get("selected"), Mapping)
             and str(choice["selected"].get("decision_source", "")) == "STRATEGIC_PROVIDER"
         ]
@@ -292,6 +344,27 @@ class RecordedStrategicChoiceProvider:
             raise ReplayError("recorded optional-trigger choice omits a boolean decision")
         evaluator_id, evaluator_sha, diagnostics = self._metadata(selected)
         return OptionalTriggerSelection(take, evaluator_id, evaluator_sha, diagnostics)
+
+    def choose_counter_payment(
+        self, request: CounterPaymentRequest
+    ) -> CounterPaymentSelection:
+        if not self._counter_payments:
+            raise ReplayError("replay transcript omits a recorded counter-payment choice")
+        recorded = self._counter_payments.pop(0)
+        selected = recorded.get("selected")
+        if not isinstance(selected, Mapping):
+            raise ReplayError("recorded counter-payment choice is malformed")
+        if str(selected.get("player_id", "")) != request.actor_id:
+            raise ReplayError("recorded counter-payment actor differs in replay")
+        if int(selected.get("amount", -1)) != request.payment_amount:
+            raise ReplayError("recorded counter-payment amount differs in replay")
+        outcome = str(selected.get("outcome", "PAY" if selected.get("pay") is True else "DECLINE"))
+        if outcome not in request.legal_outcomes:
+            raise ReplayError("recorded counter-payment outcome is not legal in replay")
+        if str(selected.get("target_handle", "")) != request.target.handle:
+            raise ReplayError("recorded counter-payment target differs in replay")
+        evaluator_id, evaluator_sha, diagnostics = self._metadata(selected)
+        return CounterPaymentSelection(outcome, evaluator_id, evaluator_sha, diagnostics)
 
 
 def require_provider(
