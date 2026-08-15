@@ -83,6 +83,7 @@ _HIDDEN_BOUNDARY_MARKERS = (
     "LANDCYCLE",
     "IMPULSE",
 )
+_COUNTER_UNLESS_PAY_TAGS = frozenset({"COUNTER_UNLESS_PAY", "COUNTER_UNLESS_PAY_EXILE"})
 
 
 def _canonical(value: Any) -> bytes:
@@ -106,6 +107,56 @@ def _public_digest(executor: GameExecutor) -> str:
 def _crosses_hidden_boundary(action: ObservedAction) -> bool:
     material = " ".join((action.kind, action.identity or "", *action.tags)).upper()
     return any(marker in material for marker in _HIDDEN_BOUNDARY_MARKERS)
+
+
+def _execute_v2_broker_action(
+    executor: GameExecutor,
+    broker: ActionBroker,
+    generation: int,
+    selected: ObservedAction,
+) -> None:
+    """Execute a selected V2 action with explicit controlled-player resolution choices.
+
+    The shared broker intentionally exposes legal counter-unless-pay self-interaction
+    without inventing the target controller's resolution decision.  In the frozen
+    no-opponent model, V2 may deliberately select such a self-interaction.  Selecting
+    that counter line commits the controlled target controller to decline the payment;
+    the explicit choice is stored on the cast command and therefore replayed normally.
+    Opponent-controlled payment decisions remain unsupported and fail closed.
+    """
+
+    if not _COUNTER_UNLESS_PAY_TAGS.intersection(selected.tags):
+        broker.execute(generation, selected.handle)
+        return
+
+    internal = broker._actions.get(selected.handle)
+    if internal is None or internal.operation != "cast":
+        raise UnsupportedCapability("V2 counter-unless-pay candidate is not a broker cast")
+    arguments = deepcopy(internal.arguments)
+    targets = tuple(arguments.get("targets", ()))
+    if len(targets) != 1:
+        raise UnsupportedCapability("V2 counter-unless-pay candidate requires one stack target")
+    target_id = getattr(targets[0], "object_id", None)
+    target = executor.state.objects.get(str(target_id)) if target_id is not None else None
+    if (
+        target is None
+        or target.retired
+        or target.ceased_to_exist
+        or target.zone is not Zone.STACK
+    ):
+        raise UnsupportedCapability("V2 counter-unless-pay target is not an active stack object")
+    payer = target.controller or target.owner
+    if payer != CONTROLLED_PLAYER:
+        raise UnsupportedCapability(
+            "V2 counter-unless-pay requires an explicit decision from an unmodeled opponent"
+        )
+    choices = dict(arguments.get("choices", {}))
+    if "counter_payment" in choices:
+        raise UnsupportedCapability("V2 broker counter candidate unexpectedly prebound payment")
+    choices["counter_payment"] = {"player_id": payer, "pay": False}
+    arguments["choices"] = choices
+    broker._actions[selected.handle] = replace(internal, arguments=arguments)
+    broker.execute(generation, selected.handle)
 
 
 @dataclass(frozen=True)
@@ -306,7 +357,7 @@ class DirectedExplorerV2:
             if len(matches) != 1:
                 raise UnsupportedCapability("V2 projection could not identify candidate in clone")
             match = matches[0]
-        broker.execute(int(observation["generation"]), match.handle)
+        _execute_v2_broker_action(clone, broker, int(observation["generation"]), match)
         after_deviation = _combo_evaluation(clone, tracker)
         projected = after_deviation
         continuation: list[str] = []
@@ -332,7 +383,12 @@ class DirectedExplorerV2:
             if _crosses_hidden_boundary(selected):
                 stop_reason = "HIDDEN_INFORMATION_BOUNDARY"
                 break
-            next_broker.execute(int(next_observation["generation"]), selected.handle)
+            _execute_v2_broker_action(
+                clone,
+                next_broker,
+                int(next_observation["generation"]),
+                selected,
+            )
             projected = _combo_evaluation(clone, tracker)
         else:
             stop_reason = "CONTINUATION_ACTION_LIMIT"
@@ -520,7 +576,12 @@ def _priority_window_v2(
         tracker = getattr(executor, "combo_access_tracker", None)
         if isinstance(tracker, ComboAccessTracker):
             measurement.observe_selected_action(executor, tracker, selected)
-        broker.execute(int(observation["generation"]), selected_handle)
+        _execute_v2_broker_action(
+            executor,
+            broker,
+            int(observation["generation"]),
+            selected,
+        )
         explorer.record_result(executor)
         actions_used += 1
         if actions_used > MAX_ACTIONS_PER_PRIORITY_WINDOW:
