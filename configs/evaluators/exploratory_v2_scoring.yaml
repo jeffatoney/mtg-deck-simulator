@@ -1,0 +1,43 @@
+{
+  "schema_version": "phase-c-exploratory-scoring-v2",
+  "scoring_id": "EXPLORATORY_DIRECTED_SCORING_V2",
+  "deterministic_access_definition": "REUSE_MTG_MEASURE_COMBO_ACCESS_TRACKER",
+  "conditional_access_separate": true,
+  "hidden_information_method": "VISIBLE_STATE_FEATURES_PLUS_STANDARD_CONTINUATION_UNTIL_HIDDEN_BOUNDARY",
+  "standard_baseline_required": true,
+  "candidate_score_fields": [
+    "immediate_deterministic_access",
+    "projected_deterministic_access",
+    "earliest_projected_access_turn",
+    "known_package_progress",
+    "mana_development_value",
+    "relevant_resource_preservation",
+    "card_selection_or_tutor_value",
+    "conditional_access_status",
+    "novelty_value",
+    "arm_constraint_status",
+    "action_cost",
+    "reason_codes",
+    "final_candidate_rank"
+  ],
+  "mana_development_points": {
+    "play_land": 100,
+    "cast_low_cost_mana_permanent": 70,
+    "mana_ability": 30,
+    "other_development_permanent": 20,
+    "pass_priority": 0
+  },
+  "future_boundary_tags": [
+    "DRAW",
+    "SCRY",
+    "LOOK",
+    "RANDOM",
+    "SHUFFLE",
+    "SEARCH",
+    "TUTOR",
+    "TRANSMUTE",
+    "TYPECYCLE",
+    "IMPULSE"
+  ],
+  "pilot_activation": false
+}

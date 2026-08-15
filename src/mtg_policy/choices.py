@@ -9,6 +9,8 @@ from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.strategic_choices import (
     CardSelection,
     CardSelectionRequest,
+    CounterPaymentRequest,
+    CounterPaymentSelection,
     FactOrFictionRequest,
     FactOrFictionSelection,
     OptionalTriggerRequest,
@@ -203,10 +205,6 @@ class PolicyStrategicChoiceProvider:
             )
             selected = tuple(card.handle for card in ordered)
         elif request.purpose.startswith("TUTOR_"):
-            # Search effects expose only the rules-eligible candidate set through
-            # opaque handles. Rank those candidates with the same frozen tutor
-            # preference and contextual evaluator used by choose_tutor(). Hidden
-            # object IDs/library positions never cross the policy boundary.
             priority_name = str(self.bundle.value("tutor_priority"))
             priority_order = self.evaluator.config.tutor_priority_orders.get(priority_name, ())
             rank = {name: len(priority_order) - index for index, name in enumerate(priority_order)}
@@ -219,9 +217,6 @@ class PolicyStrategicChoiceProvider:
                     card.handle,
                 ),
             )
-            # A hidden-zone search may legally fail to find when minimum is zero,
-            # but the frozen maximizing policy chooses the best eligible card when
-            # one exists. Exact-minimum searches (Long-Term Plans) remain exact.
             choose_count = (
                 request.minimum if request.minimum == request.maximum else request.maximum
             )
@@ -338,10 +333,7 @@ class PolicyStrategicChoiceProvider:
                 )
             selected, loop_diagnostics = _dualcaster_loop_selection(request)
             diagnostics.update(loop_diagnostics)
-        if (
-            selected != request.original_target_handles
-            and selected not in request.legal_target_sets
-        ):
+        if selected != request.original_target_handles and selected not in request.legal_target_sets:
             raise ValueError("policy selected a copy target set outside the legal choices")
         return SpellCopyTargetSelection(
             selected,
@@ -365,6 +357,54 @@ class PolicyStrategicChoiceProvider:
                 "strategy": "TAKE_REVIEWED_OPTIONAL_TRIGGER",
                 "ability_id": request.ability_id,
                 "effect_kind": request.effect_kind,
+            },
+        )
+
+    def choose_counter_payment(
+        self, request: CounterPaymentRequest
+    ) -> CounterPaymentSelection:
+        """Compare PAY and DECLINE from public state under the frozen evaluator.
+
+        PAY preserves the controlled target spell but consumes the requested mana;
+        DECLINE preserves that mana but loses the target spell. The target's public
+        contextual value is compared with the evaluator's existing `mana` weight,
+        so this is a public-state policy decision rather than a hardcoded outcome.
+        """
+
+        if request.actor_id != str(request.observation.get("player", "")):
+            raise UnsupportedCapability("counter-payment policy actor differs from observation")
+        legal = set(request.legal_outcomes)
+        if "PAY" not in legal:
+            outcome = "DECLINE"
+            target_evaluation = None
+            pay_utility = None
+        else:
+            target_evaluation = self.evaluator.evaluate_pile((request.target,), request.observation)
+            mana_weight = float(self.evaluator.config.weights.get("mana", 0.0))
+            pay_utility = target_evaluation.score - request.payment_amount * mana_weight
+            outcome = "PAY" if pay_utility > 0.0 else "DECLINE"
+        if outcome not in legal:
+            raise ValueError("counter-payment policy selected an unavailable outcome")
+        return CounterPaymentSelection(
+            outcome,
+            self.evaluator_id,
+            self.evaluator_sha256,
+            {
+                "policy_config_id": self.bundle.policy_config_id,
+                "strategy": "PUBLIC_TARGET_VALUE_VS_MANA_RETENTION_V1",
+                "reason_code": f"SELECTED_COUNTER_PAYMENT_{outcome}",
+                "legal_outcomes": list(request.legal_outcomes),
+                "pay_legally_available": "PAY" in legal,
+                "payment_amount": request.payment_amount,
+                "public_mana_pool": dict(request.public_mana_pool),
+                "target_identity": request.target.identity,
+                "target_evaluation": (
+                    None if target_evaluation is None else target_evaluation.to_dict()
+                ),
+                "pay_utility_microunits": (
+                    None if pay_utility is None else score_to_microunits(pay_utility)
+                ),
+                "decline_utility_microunits": 0,
             },
         )
 

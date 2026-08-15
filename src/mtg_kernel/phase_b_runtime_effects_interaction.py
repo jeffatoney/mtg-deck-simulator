@@ -2,16 +2,45 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
+from collections.abc import Mapping
 from typing import Any
 
-from mtg_kernel.errors import IllegalAction
-from mtg_kernel.mana import pay_mana
+from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
+from mtg_kernel.phase_b_resolution_mana import (
+    execute_resolution_generic_payment_plan,
+    find_resolution_generic_payment_plan,
+)
 from mtg_kernel.phase_b_runtime_helpers import (
     _counter_to,
     _mark_eot_original,
     _spell_satisfies,
 )
+from mtg_kernel.strategic_choices import CounterPaymentRequest, PublicCard, require_provider
+
+
+def _public_digest(executor: Any, actor_id: str) -> str:
+    payload = executor._strategic_observation(actor_id)
+    encoded = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _counter_payment_target(executor: Any, request_id: str, target: GameObject) -> PublicCard:
+    return PublicCard(
+        handle=executor._strategic_handle(request_id, target.object_id),
+        identity=str(target.current_characteristics.get("name", "")),
+        mana_value=int(target.current_characteristics.get("mana_value", 0)),
+        card_types=tuple(str(value) for value in target.current_characteristics.get("card_types", ())),
+        effect_kinds=executor._strategic_effect_kinds(target),
+    )
 
 
 def _resolve_counter_unless_pay(
@@ -30,31 +59,110 @@ def _resolve_counter_unless_pay(
     if payer is None or payer not in self.state.players:
         raise IllegalAction("counter-unless-pay target has no available controller")
 
-    raw_decision = choices.get("counter_payment")
-    if not isinstance(raw_decision, dict):
-        raise IllegalAction("counter-unless-pay requires an explicit controller payment decision")
-    if raw_decision.get("player_id") != payer:
-        raise IllegalAction("counter payment decision must be anchored to the target controller")
-    pay = raw_decision.get("pay")
-    if not isinstance(pay, bool):
-        raise IllegalAction("counter payment decision must record a boolean pay value")
-
     amount = action.x_value if effect.get("amount_from_x") else int(effect.get("amount", 0))
     if amount < 0:
         raise IllegalAction("counter payment amount cannot be negative")
 
-    payment: dict[str, int] = {}
-    if pay:
-        payment = pay_mana(self.state.players[payer].mana_pool, {"GENERIC": amount})
+    request_id = self.identity.new_id("strategic-request")
+    target_public = _counter_payment_target(self, request_id, target)
+    public_mana_pool = dict(self.state.players[payer].mana_pool)
+    context = choices.get("strategic_context", {})
+    context_map = context if isinstance(context, Mapping) else {}
+    parent_priority_decision_id_raw = context_map.get("parent_priority_decision_id")
+    parent_priority_decision_id = (
+        str(parent_priority_decision_id_raw) if parent_priority_decision_id_raw else None
+    )
 
+    raw_decision = choices.get("counter_payment")
+    evaluator_id = "explicit-rules-choice"
+    evaluator_sha256 = "0" * 64
+    diagnostics: Mapping[str, Any] = {}
+    decision_source = "EXPLICIT_CAST_CHOICE"
+    plan: tuple[Mapping[str, Any], ...] | None = None
+
+    if isinstance(raw_decision, dict):
+        if raw_decision.get("player_id") != payer:
+            raise IllegalAction("counter payment decision must be anchored to the target controller")
+        pay_value = raw_decision.get("pay")
+        if not isinstance(pay_value, bool):
+            raise IllegalAction("counter payment decision must record a boolean pay value")
+        outcome = "PAY" if pay_value else "DECLINE"
+        if outcome == "PAY":
+            plan = find_resolution_generic_payment_plan(self, payer, amount, request_id)
+            if plan is None:
+                raise IllegalAction("counter payment was selected but cannot be paid legally")
+        legal_outcomes = ("DECLINE", "PAY") if plan is not None else ("DECLINE",)
+    else:
+        # The injected policy represents the controlled player only. An opponent's
+        # payment decision must be explicit input; never silently choose it for them.
+        if payer != action.actor_id:
+            raise UnsupportedCapability(
+                "counter-unless-pay requires an explicit decision from an unmodeled opponent"
+            )
+        plan = find_resolution_generic_payment_plan(self, payer, amount, request_id)
+        legal_outcomes = ("DECLINE", "PAY") if plan is not None else ("DECLINE",)
+        provider = require_provider(
+            getattr(self, "strategic_choice_provider", None),
+            "counter-unless-pay payment",
+        )
+        selection = provider.choose_counter_payment(
+            CounterPaymentRequest(
+                request_id=request_id,
+                actor_id=payer,
+                parent_priority_decision_id=parent_priority_decision_id,
+                effect_kind=str(effect.get("kind", "COUNTER_UNLESS_PAY")),
+                turn_number=int(self.state.turn.number),
+                observation=self._strategic_observation(payer),
+                target=target_public,
+                payment_amount=amount,
+                legal_outcomes=legal_outcomes,
+                pay_mana_ability_plan=() if plan is None else plan,
+                public_mana_pool=public_mana_pool,
+            )
+        )
+        outcome = selection.outcome
+        if outcome not in legal_outcomes:
+            raise IllegalAction("strategic provider selected an unavailable counter-payment outcome")
+        evaluator_id = selection.evaluator_id
+        evaluator_sha256 = selection.evaluator_sha256
+        diagnostics = selection.diagnostics
+        decision_source = "STRATEGIC_PROVIDER"
+
+    payment: dict[str, int] = {}
+    if outcome == "PAY":
+        if plan is None:
+            plan = find_resolution_generic_payment_plan(self, payer, amount, request_id)
+        if plan is None:
+            raise IllegalAction("counter payment became unavailable before execution")
+        payment = execute_resolution_generic_payment_plan(
+            self,
+            payer,
+            amount,
+            request_id,
+            plan,
+        )
+    else:
+        _counter_to(self, target, action, destination)
+
+    reason_code = str(
+        diagnostics.get(
+            "reason_code",
+            f"SELECTED_COUNTER_PAYMENT_{outcome}",
+        )
+    )
+    result_digest = _public_digest(self, payer)
     decision_event = self._event(
         "COUNTER_PAYMENT_DECISION",
         action,
         payer=payer,
-        pay=pay,
+        pay=outcome == "PAY",
+        outcome=outcome,
         amount=amount,
         payment=payment,
         target_object_id=target.object_id,
+        target_handle=target_public.handle,
+        parent_priority_decision_id=parent_priority_decision_id,
+        result_public_state_digest=result_digest,
     )
     self.state.choices.append(
         Choice(
@@ -62,16 +170,40 @@ def _resolve_counter_unless_pay(
             payer,
             "COUNTER_UNLESS_PAY",
             {
-                "pay": pay,
+                "schema_version": "counter-payment-choice-v2",
+                "resolution_choice_id": request_id,
+                "parent_priority_decision_id": parent_priority_decision_id,
+                "choice_kind": "COUNTER_PAYMENT",
+                "effect_kind": str(effect.get("kind", "COUNTER_UNLESS_PAY")),
+                "decision_owner": payer,
+                "player_id": payer,
+                "target_handle": target_public.handle,
+                "target_identity": target_public.identity,
                 "amount": amount,
+                "legal_modeled_alternatives": list(legal_outcomes),
+                "pay_legally_available": "PAY" in legal_outcomes,
+                "outcome": outcome,
+                "pay": outcome == "PAY",
+                "public_mana_state": public_mana_pool,
+                "mana_ability_plan": [] if plan is None else [dict(item) for item in plan],
                 "payment": payment,
-                "target_object_id": target.object_id,
+                "reason_code": reason_code,
+                "randomness_affected_selection": bool(
+                    diagnostics.get("randomness_affected_selection", False)
+                ),
+                "resulting_public_state_digest": result_digest,
+                "evaluator_id": evaluator_id,
+                "evaluator_sha256": evaluator_sha256,
+                "diagnostics": dict(diagnostics),
+                "decision_source": decision_source,
+                "replay_binding": {
+                    "strategic_request_id": request_id,
+                    "decision_source": decision_source,
+                },
             },
             decision_event.event_id,
         )
     )
-    if not pay:
-        _counter_to(self, target, action, destination)
 
 
 def apply_effect_interaction(

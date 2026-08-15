@@ -62,6 +62,10 @@ SUPPORT_PROCESS_ALLOWLIST: dict[str, set[str]] = {
     # any authorized shard can create an output directory or game result.
     "src/mtg_runs/phase_c.py": {"subprocess.check_output", "subprocess.run"},
     "src/mtg_runs/phase_c_runner.py": {"subprocess.run"},
+    # Exploratory V2 uses one no-shell subprocess only to reproduce the same
+    # diagnostic policy decision stream in a fresh interpreter. It cannot execute
+    # pilot artifacts and remains in the SUPPORT tier.
+    "src/mtg_runs/phase_c_exploratory_v2.py": {"subprocess.run"},
 }
 _FORBIDDEN_REFERENCE = re.compile(r"(?<![A-Za-z0-9_])mtg_sim(?![A-Za-z0-9_])")
 
