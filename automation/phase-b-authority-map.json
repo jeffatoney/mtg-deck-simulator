@@ -35,7 +35,11 @@
     "docs/architecture/decisions/0012-run-manifests-immutable-artifacts.md",
     "docs/architecture/decisions/0013-sharding-deterministic-aggregation.md",
     "docs/architecture/decisions/0014-rerun-after-repeated-audit-error.md",
-    "docs/architecture/decisions/0015-strategic-choice-boundary-and-learning-snapshots.md"
+    "docs/architecture/decisions/0015-strategic-choice-boundary-and-learning-snapshots.md",
+    "docs/architecture/decisions/0016-public-policy-noninterference.md"
+  ],
+  "standing_gates": [
+    "scripts/check_policy_information_boundary.py"
   ],
   "archival_reference_only": [
     "legacy/mtg_sim",

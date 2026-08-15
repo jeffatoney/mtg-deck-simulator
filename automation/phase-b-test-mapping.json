@@ -65,7 +65,8 @@
       "tests/phase_b/test_corrective_resolution_choices.py::test_exact_deck_fact_or_fiction_keeps_twinflame_over_excess_lands"
     ],
     "B-HIDDEN-001": [
-      "tests/phase_b/test_policy_broker.py::test_hidden_library_identity_never_enters_policy_observation_or_actions"
+      "tests/phase_b/test_policy_broker.py::test_hidden_library_identity_never_enters_policy_observation_or_actions",
+      "tests/phase_b/test_policy_information_boundary.py"
     ],
     "B-LEGALITY-001": [
       "tests/phase_b/test_policy_broker.py::test_broker_probes_the_production_executor_without_mutating_live_state",
@@ -91,6 +92,7 @@
     ],
     "B-POLICY-001": [
       "tests/phase_b/test_policies.py",
+      "tests/phase_b/test_policy_information_boundary.py",
       "tests/phase_b/test_strategic_evaluation.py::test_content_addressed_learned_snapshot_can_be_selected_as_a_policy_button"
     ],
     "B-REPLAY-001": [
