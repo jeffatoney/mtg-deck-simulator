@@ -10,6 +10,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from mtg_runs.exact_json_bytes import serialize_typed_json_bytes
 from mtg_runs.phase_c_exploratory_v2 import (
     ExploratoryV2DecisionRecord,
     recompute_decision_evidence_in_fresh_process,
@@ -42,16 +43,7 @@ def _assert_non_authorized_workspace(output_root: Path) -> None:
 
 
 def _serialized_json_bytes(payload: Mapping[str, Any]) -> bytes:
-    return (
-        json.dumps(
-            payload,
-            indent=2,
-            sort_keys=True,
-            ensure_ascii=False,
-            allow_nan=False,
-        )
-        + "\n"
-    ).encode("utf-8")
+    return serialize_typed_json_bytes(payload)
 
 
 def _write_json_bytes(path: Path, payload: Mapping[str, Any]) -> bytes:
@@ -200,7 +192,10 @@ def _counter_payment_records(replay_transcript: Mapping[str, Any]) -> tuple[Mapp
         if not isinstance(choice, Mapping) or str(choice.get("kind", "")) != "COUNTER_UNLESS_PAY":
             continue
         selected = choice.get("selected")
-        if isinstance(selected, Mapping) and selected.get("schema_version") == "counter-payment-choice-v2":
+        if (
+            isinstance(selected, Mapping)
+            and selected.get("schema_version") == "counter-payment-choice-v2"
+        ):
             records.append(selected)
     return tuple(records)
 
@@ -210,7 +205,7 @@ def artifact_schema_classification(manifest: Mapping[str, Any]) -> str:
     if schema == MANIFEST_SCHEMA:
         return "FINAL_V2_EXACT_BYTES"
     if schema == _V1_MANIFEST_SCHEMA:
-        return "SUPERSEDED_FOR_FINAL_CLOSEOUT"
+        return "SUPERSEDEDD_FOR_FINAL_CLOSEOUT"
     return "UNSUPPORTED"
 
 
@@ -233,7 +228,7 @@ def verify_exact_serialized_artifact(arm_root: Path) -> Mapping[str, Any]:
         raise ValueError("diagnostic manifest omits game-file inventory")
     inventory = [dict(item) for item in raw_inventory if isinstance(item, Mapping)]
     if len(inventory) != len(raw_inventory):
-        raise ValueError("diagnostic game-file inventory is malformed")
+        raisYalueError("diagnostic game-file inventory is malformed")
     expected_order = sorted(inventory, key=lambda item: str(item.get("relative_path", "")))
     if inventory != expected_order:
         raise ValueError("diagnostic game-file inventory is not in canonical path order")
@@ -348,175 +343,4 @@ def run_arm_diagnostic(*, arm_id: str, output_root: Path = DEFAULT_OUTPUT) -> Ma
         land_compliant += game.land_guardrail_compliant
         land_applicable += game.land_guardrail_applicable
 
-        productive_this_game = False
-        for decision in game.decisions:
-            priority_decisions += 1
-            standard_divergences += int(
-                decision.selected_action != decision.standard_baseline_handle
-            )
-            seeded_selections += int(decision.randomness_affected_selection)
-            if decision.selected_plan_or_package_id:
-                package_visitation[decision.selected_plan_or_package_id] += 1
-            selected = _selected_candidate(decision)
-            semantic = _semantic_payload(selected)
-            kind = str(semantic.get("kind", "UNKNOWN"))
-            selected_action_kinds[kind] += 1
-            if kind != "PASS_PRIORITY":
-                productive_this_game = True
-            useful_discovery_selections += int(
-                _record_useful_discovery(
-                    decision=decision,
-                    candidate=selected,
-                    signatures=discovery_signatures,
-                    classifications=discovery_types,
-                )
-            )
-        games_with_productive_priority_action += int(productive_this_game)
-        for strategic in game.strategic_choice_records:
-            useful_discovery_selections += int(
-                _record_strategic_discovery(
-                    strategic,
-                    discovery_signatures,
-                    discovery_types,
-                )
-            )
-        for combo in execution.measurement.combo_records:
-            if combo.attempted:
-                actual_attempts[combo.package] += 1
-
-        payment_records = _counter_payment_records(execution.replay_transcript)
-        counter_payment_choices += len(payment_records)
-        counter_payment_pay_available += sum(
-            bool(record.get("pay_legally_available")) for record in payment_records
-        )
-        counter_payment_pay_selected += sum(
-            str(record.get("outcome", "")) == "PAY" for record in payment_records
-        )
-        counter_payment_decline_selected += sum(
-            str(record.get("outcome", "")) == "DECLINE" for record in payment_records
-        )
-        counter_payment_replay_bindings += sum(
-            isinstance(record.get("replay_binding"), Mapping) for record in payment_records
-        )
-
-        payload = {
-            "schema_version": GAME_SCHEMA,
-            "digest_semantics": DIGEST_SEMANTICS,
-            "artifact_classification": "NON_AUTHORIZED_DIAGNOSTIC",
-            "authorized_execution": False,
-            "pilot_result": False,
-            "arm_id": arm_id,
-            "arm_config_sha256": config.config_sha256,
-            "scoring_config_sha256": scoring_sha256,
-            "game_index": offset,
-            "technical_game": game.to_dict(),
-            "measurement": execution.measurement.to_dict(),
-            "resolution_choice_records": [dict(record) for record in payment_records],
-            "fresh_policy_recompute": dict(fresh),
-        }
-        relative_path = f"games/game-{offset:04d}.json"
-        body = _write_json_bytes(arm_root / relative_path, payload)
-        game_file_inventory.append(_file_record(relative_path=relative_path, body=body))
-
-    game_count = len(game_file_inventory)
-    duplicate_discoveries = sum(count - 1 for count in discovery_signatures.values() if count > 1)
-    unique_discoveries = len(discovery_signatures)
-    selected_nonpass = sum(
-        count for kind, count in selected_action_kinds.items() if kind != "PASS_PRIORITY"
-    )
-    selected_pass = selected_action_kinds.get("PASS_PRIORITY", 0)
-    game_file_inventory.sort(key=lambda item: str(item["relative_path"]))
-    inventory_sha256 = canonical_sha256(game_file_inventory)
-    summary = {
-        "schema_version": SUMMARY_SCHEMA,
-        "digest_semantics": DIGEST_SEMANTICS,
-        "artifact_classification": "NON_AUTHORIZED_DIAGNOSTIC",
-        "authorized_execution": False,
-        "pilot_measurement_artifacts_created": 0,
-        "arm_id": arm_id,
-        "reporting_label": config.reporting_label,
-        "arm_config_sha256": config.config_sha256,
-        "scoring_config_sha256": scoring_sha256,
-        "environment_seed_sha256": canonical_sha256(config.diagnostic_environment_seeds),
-        "exploration_seed_sha256": canonical_sha256(config.diagnostic_exploration_seeds),
-        "game_count": game_count,
-        "fresh_transcript_replay_pass": replay_passes,
-        "fresh_transcript_replay_fail": game_count - replay_passes,
-        "fresh_policy_recompute_pass": decision_recompute_passes,
-        "fresh_policy_recompute_fail": game_count - decision_recompute_passes,
-        "baseline_candidate_retained": baseline_retained,
-        "baseline_candidate_required": baseline_required,
-        "candidate_score_vectors_persisted": vectors_persisted,
-        "candidate_score_vectors_required": vectors_required,
-        "land_guardrail_compliant": land_compliant,
-        "land_guardrail_applicable": land_applicable,
-        "priority_decision_count": priority_decisions,
-        "standard_divergence_count": standard_divergences,
-        "seeded_selection_count": seeded_selections,
-        "selected_action_kind_counts": dict(sorted(selected_action_kinds.items())),
-        "selected_pass_priority_count": selected_pass,
-        "selected_nonpass_action_count": selected_nonpass,
-        "games_with_productive_priority_action": games_with_productive_priority_action,
-        "package_visitation": dict(sorted(package_visitation.items())),
-        "actual_attempts": dict(sorted(actual_attempts.items())),
-        "unique_canonical_interaction_signatures": unique_discoveries,
-        "useful_discovery_selection_count": useful_discovery_selections,
-        "discovery_types": dict(sorted(discovery_types.items())),
-        "duplicate_discovery_count": duplicate_discoveries,
-        "duplicate_discovery_rate": (
-            duplicate_discoveries / sum(discovery_signatures.values())
-            if discovery_signatures
-            else 0.0
-        ),
-        "discovery_yield_per_game": unique_discoveries / game_count,
-        "counter_payment_choice_count": counter_payment_choices,
-        "counter_payment_pay_available_count": counter_payment_pay_available,
-        "counter_payment_pay_selected_count": counter_payment_pay_selected,
-        "counter_payment_decline_selected_count": counter_payment_decline_selected,
-        "counter_payment_replay_binding_count": counter_payment_replay_bindings,
-        "game_file_inventory": game_file_inventory,
-        "game_file_inventory_sha256": inventory_sha256,
-        # Retained name, but v2 semantics are explicitly the ordered exact-file inventory.
-        "game_payload_sha256": inventory_sha256,
-    }
-    summary_path = "NON_AUTHORIZED_DIAGNOSTIC-summary.json"
-    summary_body = _write_json_bytes(arm_root / summary_path, summary)
-    manifest = {
-        "schema_version": MANIFEST_SCHEMA,
-        "digest_semantics": DIGEST_SEMANTICS,
-        "artifact_classification": "NON_AUTHORIZED_DIAGNOSTIC",
-        "authorized_execution": False,
-        "pilot_activation": False,
-        "arm_id": arm_id,
-        "reporting_label": config.reporting_label,
-        "arm_config_sha256": config.config_sha256,
-        "scoring_config_sha256": scoring_sha256,
-        "environment_seeds": list(config.diagnostic_environment_seeds),
-        "exploration_seeds": list(config.diagnostic_exploration_seeds),
-        "environment_seed_sha256": canonical_sha256(config.diagnostic_environment_seeds),
-        "exploration_seed_sha256": canonical_sha256(config.diagnostic_exploration_seeds),
-        "summary_file_path": summary_path,
-        "summary_byte_size": len(summary_body),
-        "summary_file_sha256": hashlib.sha256(summary_body).hexdigest(),
-        "game_file_inventory": game_file_inventory,
-        "game_file_inventory_sha256": inventory_sha256,
-        "game_count": game_count,
-    }
-    _write_json_bytes(arm_root / "NON_AUTHORIZED_DIAGNOSTIC-manifest.json", manifest)
-    _assert_non_authorized_workspace(output_root)
-    verify_exact_serialized_artifact(arm_root)
-    return summary
-
-
-def _main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--arm-id", required=True, choices=sorted(ARM_IDS))
-    parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT)
-    args = parser.parse_args()
-    summary = run_arm_diagnostic(arm_id=args.arm_id, output_root=args.output_root)
-    print(json.dumps(summary, sort_keys=True, separators=(",", ":")))
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(_main())
+        productive_thiÛNuåÈZ®Ëkºwµç
