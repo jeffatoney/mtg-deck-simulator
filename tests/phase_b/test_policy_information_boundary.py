@@ -83,12 +83,14 @@ def test_distinct_public_action_selection_ignores_hidden_library_order_and_actio
 
     for modeled in (False, True):
         policy = _policy(opponent_interaction_modeled=modeled)
-        assert policy.select_public_action_key(observation_a, actions_a) == policy.select_public_action_key(
-            observation_b, tuple(reversed(actions_b))
-        )
+        assert policy.select_public_action_key(
+            observation_a, actions_a
+        ) == policy.select_public_action_key(observation_b, tuple(reversed(actions_b)))
 
 
-def test_identical_public_representatives_are_execution_equivalent_for_supported_basic_land_class() -> None:
+def test_identical_public_representatives_are_execution_equivalent_for_supported_basic_land_class() -> (
+    None
+):
     base = _state_with_cards(
         "Island",
         "Island",
@@ -108,8 +110,12 @@ def test_identical_public_representatives_are_execution_equivalent_for_supported
     broker_b = ActionBroker(executor_b, "P0")
     observation_a, actions_a = broker_a.refresh()
     observation_b, actions_b = broker_b.refresh()
-    island_a = [action for action in actions_a if action.kind == "PLAY_LAND" and action.identity == "Island"]
-    island_b = [action for action in actions_b if action.kind == "PLAY_LAND" and action.identity == "Island"]
+    island_a = [
+        action for action in actions_a if action.kind == "PLAY_LAND" and action.identity == "Island"
+    ]
+    island_b = [
+        action for action in actions_b if action.kind == "PLAY_LAND" and action.identity == "Island"
+    ]
     assert len(island_a) == len(island_b) == 2
     assert policy_action_view(island_a[0]).key == policy_action_view(island_a[1]).key
     classes = public_action_classes(tuple(island_a))
@@ -121,12 +127,14 @@ def test_identical_public_representatives_are_execution_equivalent_for_supported
     successor_a, continuation_a = broker_a.refresh()
     successor_b, continuation_b = broker_b.refresh()
 
-    assert _normalized_public_observation(successor_a) == _normalized_public_observation(successor_b)
+    assert _normalized_public_observation(successor_a) == _normalized_public_observation(
+        successor_b
+    )
     assert tracker_a.records == tracker_b.records
     policy = _policy(opponent_interaction_modeled=False)
-    assert policy.select_public_action_key(successor_a, continuation_a) == policy.select_public_action_key(
-        successor_b, tuple(reversed(continuation_b))
-    )
+    assert policy.select_public_action_key(
+        successor_a, continuation_a
+    ) == policy.select_public_action_key(successor_b, tuple(reversed(continuation_b)))
 
 
 def test_public_action_key_rejects_private_execution_identity() -> None:

@@ -103,11 +103,15 @@ def main() -> int:
     )
     for marker in required_markers:
         if marker not in standard_source:
-            violations.append(f"src/mtg_policy/standard.py: missing positive-boundary marker {marker}")
+            violations.append(
+                f"src/mtg_policy/standard.py: missing positive-boundary marker {marker}"
+            )
 
     public_actions = ROOT / "src/mtg_policy/public_actions.py"
     if not public_actions.is_file():
-        violations.append("src/mtg_policy/public_actions.py: handle-free policy boundary is missing")
+        violations.append(
+            "src/mtg_policy/public_actions.py: handle-free policy boundary is missing"
+        )
 
     if violations:
         print("Policy information-boundary check failed:")

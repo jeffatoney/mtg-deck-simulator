@@ -270,9 +270,7 @@ class StandardPolicy:
                 attacker_count = int(action.metadata.get("attacker_count", 0))
                 opponent_count = int(action.metadata.get("opponent_count", 0))
                 pirate_count = int(action.metadata.get("pirate_count", 0))
-                identities = {
-                    str(item) for item in action.metadata.get("attacker_identities", ())
-                }
+                identities = {str(item) for item in action.metadata.get("attacker_identities", ())}
                 value += 30 * attacker_count + 25 * opponent_count + 20 * pirate_count
                 if "Malcolm, Keen-Eyed Navigator" in identities:
                     value += 25
