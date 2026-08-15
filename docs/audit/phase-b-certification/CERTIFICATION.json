@@ -18,9 +18,9 @@
     "B-SOURCE-001",
     "B-TRANSCRIPT-001"
   ],
-  "certified_content_commit": "bea6438f1239d35c14065ba2e44bd32815f21ae3",
-  "certified_repository_tree_sha": "d9e3fefff3bc59a77e0195852a3d878e2aa5595a",
-  "ci_artifact_name": "phase-b-result-bea6438f1239d35c14065ba2e44bd32815f21ae3",
+  "certified_content_commit": "fc9fb372a639ee4363ac05c2d1942941cc4cac40",
+  "certified_repository_tree_sha": "6fea243ea870b3bd92f439b0aeea0f86de9248e6",
+  "ci_artifact_name": "phase-b-result-fc9fb372a639ee4363ac05c2d1942941cc4cac40",
   "clean_tree_before_run": true,
   "counts": {
     "fail": 0,
@@ -28,7 +28,7 @@
     "skip": 0,
     "xfail": 0
   },
-  "covered_content_sha256": "sha256:c6e3c6d0e133bd3340677da6d922e5a0de9031fe1abcc5a48d09eff21ec2a53b",
+  "covered_content_sha256": "sha256:cbe883996ecb3f003343467df922c6701246a172a333a2d88fc28c7cda9ada4c",
   "covered_paths": {
     ".github/workflows/ci.yml": "sha256:712ee9349a1763a904e715b1b0c9f39db8082dc9d4c4e142c48e9780b526bc7d",
     ".github/workflows/phase-c-diagnostic.yml": "sha256:37884730cb1f93e53b8cbabf8f59b6a02253cdc05e0d36e9974dfef421e4a90c",
@@ -69,16 +69,16 @@
     "src/mtg_kernel": "sha256:19a08107fe9b9691d5a4ad50633e355b70860056288aff96878c48cfd43fbf9d",
     "src/mtg_measure": "sha256:a24ed5cbd6e0cab8b25e55b604334079e90138cff1e84398776970cff2696322",
     "src/mtg_policy": "sha256:470eca28e0ff787cd490ca96ef11bb0e4627df6b704b0d7792c967af7c08dd4e",
-    "src/mtg_runs": "sha256:ac9e1aeea7260862b2ac29274d6f308ab055bc6f128d3ff91d8a9543711df1c3",
+    "src/mtg_runs": "sha256:37d9d7037f48be74984a4c149aa890de75be7c47c4242bf6aba2c0ffb5028c6f",
     "src/mtg_search": "sha256:1944d7c103744b31fd817b8cb9eea5b565a40cbaf0a5b21c30c159dc83a4600b",
     "src/mtg_verify": "sha256:e1ae67c5efe6828a7d9d969c029dddc4abe3cbe53d2e09d72e6bb03b66fd24db",
     "tests/phase_a": "sha256:23e81b77f923956f4660309fd62011e1bc13ce44823183dd34c72e041ac6c443",
     "tests/phase_b": "sha256:b3962c0218244706c3542dbdabab639a43caa9cacb9c3a5073588f7b6b44abf0",
-    "tests/phase_c": "sha256:861cee4608ac5d11880aefd83e2ec13128d276f3ccf9671d6212b3ba0ef5a72e"
+    "tests/phase_c": "sha256:857b2acef2289a0d80c628740b00a03c4ee9cf99ab89522fa22947a02db21780"
   },
   "evidence_classification": "CLEAN_ENGINE_PRODUCTION_PATH",
-  "github_run_id": "31779880666",
-  "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/31779880666",
+  "github_run_id": "31883373565",
+  "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/31883373565",
   "golden_transcripts": "PASS",
   "legacy_evidence_used": false,
   "note": "Renew whenever any Phase B covered path changes.",
@@ -89,5 +89,5 @@
   "transcript_count": 12,
   "unsupported_capabilities": [],
   "verification_environment": "GITHUB_ACTIONS",
-  "verifier_run_id": "20260814T081757Z-bea6438f1239"
+  "verifier_run_id": "20260815T123824Z-fc9fb372a639"
 }
