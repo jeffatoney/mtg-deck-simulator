@@ -138,12 +138,7 @@ def _execute_v2_broker_action(
         raise UnsupportedCapability("V2 counter-unless-pay candidate requires one stack target")
     target_id = getattr(targets[0], "object_id", None)
     target = executor.state.objects.get(str(target_id)) if target_id is not None else None
-    if (
-        target is None
-        or target.retired
-        or target.ceased_to_exist
-        or target.zone is not Zone.STACK
-    ):
+    if target is None or target.retired or target.ceased_to_exist or target.zone is not Zone.STACK:
         raise UnsupportedCapability("V2 counter-unless-pay target is not an active stack object")
     payer = target.controller or target.owner
     if payer != CONTROLLED_PLAYER:
