@@ -1,4 +1,4 @@
-name: PR 100 exact behavioral diagnostic
+name: PR 100 isolated counterfactual diagnostic
 
 on:
   push:
@@ -9,29 +9,25 @@ permissions:
   contents: read
 
 jobs:
-  observe:
-    name: ${{ matrix.implementation }} seed ${{ matrix.seed }}
+  counterfactual:
+    name: ${{ matrix.mode }} seed ${{ matrix.seed }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
         include:
-          - implementation: historical
-            commit: "150671a8e7a78e5fa14b6b3aca2308f6af647df3"
-            tree: "37cf737691d516a0b7316270364724f91dd28856"
+          - mode: legacy_all
             seed: "101"
-          - implementation: repaired
-            commit: "b1c6e8f8bf8532c28f8f0e1eee6a9cc980884d72"
-            tree: "d9f1fd61042c67ed0cf4990fca3018f59dd1c4e5"
-            seed: "101"
-          - implementation: historical
-            commit: "150671a8e7a78e5fa14b6b3aca2308f6af647df3"
-            tree: "37cf737691d516a0b7316270364724f91dd28856"
+          - mode: legacy_all
             seed: "391730338978874520"
-          - implementation: repaired
-            commit: "b1c6e8f8bf8532c28f8f0e1eee6a9cc980884d72"
-            tree: "d9f1fd61042c67ed0cf4990fca3018f59dd1c4e5"
+          - mode: seed101_u_only
+            seed: "101"
+          - mode: seed101_u_and_fading_malcolm
+            seed: "101"
+          - mode: seed391_opt_only
+            seed: "391730338978874520"
+          - mode: seed391_treasure_g_r
             seed: "391730338978874520"
     env:
       IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
@@ -39,7 +35,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          ref: ${{ matrix.commit }}
+          ref: b1c6e8f8bf8532c28f8f0e1eee6a9cc980884d72
       - uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
@@ -47,131 +43,69 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version-file: .python-version
-      - name: Install exact target dependencies
+      - name: Install exact repaired dependencies
         run: uv sync --frozen --all-extras
-      - name: Materialize observation-only diagnostic
+      - name: Materialize isolated counterfactual diagnostic
         shell: bash
         run: |
-          cat <<'PR100_OBSERVER_GZIP_B64' | base64 --decode | gzip --decompress > "${RUNNER_TEMP}/pr100_tiebreak_observer.py"
-          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
-          GRa7vdk1LVlPYB322VW+qPcvVH0qwKZnAAA=
-          PR100_OBSERVER_GZIP_B64
-          python -m py_compile "${RUNNER_TEMP}/pr100_tiebreak_observer.py"
-      - name: Run exact frozen-seed diagnostic
-        id: diagnostic
-        continue-on-error: true
+          cat <<'PR100_COUNTERFACTUAL_GZIP_B64' | base64 --decode | gzip --decompress > "${RUNNER_TEMP}/pr100_counterfactual.py"
+          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
+          PR100_COUNTERFACTUAL_GZIP_B64
+          python -m py_compile "${RUNNER_TEMP}/pr100_counterfactual.py"
+      - name: Run disposable exact-repaired counterfactual
         shell: bash
         run: |
-          set -o pipefail
-          uv run python "${RUNNER_TEMP}/pr100_tiebreak_observer.py" \
+          set -euo pipefail
+          uv run python "${RUNNER_TEMP}/pr100_counterfactual.py" \
             --repo "${GITHUB_WORKSPACE}" \
-            --commit "${{ matrix.commit }}" \
-            --tree "${{ matrix.tree }}" \
-            --implementation "${{ matrix.implementation }}" \
             --seed "${{ matrix.seed }}" \
+            --mode "${{ matrix.mode }}" \
             --through-turn 10 \
             --fresh-replay \
-            --output "${RUNNER_TEMP}/pr100-${{ matrix.implementation }}-${{ matrix.seed }}.json" \
-            2>&1 | tee "${RUNNER_TEMP}/pr100-${{ matrix.implementation }}-${{ matrix.seed }}.log"
-      - name: Upload diagnostic evidence
+            --output "${RUNNER_TEMP}/pr100-${{ matrix.mode }}-${{ matrix.seed }}.json" \
+            2>&1 | tee "${RUNNER_TEMP}/pr100-${{ matrix.mode }}-${{ matrix.seed }}.log"
+      - name: Upload counterfactual evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pr100-behavior-${{ matrix.implementation }}-${{ matrix.seed }}-${{ github.sha }}
+          name: pr100-counterfactual-${{ matrix.mode }}-${{ matrix.seed }}-${{ github.sha }}
           path: |
-            ${{ runner.temp }}/pr100-${{ matrix.implementation }}-${{ matrix.seed }}.json
-            ${{ runner.temp }}/pr100-${{ matrix.implementation }}-${{ matrix.seed }}.log
+            ${{ runner.temp }}/pr100-${{ matrix.mode }}-${{ matrix.seed }}.json
+            ${{ runner.temp }}/pr100-${{ matrix.mode }}-${{ matrix.seed }}.log
           if-no-files-found: error
           retention-days: 3
-      - name: Enforce diagnostic
-        if: steps.diagnostic.outcome == 'failure'
-        run: exit 1
