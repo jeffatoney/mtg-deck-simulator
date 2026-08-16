@@ -1,0 +1,32 @@
+name: PR 100 normalize public-class counterfactual
+
+on:
+  push:
+    branches:
+      - hardening/public-policy-noninterference
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - name: Normalize same-public-key representative resolution
+        run: python .github/diagnostics/pr100_prepare_public_class_counterfactual.py
+      - name: Remove one-use normalization mechanism
+        run: |
+          rm -f \
+            .github/diagnostics/pr100_prepare_public_class_counterfactual.py \
+            .github/workflows/pr100-normalize-counterfactual.yml
+      - name: Commit and push normalized counterfactual
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'chore: isolate PR 100 public-class counterfactual'
+          git push origin HEAD:hardening/public-policy-noninterference
