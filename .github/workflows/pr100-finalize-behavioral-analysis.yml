@@ -1,0 +1,239 @@
+name: PR 100 finalize behavioral investigation
+
+on:
+  push:
+    branches:
+      - hardening/public-policy-noninterference
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: uv sync --frozen --all-extras
+      - name: Restore pre-investigation certification bytes in a committed exact tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git show b1c6e8f8bf8532c28f8f0e1eee6a9cc980884d72:automation/phase-a-certification/CERTIFICATION.json \
+            > automation/phase-a-certification/CERTIFICATION.json
+          if ! git diff --quiet -- automation/phase-a-certification/CERTIFICATION.json; then
+            git add automation/phase-a-certification/CERTIFICATION.json
+            git commit -m 'chore: restore pre-investigation certification record'
+          fi
+          git status --short
+          git rev-parse HEAD
+          git rev-parse HEAD^{tree}
+      - name: Run exact corrected historical and repaired selector diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/pr100-evidence"
+          COMMIT="$(git rev-parse HEAD)"
+          TREE="$(git rev-parse HEAD^{tree})"
+          for selector in repaired legacy; do
+            for seed in 101 391730338978874520; do
+              uv run python .github/diagnostics/pr100_public_tiebreak_diagnostic.py.txt \
+                --repo . \
+                --seed "${seed}" \
+                --selector "${selector}" \
+                --commit "${COMMIT}" \
+                --tree "${TREE}" \
+                --fresh \
+                --out "${RUNNER_TEMP}/pr100-evidence/${selector}-${seed}.json"
+            done
+          done
+      - name: Generate durable analysis and positive regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python .github/diagnostics/pr100_finalize_behavioral_analysis.py.txt \
+            --repo . \
+            --evidence "${RUNNER_TEMP}/pr100-evidence"
+          uv run ruff format \
+            scripts/check_phase_c_turn10.py \
+            tests/phase_c/test_phase_c_terminal_cleanup.py
+      - name: Remove all temporary diagnostic mechanisms
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f \
+            .github/workflows/public-policy-noninterference-first-failure.yml \
+            .github/workflows/public-policy-noninterference-test-diagnostic.yml \
+            .github/workflows/pr100-source-snapshot-diagnostic.yml \
+            .github/workflows/pr100-commander-choice-fix-temporary.yml \
+            .github/workflows/pr100-commander-choice-fix-temporary-v2.yml \
+            .github/workflows/pr100-commander-choice-fix-temporary-v3.yml \
+            .github/workflows/pr100-corrected-behavior-diagnostic.yml \
+            .github/workflows/pr100-finalize-behavioral-analysis.yml \
+            .github/diagnostics/pr100_public_tiebreak_diagnostic.py.txt \
+            .github/diagnostics/pr100_finalize_behavioral_analysis.py.txt \
+            scripts/pr100_apply_commander_choice_fix.py
+          rmdir .github/diagnostics 2>/dev/null || true
+          git diff --check
+      - name: Prepare ephemeral Phase A verifier record for repository tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          PHASE_A_ARTIFACT_ROOT="${RUNNER_TEMP}/phase-a-result" uv run mtg-engine verify-phase-a
+          RESULT="$(uv run python -m mtg_verify.result_selection \
+            --phase phase-a \
+            --root "${RUNNER_TEMP}/phase-a-result")"
+          uv run python scripts/record_phase_a_certification.py \
+            --verifier-result "${RESULT}" \
+            --output "${RUNNER_TEMP}/phase-a-certification-candidate/CERTIFICATION.json"
+          echo "PHASE_A_CERTIFICATION_RECORD=${RUNNER_TEMP}/phase-a-certification-candidate/CERTIFICATION.json" \
+            >> "${GITHUB_ENV}"
+      - name: Run required focused and full validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/pr100-validation"
+          run_logged() {
+            local name="$1"
+            shift
+            echo "+ $*"
+            "$@" 2>&1 | tee "${RUNNER_TEMP}/pr100-validation/${name}.log"
+          }
+          run_logged 01-policy-boundary-tests \
+            uv run pytest -q tests/phase_b/test_policy_information_boundary.py
+          run_logged 02-terminal-regression \
+            uv run pytest -q tests/phase_c/test_phase_c_terminal_cleanup.py
+          run_logged 03-turn10-smoke \
+            uv run python scripts/check_phase_c_turn10.py
+          run_logged 04-policy-boundary-gate \
+            uv run python scripts/check_policy_information_boundary.py
+          run_logged 05-commander-rule-tests \
+            uv run pytest -q \
+              tests/phase_a/test_kernel_acceptance.py::test_commander_optional_return_and_commander_damage_terminal \
+              tests/phase_b/test_broker_fail_closed.py::test_pending_commander_return_choice_suppresses_priority_actions
+          run_logged 06-format-check \
+            uv run ruff format --check --diff .
+          run_logged 07-lint \
+            uv run ruff check .
+          run_logged 08-mypy \
+            uv run mypy src
+          run_logged 09-pytest-full \
+            uv run pytest -q
+          run_logged 10-manifest \
+            uv run python scripts/check_manifest.py
+          run_logged 11-identity-lock \
+            uv run python scripts/check_identity_lock.py
+          run_logged 12-clean-engine-boundary \
+            uv run python scripts/check_clean_engine_boundary.py
+          run_logged 13-phase-a-authority \
+            uv run python scripts/check_phase_a_authority.py
+          run_logged 14-phase-b-evaluator \
+            uv run python scripts/check_phase_b_evaluator.py
+          run_logged 15-phase-b-authority \
+            uv run python scripts/check_phase_b_authority.py
+          run_logged 16-full-deck-coverage \
+            uv run python scripts/check_full_deck_coverage.py
+      - name: Record exact validation results in durable evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python - <<'PY'
+          from __future__ import annotations
+
+          import json
+          from pathlib import Path
+
+          root = Path("${RUNNER_TEMP}/pr100-validation")
+          commands = [
+              ("01-policy-boundary-tests", "uv run pytest -q tests/phase_b/test_policy_information_boundary.py"),
+              ("02-terminal-regression", "uv run pytest -q tests/phase_c/test_phase_c_terminal_cleanup.py"),
+              ("03-turn10-smoke", "uv run python scripts/check_phase_c_turn10.py"),
+              ("04-policy-boundary-gate", "uv run python scripts/check_policy_information_boundary.py"),
+              ("05-commander-rule-tests", "uv run pytest -q tests/phase_a/test_kernel_acceptance.py::test_commander_optional_return_and_commander_damage_terminal tests/phase_b/test_broker_fail_closed.py::test_pending_commander_return_choice_suppresses_priority_actions"),
+              ("06-format-check", "uv run ruff format --check --diff ."),
+              ("07-lint", "uv run ruff check ."),
+              ("08-mypy", "uv run mypy src"),
+              ("09-pytest-full", "uv run pytest -q"),
+              ("10-manifest", "uv run python scripts/check_manifest.py"),
+              ("11-identity-lock", "uv run python scripts/check_identity_lock.py"),
+              ("12-clean-engine-boundary", "uv run python scripts/check_clean_engine_boundary.py"),
+              ("13-phase-a-authority", "uv run python scripts/check_phase_a_authority.py"),
+              ("14-phase-b-evaluator", "uv run python scripts/check_phase_b_evaluator.py"),
+              ("15-phase-b-authority", "uv run python scripts/check_phase_b_authority.py"),
+              ("16-full-deck-coverage", "uv run python scripts/check_full_deck_coverage.py"),
+          ]
+          results = []
+          for name, command in commands:
+              lines = [
+                  line.strip()
+                  for line in (root / f"{name}.log").read_text(encoding="utf-8").splitlines()
+                  if line.strip()
+              ]
+              results.append(
+                  {
+                      "command": command,
+                      "status": "PASS",
+                      "result_tail": lines[-1] if lines else "PASS",
+                  }
+              )
+
+          json_path = Path(
+              "docs/audit/phase-c-postpilot/PHASE_C_PUBLIC_TIEBREAK_BEHAVIORAL_ANALYSIS.json"
+          )
+          data = json.loads(json_path.read_text(encoding="utf-8"))
+          data["validation"] = {"status": "PASS", "commands": results}
+          json_path.write_text(
+              json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+          )
+
+          table = ["| Command | Result |", "|---|---|"]
+          for result in results:
+              tail = result["result_tail"].replace("|", "\\|")
+              table.append(f"| `{result['command']}` | PASS: {tail} |")
+          markdown_path = Path(
+              "docs/audit/phase-c-postpilot/PHASE_C_PUBLIC_TIEBREAK_BEHAVIORAL_ANALYSIS.md"
+          )
+          text = markdown_path.read_text(encoding="utf-8")
+          marker = "<!-- VALIDATION_RESULTS -->"
+          if marker not in text:
+              raise SystemExit("validation marker missing from Markdown analysis")
+          markdown_path.write_text(
+              text.replace(marker, "\n".join(table)), encoding="utf-8"
+          )
+          PY
+          uv run ruff format --check --diff .
+          uv run ruff check .
+          uv run python scripts/check_manifest.py
+          uv run python scripts/check_phase_b_authority.py
+          git diff --check
+      - name: Commit and push the completed investigation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git commit -m 'docs: complete PR 100 tie-break behavioral investigation'
+          git push origin HEAD:hardening/public-policy-noninterference
+      - name: Upload non-pilot diagnostic evidence and validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr100-behavioral-investigation-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/pr100-evidence/*.json
+            ${{ runner.temp }}/pr100-validation/*.log
+          if-no-files-found: warn
+          retention-days: 7
