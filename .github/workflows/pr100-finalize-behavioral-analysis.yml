@@ -33,6 +33,7 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          mkdir -p automation/phase-a-certification
           git show b1c6e8f8bf8532c28f8f0e1eee6a9cc980884d72:automation/phase-a-certification/CERTIFICATION.json \
             > automation/phase-a-certification/CERTIFICATION.json
           if ! git diff --quiet -- automation/phase-a-certification/CERTIFICATION.json; then
@@ -93,6 +94,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/phase-a-certification-candidate"
           PHASE_A_ARTIFACT_ROOT="${RUNNER_TEMP}/phase-a-result" uv run mtg-engine verify-phase-a
           RESULT="$(uv run python -m mtg_verify.result_selection \
             --phase phase-a \
@@ -155,9 +157,10 @@ jobs:
           from __future__ import annotations
 
           import json
+          import os
           from pathlib import Path
 
-          root = Path("${RUNNER_TEMP}/pr100-validation")
+          root = Path(os.environ["RUNNER_TEMP"]) / "pr100-validation"
           commands = [
               ("01-policy-boundary-tests", "uv run pytest -q tests/phase_b/test_policy_information_boundary.py"),
               ("02-terminal-regression", "uv run pytest -q tests/phase_c/test_phase_c_terminal_cleanup.py"),
