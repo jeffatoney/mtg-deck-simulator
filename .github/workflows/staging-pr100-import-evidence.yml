@@ -1,0 +1,47 @@
+name: Staging PR 100 exact evidence import
+
+on:
+  push:
+    branches:
+      - staging/pr100-evidence-integrity
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  import-evidence:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+      - name: Import exact retained artifact into the staging tree
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='docs/audit/phase-c-postpilot/evidence/PR100_PUBLIC_TIEBREAK_EXACT_HEAD_EVIDENCE.zip'
+          expected='7e314f859d1e774b232f1d3daeed146441553e8f31c9aa0615a428d37a8aad8a'
+          if [[ -f "${target}" ]] && echo "${expected}  ${target}" | sha256sum --check --status; then
+            echo 'Exact evidence archive is already present.'
+            exit 0
+          fi
+          tmp="${RUNNER_TEMP}/pr100-exact-evidence.zip"
+          curl --fail --location --retry 3 \
+            --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+            --header 'Accept: application/vnd.github+json' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/artifacts/9259087740/zip" \
+            --output "${tmp}"
+          echo "${expected}  ${tmp}" | sha256sum --check
+          mkdir -p "$(dirname "${target}")"
+          install -m 0644 "${tmp}" "${target}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- "${target}"
+          git commit -m 'audit: stage exact PR 100 behavioral evidence archive'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
