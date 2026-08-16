@@ -1,0 +1,45 @@
+name: PR 100 exact source snapshot diagnostic
+
+on:
+  push:
+    branches:
+      - hardening/public-policy-noninterference
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - name: Package exact comparison trees
+        env:
+          HISTORICAL_COMMIT: 150671a8e7a78e5fa14b6b3aca2308f6af647df3
+          REPAIRED_COMMIT: b1c6e8f8bf8532c28f8f0e1eee6a9cc980884d72
+        run: |
+          set -euo pipefail
+          OUT="${RUNNER_TEMP}/pr100-source-snapshots"
+          mkdir -p "${OUT}"
+          git cat-file -e "${HISTORICAL_COMMIT}^{commit}"
+          git cat-file -e "${REPAIRED_COMMIT}^{commit}"
+          git archive --format=tar.gz --output="${OUT}/historical-${HISTORICAL_COMMIT}.tar.gz" "${HISTORICAL_COMMIT}"
+          git archive --format=tar.gz --output="${OUT}/repaired-${REPAIRED_COMMIT}.tar.gz" "${REPAIRED_COMMIT}"
+          {
+            echo "workflow_head=${GITHUB_SHA}"
+            echo "historical_commit=${HISTORICAL_COMMIT}"
+            echo "historical_tree=$(git rev-parse "${HISTORICAL_COMMIT}^{tree}")"
+            echo "repaired_commit=${REPAIRED_COMMIT}"
+            echo "repaired_tree=$(git rev-parse "${REPAIRED_COMMIT}^{tree}")"
+          } > "${OUT}/SNAPSHOT_METADATA.txt"
+          sha256sum "${OUT}"/*.tar.gz > "${OUT}/SHA256SUMS.txt"
+      - name: Upload exact source snapshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr100-source-snapshots-${{ github.sha }}
+          path: ${{ runner.temp }}/pr100-source-snapshots
+          if-no-files-found: error
+          retention-days: 2
