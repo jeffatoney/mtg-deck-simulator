@@ -1,0 +1,369 @@
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import sys
+from collections import Counter
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any
+
+
+def canon(value: Any) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str)
+
+
+def digest(value: Any) -> str:
+    return hashlib.sha256(canon(value).encode()).hexdigest()
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--repo", required=True)
+parser.add_argument("--seed", required=True, type=int)
+parser.add_argument("--out", required=True)
+parser.add_argument("--commit", required=True)
+parser.add_argument("--tree", required=True)
+parser.add_argument("--fresh", action="store_true")
+parser.add_argument("--selector", choices=("repaired", "legacy"), default="repaired")
+args = parser.parse_args()
+repo = Path(args.repo).resolve()
+sys.path.insert(0, str(repo / "src"))
+
+from mtg_kernel.hashing import state_hash  # noqa: E402
+from mtg_kernel.observation import ObservationService  # noqa: E402
+from mtg_policy.broker import ActionBroker  # noqa: E402
+from mtg_policy.public_actions import (  # noqa: E402
+    policy_action_view,
+    public_action_classes,
+    resolve_selected_action_handle,
+)
+from mtg_policy.standard import StandardPolicy  # noqa: E402
+import mtg_runs.phase_c_runner as runner  # noqa: E402
+
+records: list[dict[str, Any]] = []
+active: dict[str, Any] | None = None
+final_state_capture: dict[str, Any] = {}
+original_refresh = ActionBroker.refresh
+original_execute = ActionBroker.execute
+original_transcript = runner.transcript
+
+
+def observation_digest(executor: Any, player_id: str) -> str:
+    observation = ObservationService(executor.state).observe_for_policy(player_id)
+    return digest(observation)
+
+
+def priority_context(executor: Any) -> dict[str, Any]:
+    turn = executor.state.turn
+    return {
+        "turn": int(turn.number),
+        "phase": str(turn.phase),
+        "step": str(turn.step),
+        "active_player": turn.active_player_id,
+        "priority_holder": turn.priority_holder_id,
+        "stack_size": len(executor.state.stack),
+    }
+
+
+def relevant_zones(executor: Any) -> dict[str, list[str]]:
+    result: dict[str, list[str]] = {}
+    for zone_key, object_ids in sorted(executor.state.zones.items()):
+        if not (
+            zone_key.startswith("HAND:P0")
+            or zone_key.startswith("BATTLEFIELD")
+            or zone_key.startswith("GRAVEYARD")
+            or zone_key.startswith("EXILE")
+            or zone_key.startswith("COMMAND")
+        ):
+            continue
+        names: list[str] = []
+        for object_id in object_ids:
+            obj = executor.state.objects.get(object_id)
+            if obj is None or obj.retired or obj.ceased_to_exist:
+                continue
+            name = obj.current_characteristics.get("name")
+            names.append(str(name) if name is not None else "<unknown>")
+        result[zone_key] = sorted(names)
+    return result
+
+
+def wrapped_refresh(self: ActionBroker):
+    global active
+    pre_refresh_hash = state_hash(self.executor.state)
+    observation, actions = original_refresh(self)
+    active = {
+        "broker": self,
+        "pre_refresh_full_state_hash": pre_refresh_hash,
+        "pre_decision_full_state_hash": state_hash(self.executor.state),
+        "public_observation_digest": digest(observation),
+        "priority_context": priority_context(self.executor),
+    }
+    return observation, actions
+
+
+def substantive_prefix(
+    policy: StandardPolicy,
+    observation: dict[str, Any],
+    action: Any,
+) -> tuple[int, int, int, int, int]:
+    tags = set(action.tags)
+    value = 0
+    if action.kind == "PLAY_LAND":
+        value += 80
+    if "ADD_MANA" in tags or "MANA_ABILITY" in tags:
+        value += 65
+    if "COMBO_COMPONENT" in tags:
+        value += 50 if policy.bundle.value("glint_horn_use") == "cast_for_value" else 35
+    if "PROTECTION" in tags and policy.opponent_interaction_modeled:
+        value += 45 if policy.bundle.value("protection_plan") == "protected" else 10
+    if "DRAW" in tags or "SCRY" in tags:
+        value += 35 if policy.bundle.value("velocity_plan") == "cantrip_first" else 20
+    if action.identity == "Malcolm, Keen-Eyed Navigator":
+        value += 70 if policy.bundle.value("development_plan") == "malcolm_first" else 30
+    if action.identity == "Breeches, Brazen Plunderer":
+        value += 25 if policy.bundle.value("breeches_timing") == "early" else 5
+    if action.kind == "DECLARE_ATTACKERS":
+        attacker_count = int(action.metadata.get("attacker_count", 0))
+        opponent_count = int(action.metadata.get("opponent_count", 0))
+        pirate_count = int(action.metadata.get("pirate_count", 0))
+        identities = {str(value) for value in action.metadata.get("attacker_identities", ())}
+        value += 30 * attacker_count + 25 * opponent_count + 20 * pirate_count
+        if "Malcolm, Keen-Eyed Navigator" in identities:
+            value += 25
+        if "Glint-Horn Buccaneer" in identities:
+            value += 20
+        if attacker_count == 0:
+            value -= 60
+    if policy.opponent_interaction_modeled:
+        if action.kind == "PASS_PRIORITY":
+            value -= 100
+        return (0, value, 0, -action.mana_value, -action.target_count)
+    classification = policy._no_opponent_self_class(observation, action)
+    if classification == "DEFENSIVE_SELF_ONLY":
+        utility, pass_preference = -1, 0
+    elif classification == "NEUTRAL_SELF_TRADEOFF":
+        utility, pass_preference = 0, 0
+    elif action.kind == "PASS_PRIORITY":
+        utility, value, pass_preference = 0, 0, 1
+    else:
+        utility, pass_preference = 1, 0
+    return (utility, value, pass_preference, -action.mana_value, -action.target_count)
+
+
+def public_action_record(action: Any, prefix: tuple[int, ...]) -> dict[str, Any]:
+    view = policy_action_view(action)
+    return {
+        "public_action_key": view.key.canonical_json,
+        "public_action_key_sha256": hashlib.sha256(view.key.canonical_json.encode()).hexdigest(),
+        "action_kind": view.kind,
+        "public_identity": view.identity,
+        "mana_value": view.mana_value,
+        "target_count": view.target_count,
+        "public_tags": list(view.tags),
+        "canonical_public_metadata": json.loads(canon(dict(view.metadata))),
+        "substantive_score_prefix": list(prefix),
+        "internal_opaque_handle": action.handle,
+    }
+
+
+def wrapped_select(
+    self: StandardPolicy,
+    observation: dict[str, Any],
+    actions: tuple[Any, ...],
+) -> str:
+    global active
+    assert active is not None
+    views = [(action, policy_action_view(action)) for action in actions]
+    prefixes = {
+        action.handle: substantive_prefix(self, observation, view)
+        for action, view in views
+    }
+    classes = public_action_classes(actions)
+    repaired_class = max(
+        classes,
+        key=lambda candidate: (
+            *substantive_prefix(self, observation, candidate.action),
+            candidate.key.canonical_json,
+        ),
+    )
+    repaired_handle = resolve_selected_action_handle(actions, repaired_class.key)
+    historical_action = max(actions, key=lambda action: (*prefixes[action.handle], action.handle))
+    repaired_action = next(action for action in actions if action.handle == repaired_handle)
+    actual_action = repaired_action if args.selector == "repaired" else historical_action
+    actual_handle = repaired_handle if args.selector == "repaired" else historical_action.handle
+    top_prefix = max(prefixes.values())
+    top_actions = [action for action in actions if prefixes[action.handle] == top_prefix]
+    top_keys = {policy_action_view(action).key.canonical_json for action in top_actions}
+    if len(top_actions) == 1:
+        tie = "NO_SUBSTANTIVE_TIE"
+    elif len(top_keys) == 1:
+        tie = "EQUIVALENT_REPRESENTATIVES_ONLY"
+    else:
+        tie = "DISTINCT_PUBLIC_KEYS"
+    active["record"] = {
+        "seed": args.seed,
+        "commit": args.commit,
+        "tree": args.tree,
+        "decision_index": len(records),
+        "turn_number": int(active["broker"].executor.state.turn.number),
+        "phase": str(active["broker"].executor.state.turn.phase),
+        "step": str(active["broker"].executor.state.turn.step),
+        "priority_context": active["priority_context"],
+        "public_observation_digest": active["public_observation_digest"],
+        "total_legal_action_count": len(actions),
+        "public_action_class_count": len(classes),
+        "candidates": [
+            public_action_record(action, prefixes[action.handle]) for action in actions
+        ],
+        "top_substantive_score_prefix": list(top_prefix),
+        "top_candidate_count": len(top_actions),
+        "top_distinct_public_key_count": len(top_keys),
+        "tie_classification": tie,
+        "historical_selected_public_action": public_action_record(
+            historical_action, prefixes[historical_action.handle]
+        ),
+        "repaired_selected_public_action": public_action_record(
+            repaired_action, prefixes[repaired_action.handle]
+        ),
+        "actual_selected_public_action": public_action_record(
+            actual_action, prefixes[actual_action.handle]
+        ),
+        "historical_and_repaired_selections_differ": (
+            policy_action_view(historical_action).key
+            != policy_action_view(repaired_action).key
+        ),
+        "difference_attributable_only_to_final_ordering": (
+            prefixes[historical_action.handle] == prefixes[repaired_action.handle]
+            and policy_action_view(historical_action).key
+            != policy_action_view(repaired_action).key
+        ),
+        "pre_refresh_full_state_hash": active["pre_refresh_full_state_hash"],
+        "pre_decision_full_state_hash": active["pre_decision_full_state_hash"],
+        "refresh_state_unchanged": (
+            active["pre_refresh_full_state_hash"]
+            == active["pre_decision_full_state_hash"]
+        ),
+        "internal_opaque_evidence": {
+            "historical_selected_handle_sha256": hashlib.sha256(
+                historical_action.handle.encode()
+            ).hexdigest(),
+            "repaired_selected_handle_sha256": hashlib.sha256(
+                repaired_action.handle.encode()
+            ).hexdigest(),
+            "actual_selected_handle_sha256": hashlib.sha256(
+                actual_action.handle.encode()
+            ).hexdigest(),
+        },
+    }
+    return actual_handle
+
+
+def wrapped_execute(self: ActionBroker, generation: int, action_handle: str) -> None:
+    global active
+    original_execute(self, generation, action_handle)
+    assert active is not None and "record" in active
+    record = active["record"]
+    record["post_decision_full_state_hash"] = state_hash(self.executor.state)
+    record["post_decision_priority_context"] = priority_context(self.executor)
+    record["post_decision_relevant_zones"] = relevant_zones(self.executor)
+    record["post_decision_terminal"] = asdict(self.executor.state.terminal)
+    record["resulting_public_state_digest"] = observation_digest(
+        self.executor, self.player_id
+    )
+    records.append(record)
+    active = None
+
+
+def wrapped_transcript(state: Any, *, seed: str):
+    final_state_capture.update(
+        {
+            "terminal": asdict(state.terminal),
+            "life": {player_id: player.life for player_id, player in state.players.items()},
+            "in_game": {
+                player_id: player.in_game for player_id, player in state.players.items()
+            },
+            "loss_reasons": {
+                player_id: list(player.loss_reasons)
+                for player_id, player in state.players.items()
+            },
+            "pending_commander_choices": list(state.pending_commander_choices),
+            "final_full_state_hash": state_hash(state),
+        }
+    )
+    return original_transcript(state, seed=seed)
+
+
+ActionBroker.refresh = wrapped_refresh
+ActionBroker.execute = wrapped_execute
+StandardPolicy.select_action = wrapped_select
+runner.transcript = wrapped_transcript
+
+execution = runner.run_phase_c_game_execution(
+    seed=args.seed,
+    mode="STANDARD",
+    through_turn=10,
+    validate_fresh_replay=args.fresh,
+    policy_actions=True,
+)
+counts = Counter(record["tie_classification"] for record in records)
+differences = [
+    record
+    for record in records
+    if record["historical_and_repaired_selections_differ"]
+]
+actual_keys = [
+    record["actual_selected_public_action"]["public_action_key"] for record in records
+]
+result = {
+    "schema_version": "pr100-corrected-tiebreak-diagnostic-v1",
+    "commit": args.commit,
+    "tree": args.tree,
+    "seed": args.seed,
+    "mode": "STANDARD",
+    "selector": args.selector,
+    "through_turn": 10,
+    "policy_actions": True,
+    "fresh_replay_requested": args.fresh,
+    "status": "PASS",
+    "summary": {
+        "decision_counts": {
+            "total_standard_decisions": len(records),
+            "decisions_with_no_substantive_tie": counts["NO_SUBSTANTIVE_TIE"],
+            "decisions_tied_only_same_public_key": counts[
+                "EQUIVALENT_REPRESENTATIVES_ONLY"
+            ],
+            "decisions_tied_distinct_public_keys": counts["DISTINCT_PUBLIC_KEYS"],
+            "decisions_where_historical_and_repaired_selections_differ": len(
+                differences
+            ),
+        },
+        "first_selector_difference_decision_index": (
+            differences[0]["decision_index"] if differences else None
+        ),
+        "actual_public_action_sequence_sha256": digest(actual_keys),
+        "selector": args.selector,
+        "outcome": {
+            "controlled_turns_completed": execution.technical_game.controlled_turns_completed,
+            "terminal_status": execution.technical_game.terminal_status,
+            "command_count": execution.technical_game.command_count,
+            "final_state_hash": execution.technical_game.final_state_hash,
+            "fresh_replay_state_hash": execution.technical_game.fresh_replay_state_hash,
+            "fresh_replay_equal": (
+                execution.technical_game.final_state_hash
+                == execution.technical_game.fresh_replay_state_hash
+            ),
+            "actual_first_attempt_turn": execution.measurement.actual_first_attempt_turn,
+            "attempt_package": execution.measurement.attempt_package,
+            "combo_earliest_legal_turn": dict(
+                execution.technical_game.combo_earliest_legal_turn
+            ),
+        },
+        "final_state_capture": final_state_capture,
+    },
+    "decisions": records,
+}
+Path(args.out).write_text(
+    json.dumps(result, indent=2, sort_keys=True), encoding="utf-8"
+)
+print(json.dumps(result["summary"], indent=2, sort_keys=True))
