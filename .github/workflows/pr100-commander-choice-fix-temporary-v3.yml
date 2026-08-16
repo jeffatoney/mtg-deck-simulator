@@ -27,131 +27,30 @@ jobs:
         with:
           python-version-file: .python-version
       - run: uv sync --frozen --all-extras
-      - name: Apply fail-closed Rule 903.9a repair
+      - name: Apply and verify the general Rule 903.9a repair
         shell: bash
         run: |
           set -euo pipefail
-          cat > "${RUNNER_TEMP}/apply_commander_choice_fix.py" <<'PY'
-          from pathlib import Path
-
-
-          def replace_once(path: str, old: str, new: str) -> None:
-              target = Path(path)
-              text = target.read_text(encoding="utf-8")
-              if text.count(old) != 1:
-                  raise SystemExit(f"{path}: expected exactly one source fragment, found {text.count(old)}")
-              target.write_text(text.replace(old, new, 1), encoding="utf-8")
-
-
-          replace_once(
-              "src/mtg_kernel/engine_core.py",
-              """            for obj in list(self.state.objects.values()):
-                  if (
-                      obj.retired
-                      or obj.zone not in {Zone.GRAVEYARD, Zone.EXILE}
-                      or not obj.component_card_instance_ids
-                  ):
-                      continue
-                  instance = self.state.card_instances[obj.component_card_instance_ids[0]]
-                  if (
-                      instance.commander_designation
-                      and obj.object_id not in self.state.pending_commander_choices
-                  ):
-                      self.state.pending_commander_choices.append(obj.object_id)
-          """,
-              "",
-          )
-
-          replace_once(
-              "src/mtg_kernel/zones.py",
-              """        old = self.state.objects[object_id]
-              if old.retired or old.ceased_to_exist:
-                  raise IllegalAction(\"cannot move a retired object\")
-              self._remove_from_zone(old)
-          """,
-              """        old = self.state.objects[object_id]
-              if old.retired or old.ceased_to_exist:
-                  raise IllegalAction(\"cannot move a retired object\")
-              if object_id in self.state.pending_commander_choices:
-                  self.state.pending_commander_choices.remove(object_id)
-              self._remove_from_zone(old)
-          """,
-          )
-
-          replace_once(
-              "src/mtg_kernel/zones.py",
-              """            self.state.objects[successor.object_id] = successor
-              self.register(successor)
-
-          change = ZoneChange(
-          """,
-              """            self.state.objects[successor.object_id] = successor
-              self.register(successor)
-              if destination in {Zone.GRAVEYARD, Zone.EXILE} and any(
-                  self.state.card_instances[card_id].commander_designation
-                  for card_id in successor.component_card_instance_ids
-              ):
-                  self.state.pending_commander_choices.append(successor.object_id)
-
-          change = ZoneChange(
-          """,
-          )
-
-          replace_once(
-              "tests/phase_a/test_kernel_acceptance.py",
-              """    declined = executor.commander_return_choice(\"P0\", grave.object_id, False)
-              assert declined.zone is Zone.GRAVEYARD and state.choices[-1].selected == \"DECLINE\"
-
-              state2, executor2 = funded_game()
-          """,
-              """    declined = executor.commander_return_choice(\"P0\", grave.object_id, False)
-              assert declined.zone is Zone.GRAVEYARD and state.choices[-1].selected == \"DECLINE\"
-              executor.check_state_based_actions()
-              assert grave.object_id not in state.pending_commander_choices
-
-              moved_again = executor.zones.move(
-                  grave.object_id, Zone.EXILE, \"TEST\", executor._event(\"TEST\")
-              )
-              assert moved_again is not None
-              executor.check_state_based_actions()
-              assert state.pending_commander_choices == [moved_again.object_id]
-
-              state2, executor2 = funded_game()
-          """,
-          )
-
-          replace_once(
-              "tests/phase_b/test_broker_fail_closed.py",
-              """    commander = add_card(
-                  executor, specs[\"Malcolm, Keen-Eyed Navigator\"], Zone.EXILE, commander=True
-              )
-              executor.check_state_based_actions()
-          """,
-              """    commander = add_card(
-                  executor, specs[\"Malcolm, Keen-Eyed Navigator\"], Zone.BATTLEFIELD, commander=True
-              )
-              exiled = executor.zones.move(
-                  commander.object_id, Zone.EXILE, \"TEST\", executor._event(\"TEST\")
-              )
-              assert exiled is not None
-              executor.check_state_based_actions()
-          """,
-          )
-
-          replace_once(
-              "tests/phase_b/test_broker_fail_closed.py",
-              """        and obj.component_card_instance_ids == commander.component_card_instance_ids
-          """,
-              """        and obj.component_card_instance_ids == exiled.component_card_instance_ids
-          """,
-          )
-          PY
-          python "${RUNNER_TEMP}/apply_commander_choice_fix.py"
+          expected() {
+            test "$(git hash-object "$1")" = "$2"
+          }
+          if expected src/mtg_kernel/engine_core.py 9866d65b8b13fe7be686a32dce23f4077eaa4cfd \
+            && expected src/mtg_kernel/zones.py eb9c8c4d2b29568c71ad3d8e7cf346b4d32c1769 \
+            && expected tests/phase_a/test_kernel_acceptance.py 3a05f998f7ad1305ba83e0af2f6511225c892ce5 \
+            && expected tests/phase_b/test_broker_fail_closed.py 37c85b13aa6fb1a71cfed124a12d71ea70cfb699; then
+            echo "Commander-choice repair is already present."
+            exit 0
+          fi
+          uv run python scripts/pr100_apply_commander_choice_fix.py --repo .
           uv run ruff format \
             src/mtg_kernel/engine_core.py \
             src/mtg_kernel/zones.py \
             tests/phase_a/test_kernel_acceptance.py \
             tests/phase_b/test_broker_fail_closed.py
+          expected src/mtg_kernel/engine_core.py 9866d65b8b13fe7be686a32dce23f4077eaa4cfd
+          expected src/mtg_kernel/zones.py eb9c8c4d2b29568c71ad3d8e7cf346b4d32c1769
+          expected tests/phase_a/test_kernel_acceptance.py 3a05f998f7ad1305ba83e0af2f6511225c892ce5
+          expected tests/phase_b/test_broker_fail_closed.py 37c85b13aa6fb1a71cfed124a12d71ea70cfb699
           uv run pytest -q \
             tests/phase_a/test_kernel_acceptance.py::test_commander_optional_return_and_commander_damage_terminal \
             tests/phase_b/test_broker_fail_closed.py::test_pending_commander_return_choice_suppresses_priority_actions
