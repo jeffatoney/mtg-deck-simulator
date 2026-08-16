@@ -27,22 +27,10 @@ jobs:
         with:
           python-version-file: .python-version
       - run: uv sync --frozen --all-extras
-      - name: Restore pre-investigation certification bytes in a committed exact tree
-        shell: bash
+      - name: Configure workflow git identity
         run: |
-          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          mkdir -p automation/phase-a-certification
-          git show b1c6e8f8bf8532c28f8f0e1eee6a9cc980884d72:automation/phase-a-certification/CERTIFICATION.json \
-            > automation/phase-a-certification/CERTIFICATION.json
-          if ! git diff --quiet -- automation/phase-a-certification/CERTIFICATION.json; then
-            git add automation/phase-a-certification/CERTIFICATION.json
-            git commit -m 'chore: restore pre-investigation certification record'
-          fi
-          git status --short
-          git rev-parse HEAD
-          git rev-parse HEAD^{tree}
       - name: Run exact corrected historical and repaired selector diagnostics
         shell: bash
         run: |
