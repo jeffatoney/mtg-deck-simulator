@@ -72,12 +72,26 @@ The identity specification is frozen. Do not edit it in an implementation pull r
 - Do not delete, rename, or close legacy files, branches, or pull requests without explicit owner approval.
 - Stop only for a genuine owner decision that cannot be resolved by the authority chain or reliability requirements. Publish safe blocker evidence and an `OWNER DECISION REQUIRED` PR comment before pausing.
 
+# Repository evidence preservation
+
+- A repository report or artifact does not exist as a durable deliverable until its actual bytes are committed, indexed in `docs/audit/EVIDENCE_INDEX.json` when applicable, and verified at an exact Git SHA.
+- Do not describe a local file, generated string, workflow workspace file, or expiring GitHub Actions artifact as saved, committed, published, durable, or complete.
+- Before using those completion words, identify the exact Git SHA, verify the path exists at that SHA, verify the bytes or content-addressed blob from GitHub, and verify the indexed SHA-256 digest.
+- Preserve load-bearing raw evidence in a static repository location before an ephemeral Actions artifact expires.
+- Every file under a tracked evidence root must be listed in the evidence index and pass `scripts/check_repository_evidence.py`.
+- No committed tool may generate or overwrite a certification-covered gate, regression test, assertion, authority map, test map, certification record, or expected value from the same observed run output that the generated content is supposed to check.
+- If a covered expected value changes, use a human-authored diff that records what changed, why, and the independent authority for the new expectation.
+- Remove PR-scoped diagnostic and source-mutation scaffolding before proposing the branch for certification.
+- If a historical positive regression conflicts with repaired behavior and methodology is unresolved, keep the conflict visible. Do not rewrite the regression from the new observation merely to make the branch pass.
+- Follow `docs/audit/REPOSITORY_EVIDENCE_POLICY.md` for the complete preservation and reporting contract.
+
 # Required repository checks
 
 These checks apply throughout Phase B:
 
 - Install: `uv sync --frozen --all-extras`
 - Frozen identity integrity: `uv run python scripts/check_identity_lock.py`
+- Repository evidence integrity: `uv run python scripts/check_repository_evidence.py`
 - Phase A authority and durable certification gates
 - Clean installed-package boundary: `uv run python scripts/check_clean_engine_boundary.py`
 - Format check: `uv run ruff format --check .`

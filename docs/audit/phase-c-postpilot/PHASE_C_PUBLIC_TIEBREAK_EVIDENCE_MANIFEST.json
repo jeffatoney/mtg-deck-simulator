@@ -1,0 +1,61 @@
+{
+  "archive_path": "docs/audit/phase-c-postpilot/evidence/pr100-corrected-behavior-971f5567.zip",
+  "artifact_id": 9259087740,
+  "artifact_name": "pr100-corrected-behavior-971f5567f47eb6f753a96a5809f72b5e9e23a404",
+  "artifact_sha256": "7e314f859d1e774b232f1d3daeed146441553e8f31c9aa0615a428d37a8aad8a",
+  "artifact_size_bytes": 440504,
+  "members": [
+    {
+      "commit": "971f5567f47eb6f753a96a5809f72b5e9e23a404",
+      "name": "legacy-101.json",
+      "seed": 101,
+      "selector": "legacy",
+      "sha256": "0c115d4c22b75395340ed2c7e3c9448ceb5d1f31baad8fd3635efe1f9d99b550",
+      "size_bytes": 1177980,
+      "status": "PASS",
+      "tree": "002ee839864905fc4f3052776b72def6c9e86473"
+    },
+    {
+      "commit": "971f5567f47eb6f753a96a5809f72b5e9e23a404",
+      "name": "legacy-391730338978874520.json",
+      "seed": 391730338978874520,
+      "selector": "legacy",
+      "sha256": "3140412e6d5a50a2eb6eead54e071e6168ac2dde2bad4cb0b2638c6259b5862f",
+      "size_bytes": 3229854,
+      "status": "PASS",
+      "tree": "002ee839864905fc4f3052776b72def6c9e86473"
+    },
+    {
+      "commit": "971f5567f47eb6f753a96a5809f72b5e9e23a404",
+      "name": "repaired-101.json",
+      "seed": 101,
+      "selector": "repaired",
+      "sha256": "1658b0a76d3f35b4d3bac7cfe05d5d1277de2651fa2feb0e5809f3466e488d68",
+      "size_bytes": 1296585,
+      "status": "PASS",
+      "tree": "002ee839864905fc4f3052776b72def6c9e86473"
+    },
+    {
+      "commit": "971f5567f47eb6f753a96a5809f72b5e9e23a404",
+      "name": "repaired-391730338978874520.json",
+      "seed": 391730338978874520,
+      "selector": "repaired",
+      "sha256": "6db8c5bfe21a28a64924471e49be9feab2412936acb059add7ac6f6e1c61c5cd",
+      "size_bytes": 2022034,
+      "status": "PASS",
+      "tree": "002ee839864905fc4f3052776b72def6c9e86473"
+    }
+  ],
+  "preservation": {
+    "actions_artifact_expiration_is_not_relied_on": true,
+    "analysis_is_derived_from_member_bytes_listed_here": true,
+    "raw_archive_committed_unchanged": true
+  },
+  "pull_request": 100,
+  "repository": "jeffatoney/mtg-deck-simulator",
+  "schema_version": "1.0.0",
+  "source_commit": "971f5567f47eb6f753a96a5809f72b5e9e23a404",
+  "source_tree": "002ee839864905fc4f3052776b72def6c9e86473",
+  "title": "PR #100 Public Tie-Break Evidence Manifest",
+  "workflow_run_id": 31929887660
+}
