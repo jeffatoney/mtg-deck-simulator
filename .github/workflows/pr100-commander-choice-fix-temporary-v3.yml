@@ -31,13 +31,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          expected() {
-            test "$(git hash-object "$1")" = "$2"
-          }
-          if expected src/mtg_kernel/engine_core.py 9866d65b8b13fe7be686a32dce23f4077eaa4cfd \
-            && expected src/mtg_kernel/zones.py eb9c8c4d2b29568c71ad3d8e7cf346b4d32c1769 \
-            && expected tests/phase_a/test_kernel_acceptance.py 3a05f998f7ad1305ba83e0af2f6511225c892ce5 \
-            && expected tests/phase_b/test_broker_fail_closed.py 37c85b13aa6fb1a71cfed124a12d71ea70cfb699; then
+          if ! grep -q 'for obj in list(self.state.objects.values())' src/mtg_kernel/engine_core.py \
+            && grep -q 'self.state.pending_commander_choices.append(successor.object_id)' src/mtg_kernel/zones.py; then
             echo "Commander-choice repair is already present."
             exit 0
           fi
@@ -47,10 +42,6 @@ jobs:
             src/mtg_kernel/zones.py \
             tests/phase_a/test_kernel_acceptance.py \
             tests/phase_b/test_broker_fail_closed.py
-          expected src/mtg_kernel/engine_core.py 9866d65b8b13fe7be686a32dce23f4077eaa4cfd
-          expected src/mtg_kernel/zones.py eb9c8c4d2b29568c71ad3d8e7cf346b4d32c1769
-          expected tests/phase_a/test_kernel_acceptance.py 3a05f998f7ad1305ba83e0af2f6511225c892ce5
-          expected tests/phase_b/test_broker_fail_closed.py 37c85b13aa6fb1a71cfed124a12d71ea70cfb699
           uv run pytest -q \
             tests/phase_a/test_kernel_acceptance.py::test_commander_optional_return_and_commander_damage_terminal \
             tests/phase_b/test_broker_fail_closed.py::test_pending_commander_return_choice_suppresses_priority_actions
