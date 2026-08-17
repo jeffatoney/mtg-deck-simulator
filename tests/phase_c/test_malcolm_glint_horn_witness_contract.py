@@ -27,9 +27,7 @@ from mtg_runs.replay_audit import replay_in_fresh_process
 
 ROOT = Path(__file__).resolve().parents[2]
 ARCHIVE = (
-    ROOT
-    / "docs/audit/phase-c-postpilot/evidence/"
-    "pr100-glint-horn-repaired-behavior-4d15c185.zip"
+    ROOT / "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip"
 )
 ARCHIVE_SHA256 = "5f1706e2a9f1ef906938f6eef972c0f7258226f5b2e5dcb0ed008febb62eb996"
 GLINT = "Glint-Horn Buccaneer"
@@ -98,8 +96,7 @@ def _glint_candidate_counts(decisions: list[dict[str, Any]]) -> tuple[int, int]:
             glint += 1
             if (
                 candidate["action_kind"] == "ACTIVATE"
-                and candidate["canonical_public_metadata"].get("ability_id")
-                == "glint-horn:loot"
+                and candidate["canonical_public_metadata"].get("ability_id") == "glint-horn:loot"
             ):
                 activation += 1
     return glint, activation
@@ -129,7 +126,9 @@ def test_repaired_archive_is_independently_revalidated() -> None:
             decisions = payload["decisions"]
             glint, activation = _glint_candidate_counts(decisions)
             assert len(decisions) == expected[1]
-            assert sum(item["top_distinct_public_key_count"] > 1 for item in decisions) == expected[2]
+            assert (
+                sum(item["top_distinct_public_key_count"] > 1 for item in decisions) == expected[2]
+            )
             assert (
                 sum(item["historical_and_repaired_selections_differ"] for item in decisions)
                 == expected[3]
