@@ -14,9 +14,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 SLOW_PROBE = ROOT / "tests/000_stage3_probe/test_stage3_probe.py"
 ARCHIVE = (
-    ROOT
-    / "docs/audit/phase-c-postpilot/evidence/"
-    "pr100-glint-horn-repaired-behavior-4d15c185.zip"
+    ROOT / "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip"
 )
 
 
@@ -33,9 +31,7 @@ def test_stage3_quick_first_access_probe() -> None:
     probe = _load_probe()
     with zipfile.ZipFile(ARCHIVE) as bundle:
         raw_timelines = {
-            name.removesuffix(".json"): probe._raw_timeline(
-                json.loads(bundle.read(name))
-            )
+            name.removesuffix(".json"): probe._raw_timeline(json.loads(bundle.read(name)))
             for name in sorted(bundle.namelist())
         }
 
@@ -73,7 +69,6 @@ def test_stage3_quick_first_access_probe() -> None:
         "raw_archive_timelines": raw_timelines,
     }
     pytest.exit(
-        "STAGE3_QUICK_PROBE="
-        + json.dumps(payload, sort_keys=True, separators=(",", ":")),
+        "STAGE3_QUICK_PROBE=" + json.dumps(payload, sort_keys=True, separators=(",", ":")),
         returncode=1,
     )
