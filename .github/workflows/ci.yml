@@ -30,6 +30,150 @@ jobs:
           python-version-file: .python-version
       - name: Install dependencies
         run: uv sync --frozen --all-extras
+
+      # Stage 1 diagnostic harness. These steps collect bounded evidence before the
+      # intentionally failing broker regression reaches the normal full-suite gate.
+      # This temporary harness is removed from the final diagnostic evidence commit.
+      - name: Stage 1 independently scan committed raw evidence
+        run: |
+          uv run python - <<'PY'
+          from __future__ import annotations
+
+          import collections
+          import json
+          import zipfile
+          from pathlib import Path
+
+          archive_path = Path(
+              "docs/audit/phase-c-postpilot/evidence/pr100-corrected-behavior-971f5567.zip"
+          )
+
+          def action_lists(value, path=()):
+              if isinstance(value, dict):
+                  for key, child in value.items():
+                      yield from action_lists(child, path + (str(key),))
+                  return
+              if isinstance(value, list):
+                  if value and all(isinstance(item, dict) for item in value):
+                      if any("action_kind" in item for item in value):
+                          yield path, value
+                  for index, child in enumerate(value):
+                      yield from action_lists(child, path + (str(index),))
+
+          def action_summary(action):
+              return {
+                  "action_kind": action.get("action_kind"),
+                  "public_identity": action.get("public_identity"),
+                  "canonical_public_metadata": action.get("canonical_public_metadata", {}),
+              }
+
+          with zipfile.ZipFile(archive_path) as archive:
+              print("ARCHIVE_MEMBERS", json.dumps(sorted(archive.namelist())))
+              grand_total = 0
+              for name in sorted(archive.namelist()):
+                  raw = json.loads(archive.read(name))
+                  decisions = raw["decisions"]
+                  grand_total += len(decisions)
+                  paths = collections.Counter()
+                  glint_by_path = collections.Counter()
+                  glint_activate_by_path = collections.Counter()
+                  selected_casts = 0
+                  attacking_turns = set()
+                  turn6_sequence = []
+                  for decision in decisions:
+                      selected = decision.get("actual_selected_public_action", {})
+                      if (
+                          selected.get("action_kind") == "CAST"
+                          and selected.get("public_identity") == "Glint-Horn Buccaneer"
+                      ):
+                          selected_casts += 1
+                      metadata = selected.get("canonical_public_metadata", {})
+                      if (
+                          selected.get("action_kind") == "DECLARE_ATTACKERS"
+                          and "Glint-Horn Buccaneer" in metadata.get("attacker_identities", [])
+                      ):
+                          attacking_turns.add(int(decision["turn_number"]))
+                      for path, actions in action_lists(decision):
+                          path_text = ".".join(path)
+                          paths[path_text] += 1
+                          for action in actions:
+                              if action.get("public_identity") == "Glint-Horn Buccaneer":
+                                  glint_by_path[path_text] += 1
+                                  if action.get("action_kind") == "ACTIVATE":
+                                      glint_activate_by_path[path_text] += 1
+                      if (
+                          name == "legacy-391730338978874520.json"
+                          and 63 <= int(decision.get("decision_index", -1)) <= 71
+                      ):
+                          turn6_sequence.append(
+                              {
+                                  "decision_index": int(decision["decision_index"]),
+                                  "turn_number": int(decision["turn_number"]),
+                                  "phase": decision.get("phase"),
+                                  "step": decision.get("step"),
+                                  "selected": action_summary(selected),
+                              }
+                          )
+                  print(
+                      "MEMBER_SCAN",
+                      json.dumps(
+                          {
+                              "name": name,
+                              "commit": raw["commit"],
+                              "tree": raw["tree"],
+                              "decisions": len(decisions),
+                              "selected_glint_horn_casts": selected_casts,
+                              "glint_horn_attacking_turns": sorted(attacking_turns),
+                              "candidate_list_occurrences": dict(sorted(paths.items())),
+                              "glint_horn_candidates_by_path": dict(sorted(glint_by_path.items())),
+                              "glint_horn_activate_candidates_by_path": dict(
+                                  sorted(glint_activate_by_path.items())
+                              ),
+                              "turn6_decisions_63_through_71": turn6_sequence,
+                          },
+                          sort_keys=True,
+                      ),
+                  )
+              print("TOTAL_DECISIONS", grand_total)
+          PY
+      - name: Stage 1 direct executor positive
+        run: >-
+          uv run pytest -q
+          tests/phase_b/test_glint_horn_action_surface.py::test_direct_executor_accepts_legal_glint_horn_loot_activation
+          -vv
+      - name: Stage 1 broker positive expected regression
+        id: stage1_broker_positive
+        continue-on-error: true
+        run: >-
+          uv run pytest -q
+          tests/phase_b/test_glint_horn_action_surface.py::test_broker_exposes_and_executes_legal_glint_horn_loot_activation
+          -vv
+      - name: Stage 1 negative controls
+        run: |
+          uv run pytest -q tests/phase_b/test_glint_horn_action_surface.py -k 'omits or isolated_negative' -vv
+      - name: Stage 1 exact action-surface command
+        id: stage1_action_surface
+        continue-on-error: true
+        run: uv run pytest -q tests/phase_b/test_glint_horn_action_surface.py -vv
+      - name: Stage 1 focused existing Glint-Horn transcript
+        run: uv run pytest -q tests/phase_b/transcripts/test_pb_t06_glint_curiosity.py
+      - name: Stage 1 exact Ruff format check
+        run: uv run ruff format --check --diff .
+      - name: Stage 1 exact Ruff lint check
+        run: uv run ruff check .
+      - name: Stage 1 exact repository evidence check
+        run: uv run python scripts/check_repository_evidence.py
+      - name: Stage 1 exact repository evidence gate test
+        run: uv run pytest -q tests/test_repository_evidence_gate.py
+      - name: Stage 1 exact policy information-boundary test
+        run: uv run pytest -q tests/phase_b/test_policy_information_boundary.py
+      - name: Stage 1 exact policy information-boundary check
+        run: uv run python scripts/check_policy_information_boundary.py
+      - name: Stage 1 require expected broker-only regression
+        run: |
+          test "${{ steps.stage1_broker_positive.outcome }}" = "failure"
+          test "${{ steps.stage1_action_surface.outcome }}" = "failure"
+
       - name: Frozen identity lock integrity
         run: uv run python scripts/check_identity_lock.py
       - name: Repository evidence integrity
