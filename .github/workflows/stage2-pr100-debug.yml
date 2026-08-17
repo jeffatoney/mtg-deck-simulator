@@ -1,0 +1,59 @@
+name: PR100 Stage2 Broker Debug
+on:
+  push:
+    branches: [automation/pr100-stage2-debug-20260817]
+permissions:
+  contents: read
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cbfbcd437a91f0c4481cba2173a8a6e8cd6553e8
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: uv sync --frozen --all-extras
+      - name: Inspect exact Glint-Horn probe inputs
+        run: |
+          uv run python - <<'PY'
+          from tests.phase_b.test_glint_horn_action_surface import _arranged_state, ABILITY_ID
+          from mtg_policy.broker import ActionBroker
+          from mtg_kernel.models import Zone
+
+          state, executor, glint, discard = _arranged_state("stage2-debug")
+          assert discard is not None
+          ability = next(a for a in glint.current_characteristics["abilities"] if a.get("ability_id") == ABILITY_ID)
+          print("ABILITY", ability)
+          key = f"{Zone.HAND.value}:P0"
+          print("HAND_KEY", key)
+          print("HAND_IDS", state.zones.get(key))
+          print("DISCARD", discard.object_id, discard.owner, discard.zone)
+          broker = ActionBroker(executor, "P0")
+          args = {
+              "actor": "P0",
+              "source_id": glint.object_id,
+              "ability": ABILITY_ID,
+              "targets": (),
+              "choices": {"discard_ids": [discard.object_id]},
+          }
+          print("PROBE_WITH_DISCARD", broker._probe("activate", args))
+          print("PROBE_EMPTY", broker._probe("activate", {**args, "choices": {}}))
+          cost = dict(ability.get("cost", {}))
+          print("DISCARD_COUNT", int(cost.get("discard", 0)))
+          candidates = [
+              executor.state.objects[object_id]
+              for object_id in state.zones.get(key, ())
+              if object_id in executor.state.objects
+              and not executor.state.objects[object_id].retired
+              and not executor.state.objects[object_id].ceased_to_exist
+              and executor.state.objects[object_id].owner == "P0"
+              and executor.state.objects[object_id].zone is Zone.HAND
+          ]
+          print("CANDIDATES", [(c.object_id, c.current_characteristics.get("name")) for c in candidates])
+          print("EFFECT_VARIANTS", broker._ability_choice_variants(dict(ability)))
+          print("TARGETS", broker._target_sets("P0", dict(ability.get("target_schema", {}))))
+          PY
