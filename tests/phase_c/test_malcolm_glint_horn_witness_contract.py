@@ -157,8 +157,7 @@ def _archive_metrics(payload: dict[str, Any]) -> dict[str, Any]:
             decision["tie_classification"] == "DISTINCT_PUBLIC_KEYS" for decision in decisions
         ),
         "selector_disagreements": sum(
-            bool(decision["historical_and_repaired_selections_differ"])
-            for decision in decisions
+            bool(decision["historical_and_repaired_selections_differ"]) for decision in decisions
         ),
         "glint_candidates": len(glint_candidates),
         "glint_activations": len(glint_activations),
@@ -170,9 +169,7 @@ def _archive_metrics(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _first_divergence(
-    legacy: dict[str, Any], repaired: dict[str, Any], field: str
-) -> int | None:
+def _first_divergence(legacy: dict[str, Any], repaired: dict[str, Any], field: str) -> int | None:
     for index, (left, right) in enumerate(
         zip(legacy["decisions"], repaired["decisions"], strict=False)
     ):
