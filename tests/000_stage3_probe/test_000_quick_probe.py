@@ -13,7 +13,10 @@ PROBE_PATH = ROOT / "tests/000_stage3_probe/test_stage3_probe.py"
 
 
 def _probe() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("stage3_probe_impl", PROBE_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "stage3_probe_impl",
+        PROBE_PATH,
+    )
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
