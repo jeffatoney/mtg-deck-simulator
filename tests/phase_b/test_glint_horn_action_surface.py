@@ -60,16 +60,22 @@ def test_direct_executor_accepts_legal_glint_horn_loot_activation() -> None:
         choices={"discard_ids": [discard.object_id]},
     )
 
-    assert len(state.actions) == before_action_count + 1
-    action = state.actions[-1]
+    new_actions = state.actions[before_action_count:]
+    action = next(
+        record
+        for record in new_actions
+        if record.kind == "ACTIVATE" and record.metadata.get("ability_id") == ABILITY_ID
+    )
     action_id = action.action_id
-    assert action.kind == "ACTIVATE"
-    assert action.metadata["ability_id"] == ABILITY_ID
     assert action.payments["cost"]["GENERIC"] == 1
     assert action.payments["cost"]["R"] == 1
     assert action.payments["mana"] == {"R": 1, "C": 1}
     assert state.players["P0"].mana_pool["R"] == 0
     assert state.players["P0"].mana_pool["C"] == 0
+    assert any(
+        record.kind == "TRIGGER" and record.metadata.get("ability_id") == "glint-horn:discard"
+        for record in new_actions
+    )
 
     discard_changes = [
         change for change in state.zone_changes if change.from_object_id == discard.object_id
@@ -81,6 +87,13 @@ def test_direct_executor_accepts_legal_glint_horn_loot_activation() -> None:
         event.kind == "CARD_DISCARDED" and event.cause_action_id == action_id
         for event in state.events
     )
+
+
+def test_executor_rejects_broker_shaped_activation_without_discard_ids() -> None:
+    _, executor, glint, _ = _arranged_state("glint-horn-broker-shaped-empty-choices")
+
+    with pytest.raises(IllegalAction, match="activation requires explicit discard-cost choices"):
+        executor.activate("P0", glint.object_id, ABILITY_ID, choices={})
 
 
 def test_broker_exposes_and_executes_legal_glint_horn_loot_activation() -> None:
