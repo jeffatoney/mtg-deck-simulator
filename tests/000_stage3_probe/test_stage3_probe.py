@@ -24,9 +24,7 @@ from mtg_runs.phase_c_runner import _bound_policy, run_phase_c_game_execution
 
 ROOT = Path(__file__).resolve().parents[2]
 ARCHIVE = (
-    ROOT
-    / "docs/audit/phase-c-postpilot/evidence/"
-    "pr100-glint-horn-repaired-behavior-4d15c185.zip"
+    ROOT / "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip"
 )
 CONTRACT = ROOT / "tests/phase_c/test_malcolm_glint_horn_witness_contract.py"
 GLINT = "Glint-Horn Buccaneer"
@@ -70,8 +68,7 @@ def _capture_first_access(
             (
                 item
                 for item in result
-                if item.package == "malcolm_glint_horn"
-                and item.legally_executable
+                if item.package == "malcolm_glint_horn" and item.legally_executable
             ),
             None,
         )
@@ -150,11 +147,7 @@ def _state_facts(
     untapped_mana_sources: list[str] = []
     glint_status: dict[str, Any] | None = None
     for obj in state.objects.values():
-        if (
-            obj.retired
-            or obj.ceased_to_exist
-            or obj.zone is not Zone.BATTLEFIELD
-        ):
+        if obj.retired or obj.ceased_to_exist or obj.zone is not Zone.BATTLEFIELD:
             continue
         name = str(obj.current_characteristics.get("name", ""))
         status = obj.permanent_status or {}
@@ -162,21 +155,14 @@ def _state_facts(
             "identity": name,
             "controller": obj.controller,
             "tap_status": status.get("tap"),
-            "attacking": bool(
-                obj.current_characteristics.get("attacking") is True
-            ),
+            "attacking": bool(obj.current_characteristics.get("attacking") is True),
             "controller_since_turn": status.get("controller_since_turn"),
             "keywords": sorted(
-                str(value)
-                for value in obj.current_characteristics.get("keywords", ())
+                str(value) for value in obj.current_characteristics.get("keywords", ())
             ),
         }
         battlefield.append(item)
-        if (
-            obj.controller == "P0"
-            and status.get("tap") == "UNTAPPED"
-            and _is_mana_source(obj)
-        ):
+        if obj.controller == "P0" and status.get("tap") == "UNTAPPED" and _is_mana_source(obj):
             untapped_mana_sources.append(name)
         if obj.controller == "P0" and name == GLINT:
             try:
@@ -193,8 +179,7 @@ def _state_facts(
                 **item,
                 "has_haste": has_haste,
                 "summoning_sick_for_tap_or_attack": (
-                    controller_since >= int(state.turn.number)
-                    and not has_haste
+                    controller_since >= int(state.turn.number) and not has_haste
                 ),
             }
 
@@ -204,9 +189,7 @@ def _state_facts(
         stack.append(
             {
                 "object_kind": str(obj.object_kind),
-                "identity": str(
-                    obj.current_characteristics.get("name", "")
-                ),
+                "identity": str(obj.current_characteristics.get("name", "")),
                 "ability_id": obj.current_characteristics.get("ability_id"),
                 "controller": obj.controller,
             }
@@ -215,8 +198,7 @@ def _state_facts(
     p0_hand = _zone_names(state, Zone.HAND, "P0")
     p0_library = _zone_names(state, Zone.LIBRARY, "P0")
     treasures = sum(
-        item["controller"] == "P0" and item["identity"] == "Treasure"
-        for item in battlefield
+        item["controller"] == "P0" and item["identity"] == "Treasure" for item in battlefield
     )
     return {
         "private_state_hash": state_hash(state),
@@ -234,10 +216,7 @@ def _state_facts(
             ),
         ),
         "p0_hand": p0_hand,
-        "p0_mana_pool": {
-            key: int(value)
-            for key, value in state.players["P0"].mana_pool.items()
-        },
+        "p0_mana_pool": {key: int(value) for key, value in state.players["P0"].mana_pool.items()},
         "p0_untapped_mana_sources": sorted(untapped_mana_sources),
         "p0_treasure_count": treasures,
         "p0_library_size": len(p0_library),
@@ -251,9 +230,7 @@ def _state_facts(
         "tracker_snapshot": snapshot,
         "legally_executable": bool(snapshot["legally_executable"]),
         "full_table_kill": bool(snapshot["full_table_kill"]),
-        "conditional_kill_or_takeover": bool(
-            snapshot["conditional_kill_or_takeover"]
-        ),
+        "conditional_kill_or_takeover": bool(snapshot["conditional_kill_or_takeover"]),
         "blockers": list(snapshot["blockers"]),
     }
 
@@ -281,9 +258,7 @@ def _public_menu_and_selection(
         if legacy
         else policy.select_action(observation, actions)
     )
-    selected_action = next(
-        action for action in actions if action.handle == selected_handle
-    )
+    selected_action = next(action for action in actions if action.handle == selected_handle)
     selected_view = policy_action_view(selected_action)
 
     grouped: dict[str, dict[str, Any]] = {}
@@ -363,31 +338,29 @@ def _raw_timeline(payload: dict[str, Any]) -> dict[str, Any]:
                     "turn": int(decision["turn"]),
                     "phase": str(decision["phase"]),
                     "step": str(decision["step"]),
-                    "public_action_key": str(
-                        selected["public_action_key"]
-                    ),
+                    "public_action_key": str(selected["public_action_key"]),
                     "kind": str(selected["action_kind"]),
                     "identity": selected["public_identity"],
-                    "metadata": dict(
-                        selected["canonical_public_metadata"]
-                    ),
+                    "metadata": dict(selected["canonical_public_metadata"]),
                 }
         return None
 
     package_commitment = first_matching(
         lambda selected: (
-            selected["action_kind"] == "DECLARE_ATTACKERS"
-            and GLINT
-            in set(
-                selected["canonical_public_metadata"].get(
-                    "attacker_identities",
-                    (),
+            (
+                selected["action_kind"] == "DECLARE_ATTACKERS"
+                and GLINT
+                in set(
+                    selected["canonical_public_metadata"].get(
+                        "attacker_identities",
+                        (),
+                    )
                 )
             )
-        )
-        or (
-            selected["action_kind"] != "PASS_PRIORITY"
-            and selected["public_identity"] in PACKAGES
+            or (
+                selected["action_kind"] != "PASS_PRIORITY"
+                and selected["public_identity"] in PACKAGES
+            )
         )
     )
     glint_attack = first_matching(
@@ -406,15 +379,11 @@ def _raw_timeline(payload: dict[str, Any]) -> dict[str, Any]:
         lambda selected: (
             selected["action_kind"] == "ACTIVATE"
             and selected["public_identity"] == GLINT
-            and selected["canonical_public_metadata"].get("ability_id")
-            == "glint-horn:loot"
+            and selected["canonical_public_metadata"].get("ability_id") == "glint-horn:loot"
         )
     )
     glint_cast = first_matching(
-        lambda selected: (
-            selected["action_kind"] == "CAST"
-            and selected["public_identity"] == GLINT
-        )
+        lambda selected: selected["action_kind"] == "CAST" and selected["public_identity"] == GLINT
     )
     return {
         "first_package_piece_commitment": package_commitment,
@@ -426,13 +395,12 @@ def _raw_timeline(payload: dict[str, Any]) -> dict[str, Any]:
                 int(decision["turn"])
                 for decision in decisions
                 if (
-                    _selected(decision)["action_kind"]
-                    == "DECLARE_ATTACKERS"
+                    _selected(decision)["action_kind"] == "DECLARE_ATTACKERS"
                     and GLINT
                     in set(
-                        _selected(decision)[
-                            "canonical_public_metadata"
-                        ].get("attacker_identities", ())
+                        _selected(decision)["canonical_public_metadata"].get(
+                            "attacker_identities", ()
+                        )
                     )
                 )
             }
@@ -464,13 +432,10 @@ def _witness(
         "final_private_state_hash": state_hash(executor.state),
         "action_count": len(steps),
         "glint_horn_activation_count": sum(
-            step["kind"] == "ACTIVATE" and step["identity"] == GLINT
-            for step in steps
+            step["kind"] == "ACTIVATE" and step["identity"] == GLINT for step in steps
         ),
         "treasure_activation_count": sum(
-            step["kind"] == "ACTIVATE"
-            and step["identity"] == "Treasure"
-            for step in steps
+            step["kind"] == "ACTIVATE" and step["identity"] == "Treasure" for step in steps
         ),
         "steps": steps,
     }
@@ -479,9 +444,7 @@ def _witness(
 def test_stage3_bounded_first_access_probe() -> None:
     with zipfile.ZipFile(ARCHIVE) as bundle:
         raw_timelines = {
-            name.removesuffix(".json"): _raw_timeline(
-                json.loads(bundle.read(name))
-            )
+            name.removesuffix(".json"): _raw_timeline(json.loads(bundle.read(name)))
             for name in sorted(bundle.namelist())
         }
 
@@ -529,31 +492,20 @@ def test_stage3_bounded_first_access_probe() -> None:
         "negative_control": {
             "label": "repaired-101",
             "terminal_status": negative.technical_game.terminal_status,
-            "controlled_turns_completed": (
-                negative.technical_game.controlled_turns_completed
-            ),
+            "controlled_turns_completed": (negative.technical_game.controlled_turns_completed),
             "malcolm_glint_horn_earliest_legal_turn": (
-                negative.technical_game.combo_earliest_legal_turn[
-                    "malcolm_glint_horn"
-                ]
+                negative.technical_game.combo_earliest_legal_turn["malcolm_glint_horn"]
             ),
             "malcolm_glint_horn_checkpoint_access": (
-                negative.technical_game.combo_checkpoint_access[
-                    "malcolm_glint_horn"
-                ]
+                negative.technical_game.combo_checkpoint_access["malcolm_glint_horn"]
             ),
-            "checkpoint_table_win_access": dict(
-                negative.measurement.checkpoint_table_win_access
-            ),
-            "actual_first_attempt_turn": (
-                negative.measurement.actual_first_attempt_turn
-            ),
+            "checkpoint_table_win_access": dict(negative.measurement.checkpoint_table_win_access),
+            "actual_first_attempt_turn": (negative.measurement.actual_first_attempt_turn),
             "attempt_package": negative.measurement.attempt_package,
         },
         "raw_archive_timelines": raw_timelines,
     }
     pytest.exit(
-        "STAGE3_BOUNDED_PROBE="
-        + json.dumps(result, sort_keys=True, separators=(",", ":")),
+        "STAGE3_BOUNDED_PROBE=" + json.dumps(result, sort_keys=True, separators=(",", ":")),
         returncode=1,
     )
