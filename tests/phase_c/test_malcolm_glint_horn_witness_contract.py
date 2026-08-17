@@ -83,7 +83,9 @@ def _state_facts(executor: Any, snapshot: Any) -> dict[str, Any]:
             "controller": obj.controller,
             "tapped": status.get("tap") == "TAPPED",
             "attacking": obj.current_characteristics.get("attacking") is True,
-            "keywords": sorted(str(value) for value in obj.current_characteristics.get("keywords", ())),
+            "keywords": sorted(
+                str(value) for value in obj.current_characteristics.get("keywords", ())
+            ),
             "controller_since_turn": status.get("controller_since_turn"),
         }
         battlefield.append(entry)
@@ -118,11 +120,15 @@ def _state_facts(executor: Any, snapshot: Any) -> dict[str, Any]:
         "step": str(state.turn.step),
         "priority_holder": state.turn.priority_holder_id,
         "stack": stack,
-        "battlefield": sorted(battlefield, key=lambda item: (item["controller"] or "", item["name"])),
+        "battlefield": sorted(
+            battlefield, key=lambda item: (item["controller"] or "", item["name"])
+        ),
         "hand": hand_names,
         "mana_pool": dict(sorted(state.players["P0"].mana_pool.items())),
         "untapped_mana_sources": sorted(untapped_sources),
-        "treasure_count": sum(item["name"] == "Treasure" and item["controller"] == "P0" for item in battlefield),
+        "treasure_count": sum(
+            item["name"] == "Treasure" and item["controller"] == "P0" for item in battlefield
+        ),
         "library_size": len(state.zones.get(library_key, ())),
         "opponent_life": {
             player_id: int(player.life)
@@ -163,10 +169,7 @@ def test_probe_exact_first_access_states(monkeypatch: Any) -> None:
         if capture is not None and "legal_action_surface" not in capture:
             if capture["full_state_hash_private"] == state_hash(self.executor.state):
                 capture["legal_action_surface"] = sorted(
-                    {
-                        policy_action_view(action).key.canonical_json
-                        for action in actions
-                    }
+                    {policy_action_view(action).key.canonical_json for action in actions}
                 )
         return observation, actions
 
