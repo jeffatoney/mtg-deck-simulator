@@ -1,0 +1,381 @@
+{
+  "branch": "hardening/public-policy-noninterference",
+  "broker_test": {
+    "broker_selected_action_executed": false,
+    "broker_shaped_empty_choices_probe": {
+      "choices": {},
+      "executor_result": "REJECTED",
+      "rejection": "activation requires explicit discard-cost choices"
+    },
+    "exact_missing_argument": "choices.discard_ids",
+    "legal_action_surface_contains_glint_horn_loot": false,
+    "public_semantic_requirement": "The discard object id is a private execution choice and must not be exposed in the public action key or public metadata. A repaired broker must bind an executable private discard choice while preserving public-information noninterference and exact replay.",
+    "reason": "No broker action existed to execute.",
+    "result": "FAIL_EXPECTED_REGRESSION",
+    "source_mechanism": "Battlefield activation enumeration supplies effect-choice variants. DRAW yields an empty choice mapping; no discard_ids are enumerated. The production executor probe therefore rejects the otherwise legal activation before it becomes an observed legal action."
+  },
+  "classification_basis": "Direct executor accepts the rule-legal activation with the explicit discard id; production broker omits that activation in the same public state; the broker-shaped empty choice mapping is rejected specifically because discard_ids is absent.",
+  "commit": "ae61c12b7b78ac0da3eddc75616a45d815435747",
+  "commit_semantics": "The commit/tree identify the exact Stage-1 diagnostic source and test state. The later publication commit is intentionally not self-referential and is verified by GitHub read-back plus EVIDENCE_INDEX.json.",
+  "corrected_pilot_authorized": false,
+  "date_local": "2026-08-16",
+  "defect_classification": "BROKER_COST_CHOICE_ENUMERATION_DEFECT",
+  "direct_executor_test": {
+    "arranged_state": {
+      "controller": "P0",
+      "discardable_hand_cards": 1,
+      "game_active": true,
+      "mana_pool": {
+        "C": 1,
+        "R": 1
+      },
+      "priority_holder": "P0",
+      "source_attacking": true,
+      "unrelated_pending_choice": false,
+      "zone": "BATTLEFIELD"
+    },
+    "choices": {
+      "discard_ids": "exact single hand object id",
+      "targets": []
+    },
+    "executor_rejection": null,
+    "observed_transition": {
+      "ability_id": "glint-horn:loot",
+      "activation_recorded": true,
+      "card_discarded_event_recorded": true,
+      "discard_moved_hand_to_graveyard": true,
+      "discard_trigger_recorded": true,
+      "mana_cost_recorded": {
+        "GENERIC": 1,
+        "R": 1
+      },
+      "mana_payment_recorded": {
+        "C": 1,
+        "R": 1
+      }
+    },
+    "result": "PASS"
+  },
+  "full_study_authorized": false,
+  "historical_artifacts_modified": false,
+  "historical_metric_consequence": {
+    "dated_erratum": "2026-08-16",
+    "statement": [
+      "Historical access figures were not rewritten or reclassified by Stage 1.",
+      "The production action surface could not expose at least one required Malcolm/Glint-Horn combo activation even though the executor supports that rules-legal activation when given the required discard choice.",
+      "Actual-attempt, never-attempted, package-attempt, combo-resolution, and terminal behavior may therefore be affected.",
+      "The population magnitude remains unmeasured; the two frozen seeds are not used to infer population magnitude.",
+      "Historical artifacts and percentages remain unchanged.",
+      "Stage 1 does not establish that every historical access-tracker witness was production-valid, so no separate access-overcount conclusion is asserted here."
+    ]
+  },
+  "independent_scan": {
+    "glint_horn_activate_candidate_count": 0,
+    "glint_horn_attacking_turn_count": 12,
+    "glint_horn_candidate_count": 9,
+    "legacy_391_turn_6_decisions_63_through_71": [
+      {
+        "decision_index": 63,
+        "phase": "PRECOMBAT_MAIN",
+        "selected": "CAST Glint-Horn Buccaneer",
+        "step": "PRECOMBAT_MAIN",
+        "turn": 6
+      },
+      {
+        "decision_index": 64,
+        "phase": "PRECOMBAT_MAIN",
+        "selected": "PASS_PRIORITY",
+        "step": "PRECOMBAT_MAIN",
+        "turn": 6
+      },
+      {
+        "decision_index": 65,
+        "phase": "PRECOMBAT_MAIN",
+        "selected": "PASS_PRIORITY",
+        "step": "PRECOMBAT_MAIN",
+        "turn": 6
+      },
+      {
+        "decision_index": 66,
+        "phase": "COMBAT",
+        "selected": "DECLARE_ATTACKERS: Glint-Horn Buccaneer; Malcolm, Keen-Eyed Navigator; Siren Stormtamer",
+        "step": "DECLARE_ATTACKERS",
+        "turn": 6
+      },
+      {
+        "decision_index": 67,
+        "phase": "COMBAT",
+        "selected": "PASS_PRIORITY",
+        "step": "DECLARE_ATTACKERS",
+        "turn": 6
+      },
+      {
+        "decision_index": 68,
+        "phase": "COMBAT",
+        "selected": "PASS_PRIORITY",
+        "step": "DECLARE_BLOCKERS",
+        "turn": 6
+      },
+      {
+        "decision_index": 69,
+        "phase": "COMBAT",
+        "selected": "PASS_PRIORITY",
+        "step": "COMBAT_DAMAGE",
+        "turn": 6
+      },
+      {
+        "decision_index": 70,
+        "phase": "COMBAT",
+        "selected": "ACTIVATE Treasure, token:treasure-mana, mana_color B",
+        "step": "COMBAT_DAMAGE",
+        "turn": 6
+      },
+      {
+        "decision_index": 71,
+        "phase": "COMBAT",
+        "selected": "PASS_PRIORITY",
+        "step": "COMBAT_DAMAGE",
+        "turn": 6
+      }
+    ],
+    "member_count": 4,
+    "method": "Recomputed from each raw member's decisions array; Markdown and JSON summary counts were not used for these counts.",
+    "per_run_decisions": {
+      "legacy-101.json": 140,
+      "legacy-391730338978874520.json": 363,
+      "repaired-101.json": 154,
+      "repaired-391730338978874520.json": 220
+    },
+    "seed_391_glint_horn_attacking_turn_count": 11,
+    "seed_391_total_decisions": 583,
+    "selected_glint_horn_cast_count": 3,
+    "total_decisions": 877
+  },
+  "negative_controls": {
+    "insufficient_mana": {
+      "broker_activation_absent": true,
+      "executor_rejects": true,
+      "result": "PASS"
+    },
+    "no_discardable_card": {
+      "broker_activation_absent": true,
+      "executor_rejects": true,
+      "result": "PASS"
+    },
+    "p0_lacks_priority": {
+      "broker_activation_absent": true,
+      "executor_rejects": true,
+      "result": "PASS"
+    },
+    "source_not_attacking": {
+      "broker_activation_absent": true,
+      "executor_rejects": true,
+      "result": "PASS"
+    }
+  },
+  "oracle_and_rules_authority": {
+    "ability_id": "glint-horn:loot",
+    "card_spec": {
+      "discard": 1,
+      "effect": "DRAW",
+      "mana_cost": "{1}{R}",
+      "restriction": "SOURCE_ATTACKING"
+    },
+    "frozen_rules_sha256": "e99cd70eb64ca854acb6420ebbf06e369e3f258e0cfba4f03f70bd881386f79b",
+    "oracle_text": "{1}{R}, Discard a card: Draw a card. Activate only if Glint-Horn Buccaneer is attacking.",
+    "rules": [
+      "602.1",
+      "602.2",
+      "602.3",
+      "602.5d",
+      "601.2h",
+      "118.1",
+      "118.3",
+      "508.1n",
+      "508.2"
+    ]
+  },
+  "owner_decision_required": true,
+  "parent_commit": "1927942f45d2a001bac8b10852800a4f85380660",
+  "pr_100_certified": false,
+  "pr_100_merged": false,
+  "pr_100_ready_for_review": false,
+  "pr_99_modified_or_integrated": false,
+  "proposed_repair_boundary": {
+    "must_not_change": [
+      "production executor activation rules unless new independent evidence requires it",
+      "combo_access.py",
+      "attempt detection",
+      "STANDARD scoring",
+      "canonical public ordering",
+      "land-development logic",
+      "combo priority",
+      "witness-search behavior",
+      "terminal regressions",
+      "historical pilot artifacts"
+    ],
+    "next_stage_change": [
+      "Phase B production battlefield activated-ability cost-choice enumeration for explicit non-mana cost choices, beginning with discard_ids.",
+      "Internal execution/replay binding of the exact discard object chosen without exposing hidden hand object identity in the public semantic action representation.",
+      "Regression coverage proving the repaired broker action executes through the production executor and retains the negative controls.",
+      "Post-repair stepwise witness validation before any corrected-pilot authorization."
+    ]
+  },
+  "raw_evidence_archive": {
+    "members": [
+      {
+        "commit": "971f5567f47eb6f753a96a5809f72b5e9e23a404",
+        "decisions": 140,
+        "glint_horn_activate_candidates": 0,
+        "glint_horn_attacking_turns": [
+          10
+        ],
+        "glint_horn_candidates": 6,
+        "name": "legacy-101.json",
+        "seed": 101,
+        "selected_glint_horn_casts": 1,
+        "selector": "legacy",
+        "sha256": "0c115d4c22b75395340ed2c7e3c9448ceb5d1f31baad8fd3635efe1f9d99b550",
+        "size_bytes": 1177980,
+        "tree": "002ee839864905fc4f3052776b72def6c9e86473"
+      },
+      {
+        "commit": "971f5567f47eb6f753a96a5809f72b5e9e23a404",
+        "decisions": 363,
+        "glint_horn_activate_candidates": 0,
+        "glint_horn_attacking_turns": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "glint_horn_candidates": 2,
+        "name": "legacy-391730338978874520.json",
+        "seed": 391730338978874520,
+        "selected_glint_horn_casts": 1,
+        "selector": "legacy",
+        "sha256": "3140412e6d5a50a2eb6eead54e071e6168ac2dde2bad4cb0b2638c6259b5862f",
+        "size_bytes": 3229854,
+        "tree": "002ee839864905fc4f3052776b72def6c9e86473"
+      },
+      {
+        "commit": "971f5567f47eb6f753a96a5809f72b5e9e23a404",
+        "decisions": 154,
+        "glint_horn_activate_candidates": 0,
+        "glint_horn_attacking_turns": [],
+        "glint_horn_candidates": 0,
+        "name": "repaired-101.json",
+        "seed": 101,
+        "selected_glint_horn_casts": 0,
+        "selector": "repaired",
+        "sha256": "1658b0a76d3f35b4d3bac7cfe05d5d1277de2651fa2feb0e5809f3466e488d68",
+        "size_bytes": 1296585,
+        "tree": "002ee839864905fc4f3052776b72def6c9e86473"
+      },
+      {
+        "commit": "971f5567f47eb6f753a96a5809f72b5e9e23a404",
+        "decisions": 220,
+        "glint_horn_activate_candidates": 0,
+        "glint_horn_attacking_turns": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "glint_horn_candidates": 1,
+        "name": "repaired-391730338978874520.json",
+        "seed": 391730338978874520,
+        "selected_glint_horn_casts": 1,
+        "selector": "repaired",
+        "sha256": "6db8c5bfe21a28a64924471e49be9feab2412936acb059add7ac6f6e1c61c5cd",
+        "size_bytes": 2022034,
+        "tree": "002ee839864905fc4f3052776b72def6c9e86473"
+      }
+    ],
+    "path": "docs/audit/phase-c-postpilot/evidence/pr100-corrected-behavior-971f5567.zip",
+    "sha256": "7e314f859d1e774b232f1d3daeed146441553e8f31c9aa0615a428d37a8aad8a"
+  },
+  "replacement_pilot_authorized": false,
+  "schema_version": "1.0.0",
+  "scope_inventory": {
+    "exact_deck_non_mana_additional_cost_activated_abilities": [
+      "Ash Barrens: basic-landcycling (hand-zone discard-self cost)",
+      "Dizzy Spell: transmute (hand-zone discard-self cost)",
+      "Drift of Phantasms: transmute (hand-zone discard-self cost)",
+      "Glint-Horn Buccaneer: glint-horn:loot (battlefield discard-one-card cost)",
+      "Muddle the Mixture: transmute (hand-zone discard-self cost)",
+      "Rebuild: cycling (hand-zone discard-self cost)",
+      "Step Through: wizardcycling (hand-zone discard-self cost)",
+      "Vedalken Aethermage: wizardcycling (hand-zone discard-self cost)"
+    ],
+    "finding": "Glint-Horn Buccaneer is the exact-deck battlefield activated ability with a non-mana discard cost. The mechanism is structurally broader than this card: any battlefield activated ability requiring an explicit discard choice would use the same incomplete battlefield enumeration path unless separately handled."
+  },
+  "standing_access_property": "Every reported access result must contain or be reproducible as a finite production-valid witness sequence. The first witness action must be legal at the reported state, and each later witness action must become legal after executing the prior production action until the defined success condition is reached. A same-decision final-activation requirement is not adopted.",
+  "title": "Phase C Glint-Horn Action Surface Diagnosis",
+  "tree": "66c5883d7c93412fb02e3d238b47bf064f685391",
+  "attempt_definition_review": {
+    "casting_glint_horn_alone_can_count_as_attempt": true,
+    "code_spec_alignment": "AMBIGUOUS_WRITTEN_SPEC",
+    "condition": "Only when the current access snapshot marks the package legally executable.",
+    "implementation": "When the access snapshot says a package is legally executable, _GameMeasurementCapture.observe_selected_action records an attempt if _action_commits_to_package returns true. For Malcolm/Glint-Horn, declaring Glint-Horn as an attacker counts, and otherwise a non-pass action whose public identity is one of the package pieces counts.",
+    "legacy_seed_101_consequence": "A Turn-10 Glint-Horn cast can satisfy the current implementation's package-commit predicate even though no Glint-Horn activation appears in that trace.",
+    "owner_decision_required": true,
+    "written_definition": "Phase C measurement authorities require first actual attempt reporting but do not define which concrete action starts an attempt."
+  },
+  "validation": {
+    "certification_candidates_claimed": false,
+    "commands": [
+      {
+        "command": "uv run pytest -q tests/phase_b/test_glint_horn_action_surface.py::test_direct_executor_accepts_legal_glint_horn_loot_activation -vv",
+        "result": "PASS: 1 passed"
+      },
+      {
+        "command": "uv run pytest -q tests/phase_b/test_glint_horn_action_surface.py::test_broker_exposes_and_executes_legal_glint_horn_loot_activation -vv",
+        "result": "EXPECTED FAIL: broker returned no matching activation"
+      },
+      {
+        "command": "uv run pytest -q tests/phase_b/test_glint_horn_action_surface.py -k 'omits or isolated_negative' -vv",
+        "result": "PASS: 5 passed, 3 deselected"
+      },
+      {
+        "command": "uv run pytest -q tests/phase_b/test_glint_horn_action_surface.py -vv",
+        "result": "EXPECTED REGRESSION: 1 failed, 7 passed"
+      },
+      {
+        "command": "uv run pytest -q tests/phase_b/transcripts/test_pb_t06_glint_curiosity.py",
+        "result": "PASS: 1 passed"
+      },
+      {
+        "command": "uv run ruff format --check --diff .",
+        "result": "PASS: 234 files already formatted"
+      },
+      {
+        "command": "uv run ruff check .",
+        "result": "PASS: All checks passed"
+      },
+      {
+        "command": "uv run python scripts/check_repository_evidence.py",
+        "result": "PASS: repository evidence integrity"
+      },
+      {
+        "command": "uv run pytest -q tests/test_repository_evidence_gate.py",
+        "result": "PASS: 7 passed"
+      },
+      {
+        "command": "uv run pytest -q tests/phase_b/test_policy_information_boundary.py",
+        "result": "PASS: 4 passed"
+      },
+      {
+        "command": "uv run python scripts/check_policy_information_boundary.py",
+        "result": "PASS: handle-free public action ranking / opaque handle confinement"
+      }
+    ],
+    "diagnostic_workflow_run_id": 31992473444,
+    "full_pytest_claimed_pass": false,
+    "mypy_claimed_as_stage1_validation": false,
+    "normal_ci_run_id_on_diagnostic_source_head": 31992475694
+  }
+}

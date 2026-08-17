@@ -77,6 +77,18 @@
       "path": "docs/audit/phase-c-postpilot/evidence/pr100-corrected-behavior-971f5567.zip",
       "sha256": "7e314f859d1e774b232f1d3daeed146441553e8f31c9aa0615a428d37a8aad8a",
       "size_bytes": 440504
+    },
+    {
+      "kind": "glint_horn_action_surface_diagnosis_markdown",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.md",
+      "sha256": "f49bc28b47d65474bfdf60d347da6fc6a3e3284da6752a0e08b74b9d44aae746",
+      "size_bytes": 16488
+    },
+    {
+      "kind": "glint_horn_action_surface_diagnosis_json",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.json",
+      "sha256": "c2ce416aef3a3fb1cf967af80a6b614a9e45b18618112bbab5d628bd5b8fb94d",
+      "size_bytes": 15552
     }
   ],
   "rules": {
