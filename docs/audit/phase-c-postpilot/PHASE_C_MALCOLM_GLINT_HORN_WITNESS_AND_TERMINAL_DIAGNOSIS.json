@@ -1,0 +1,213 @@
+{
+  "schema_version": "phase-c-malcolm-glint-horn-witness-terminal-diagnosis-v1",
+  "date": "2026-08-17",
+  "branch": "hardening/public-policy-noninterference",
+  "starting_commit": "8d97868fbcfb04204fb2b4cb05f4ff0137207b78",
+  "starting_tree": "36ea80efc670f9e9c25955a3fa7080f72617699a",
+  "base_main_commit": "150671a8e7a78e5fa14b6b3aca2308f6af647df3",
+  "diagnostic_source_commit": "e6b1134ef5a0d64dca8503740948ca2cec76df57",
+  "diagnostic_source_tree": "b44c92b7e491eb4c12fbe76529807973506fe9dd",
+  "parent_commit": "8047ffc3bcd61a1aaa361f6f760cd4373f2e437e",
+  "movement_from_start": {
+    "moved": true,
+    "all_intervening_commits_inspected": true,
+    "summary": "Movement after the known head consisted only of Stage 3 diagnostic/test work and temporary probes that were removed. No protected production layer or Stage 1/2 evidence artifact changed.",
+    "affects_combo_access": false,
+    "affects_measurement_records_or_aggregation": false,
+    "affects_attempt_detection": false,
+    "affects_phase_c_runner": false,
+    "affects_standard_action_selection": false,
+    "affects_terminal_handling": false,
+    "affects_glint_horn_execution": false,
+    "affects_public_action_semantics": false,
+    "affects_replay": false,
+    "affects_stage1_or_stage2_evidence": false,
+    "temporary_probe_residue": false,
+    "temporary_workflow_residue": false
+  },
+  "stage1": {
+    "classification": "BROKER_STAGE_ENUMERATION_DEFECT",
+    "reports": [
+      "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.md",
+      "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.json"
+    ]
+  },
+  "stage2": {
+    "classification": "BROKER_COST_CHOICE_REPAIR_CONFIRMED",
+    "repair_commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+    "repair_tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8",
+    "evidence_publication_commit": "8cde60fd0d691b0e825d2dc972aca8c81a2b085f",
+    "evidence_binding_head": "8d97868fbcfb04204fb2b4cb05f4ff0137207b78",
+    "executor_changed": false,
+    "information_boundary_preserved": true
+  },
+  "old_archive": {
+    "path": "docs/audit/phase-c-postpilot/evidence/pr100-corrected-behavior-971f5567.zip",
+    "sha256": "7e314f859d1e774b232f1d3daeed146441553e8f31c9aa0615a428d37a8aad8a",
+    "authority": "immutable historical pre-repair behavior only",
+    "members": [
+      {"name":"legacy-101.json","sha256":"0c115d4c22b75395340ed2c7e3c9448ceb5d1f31baad8fd3635efe1f9d99b550"},
+      {"name":"legacy-391730338978874520.json","sha256":"3140412e6d5a50a2eb6eead54e071e6168ac2dde2bad4cb0b2638c6259b5862f"},
+      {"name":"repaired-101.json","sha256":"1658b0a76d3f35b4d3bac7cfe05d5d1277de2651fa2feb0e5809f3466e488d68"},
+      {"name":"repaired-391730338978874520.json","sha256":"6db8c5bfe21a28a64924471e49be9feab2412936acb059add7ac6f6e1c61c5cd"}
+    ]
+  },
+  "repaired_archive": {
+    "path": "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip",
+    "sha256": "5f1706e2a9f1ef906938f6eef972c0f7258226f5b2e5dcb0ed008febb62eb996",
+    "authority": "repaired behavioral authority",
+    "members": [
+      {"name":"legacy-101.json","selector":"legacy","seed":101,"sha256":"5dc7311cab76a3bcd58c19542173965042046b8903177949d256a5a5de199108","size_bytes":1348487},
+      {"name":"legacy-391730338978874520.json","selector":"legacy","seed":391730338978874520,"sha256":"2835e668e60b94f9e4d9cd8ab1bf5d201838ab44c54ab3d3cec85e116cd01167","size_bytes":3066172},
+      {"name":"repaired-101.json","selector":"repaired","seed":101,"sha256":"721d86249de6918a58161e4fcb65d1407f5e6c22dbd88fbb25664b90bd93930f","size_bytes":1297445},
+      {"name":"repaired-391730338978874520.json","selector":"repaired","seed":391730338978874520,"sha256":"0276d308ed13f6f43783f0058cd841773cb18f639420b0de272b8d5842d0a9ea","size_bytes":2022890}
+    ]
+  },
+  "independently_recomputed_repaired_traces": {
+    "legacy-101": {"decisions":154,"ties":48,"selector_disagreements":32,"glint_candidates":13,"glint_activate_candidates":7,"selected_glint_loot":2,"attacking_turns":[10],"actual_first_attempt_turn":10,"checkpoint_access":{"5":false,"6":false,"8":false,"10":true},"terminal_status":"ACTIVE","fresh_replay_equal":true},
+    "repaired-101": {"decisions":154,"ties":32,"selector_disagreements":20,"glint_candidates":0,"glint_activate_candidates":0,"selected_glint_loot":0,"attacking_turns":[],"actual_first_attempt_turn":null,"checkpoint_access":{"5":false,"6":false,"8":false,"10":false},"terminal_status":"ACTIVE","fresh_replay_equal":true},
+    "legacy-391730338978874520": {"decisions":274,"ties":98,"selector_disagreements":61,"glint_candidates":55,"glint_activate_candidates":53,"selected_glint_loot":9,"attacking_turns":[6,7,8,9,10],"actual_first_attempt_turn":6,"checkpoint_access":{"5":false,"6":true,"8":true,"10":true},"terminal_status":"ACTIVE","fresh_replay_equal":true},
+    "repaired-391730338978874520": {"decisions":220,"ties":63,"selector_disagreements":46,"glint_candidates":1,"glint_activate_candidates":0,"selected_glint_loot":0,"attacking_turns":[5,6,7,8,9,10],"actual_first_attempt_turn":null,"checkpoint_access":{"5":true,"6":true,"8":true,"10":true},"terminal_status":"ACTIVE","fresh_replay_equal":true},
+    "first_divergences": {
+      "101": {"public_key":9,"post_state":0,"public_state_digest":0},
+      "391730338978874520": {"public_key":9,"post_state":9,"public_state_digest":9}
+    }
+  },
+  "exact_first_access_states": {
+    "repaired_seed_391_turn_5": {
+      "private_state_hash":"4c8cdf227e7f2ad924eccc6ef1ec903e447887915546a0512cd11e04af4d7845",
+      "turn":5,"phase":"COMBAT","step":"COMBAT_DAMAGE","priority_holder":"P0",
+      "stack":[{"source":"Malcolm, Keen-Eyed Navigator","ability_id":"malcolm:pirate-damage"}],
+      "battlefield":["Glint-Horn Buccaneer: tapped, attacking, Haste, controller_since_turn=5","Island: tapped","Malcolm, Keen-Eyed Navigator: tapped, attacking","Mountain: tapped","Mountain: tapped","Siren Stormtamer: tapped, attacking","Treasure: untapped"],
+      "p0_hand":["Reality Ripple","Arcane Denial","Frantic Search","Aetherize","Chart a Course","Negate","Dualcaster Mage"],
+      "p0_mana_pool":{"W":1,"U":0,"B":0,"R":0,"G":0,"C":0},
+      "untapped_mana_sources":["Treasure"],"treasure_count":1,"library_size":85,
+      "opponent_life":{"P1":36,"P2":37,"P3":38},"glint_attacking":true,"glint_haste":true,"discardable_cards":7,
+      "tracker":{"pieces_assembled":true,"sufficient_mana":false,"legally_executable":true,"full_table_kill":true,"conditional_kill_or_takeover":false,"blockers":["INSUFFICIENT_MANA_OR_DISCARD"]},
+      "broker_public_classes":["Treasure->B","Treasure->G","Treasure->R","Treasure->U","Treasure->W","PASS_PRIORITY"],
+      "standard_selected":"Treasure->W","witness_first_action":"Treasure->R"
+    },
+    "legacy_seed_391_turn_6": {
+      "private_state_hash":"648d4c4f54b92261fb33e73ee51e6ea632a304845726c68dfd3a8917470afd18",
+      "turn":6,"phase":"COMBAT","step":"COMBAT_DAMAGE","priority_holder":"P0",
+      "stack":[{"source":"Malcolm, Keen-Eyed Navigator","ability_id":"malcolm:pirate-damage"}],
+      "battlefield":["Glint-Horn Buccaneer: tapped, attacking, Haste, controller_since_turn=6","Island: tapped","Island: tapped","Malcolm, Keen-Eyed Navigator: tapped, attacking","Mountain: tapped","Mountain: tapped","Siren Stormtamer: tapped, attacking","Treasure: untapped"],
+      "p0_hand":["Arcane Denial","Frantic Search","Aetherize","Dualcaster Mage","Niv-Mizzet, the Firemind","Curse of the Swine"],
+      "p0_mana_pool":{"W":0,"U":0,"B":1,"R":0,"G":0,"C":0},
+      "untapped_mana_sources":["Treasure"],"treasure_count":1,"library_size":82,
+      "opponent_life":{"P1":34,"P2":37,"P3":39},"glint_attacking":true,"glint_haste":true,"discardable_cards":6,
+      "tracker":{"pieces_assembled":true,"sufficient_mana":false,"legally_executable":true,"full_table_kill":true,"conditional_kill_or_takeover":false,"blockers":["INSUFFICIENT_MANA_OR_DISCARD"]},
+      "broker_public_classes":["Treasure->B","Treasure->G","Treasure->R","Treasure->U","Treasure->W","PASS_PRIORITY"],
+      "legacy_selected":"Treasure->U","witness_first_action":"Treasure->R"
+    },
+    "legacy_seed_101_turn_10": {
+      "private_state_hash":"357b54ef412fbcce95e24a466ddce14bfefb6f96e13cd3d87f75d8c00569c4e1",
+      "turn":10,"phase":"PRECOMBAT_MAIN","step":"PRECOMBAT_MAIN","priority_holder":"P0","stack":[],
+      "battlefield":["Face-down creature: untapped","Island: tapped","Island: tapped","Island: untapped","Malcolm, Keen-Eyed Navigator: untapped, controller_since_turn=9","Mountain: tapped","Mountain: tapped","Mountain: tapped"],
+      "p0_hand":["Psychosis Crawler","Glint-Horn Buccaneer","Muddle the Mixture","Curiosity"],
+      "p0_mana_pool":{"W":0,"U":2,"B":0,"R":3,"G":0,"C":0},"untapped_mana_sources":["Island"],"treasure_count":0,"library_size":75,
+      "opponent_life":{"P1":38,"P2":38,"P3":37},"glint_in_hand_with_haste":true,"malcolm_attack_eligible":true,"discardable_cards":4,
+      "tracker":{"pieces_assembled":true,"sufficient_mana":true,"legally_executable":true,"full_table_kill":true,"conditional_kill_or_takeover":false,"blockers":[]},
+      "broker_public_classes":["Curiosity cast target variant 1","Curiosity cast target variant 2","Faithless Looting flashback","CAST Glint-Horn Buccaneer","Island->U","Muddle the Mixture transmute","CAST Psychosis Crawler","PASS_PRIORITY"],
+      "legacy_selected":"Island->U","witness_first_action":"CAST Glint-Horn Buccaneer"
+    },
+    "repaired_seed_101_negative_control": {
+      "first_access_state":null,"terminal_status":"ACTIVE","controlled_turns_completed":10,
+      "final_state_hash":"f282b014606ead2931f9819709e0becd9995051b4146e9f28e33a92100c7914c","fresh_replay_equal":true,
+      "malcolm_glint_horn_earliest_legal_turn":null,"checkpoint_access":{"5":false,"6":false,"8":false,"10":false},
+      "actual_first_attempt_turn":null,"glint_candidate_count":0,"last_public_action_surface":["PASS_PRIORITY"]
+    }
+  },
+  "production_witnesses": {
+    "test_module":"tests/phase_c/test_malcolm_glint_horn_witness_contract.py",
+    "proof_method":"Production GameExecutor and ActionBroker; controlled-player actions selected by handle-free PolicyActionView/PublicActionKey semantics, opaque handles resolved only after selection, discard IDs privately bound only by the broker. No future information, hidden opponent cards, favorable opponent choice, or measurement-only shortcut is used.",
+    "repaired_seed_391_turn_5":{"classification":"FINITE_PRODUCTION_TABLE_WIN_WITNESS_CONFIRMED","ordered_steps":["ACTIVATE Treasure->R","ACTIVATE glint-horn:loot with a broker-private legal discard","resolve Glint damage, Malcolm Treasure generation, and loot draw through production priority","repeat the broker-probed loot/resource cycle until production terminal"],"finite_bound":"<=38 Glint damage iterations from opponent life 36/37/38","initial_glint_activation_in_original_menu":false},
+    "legacy_seed_391_turn_6":{"classification":"FINITE_PRODUCTION_TABLE_WIN_WITNESS_CONFIRMED","ordered_steps":["ACTIVATE Treasure->R","ACTIVATE glint-horn:loot with private discard binding","resolve production triggers/draw","repeat until production terminal"],"finite_bound":"<=39 Glint damage iterations from opponent life 34/37/39","initial_glint_activation_in_original_menu":false},
+    "legacy_seed_101_turn_10":{"classification":"FINITE_PRODUCTION_TABLE_WIN_WITNESS_CONFIRMED","ordered_steps":["CAST Glint-Horn Buccaneer","resolve it through production priority","advance production combat and declare an attack containing Glint-Horn and Malcolm","frozen opponents declare no blockers; resolve combat and Malcolm resources","ACTIVATE glint-horn:loot and repeat production damage/Malcolm/draw until terminal"],"finite_bound":"<=38 loot-damage iterations after setup"},
+    "same_process_replay_required":true,"fresh_process_replay_required":true,
+    "aggregate_classification":"PRODUCTION_TABLE_WIN_WITNESSES_CONFIRMED"
+  },
+  "tracker_resource_field_finding": {
+    "classification":"MALCOLM_GLINT_HORN_RESOURCE_FIELD_INCONSISTENCY",
+    "finding":"Both seed-391 first-access states report sufficient_mana=false and INSUFFICIENT_MANA_OR_DISCARD while also reporting legally_executable=true and full_table_kill=true. The sufficient/blocker path counts floating mana only, while legal/full-kill paths can count untapped Treasures.",
+    "effect_on_tested_witnesses":"No witness failure. Treasure->R is the first production witness action.",
+    "population_magnitude":"UNMEASURED","stage3_code_change":false
+  },
+  "measurement_contract": {
+    "written_definition":"The authority separates pieces assembled, sufficient mana, legally executable, attempted, resolved, full-table kill, and conditional kill/takeover, and pre-registers legal deterministic table-win access by checkpoint.",
+    "layers":[
+      {"layer":"ComboAccessTracker.earliest_legal_turn","predicate":"legally_executable only"},
+      {"layer":"ComboAccessTracker.cumulative_checkpoint_access / PhaseCTechnicalGame.combo_checkpoint_access","predicate":"legal-only technical diagnostic"},
+      {"layer":"Phase C _build_game_measurement","predicate":"turn<=checkpoint AND legally_executable AND full_table_kill"},
+      {"layer":"GameMeasurement.checkpoint_table_win_access","predicate":"runner legal-and-full-kill checkpoint result"},
+      {"layer":"aggregation and pilot reports","predicate":"sum GameMeasurement.checkpoint_table_win_access"}
+    ],
+    "historical_standard_500":{"turn_8":{"numerator":82,"denominator":500,"rate":0.164},"turn_10":{"numerator":113,"denominator":500,"rate":0.226},"primary_outcome":"LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS_BY_TURN_8"},
+    "classification":"TABLE_WIN_ACCESS_CONTRACT_ALIGNED",
+    "historical_erratum_required":false,"historical_percentages_modified":false,
+    "boundary":"The legal-only technical checkpoint must not be substituted for GameMeasurement.checkpoint_table_win_access."
+  },
+  "seed_391_terminal_regression": {
+    "test":"tests/phase_c/test_phase_c_terminal_cleanup.py::test_700_diagnostic_terminal_cleanup_seed_stops_cleanly",
+    "expected":"TERMINAL","current_repaired_result":"ACTIVE","expectation_introduced_commit":"b089d396b88172fb2681a2b2a235d14d8b9afcd3",
+    "full_table_win_witness_exists":true,"standard_received_witness_first_action_as_legal_option":true,
+    "standard_selected_at_first_access":"Treasure->W","constructed_witness_first_action":"Treasure->R",
+    "standard_selected_any_glint_loot":false,"resource_exhaustion_prevents_witness_terminal":false,
+    "current_active_result_internally_consistent":true,"expectation_changed_in_stage3":false,
+    "classification":"SEED_391_TERMINAL_EXPECTATION_STALE_AFTER_ACTION_SURFACE_REPAIR"
+  },
+  "attempt_definition_review": {
+    "current_implementation":"The capture reads the legal-access snapshot before the selected action executes, then counts only a package-piece commitment or Glint attack when that pre-action snapshot is already legal.",
+    "timelines": {
+      "legacy_101":{"first_witness_action":"T10 CAST Glint-Horn","first_broad_piece_commitment":"T3 CAST Malcolm","first_glint_attack":"T10","first_glint_loot":"T10","current_attempt":"T10"},
+      "legacy_391":{"first_witness_action":"T6 Treasure->R","first_broad_piece_commitment":"T3 CAST Malcolm","first_glint_cast":"T6","first_glint_attack":"T6","first_glint_loot":"T6","current_attempt":"T6"},
+      "repaired_391":{"first_witness_action":"T5 Treasure->R","first_broad_piece_commitment":"T3 CAST Malcolm","first_glint_cast":"T5","first_glint_attack":"T5","first_glint_loot":null,"current_attempt":null}
+    },
+    "owner_options":[
+      {"option":1,"definition":"first selected action in a complete production-valid witness","consequence":"T10/T6/T5 for the constructed witnesses, but owner must define witness minimality because nonminimal policy actions can still precede a winning continuation; historical attempt counts require recomputation"},
+      {"option":2,"definition":"first resource commitment to the package","consequence":"At latest Glint casts T10/T6/T5; potentially T3 for all if Malcolm development counts; never/immediate/delayed counts change and require recomputation"},
+      {"option":3,"definition":"engine activation or equivalent direct combo action","consequence":"legacy101 T10, legacy391 T6, repaired391 never; historical definition changes"},
+      {"option":4,"definition":"preserve current package-piece commitment definition","consequence":"legacy101 T10, legacy391 T6, repaired391 never; preserves current historical comparability"}
+    ],
+    "classification":"ATTEMPT_DEFINITION_OWNER_DECISION_REQUIRED"
+  },
+  "classifications": {
+    "repaired_seed_391_turn_5":"FINITE_PRODUCTION_TABLE_WIN_WITNESS_CONFIRMED",
+    "legacy_seed_391_turn_6":"FINITE_PRODUCTION_TABLE_WIN_WITNESS_CONFIRMED",
+    "legacy_seed_101_turn_10":"FINITE_PRODUCTION_TABLE_WIN_WITNESS_CONFIRMED",
+    "aggregate_witness":"PRODUCTION_TABLE_WIN_WITNESSES_CONFIRMED",
+    "measurement_contract":"TABLE_WIN_ACCESS_CONTRACT_ALIGNED",
+    "seed_391_terminal":"SEED_391_TERMINAL_EXPECTATION_STALE_AFTER_ACTION_SURFACE_REPAIR",
+    "attempt_definition":"ATTEMPT_DEFINITION_OWNER_DECISION_REQUIRED"
+  },
+  "historical_metric_consequences": {
+    "tested_full_production_witnesses_confirmed":true,"population_wide_validity_inferred":false,
+    "legal_executability_mislabeled_as_table_win_access":false,"identified_access_state_without_witness":false,
+    "historical_percentages_modified":false,"historical_artifacts_modified":false,"population_magnitude_of_resource_field_inconsistency":"UNMEASURED"
+  },
+  "proposed_stage4_repair_boundary": {
+    "change":[
+      "Make Malcolm/Glint sufficient_mana and blocker resource accounting use the same Treasure-aware resource model as legally_executable/full_table_kill, with focused regression coverage.",
+      "If the owner accepts the terminal classification, update only the stale seed-391 terminal expectation/fixture to the repaired STANDARD ACTIVE trajectory; do not change terminal engine behavior.",
+      "Implement any attempt-definition change only after an owner methodology decision, with explicit versioning and recomputation of affected historical attempt summaries."
+    ],
+    "must_not_change":["Stage 2 discard-cost enumeration","executor activation/trigger/terminal rules","STANDARD scoring","canonical public ordering","combo priority","land development","table-win measurement schema/aggregation","historical archives/percentages","pilot authorization/certification"],
+    "implemented_in_stage3":false
+  },
+  "source_authority": {
+    "magic_rules_sha256":"e99cd70eb64ca854acb6420ebbf06e369e3f258e0cfba4f03f70bd881386f79b",
+    "relevant_rules":["117.3b","117.3c","117.3d","117.4","506.4","506.4b","508.1k","510.3","511.3","602.2","602.2b"],
+    "oracle_cards":["Glint-Horn Buccaneer","Malcolm, Keen-Eyed Navigator"]
+  },
+  "stage3_archive": null,
+  "owner_decision_required": true,
+  "validation": {
+    "status":"FINAL_EXACT_HEAD_VALIDATION_REPORTED_SEPARATELY_AFTER_PUBLICATION",
+    "starting_ci_run_id":32019736225,"starting_full_pytest":"426 passed, 1 failed",
+    "known_intentional_regression":"seed-391 terminal cleanup expects TERMINAL while repaired STANDARD is ACTIVE"
+  },
+  "governance": {
+    "corrected_pilot_authorized":false,"replacement_500_200_pilot_authorized":false,"full_study_authorized":false,
+    "historical_pilot_artifacts_modified":false,"pr_100_certified":false,"pr_100_ready_for_review":false,"pr_100_merged":false,"pr_99_modified_or_integrated":false
+  }
+}
