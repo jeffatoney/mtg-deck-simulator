@@ -77,6 +77,18 @@
       "path": "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip",
       "sha256": "5f1706e2a9f1ef906938f6eef972c0f7258226f5b2e5dcb0ed008febb62eb996",
       "size_bytes": 429275
+    },
+    {
+      "kind": "malcolm_glint_horn_witness_terminal_diagnosis_json",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_MALCOLM_GLINT_HORN_WITNESS_AND_TERMINAL_DIAGNOSIS.json",
+      "sha256": "510c9541f38a2d7617472d7f9f20f74d1561f7701689aa7eb8e3cd85b0a520ec",
+      "size_bytes": 19555
+    },
+    {
+      "kind": "malcolm_glint_horn_witness_terminal_diagnosis_markdown",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_MALCOLM_GLINT_HORN_WITNESS_AND_TERMINAL_DIAGNOSIS.md",
+      "sha256": "cd5c08477f0cf4c7265f01ec4b0252d4c691883aa475622ccd4565e7e064b64c",
+      "size_bytes": 15037
     }
   ],
   "rules": {
@@ -87,6 +99,6 @@
   "schema_version": "1.0.0",
   "title": "Repository Durable Evidence Index",
   "tracked_roots": [
-    "docs/audit/phase-c-postpilot/evidence"
+    "docs/audit/phase-c-postpilot"
   ]
 }
