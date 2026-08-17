@@ -22,8 +22,7 @@ from mtg_runs.phase_c_runner import run_phase_c_game_execution
 
 ROOT = Path(__file__).resolve().parents[2]
 ARCHIVE = ROOT / (
-    "docs/audit/phase-c-postpilot/evidence/"
-    "pr100-glint-horn-repaired-behavior-4d15c185.zip"
+    "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip"
 )
 CONTRACT = ROOT / "tests/phase_c/test_malcolm_glint_horn_witness_contract.py"
 PACKAGE = "malcolm_glint_horn"
@@ -47,8 +46,7 @@ def _contract() -> ModuleType:
 def _payloads() -> dict[str, dict[str, Any]]:
     with zipfile.ZipFile(ARCHIVE) as bundle:
         return {
-            label: json.loads(bundle.read(member))
-            for label, (member, _seed) in MEMBERS.items()
+            label: json.loads(bundle.read(member)) for label, (member, _seed) in MEMBERS.items()
         }
 
 
@@ -99,8 +97,7 @@ def _facts(state: Any, snapshot: dict[str, Any]) -> dict[str, Any]:
         "p0_mana_pool": dict(sorted(state.players["P0"].mana_pool.items())),
         "untapped_mana_sources": sorted(untapped_sources),
         "treasure_count": sum(
-            item["controller"] == "P0" and item["identity"] == "Treasure"
-            for item in battlefield
+            item["controller"] == "P0" and item["identity"] == "Treasure" for item in battlefield
         ),
         "library_size": len(state.zones.get(library_key, ())),
         "opponent_life": {
@@ -128,11 +125,7 @@ def test_emit_exact_stage3_probe(monkeypatch: pytest.MonkeyPatch) -> None:
         label = str(current["label"])
         if label not in captured:
             snapshot = next(
-                (
-                    item
-                    for item in result
-                    if item.package == PACKAGE and item.legally_executable
-                ),
+                (item for item in result if item.package == PACKAGE and item.legally_executable),
                 None,
             )
             if snapshot is not None:
@@ -151,15 +144,11 @@ def test_emit_exact_stage3_probe(monkeypatch: pytest.MonkeyPatch) -> None:
         del self, observation
         label = str(current["label"])
         index = cursors[label]
-        selected = payloads[label]["decisions"][index][
-            "actual_selected_public_action"
-        ]
+        selected = payloads[label]["decisions"][index]["actual_selected_public_action"]
         key = str(selected["public_action_key"])
         handle = str(selected["internal_opaque_handle"])
         matches = [
-            action
-            for action in actions
-            if policy_action_view(action).key.canonical_json == key
+            action for action in actions if policy_action_view(action).key.canonical_json == key
         ]
         assert any(action.handle == handle for action in matches), (label, index)
         current["pending"] = (label, index, handle)
@@ -171,9 +160,7 @@ def test_emit_exact_stage3_probe(monkeypatch: pytest.MonkeyPatch) -> None:
         label, index, expected_handle = pending
         assert handle == expected_handle
         original_execute(self, generation, handle)
-        expected = payloads[label]["decisions"][index][
-            "post_decision_full_state_hash"
-        ]
+        expected = payloads[label]["decisions"][index]["post_decision_full_state_hash"]
         assert state_hash(self.executor.state) == expected, (label, index)
         cursors[label] += 1
         current["pending"] = None
@@ -213,12 +200,8 @@ def test_emit_exact_stage3_probe(monkeypatch: pytest.MonkeyPatch) -> None:
             "terminal_status": witness.state.terminal.status,
             "final_state_hash": state_hash(witness.state),
             "action_count": len(steps),
-            "glint_activations": sum(
-                step["identity"] == "Glint-Horn Buccaneer" for step in steps
-            ),
-            "treasure_activations": sum(
-                step["identity"] == "Treasure" for step in steps
-            ),
+            "glint_activations": sum(step["identity"] == "Glint-Horn Buccaneer" for step in steps),
+            "treasure_activations": sum(step["identity"] == "Treasure" for step in steps),
             "first_action": {
                 "kind": steps[0]["kind"],
                 "identity": steps[0]["identity"],
@@ -227,7 +210,6 @@ def test_emit_exact_stage3_probe(monkeypatch: pytest.MonkeyPatch) -> None:
             },
         }
     pytest.exit(
-        "STAGE3_PROBE="
-        + json.dumps(output, sort_keys=True, separators=(",", ":")),
+        "STAGE3_PROBE=" + json.dumps(output, sort_keys=True, separators=(",", ":")),
         returncode=1,
     )
