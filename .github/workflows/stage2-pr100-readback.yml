@@ -1,0 +1,82 @@
+name: PR100 Stage2 Publication Readback
+
+on:
+  push:
+    branches: [automation/pr100-stage2-readback-20260817]
+
+permissions:
+  contents: read
+
+env:
+  PUBLICATION_SHA: 8d97868fbcfb04204fb2b4cb05f4ff0137207b78
+  PUBLICATION_TREE: 36ea80efc670f9e9c25955a3fa7080f72617699a
+
+jobs:
+  readback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PUBLICATION_SHA }}
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Verify exact fetched publication identity
+        run: |
+          test "$(git rev-parse HEAD)" = "$PUBLICATION_SHA"
+          test "$(git rev-parse HEAD^{tree})" = "$PUBLICATION_TREE"
+      - name: Install full validation dependencies
+        run: uv sync --frozen --all-extras
+      - name: Verify repository evidence gates
+        run: |
+          uv run python scripts/check_repository_evidence.py
+          uv run pytest -q tests/test_repository_evidence_gate.py
+      - name: Verify exact publication bytes archive members and historical immutability
+        run: |
+          uv run python - <<'PY'
+          import hashlib, json, zipfile
+          from pathlib import Path
+
+          root = Path.cwd()
+          index = json.loads((root / 'docs/audit/EVIDENCE_INDEX.json').read_text(encoding='utf-8'))
+          by_path = {item['path']: item for item in index['artifacts']}
+          json_path = root / 'docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.json'
+          md_path = root / 'docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.md'
+          data = json.loads(json_path.read_text(encoding='utf-8'))
+          assert data['evidence_publication_commit'] == '8cde60fd0d691b0e825d2dc972aca8c81a2b085f'
+          archive = root / data['new_archive']['path']
+          results = {}
+          for path in (json_path, md_path, archive):
+              raw = path.read_bytes()
+              rel = str(path.relative_to(root))
+              assert raw
+              assert hashlib.sha256(raw).hexdigest() == by_path[rel]['sha256']
+              assert len(raw) == by_path[rel]['size_bytes']
+              results[rel] = {'sha256': hashlib.sha256(raw).hexdigest(), 'size_bytes': len(raw)}
+          with zipfile.ZipFile(archive) as zf:
+              assert len(zf.namelist()) == 4
+              for member in data['new_archive']['members']:
+                  raw = zf.read(member['name'])
+                  assert hashlib.sha256(raw).hexdigest() == member['sha256']
+                  assert len(raw) == member['size_bytes']
+                  parsed = json.loads(raw)
+                  assert parsed['commit'] == data['repair_commit']
+                  assert parsed['tree'] == data['repair_tree']
+                  assert parsed['status'] == 'PASS'
+          old_archive = root / data['old_archive']['path']
+          assert hashlib.sha256(old_archive.read_bytes()).hexdigest() == data['old_archive']['sha256']
+          print(json.dumps({
+              'readback': 'PASS',
+              'publication_sha': '8d97868fbcfb04204fb2b4cb05f4ff0137207b78',
+              'publication_tree': '36ea80efc670f9e9c25955a3fa7080f72617699a',
+              'json_parses': True,
+              'files_nonempty': True,
+              'archive_opens': True,
+              'member_count': 4,
+              'historical_archive_unchanged': True,
+              'indexed_files': results,
+          }, indent=2, sort_keys=True))
+          PY
