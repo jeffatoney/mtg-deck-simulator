@@ -444,8 +444,20 @@ def _witness(
     state: Any,
     seed_text: str,
 ) -> dict[str, Any]:
-    executor, steps = contract._produce_witness(state, seed_text)
+    try:
+        executor, steps = contract._produce_witness(state, seed_text)
+    except Exception as exc:
+        return {
+            "status": "FAILED_AT_EXISTING_DIAGNOSTIC_ASSUMPTION",
+            "exception_type": type(exc).__name__,
+            "exception_message": str(exc),
+            "initial_turn": int(state.turn.number),
+            "initial_phase": str(state.turn.phase),
+            "initial_step": str(state.turn.step),
+            "initial_priority_holder": state.turn.priority_holder_id,
+        }
     return {
+        "status": "TERMINAL_WITNESS_PRODUCED",
         "terminal_status": executor.state.terminal.status,
         "winner_ids": list(executor.state.terminal.winners),
         "loser_ids": list(executor.state.terminal.losers),
