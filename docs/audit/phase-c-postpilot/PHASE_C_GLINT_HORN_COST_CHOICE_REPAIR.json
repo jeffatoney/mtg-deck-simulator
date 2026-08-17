@@ -12,7 +12,7 @@
   "branch": "hardening/public-policy-noninterference",
   "classification": "BROKER_COST_CHOICE_REPAIR_CONFIRMED",
   "corrected_pilot_authorized": false,
-  "evidence_publication_commit": null,
+  "evidence_publication_commit": "8cde60fd0d691b0e825d2dc972aca8c81a2b085f",
   "executor_changed": false,
   "full_study_authorized": false,
   "hidden_information_noninterference": {

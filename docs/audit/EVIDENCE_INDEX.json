@@ -99,8 +99,8 @@
     {
       "kind": "glint_horn_cost_choice_repair_json",
       "path": "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.json",
-      "sha256": "8b9c8efd96462dd21e4c6cb44598e54261520e6966f1646ae7c2e76217eb6cb5",
-      "size_bytes": 18548
+      "sha256": "84ccaaed2219cf06112f5fd4235e7410691753b9469a4bc0c976a6482328dde8",
+      "size_bytes": 18586
     },
     {
       "kind": "glint_horn_cost_choice_raw_evidence_zip",
