@@ -51,15 +51,18 @@ def _glint_horn_activations(actions: tuple[ObservedAction, ...]) -> tuple[Observ
 def test_direct_executor_accepts_legal_glint_horn_loot_activation() -> None:
     state, executor, glint, discard = _arranged_state("glint-horn-direct-positive")
     assert discard is not None
+    before_action_count = len(state.actions)
 
-    action_id = executor.activate(
+    executor.activate(
         "P0",
         glint.object_id,
         ABILITY_ID,
         choices={"discard_ids": [discard.object_id]},
     )
 
-    action = next(record for record in state.actions if record.action_id == action_id)
+    assert len(state.actions) == before_action_count + 1
+    action = state.actions[-1]
+    action_id = action.action_id
     assert action.kind == "ACTIVATE"
     assert action.metadata["ability_id"] == ABILITY_ID
     assert action.payments["cost"]["GENERIC"] == 1
