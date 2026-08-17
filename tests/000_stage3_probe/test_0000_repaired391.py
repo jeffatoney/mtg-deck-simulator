@@ -43,19 +43,14 @@ def test_repaired_391_production_witness_probe() -> None:
         "fresh_replay": True,
         "action_count": len(steps),
         "glint_horn_activation_count": sum(
-            step["kind"] == "ACTIVATE"
-            and step["identity"] == probe.GLINT
-            for step in steps
+            step["kind"] == "ACTIVATE" and step["identity"] == probe.GLINT for step in steps
         ),
         "treasure_activation_count": sum(
-            step["kind"] == "ACTIVATE"
-            and step["identity"] == "Treasure"
-            for step in steps
+            step["kind"] == "ACTIVATE" and step["identity"] == "Treasure" for step in steps
         ),
         "steps": steps,
     }
     pytest.exit(
-        "STAGE3_REPAIRED391_WITNESS="
-        + json.dumps(payload, sort_keys=True, separators=(",", ":")),
+        "STAGE3_REPAIRED391_WITNESS=" + json.dumps(payload, sort_keys=True, separators=(",", ":")),
         returncode=1,
     )
