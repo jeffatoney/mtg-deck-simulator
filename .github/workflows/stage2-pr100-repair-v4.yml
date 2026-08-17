@@ -1,0 +1,89 @@
+name: PR100 Stage2 Repair V4
+on:
+  push:
+    branches: [automation/pr100-stage2-repair-v4-20260817]
+permissions:
+  contents: write
+env:
+  START_SHA: cbfbcd437a91f0c4481cba2173a8a6e8cd6553e8
+  TARGET_BRANCH: hardening/public-policy-noninterference
+  BUILT_BRANCH: automation/pr100-stage2-repair-built-20260817
+  V2_SHA: 3c0a5d581de7562ec5d30ea446ff7797d577f7f1
+jobs:
+  persist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.START_SHA }}
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: uv sync --frozen --all-extras
+      - name: Confirm target unchanged
+        run: |
+          git fetch origin "$TARGET_BRANCH"
+          test "$(git rev-parse origin/$TARGET_BRANCH)" = "$START_SHA"
+      - name: Reapply validated patch
+        run: |
+          git fetch origin automation/pr100-stage2-repair-v2-20260817
+          git show "$V2_SHA:.github/workflows/stage2-pr100-repair-v2.yml" > /tmp/v2.yml
+          python - <<'PY'
+          from pathlib import Path
+          from textwrap import dedent
+          text = Path('/tmp/v2.yml').read_text()
+          start = text.index('      - name: Apply narrow production repair and focused tests')
+          run_start = text.index('        run: |\n', start) + len('        run: |\n')
+          end = text.index('      - name: Validate focused repair', run_start)
+          Path('/tmp/apply-v2.sh').write_text(dedent(text[run_start:end]))
+          PY
+          bash /tmp/apply-v2.sh
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tests/phase_b/test_glint_horn_action_surface.py')
+          text = path.read_text()
+          old = '''    broker.execute(int(observation["generation"]), matches[0].handle)
+              assert state.actions[-1].kind == "ACTIVATE"
+              assert state.actions[-1].metadata["ability_id"] == ABILITY_ID
+          '''
+          new = '''    broker.execute(int(observation["generation"]), matches[0].handle)
+              activation = next(
+                  record
+                  for record in reversed(state.actions)
+                  if record.kind == "ACTIVATE" and record.metadata.get("ability_id") == ABILITY_ID
+              )
+              assert activation.metadata["ability_id"] == ABILITY_ID
+          '''
+          if text.count(old) != 1:
+              raise SystemExit('positive broker assertion anchor mismatch')
+          text = text.replace(old, new)
+          if text.count('    state.commands.clear()\n') != 1:
+              raise SystemExit('replay command anchor mismatch')
+          text = text.replace('    state.commands.clear()\n', '    state.replay_commands.clear()\n')
+          path.write_text(text)
+          PY
+          uv run ruff format tests/phase_b/test_glint_horn_action_surface.py
+      - name: Reconfirm focused validation
+        run: |
+          uv run ruff format --check --diff .
+          uv run ruff check .
+          uv run mypy src
+          uv run pytest -q tests/phase_b/test_glint_horn_action_surface.py -vv
+          uv run pytest -q tests/phase_b/test_policy_information_boundary.py
+          uv run python scripts/check_policy_information_boundary.py
+          uv run pytest -q tests/phase_b/test_policy_broker.py
+          uv run pytest -q tests/phase_b/transcripts/test_pb_t06_glint_curiosity.py
+      - name: Commit and persist repair
+        run: |
+          git fetch origin "$TARGET_BRANCH"
+          test "$(git rev-parse origin/$TARGET_BRANCH)" = "$START_SHA"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/mtg_policy/broker_core.py src/mtg_policy/public_actions.py tests/phase_b/test_glint_horn_action_surface.py tests/phase_b/test_policy_information_boundary.py
+          git commit -m "Repair battlefield activated cost choices"
+          echo "REPAIR_SHA=$(git rev-parse HEAD)"
+          echo "REPAIR_TREE=$(git rev-parse HEAD^{tree})"
+          git push --force origin "HEAD:refs/heads/$BUILT_BRANCH"
