@@ -78,18 +78,17 @@ def _facts(state: Any, snapshot: dict[str, Any]) -> dict[str, Any]:
             continue
         name = str(obj.current_characteristics.get("name", ""))
         status = obj.permanent_status or {}
-        battlefield.append(
-            {
-                "identity": name,
-                "controller": obj.controller,
-                "tap_status": status.get("tap"),
-                "attacking": obj.current_characteristics.get("attacking") is True,
-                "controller_since_turn": status.get("controller_since_turn"),
-                "keywords": sorted(
-                    str(value) for value in obj.current_characteristics.get("keywords", ())
-                ),
-            }
-        )
+        item = {
+            "identity": name,
+            "controller": obj.controller,
+            "tap_status": status.get("tap"),
+            "attacking": obj.current_characteristics.get("attacking") is True,
+            "controller_since_turn": status.get("controller_since_turn"),
+            "keywords": sorted(
+                str(value) for value in obj.current_characteristics.get("keywords", ())
+            ),
+        }
+        battlefield.append(item)
         if obj.controller == "P0" and status.get("tap") == "UNTAPPED":
             card_types = set(
                 str(value) for value in obj.current_characteristics.get("card_types", ())
@@ -171,7 +170,6 @@ def _menu(state: Any, seed_text: str, *, legacy: bool) -> dict[str, Any]:
         else policy.select_action(observation, actions)
     )
     selected = next(action for action in actions if action.handle == handle)
-    selected_view = policy_action_view(selected)
     classes: dict[str, dict[str, Any]] = {}
     for action in actions:
         view = policy_action_view(action)
@@ -185,6 +183,7 @@ def _menu(state: Any, seed_text: str, *, legacy: bool) -> dict[str, Any]:
                 "score_prefix": list(contract._substantive_prefix(policy, observation, action)),
             },
         )
+    selected_view = policy_action_view(selected)
     return {
         "class_count": len(classes),
         "classes": [classes[key] for key in sorted(classes)],
@@ -205,44 +204,13 @@ def test_stage3_final_state_extract() -> None:
         ("legacy-101", 101, True),
     ):
         state, seed_text, snapshot = _capture(label, seed, legacy=legacy)
-        witness, steps = contract._produce_witness(state, seed_text)
         positives[label] = {
             "state": _facts(state, snapshot),
             "menu": _menu(state, seed_text, legacy=legacy),
-            "witness": {
-                "terminal_status": witness.state.terminal.status,
-                "winners": list(witness.state.terminal.winners),
-                "losers": list(witness.state.terminal.losers),
-                "final_private_state_hash": state_hash(witness.state),
-                "steps": steps,
-            },
         }
-    negative = run_phase_c_game_execution(
-        seed=101,
-        mode="STANDARD",
-        through_turn=10,
-        validate_fresh_replay=True,
-        policy_actions=True,
-    )
     payload = {
         "schema_version": "pr100-stage3-final-state-extract-v1",
         "positive": positives,
-        "negative_repaired_101": {
-            "terminal_status": negative.technical_game.terminal_status,
-            "controlled_turns_completed": negative.technical_game.controlled_turns_completed,
-            "earliest_legal_turn": negative.technical_game.combo_earliest_legal_turn[
-                "malcolm_glint_horn"
-            ],
-            "checkpoint_legal_access": negative.technical_game.combo_checkpoint_access[
-                "malcolm_glint_horn"
-            ],
-            "checkpoint_table_win_access": dict(negative.measurement.checkpoint_table_win_access),
-            "actual_first_attempt_turn": negative.measurement.actual_first_attempt_turn,
-            "fresh_replay_equal": (
-                negative.technical_game.final_state_hash
-                == negative.technical_game.fresh_replay_state_hash
-            ),
-        },
     }
     pytest.exit(
         "STAGE3_FINAL_STATE_EXTRACT=" + json.dumps(payload, sort_keys=True, separators=(",", ":")),
