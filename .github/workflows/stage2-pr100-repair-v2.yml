@@ -1,0 +1,501 @@
+name: PR100 Stage2 Repair V2
+
+on:
+  push:
+    branches: [automation/pr100-stage2-repair-v2-20260817]
+
+permissions:
+  contents: write
+
+env:
+  START_SHA: cbfbcd437a91f0c4481cba2173a8a6e8cd6553e8
+  TARGET_BRANCH: hardening/public-policy-noninterference
+  BUILT_BRANCH: automation/pr100-stage2-repair-built-20260817
+
+jobs:
+  validate-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.START_SHA }}
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: uv sync --frozen --all-extras
+      - name: Confirm target unchanged
+        run: |
+          git fetch origin "$TARGET_BRANCH"
+          test "$(git rev-parse origin/$TARGET_BRANCH)" = "$START_SHA"
+      - name: Apply narrow production repair and focused tests
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          broker_path = Path("src/mtg_policy/broker_core.py")
+          broker = broker_path.read_text(encoding="utf-8")
+          anchor = '''    @staticmethod
+              def _ability_choice_variants(ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:
+                  return ActionBroker._effect_choice_variants(dict(ability.get("effect", {})))
+
+              @staticmethod
+              def _public_choice_metadata(choices: dict[str, Any]) -> dict[str, Any]:
+          '''
+          replacement = '''    @staticmethod
+              def _ability_choice_variants(ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:
+                  return ActionBroker._effect_choice_variants(dict(ability.get("effect", {})))
+
+              def _public_card_semantics(self, obj: GameObject) -> dict[str, Any]:
+                  """Return the same visible card facts used by strategic card selection."""
+                  return {
+                      "identity": str(obj.current_characteristics.get("name", "")),
+                      "mana_value": int(obj.current_characteristics.get("mana_value", 0)),
+                      "card_types": tuple(
+                          str(value)
+                          for value in obj.current_characteristics.get("card_types", ())
+                      ),
+                      "effect_kinds": tuple(self.executor._strategic_effect_kinds(obj)),
+                  }
+
+              @staticmethod
+              def _public_card_semantic_sort_key(semantics: dict[str, Any]) -> tuple[Any, ...]:
+                  return (
+                      str(semantics["identity"]),
+                      int(semantics["mana_value"]),
+                      tuple(str(value) for value in semantics["card_types"]),
+                      tuple(str(value) for value in semantics["effect_kinds"]),
+                  )
+
+              def _additional_cost_choice_variants(
+                  self, ability: dict[str, Any]
+              ) -> tuple[tuple[dict[str, Any], dict[str, Any]], ...]:
+                  """Bind explicit discard costs privately before the executor legality probe."""
+                  cost = dict(ability.get("cost", {}))
+                  discard_count = int(cost.get("discard", 0))
+                  if discard_count < 0:
+                      return ()
+                  if discard_count == 0:
+                      return (({}, {}),)
+
+                  hand_key = f"{Zone.HAND.value}:{self.player_id}"
+                  hand = tuple(self.executor.state.zones.get(hand_key, ()))
+                  candidates = [
+                      self.executor.state.objects[object_id]
+                      for object_id in hand
+                      if object_id in self.executor.state.objects
+                      and not self.executor.state.objects[object_id].retired
+                      and not self.executor.state.objects[object_id].ceased_to_exist
+                      and self.executor.state.objects[object_id].owner == self.player_id
+                      and self.executor.state.objects[object_id].zone is Zone.HAND
+                  ]
+                  if len(candidates) < discard_count:
+                      return ()
+
+                  variants: list[tuple[dict[str, Any], dict[str, Any]]] = []
+                  for selected in combinations(candidates, discard_count):
+                      public_cards = [self._public_card_semantics(card) for card in selected]
+                      public_cards.sort(key=self._public_card_semantic_sort_key)
+                      variants.append(
+                          (
+                              {"discard_ids": [card.object_id for card in selected]},
+                              {"discard_cards": public_cards},
+                          )
+                      )
+                  return tuple(variants)
+
+              @staticmethod
+              def _public_choice_metadata(choices: dict[str, Any]) -> dict[str, Any]:
+          '''
+          if broker.count(anchor) != 1:
+              raise SystemExit("broker helper anchor mismatch")
+          broker = broker.replace(anchor, replacement)
+
+          old = '''    def _candidate_activations(self) -> list[_InternalAction]:
+                  result: list[_InternalAction] = []
+                  for obj in self.executor.state.objects.values():
+                      if obj.retired or obj.zone is not Zone.BATTLEFIELD or obj.controller != self.player_id:
+                          continue
+                      for raw_ability in obj.current_characteristics.get("abilities", []):
+                          ability = dict(raw_ability)
+                          if ability.get("kind") != "ACTIVATED":
+                              continue
+                          if not effect_execution_supported(dict(ability.get("effect", {}))):
+                              continue
+                          schema = dict(ability.get("target_schema", {}))
+                          for targets in self._target_sets(self.player_id, schema):
+                              for choices in self._ability_choice_variants(ability):
+                                  arguments = {
+                                      "actor": self.player_id,
+                                      "source_id": obj.object_id,
+                                      "ability": str(ability["ability_id"]),
+                                      "targets": targets,
+                                      "choices": choices,
+                                  }
+                                  if not self._probe("activate", arguments):
+                                      continue
+                                  target_handles = self._public_target_handles(targets)
+                                  public = ObservedAction(
+                                      "",
+                                      "ACTIVATE",
+                                      str(obj.current_characteristics.get("name")),
+                                      0,
+                                      self._tags(obj, ability),
+                                      len(targets),
+                                      {
+                                          "ability_id": ability["ability_id"],
+                                          "target_handles": target_handles,
+                                          **self._public_choice_metadata(choices),
+                                      },
+                                  )
+                                  result.append(_InternalAction("activate", arguments, public))
+                  return result
+          '''
+          new = '''    def _candidate_activations(self) -> list[_InternalAction]:
+                  result: list[_InternalAction] = []
+                  for obj in self.executor.state.objects.values():
+                      if obj.retired or obj.zone is not Zone.BATTLEFIELD or obj.controller != self.player_id:
+                          continue
+                      for raw_ability in obj.current_characteristics.get("abilities", []):
+                          ability = dict(raw_ability)
+                          if ability.get("kind") != "ACTIVATED":
+                              continue
+                          if not effect_execution_supported(dict(ability.get("effect", {}))):
+                              continue
+                          schema = dict(ability.get("target_schema", {}))
+                          cost_variants = self._additional_cost_choice_variants(ability)
+                          for targets in self._target_sets(self.player_id, schema):
+                              for effect_choices in self._ability_choice_variants(ability):
+                                  for cost_choices, public_cost_metadata in cost_variants:
+                                      choices = {**effect_choices, **cost_choices}
+                                      arguments = {
+                                          "actor": self.player_id,
+                                          "source_id": obj.object_id,
+                                          "ability": str(ability["ability_id"]),
+                                          "targets": targets,
+                                          "choices": choices,
+                                      }
+                                      if not self._probe("activate", arguments):
+                                          continue
+                                      target_handles = self._public_target_handles(targets)
+                                      public = ObservedAction(
+                                          "",
+                                          "ACTIVATE",
+                                          str(obj.current_characteristics.get("name")),
+                                          0,
+                                          self._tags(obj, ability),
+                                          len(targets),
+                                          {
+                                              "ability_id": ability["ability_id"],
+                                              "target_handles": target_handles,
+                                              **self._public_choice_metadata(effect_choices),
+                                              **public_cost_metadata,
+                                          },
+                                      )
+                                      result.append(_InternalAction("activate", arguments, public))
+                  return result
+          '''
+          if broker.count(old) != 1:
+              raise SystemExit("activation anchor mismatch")
+          broker_path.write_text(broker.replace(old, new), encoding="utf-8")
+
+          public_path = Path("src/mtg_policy/public_actions.py")
+          public = public_path.read_text(encoding="utf-8")
+          private_anchor = '        "card_instance_ids",\n'
+          if public.count(private_anchor) != 1:
+              raise SystemExit("private metadata anchor mismatch")
+          public_path.write_text(
+              public.replace(private_anchor, private_anchor + '        "discard_ids",\n'),
+              encoding="utf-8",
+          )
+
+          test_path = Path("tests/phase_b/test_glint_horn_action_surface.py")
+          test = test_path.read_text(encoding="utf-8")
+          fixture_old = '''    state.turn.phase = "COMBAT"
+              state.turn.step = "DECLARE_ATTACKERS"
+              state.turn.priority_holder_id = "P0" if has_priority else "P1"
+
+              glint = add_card(executor, specs[GLINT_HORN], Zone.BATTLEFIELD)
+              glint.current_characteristics["attacking"] = attacking
+              discard = add_card(executor, specs["Opt"], Zone.HAND) if discardable_card else None
+              return state, executor, glint, discard
+          '''
+          fixture_new = '''    state.turn.phase = "COMBAT"
+              state.turn.step = "DECLARE_ATTACKERS"
+              state.turn.priority_holder_id = "P0"
+
+              glint = add_card(executor, specs[GLINT_HORN], Zone.BATTLEFIELD)
+              if attacking:
+                  executor.declare_attackers("P0", {glint.object_id: "P1"})
+              else:
+                  glint.current_characteristics["attacking"] = False
+              state.turn.priority_holder_id = "P0" if has_priority else "P1"
+              discard = add_card(executor, specs["Opt"], Zone.HAND) if discardable_card else None
+              return state, executor, glint, discard
+          '''
+          if test.count(fixture_old) != 1:
+              raise SystemExit("fixture anchor mismatch")
+          test = test.replace(fixture_old, fixture_new)
+          test = test.replace(
+              "import pytest\n",
+              "import json\nfrom pathlib import Path\n\nimport pytest\n",
+              1,
+          )
+          test = test.replace(
+              "from mtg_kernel.errors import IllegalAction\n",
+              "from mtg_cards.full_deck import load_full_deck_specs\n"
+              "from mtg_kernel.errors import IllegalAction\n"
+              "from mtg_kernel.hashing import state_hash\n"
+              "from mtg_kernel.replay import transcript, validate_replay\n",
+              1,
+          )
+          test = test.replace(
+              "from mtg_policy.broker import ActionBroker, ObservedAction\n",
+              "from mtg_policy import StandardPolicy, load_policy_matrix\n"
+              "from mtg_policy.broker import ActionBroker, ObservedAction\n"
+              "from mtg_policy.public_actions import (\n"
+              "    policy_action_view,\n"
+              "    public_action_classes,\n"
+              "    resolve_selected_action_handle,\n"
+              ")\n"
+              "from mtg_runs import replay_in_fresh_process\n",
+              1,
+          )
+          test = test.replace(
+              'GLINT_HORN = "Glint-Horn Buccaneer"\n',
+              'GLINT_HORN = "Glint-Horn Buccaneer"\nROOT = Path(__file__).resolve().parents[2]\n',
+              1,
+          )
+          appended = r'''
+
+          def _spec(name: str):
+              return next(spec for spec in load_full_deck_specs().values() if spec.name == name)
+
+
+          def _standard_policy() -> StandardPolicy:
+              bundle = next(
+                  item for item in load_policy_matrix() if item.policy_config_id == "anchor_balanced"
+              )
+              return StandardPolicy(bundle, opponent_interaction_modeled=True)
+
+
+          def _surface_with_discards(
+              seed: str,
+              discard_names: tuple[str, ...],
+              *,
+              hidden_library: tuple[str, ...] = (),
+          ):
+              state, executor, _, _ = _arranged_state(seed, discardable_card=False)
+              discards = [add_card(executor, _spec(name), Zone.HAND) for name in discard_names]
+              for name in hidden_library:
+                  add_card(executor, _spec(name), Zone.LIBRARY, visible_to=set())
+              broker = ActionBroker(executor, "P0")
+              observation, actions = broker.refresh()
+              return state, executor, broker, observation, actions, discards
+
+
+          def test_broker_single_discard_choice_is_private_and_replay_exact() -> None:
+              seed = "glint-horn-single-discard-replay"
+              state, executor, _, discard = _arranged_state(seed)
+              assert discard is not None
+              state.commands.clear()
+              state.replay_initial_state = state.audit_dict()
+              broker = ActionBroker(executor, "P0")
+              observation, actions = broker.refresh()
+              matches = _glint_horn_activations(actions)
+              assert len(matches) == 1
+              selected = matches[0]
+
+              encoded = json.dumps(selected.metadata, sort_keys=True)
+              assert "discard_ids" not in encoded
+              assert discard.object_id not in encoded
+              assert discard.component_card_instance_ids[0] not in encoded
+              public_card = selected.metadata["discard_cards"][0]
+              assert public_card["identity"] == "Opt"
+              assert set(public_card) == {"identity", "mana_value", "card_types", "effect_kinds"}
+
+              broker.execute(int(observation["generation"]), selected.handle)
+              assert any(
+                  change.from_object_id == discard.object_id
+                  and change.from_zone is Zone.HAND
+                  and change.to_zone is Zone.GRAVEYARD
+                  for change in state.zone_changes
+              )
+
+              recorded = transcript(state, seed=seed)
+              same_process = validate_replay(recorded)
+              assert state_hash(same_process) == state_hash(state)
+              fresh = replay_in_fresh_process(recorded, cwd=ROOT)
+              assert fresh.state_hash == state_hash(state)
+
+
+          def test_multiple_public_discard_semantics_do_not_depend_on_private_enumeration() -> None:
+              first = _surface_with_discards(
+                  "glint-horn-multiple-semantic-order", ("Opt", "Mountain")
+              )
+              second = _surface_with_discards(
+                  "glint-horn-multiple-semantic-order", ("Mountain", "Opt")
+              )
+              _, _, broker_a, observation_a, actions_a, discards_a = first
+              _, _, _, observation_b, actions_b, _ = second
+              matches_a = _glint_horn_activations(actions_a)
+              matches_b = _glint_horn_activations(actions_b)
+              assert len(matches_a) == len(matches_b) == 2
+              assert {
+                  action.metadata["discard_cards"][0]["identity"] for action in matches_a
+              } == {"Mountain", "Opt"}
+              assert {policy_action_view(action).key for action in matches_a} == {
+                  policy_action_view(action).key for action in matches_b
+              }
+
+              policy = _standard_policy()
+              assert policy.select_public_action_key(
+                  observation_a, actions_a
+              ) == policy.select_public_action_key(observation_b, tuple(reversed(actions_b)))
+
+              mountain_action = next(
+                  action
+                  for action in matches_a
+                  if action.metadata["discard_cards"][0]["identity"] == "Mountain"
+              )
+              opt, mountain = discards_a
+              broker_a.execute(int(observation_a["generation"]), mountain_action.handle)
+              assert any(
+                  change.from_object_id == mountain.object_id
+                  and change.to_zone is Zone.GRAVEYARD
+                  for change in broker_a.executor.state.zone_changes
+              )
+              assert not any(
+                  change.from_object_id == opt.object_id
+                  for change in broker_a.executor.state.zone_changes
+              )
+
+
+          def test_equivalent_duplicate_discards_collapse_before_private_resolution() -> None:
+              _, _, _, _, actions, _ = _surface_with_discards(
+                  "glint-horn-duplicate-equivalence", ("Opt", "Opt")
+              )
+              matches = _glint_horn_activations(actions)
+              assert len(matches) == 2
+              assert policy_action_view(matches[0]).key == policy_action_view(matches[1]).key
+              classes = public_action_classes(matches)
+              assert len(classes) == 1
+              assert classes[0].representative_count == 2
+              resolved_handle = resolve_selected_action_handle(matches, classes[0].key)
+              assert resolved_handle in {action.handle for action in matches}
+
+
+          def test_hidden_only_mutation_preserves_public_classes_and_selected_key() -> None:
+              first = _surface_with_discards(
+                  "glint-horn-hidden-only",
+                  ("Opt", "Mountain"),
+                  hidden_library=("Twinflame", "Curiosity"),
+              )
+              second = _surface_with_discards(
+                  "glint-horn-hidden-only",
+                  ("Opt", "Mountain"),
+                  hidden_library=("Curiosity", "Twinflame"),
+              )
+              _, _, _, observation_a, actions_a, discards_a = first
+              _, _, _, observation_b, actions_b, discards_b = second
+              encoded = json.dumps(
+                  [action.metadata for action in (*actions_a, *actions_b)], sort_keys=True
+              )
+              private_ids = {
+                  value
+                  for card in (*discards_a, *discards_b)
+                  for value in (card.object_id, card.component_card_instance_ids[0])
+              }
+              assert "discard_ids" not in encoded
+              assert all(private_id not in encoded for private_id in private_ids)
+              assert {item.key for item in public_action_classes(actions_a)} == {
+                  item.key for item in public_action_classes(actions_b)
+              }
+              policy = _standard_policy()
+              assert policy.select_public_action_key(
+                  observation_a, actions_a
+              ) == policy.select_public_action_key(observation_b, tuple(reversed(actions_b)))
+          '''
+          test_path.write_text(test + appended.replace("          ", ""), encoding="utf-8")
+
+          boundary_path = Path("tests/phase_b/test_policy_information_boundary.py")
+          boundary = boundary_path.read_text(encoding="utf-8")
+          old_boundary = '''def test_public_action_key_rejects_private_execution_identity() -> None:
+              from mtg_policy.broker_core import ObservedAction
+
+              action = ObservedAction(
+                  "opaque-capability",
+                  "CAST",
+                  "Opt",
+                  1,
+                  ("Instant",),
+                  0,
+                  {"source_object_id": "private-object"},
+              )
+              try:
+                  policy_action_view(action)
+              except ValueError as exc:
+                  assert "private field" in str(exc)
+              else:
+                  raise AssertionError("private object identity entered the public action key")
+          '''
+          new_boundary = '''def test_public_action_key_rejects_private_execution_identity() -> None:
+              from mtg_policy.broker_core import ObservedAction
+
+              for metadata in (
+                  {"source_object_id": "private-object"},
+                  {"discard_ids": ["private-discard-object"]},
+              ):
+                  action = ObservedAction(
+                      "opaque-capability",
+                      "CAST",
+                      "Opt",
+                      1,
+                      ("Instant",),
+                      0,
+                      metadata,
+                  )
+                  try:
+                      policy_action_view(action)
+                  except ValueError as exc:
+                      assert "private field" in str(exc)
+                  else:
+                      raise AssertionError("private execution identity entered the public action key")
+          '''
+          if boundary.count(old_boundary) != 1:
+              raise SystemExit("boundary anchor mismatch")
+          boundary_path.write_text(boundary.replace(old_boundary, new_boundary), encoding="utf-8")
+          PY
+          uv run ruff format src/mtg_policy/broker_core.py src/mtg_policy/public_actions.py tests/phase_b/test_glint_horn_action_surface.py tests/phase_b/test_policy_information_boundary.py
+      - name: Validate focused repair
+        run: |
+          uv run ruff format --check --diff .
+          uv run ruff check .
+          uv run mypy src
+          uv run pytest -q tests/phase_b/test_glint_horn_action_surface.py -vv
+          uv run pytest -q tests/phase_b/test_policy_information_boundary.py
+          uv run python scripts/check_policy_information_boundary.py
+          uv run pytest -q tests/phase_b/test_policy_broker.py
+          uv run pytest -q tests/phase_b/transcripts/test_pb_t06_glint_curiosity.py
+      - name: Verify repair-only diff
+        run: |
+          actual="$(git diff --name-only | sort)"
+          expected="$(printf '%s\n' src/mtg_policy/broker_core.py src/mtg_policy/public_actions.py tests/phase_b/test_glint_horn_action_surface.py tests/phase_b/test_policy_information_boundary.py | sort)"
+          printf '%s\n' "$actual"
+          test "$actual" = "$expected"
+      - name: Build clean repair commit on temporary branch
+        run: |
+          git fetch origin "$TARGET_BRANCH"
+          test "$(git rev-parse origin/$TARGET_BRANCH)" = "$START_SHA"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/mtg_policy/broker_core.py src/mtg_policy/public_actions.py tests/phase_b/test_glint_horn_action_surface.py tests/phase_b/test_policy_information_boundary.py
+          git commit -m "Repair battlefield activated cost choices"
+          echo "REPAIR_SHA=$(git rev-parse HEAD)"
+          echo "REPAIR_TREE=$(git rev-parse HEAD^{tree})"
+          git show --stat --oneline HEAD
+          git push --force origin "HEAD:$BUILT_BRANCH"
