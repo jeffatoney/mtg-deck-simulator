@@ -8,7 +8,9 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[2]
-ARCHIVE = ROOT / "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip"
+ARCHIVE = (
+    ROOT / "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip"
+)
 EXPECTED_ARCHIVE_SHA256 = "5f1706e2a9f1ef906938f6eef972c0f7258226f5b2e5dcb0ed008febb62eb996"
 
 
