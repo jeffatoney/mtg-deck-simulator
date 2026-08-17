@@ -91,7 +91,9 @@ def _facts(state: Any, snapshot: dict[str, Any]) -> dict[str, Any]:
             }
         )
         if obj.controller == "P0" and status.get("tap") == "UNTAPPED":
-            card_types = set(str(value) for value in obj.current_characteristics.get("card_types", ()))
+            card_types = set(
+                str(value) for value in obj.current_characteristics.get("card_types", ())
+            )
             mana_ability = any(
                 isinstance(ability, dict) and bool(ability.get("mana_ability"))
                 for ability in obj.current_characteristics.get("abilities", ())
@@ -115,7 +117,9 @@ def _facts(state: Any, snapshot: dict[str, Any]) -> dict[str, Any]:
                 "source_identity": (
                     str(source.current_characteristics.get("name", "")) if source else None
                 ),
-                "ability_id": raw_ability.get("ability_id") if isinstance(raw_ability, dict) else None,
+                "ability_id": raw_ability.get("ability_id")
+                if isinstance(raw_ability, dict)
+                else None,
             }
         )
     glint = next(
@@ -141,8 +145,7 @@ def _facts(state: Any, snapshot: dict[str, Any]) -> dict[str, Any]:
         "p0_mana_pool": {key: int(value) for key, value in state.players["P0"].mana_pool.items()},
         "p0_untapped_mana_sources": sorted(untapped_mana_sources),
         "p0_treasure_count": sum(
-            item["controller"] == "P0" and item["identity"] == "Treasure"
-            for item in battlefield
+            item["controller"] == "P0" and item["identity"] == "Treasure" for item in battlefield
         ),
         "p0_library_size": len(state.zones.get(library_key, ())),
         "opponent_life_totals": {
@@ -233,9 +236,7 @@ def test_stage3_final_state_extract() -> None:
             "checkpoint_legal_access": negative.technical_game.combo_checkpoint_access[
                 "malcolm_glint_horn"
             ],
-            "checkpoint_table_win_access": dict(
-                negative.measurement.checkpoint_table_win_access
-            ),
+            "checkpoint_table_win_access": dict(negative.measurement.checkpoint_table_win_access),
             "actual_first_attempt_turn": negative.measurement.actual_first_attempt_turn,
             "fresh_replay_equal": (
                 negative.technical_game.final_state_hash
@@ -244,7 +245,6 @@ def test_stage3_final_state_extract() -> None:
         },
     }
     pytest.exit(
-        "STAGE3_FINAL_STATE_EXTRACT="
-        + json.dumps(payload, sort_keys=True, separators=(",", ":")),
+        "STAGE3_FINAL_STATE_EXTRACT=" + json.dumps(payload, sort_keys=True, separators=(",", ":")),
         returncode=1,
     )
