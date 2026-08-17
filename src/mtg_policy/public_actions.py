@@ -16,6 +16,7 @@ _PRIVATE_METADATA_KEYS = frozenset(
         "broker_arguments",
         "card_instance_id",
         "card_instance_ids",
+        "discard_ids",
         "full_state_hash",
         "hidden_library_order",
         "hidden_rng_state",

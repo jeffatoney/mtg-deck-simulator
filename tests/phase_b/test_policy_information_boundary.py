@@ -140,21 +140,25 @@ def test_identical_public_representatives_are_execution_equivalent_for_supported
 def test_public_action_key_rejects_private_execution_identity() -> None:
     from mtg_policy.broker_core import ObservedAction
 
-    action = ObservedAction(
-        "opaque-capability",
-        "CAST",
-        "Opt",
-        1,
-        ("Instant",),
-        0,
+    for metadata in (
         {"source_object_id": "private-object"},
-    )
-    try:
-        policy_action_view(action)
-    except ValueError as exc:
-        assert "private field" in str(exc)
-    else:
-        raise AssertionError("private object identity entered the public action key")
+        {"discard_ids": ["private-discard-object"]},
+    ):
+        action = ObservedAction(
+            "opaque-capability",
+            "CAST",
+            "Opt",
+            1,
+            ("Instant",),
+            0,
+            metadata,
+        )
+        try:
+            policy_action_view(action)
+        except ValueError as exc:
+            assert "private field" in str(exc)
+        else:
+            raise AssertionError("private execution identity entered the public action key")
 
 
 def test_standing_policy_information_boundary_gate_passes_and_rejects_bad_patterns() -> None:
