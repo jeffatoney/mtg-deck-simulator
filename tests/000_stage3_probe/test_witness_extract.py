@@ -41,7 +41,6 @@ def test_stage3_witness_extract() -> None:
             "steps": steps,
         }
     pytest.exit(
-        "STAGE3_WITNESS_EXTRACT="
-        + json.dumps(result, sort_keys=True, separators=(",", ":")),
+        "STAGE3_WITNESS_EXTRACT=" + json.dumps(result, sort_keys=True, separators=(",", ":")),
         returncode=1,
     )
