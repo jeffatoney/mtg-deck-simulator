@@ -342,9 +342,7 @@ def test_zip_member_identity_mismatch_fails_even_when_archive_hash_is_refreshed(
     index_path = tmp_path / "docs/audit/EVIDENCE_INDEX.json"
     index = json.loads(index_path.read_text(encoding="utf-8"))
     raw_entry = next(item for item in index["artifacts"] if item["kind"] == "raw_evidence_zip")
-    member_entry = next(
-        item for item in raw_entry["members"] if item["name"] == "legacy-101.json"
-    )
+    member_entry = next(item for item in raw_entry["members"] if item["name"] == "legacy-101.json")
     member_entry["size_bytes"] = len(members["legacy-101.json"])
     member_entry["sha256"] = hashlib.sha256(members["legacy-101.json"]).hexdigest()
     index_path.write_text(json.dumps(index), encoding="utf-8")

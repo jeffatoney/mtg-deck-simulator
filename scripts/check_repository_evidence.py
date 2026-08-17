@@ -157,8 +157,7 @@ def _trajectory_projection(
         if (
             first_same_key_different_handle is None
             and same_key
-            and legacy_action["internal_opaque_handle"]
-            != repaired_action["internal_opaque_handle"]
+            and legacy_action["internal_opaque_handle"] != repaired_action["internal_opaque_handle"]
         ):
             first_same_key_different_handle = index
 
@@ -325,9 +324,7 @@ def _validate_forbidden_scaffolding(root: Path) -> None:
             if path.is_file()
         )
         if files:
-            raise EvidenceError(
-                "temporary diagnostic files remain committed: " + ", ".join(files)
-            )
+            raise EvidenceError("temporary diagnostic files remain committed: " + ", ".join(files))
 
     for path in root.rglob("*"):
         if not path.is_file():
@@ -338,7 +335,9 @@ def _validate_forbidden_scaffolding(root: Path) -> None:
             or PR_SCRIPT_RE.match(relative)
             or relative in EXPLICIT_TEMP_WORKFLOWS
         ):
-            raise EvidenceError(f"temporary PR-scoped investigation scaffolding remains: {relative}")
+            raise EvidenceError(
+                f"temporary PR-scoped investigation scaffolding remains: {relative}"
+            )
 
 
 def validate_repository(root: Path) -> None:
