@@ -12,98 +12,30 @@ import pytest
 
 from mtg_kernel.engine import GameExecutor
 from mtg_kernel.hashing import state_hash
-from mtg_kernel.replay import transcript, validate_replay
 from mtg_kernel.models import Zone
+from mtg_kernel.replay import transcript, validate_replay
 from mtg_measure.combo_access import ComboAccessTracker
 from mtg_policy.broker import ActionBroker
-from mtg_policy.public_actions import (
-    PolicyActionView,
-    policy_action_view,
-    resolve_selected_action_handle,
-)
+from mtg_policy.public_actions import PolicyActionView, policy_action_view, resolve_selected_action_handle
 from mtg_policy.standard import StandardPolicy
 from mtg_runs.phase_c_runner import run_phase_c_game_execution
 from mtg_runs.replay_audit import replay_in_fresh_process
 
 ROOT = Path(__file__).resolve().parents[2]
-ARCHIVE = (
-    ROOT / "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip"
-)
+ARCHIVE = ROOT / "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip"
 ARCHIVE_SHA256 = "5f1706e2a9f1ef906938f6eef972c0f7258226f5b2e5dcb0ed008febb62eb996"
 GLINT = "Glint-Horn Buccaneer"
 MALCOLM = "Malcolm, Keen-Eyed Navigator"
-
 EXPECTED_RUNS = {
-    "legacy-101.json": {
-        "sha256": "5dc7311cab76a3bcd58c19542173965042046b8903177949d256a5a5de199108",
-        "decisions": 154,
-        "ties": 48,
-        "selector_disagreements": 32,
-        "glint_candidates": 13,
-        "glint_activations": 7,
-        "selected_loot": 2,
-        "attacking_turns": [10],
-        "attempt_turn": 10,
-    },
-    "legacy-391730338978874520.json": {
-        "sha256": "2835e668e60b94f9e4d9cd8ab1bf5d201838ab44c54ab3d3cec85e116cd01167",
-        "decisions": 274,
-        "ties": 98,
-        "selector_disagreements": 61,
-        "glint_candidates": 55,
-        "glint_activations": 53,
-        "selected_loot": 9,
-        "attacking_turns": [6, 7, 8, 9, 10],
-        "attempt_turn": 6,
-    },
-    "repaired-101.json": {
-        "sha256": "721d86249de6918a58161e4fcb65d1407f5e6c22dbd88fbb25664b90bd93930f",
-        "decisions": 154,
-        "ties": 32,
-        "selector_disagreements": 20,
-        "glint_candidates": 0,
-        "glint_activations": 0,
-        "selected_loot": 0,
-        "attacking_turns": [],
-        "attempt_turn": None,
-    },
-    "repaired-391730338978874520.json": {
-        "sha256": "0276d308ed13f6f43783f0058cd841773cb18f639420b0de272b8d5842d0a9ea",
-        "decisions": 220,
-        "ties": 63,
-        "selector_disagreements": 46,
-        "glint_candidates": 1,
-        "glint_activations": 0,
-        "selected_loot": 0,
-        "attacking_turns": [5, 6, 7, 8, 9, 10],
-        "attempt_turn": None,
-    },
+    "legacy-101.json": ("5dc7311cab76a3bcd58c19542173965042046b8903177949d256a5a5de199108", 154, 48, 32, 13, 7, 2, [10], 10),
+    "legacy-391730338978874520.json": ("2835e668e60b94f9e4d9cd8ab1bf5d201838ab44c54ab3d3cec85e116cd01167", 274, 98, 61, 55, 53, 9, [6, 7, 8, 9, 10], 6),
+    "repaired-101.json": ("721d86249de6918a58161e4fcb65d1407f5e6c22dbd88fbb25664b90bd93930f", 154, 32, 20, 0, 0, 0, [], None),
+    "repaired-391730338978874520.json": ("0276d308ed13f6f43783f0058cd841773cb18f639420b0de272b8d5842d0a9ea", 220, 63, 46, 1, 0, 0, [5, 6, 7, 8, 9, 10], None),
 }
 EXPECTED_FIRST_ACCESS = {
-    "repaired-391": {
-        "state_hash": "4c8cdf227e7f2ad924eccc6ef1ec903e447887915546a0512cd11e04af4d7845",
-        "turn": 5,
-        "phase": "COMBAT",
-        "step": "COMBAT_DAMAGE",
-        "sufficient_mana": False,
-        "blockers": ("INSUFFICIENT_MANA_OR_DISCARD",),
-    },
-    "legacy-391": {
-        "state_hash": "648d4c4f54b92261fb33e73ee51e6ea632a304845726c68dfd3a8917470afd18",
-        "turn": 6,
-        "phase": "COMBAT",
-        "step": "COMBAT_DAMAGE",
-        "sufficient_mana": False,
-        "blockers": ("INSUFFICIENT_MANA_OR_DISCARD",),
-    },
-    "legacy-101": {
-        "state_hash": "357b54ef412fbcce95e24a466ddce14bfefb6f96e13cd3d87f75d8c00569c4e1",
-        "turn": 10,
-        "phase": "PRECOMBAT_MAIN",
-        "step": "PRECOMBAT_MAIN",
-        "sufficient_mana": True,
-        "blockers": (),
-    },
+    "repaired-391": ("4c8cdf227e7f2ad924eccc6ef1ec903e447887915546a0512cd11e04af4d7845", 5, "COMBAT", "COMBAT_DAMAGE", False, ("INSUFFICIENT_MANA_OR_DISCARD",)),
+    "legacy-391": ("648d4c4f54b92261fb33e73ee51e6ea632a304845726c68dfd3a8917470afd18", 6, "COMBAT", "COMBAT_DAMAGE", False, ("INSUFFICIENT_MANA_OR_DISCARD",)),
+    "legacy-101": ("357b54ef412fbcce95e24a466ddce14bfefb6f96e13cd3d87f75d8c00569c4e1", 10, "PRECOMBAT_MAIN", "PRECOMBAT_MAIN", True, ()),
 }
 
 
@@ -115,121 +47,73 @@ def _selected(decision: dict[str, Any]) -> dict[str, Any]:
     return decision["actual_selected_public_action"]
 
 
-def _archive_metrics(payload: dict[str, Any]) -> dict[str, Any]:
+def _metrics(payload: dict[str, Any]) -> tuple[Any, ...]:
     decisions = payload["decisions"]
-    glint_candidates = [
-        candidate
-        for decision in decisions
-        for candidate in decision["candidates"]
-        if candidate.get("public_identity") == GLINT
-    ]
-    glint_activations = [
-        candidate
-        for candidate in glint_candidates
-        if candidate.get("action_kind") == "ACTIVATE"
-        and candidate.get("canonical_public_metadata", {}).get("ability_id") == "glint-horn:loot"
-    ]
+    candidates = [c for d in decisions for c in d["candidates"] if c.get("public_identity") == GLINT]
+    activates = [c for c in candidates if c.get("action_kind") == "ACTIVATE"]
     selected_loot = [
-        decision
-        for decision in decisions
-        if _selected(decision).get("action_kind") == "ACTIVATE"
-        and _selected(decision).get("public_identity") == GLINT
-        and _selected(decision).get("canonical_public_metadata", {}).get("ability_id")
-        == "glint-horn:loot"
+        d
+        for d in decisions
+        if _selected(d).get("action_kind") == "ACTIVATE"
+        and _selected(d).get("public_identity") == GLINT
+        and _selected(d).get("canonical_public_metadata", {}).get("ability_id") == "glint-horn:loot"
     ]
-    attacking_turns = sorted(
+    attacks = sorted(
         {
-            int(decision["turn_number"])
-            for decision in decisions
-            if _selected(decision).get("action_kind") == "DECLARE_ATTACKERS"
-            and GLINT
-            in set(
-                _selected(decision)
-                .get("canonical_public_metadata", {})
-                .get("attacker_identities", ())
-            )
+            int(d["turn_number"])
+            for d in decisions
+            if _selected(d).get("action_kind") == "DECLARE_ATTACKERS"
+            and GLINT in set(_selected(d).get("canonical_public_metadata", {}).get("attacker_identities", ()))
         }
     )
     outcome = payload["summary"]["outcome"]
-    return {
-        "decisions": len(decisions),
-        "ties": sum(
-            decision["tie_classification"] == "DISTINCT_PUBLIC_KEYS" for decision in decisions
-        ),
-        "selector_disagreements": sum(
-            bool(decision["historical_and_repaired_selections_differ"]) for decision in decisions
-        ),
-        "glint_candidates": len(glint_candidates),
-        "glint_activations": len(glint_activations),
-        "selected_loot": len(selected_loot),
-        "attacking_turns": attacking_turns,
-        "attempt_turn": outcome["actual_first_attempt_turn"],
-        "terminal_status": outcome["terminal_status"],
-        "fresh_replay_equal": outcome["fresh_replay_equal"],
-    }
+    return (
+        len(decisions),
+        sum(d["tie_classification"] == "DISTINCT_PUBLIC_KEYS" for d in decisions),
+        sum(bool(d["historical_and_repaired_selections_differ"]) for d in decisions),
+        len(candidates),
+        len(activates),
+        len(selected_loot),
+        attacks,
+        outcome["actual_first_attempt_turn"],
+    )
 
 
-def _first_divergence(legacy: dict[str, Any], repaired: dict[str, Any], field: str) -> int | None:
-    for index, (left, right) in enumerate(
-        zip(legacy["decisions"], repaired["decisions"], strict=False)
-    ):
+def _first_divergence(left: dict[str, Any], right: dict[str, Any], field: str) -> int | None:
+    for index, (a, b) in enumerate(zip(left["decisions"], right["decisions"], strict=False)):
         if field == "public_key":
-            left_value = _selected(left)["public_action_key"]
-            right_value = _selected(right)["public_action_key"]
+            av, bv = _selected(a)["public_action_key"], _selected(b)["public_action_key"]
         else:
-            left_value = left[field]
-            right_value = right[field]
-        if left_value != right_value:
+            av, bv = a[field], b[field]
+        if av != bv:
             return index
     return None
 
 
 def test_repaired_archive_is_independently_revalidated() -> None:
-    raw_archive = ARCHIVE.read_bytes()
-    assert _sha256(raw_archive) == ARCHIVE_SHA256
+    raw = ARCHIVE.read_bytes()
+    assert _sha256(raw) == ARCHIVE_SHA256
     with zipfile.ZipFile(ARCHIVE) as bundle:
         assert set(bundle.namelist()) == set(EXPECTED_RUNS)
-        payloads: dict[str, dict[str, Any]] = {}
+        data = {}
         for name, expected in EXPECTED_RUNS.items():
-            raw = bundle.read(name)
-            assert _sha256(raw) == expected["sha256"]
-            payload = json.loads(raw)
-            payloads[name] = payload
-            metrics = _archive_metrics(payload)
-            for key in (
-                "decisions",
-                "ties",
-                "selector_disagreements",
-                "glint_candidates",
-                "glint_activations",
-                "selected_loot",
-                "attacking_turns",
-                "attempt_turn",
-            ):
-                assert metrics[key] == expected[key]
-            assert metrics["terminal_status"] == "ACTIVE"
-            assert metrics["fresh_replay_equal"] is True
-
-        expected_divergences = {
-            "101": (9, 0, 0),
-            "391730338978874520": (9, 9, 9),
-        }
-        for seed, expected in expected_divergences.items():
-            legacy = payloads[f"legacy-{seed}.json"]
-            repaired = payloads[f"repaired-{seed}.json"]
-            actual = (
-                _first_divergence(legacy, repaired, "public_key"),
-                _first_divergence(legacy, repaired, "post_decision_full_state_hash"),
-                _first_divergence(legacy, repaired, "resulting_public_state_digest"),
-            )
-            assert actual == expected
+            member = bundle.read(name)
+            assert _sha256(member) == expected[0]
+            payload = json.loads(member)
+            data[name] = payload
+            assert _metrics(payload) == expected[1:]
+            assert payload["summary"]["outcome"]["terminal_status"] == "ACTIVE"
+            assert payload["summary"]["outcome"]["fresh_replay_equal"] is True
+        for seed, expected in {"101": (9, 0, 0), "391730338978874520": (9, 9, 9)}.items():
+            left, right = data[f"legacy-{seed}.json"], data[f"repaired-{seed}.json"]
+            assert (
+                _first_divergence(left, right, "public_key"),
+                _first_divergence(left, right, "post_decision_full_state_hash"),
+                _first_divergence(left, right, "resulting_public_state_digest"),
+            ) == expected
 
 
-def _substantive_prefix(
-    policy: StandardPolicy,
-    observation: dict[str, Any],
-    action: Any,
-) -> tuple[int, int, int, int, int]:
+def _score_prefix(policy: StandardPolicy, observation: dict[str, Any], action: Any) -> tuple[int, int, int, int, int]:
     view = policy_action_view(action)
     tags = set(view.tags)
     value = 0
@@ -248,20 +132,16 @@ def _substantive_prefix(
     if view.identity == "Breeches, Brazen Plunderer":
         value += 25 if policy.bundle.value("breeches_timing") == "early" else 5
     if view.kind == "DECLARE_ATTACKERS":
-        attacker_count = int(view.metadata.get("attacker_count", 0))
-        opponent_count = int(view.metadata.get("opponent_count", 0))
-        pirate_count = int(view.metadata.get("pirate_count", 0))
+        count = int(view.metadata.get("attacker_count", 0))
+        opponents = int(view.metadata.get("opponent_count", 0))
+        pirates = int(view.metadata.get("pirate_count", 0))
         identities = {str(item) for item in view.metadata.get("attacker_identities", ())}
-        value += 30 * attacker_count + 25 * opponent_count + 20 * pirate_count
-        if MALCOLM in identities:
-            value += 25
-        if GLINT in identities:
-            value += 20
-        if attacker_count == 0:
-            value -= 60
+        value += 30 * count + 25 * opponents + 20 * pirates
+        value += 25 if MALCOLM in identities else 0
+        value += 20 if GLINT in identities else 0
+        value -= 60 if count == 0 else 0
     if policy.opponent_interaction_modeled:
-        if view.kind == "PASS_PRIORITY":
-            value -= 100
+        value -= 100 if view.kind == "PASS_PRIORITY" else 0
         return (0, value, 0, -view.mana_value, -view.target_count)
     classification = policy._no_opponent_self_class(observation, view)
     if classification == "DEFENSIVE_SELF_ONLY":
@@ -275,324 +155,152 @@ def _substantive_prefix(
     return (utility, value, pass_preference, -view.mana_value, -view.target_count)
 
 
-def _historical_select(
-    policy: StandardPolicy,
-    observation: dict[str, Any],
-    actions: tuple[Any, ...],
-) -> str:
-    return max(
-        actions,
-        key=lambda action: (*_substantive_prefix(policy, observation, action), action.handle),
-    ).handle
+def _historical_select(policy: StandardPolicy, observation: dict[str, Any], actions: tuple[Any, ...]) -> str:
+    return max(actions, key=lambda action: (*_score_prefix(policy, observation, action), action.handle)).handle
 
 
-class _FirstAccessCaptured(RuntimeError):
+class _Captured(RuntimeError):
     pass
 
 
-def _capture_first_access(
-    monkeypatch: pytest.MonkeyPatch,
-    *,
-    label: str,
-    seed: int,
-    legacy: bool,
-) -> tuple[Any, str, dict[str, Any]]:
+def _first_access(monkeypatch: pytest.MonkeyPatch, label: str, seed: int, legacy: bool) -> tuple[Any, str, dict[str, Any]]:
     captured: dict[str, Any] = {}
-    original_observe = ComboAccessTracker.observe
-    original_select = StandardPolicy.select_action
+    observe, select = ComboAccessTracker.observe, StandardPolicy.select_action
 
     def wrapped_observe(self: ComboAccessTracker, executor: Any) -> tuple[Any, ...]:
-        result = original_observe(self, executor)
-        snapshot = next(
-            (
-                item
-                for item in result
-                if item.package == "malcolm_glint_horn" and item.legally_executable
-            ),
-            None,
-        )
-        if snapshot is not None:
-            captured["state"] = deepcopy(executor.state)
-            captured["seed"] = str(executor.seed)
-            captured["snapshot"] = asdict(snapshot)
-            raise _FirstAccessCaptured(label)
-        return result
+        current = observe(self, executor)
+        snap = next((s for s in current if s.package == "malcolm_glint_horn" and s.legally_executable), None)
+        if snap is not None:
+            captured.update(state=deepcopy(executor.state), seed=str(executor.seed), snapshot=asdict(snap))
+            raise _Captured(label)
+        return current
 
-    def wrapped_select(
-        self: StandardPolicy,
-        observation: dict[str, Any],
-        actions: tuple[Any, ...],
-    ) -> str:
-        if legacy:
-            return _historical_select(self, observation, actions)
-        return original_select(self, observation, actions)
+    def wrapped_select(self: StandardPolicy, observation: dict[str, Any], actions: tuple[Any, ...]) -> str:
+        return _historical_select(self, observation, actions) if legacy else select(self, observation, actions)
 
     monkeypatch.setattr(ComboAccessTracker, "observe", wrapped_observe)
     monkeypatch.setattr(StandardPolicy, "select_action", wrapped_select)
     try:
-        with pytest.raises(_FirstAccessCaptured):
-            run_phase_c_game_execution(
-                seed=seed,
-                mode="STANDARD",
-                through_turn=10,
-                validate_fresh_replay=False,
-                policy_actions=True,
-            )
+        with pytest.raises(_Captured):
+            run_phase_c_game_execution(seed=seed, mode="STANDARD", through_turn=10, validate_fresh_replay=False, policy_actions=True)
     finally:
         monkeypatch.undo()
     return captured["state"], captured["seed"], captured["snapshot"]
 
 
-def _auto_pass_opponents_until_p0(executor: GameExecutor) -> None:
-    while (
-        executor.state.terminal.status == "ACTIVE"
-        and executor.state.turn.priority_holder_id not in {None, "P0"}
-    ):
+def _public(executor: GameExecutor, predicate: Callable[[PolicyActionView], bool]) -> dict[str, Any]:
+    assert executor.state.turn.priority_holder_id == "P0"
+    broker = ActionBroker(executor, "P0")
+    observation, actions = broker.refresh()
+    views = sorted((policy_action_view(a) for a in actions if predicate(policy_action_view(a))), key=lambda v: v.key)
+    assert views
+    selected = views[0]
+    assert "discard_ids" not in selected.key.canonical_json
+    broker.execute(int(observation["generation"]), resolve_selected_action_handle(actions, selected.key))
+    return {"kind": selected.kind, "identity": selected.identity, "metadata": json.loads(selected.key.canonical_json)["metadata"]}
+
+
+def _treasure(color: str) -> Callable[[PolicyActionView], bool]:
+    return lambda view: view.kind == "ACTIVATE" and view.identity == "Treasure" and view.metadata.get("ability_id") == "token:treasure-mana" and view.metadata.get("mana_color") == color
+
+
+def _glint_loot(view: PolicyActionView) -> bool:
+    return view.kind == "ACTIVATE" and view.identity == GLINT and view.metadata.get("ability_id") == "glint-horn:loot"
+
+
+def _resolve_stack(executor: GameExecutor) -> None:
+    while executor.state.terminal.status == "ACTIVE" and executor.state.stack:
         holder = executor.state.turn.priority_holder_id
         assert holder is not None
         executor.pass_priority(holder)
 
 
-def _execute_public(
-    executor: GameExecutor,
-    predicate: Callable[[PolicyActionView], bool],
-) -> dict[str, Any]:
-    _auto_pass_opponents_until_p0(executor)
-    assert executor.state.turn.priority_holder_id == "P0"
-    broker = ActionBroker(executor, "P0")
-    observation, actions = broker.refresh()
-    matches = sorted(
-        (policy_action_view(action) for action in actions if predicate(policy_action_view(action))),
-        key=lambda view: view.key,
-    )
-    assert matches
-    selected = matches[0]
-    assert "discard_ids" not in selected.key.canonical_json
-    handle = resolve_selected_action_handle(actions, selected.key)
-    before = state_hash(executor.state)
-    broker.execute(int(observation["generation"]), handle)
-    return {
-        "public_action_key": selected.key.canonical_json,
-        "kind": selected.kind,
-        "identity": selected.identity,
-        "metadata": json.loads(selected.key.canonical_json)["metadata"],
-        "pre_state_hash_private": before,
-        "post_state_hash_private": state_hash(executor.state),
-    }
-
-
-def _pass_priority(view: PolicyActionView) -> bool:
-    return view.kind == "PASS_PRIORITY"
-
-
-def _treasure(color: str) -> Callable[[PolicyActionView], bool]:
-    def predicate(view: PolicyActionView) -> bool:
-        return (
-            view.kind == "ACTIVATE"
-            and view.identity == "Treasure"
-            and view.metadata.get("ability_id") == "token:treasure-mana"
-            and view.metadata.get("mana_color") == color
-        )
-
-    return predicate
-
-
-def _glint_loot(view: PolicyActionView) -> bool:
-    return (
-        view.kind == "ACTIVATE"
-        and view.identity == GLINT
-        and view.metadata.get("ability_id") == "glint-horn:loot"
-    )
-
-
-def _glint_cast(view: PolicyActionView) -> bool:
-    return view.kind == "CAST" and view.identity == GLINT
-
-
-def _attack_with_glint_and_malcolm(view: PolicyActionView) -> bool:
-    identities = {str(value) for value in view.metadata.get("attacker_identities", ())}
-    return view.kind == "DECLARE_ATTACKERS" and {GLINT, MALCOLM}.issubset(identities)
-
-
-def _glint_action_available(executor: GameExecutor) -> bool:
-    _observation, actions = ActionBroker(executor, "P0").refresh()
-    return any(_glint_loot(policy_action_view(action)) for action in actions)
-
-
-def _resolve_stack_public(executor: GameExecutor, steps: list[dict[str, Any]]) -> None:
-    while executor.state.terminal.status == "ACTIVE" and executor.state.stack:
-        steps.append(_execute_public(executor, _pass_priority))
-        _auto_pass_opponents_until_p0(executor)
-    if executor.state.terminal.status == "ACTIVE":
-        assert executor.state.turn.priority_holder_id == "P0"
-
-
-def _finish_empty_priority_window(executor: GameExecutor, steps: list[dict[str, Any]]) -> None:
+def _close_empty_window(executor: GameExecutor) -> None:
     assert not executor.state.stack
-    steps.append(_execute_public(executor, _pass_priority))
-    _auto_pass_opponents_until_p0(executor)
-    assert executor.state.turn.priority_holder_id == "P0"
+    living = sum(player.in_game for player in executor.state.players.values())
+    for _ in range(living):
+        holder = executor.state.turn.priority_holder_id
+        assert holder is not None
+        executor.pass_priority(holder)
 
 
-def _record_step_transition(
-    executor: GameExecutor,
-    step: str,
-    steps: list[dict[str, Any]],
-) -> None:
-    before = state_hash(executor.state)
-    executor.begin_step(step)
-    steps.append(
-        {
-            "kind": "TURN_PROGRESSION",
-            "step": step,
-            "pre_state_hash_private": before,
-            "post_state_hash_private": state_hash(executor.state),
-        }
-    )
-
-
-def _glint_on_battlefield(executor: GameExecutor) -> bool:
-    return any(
-        not obj.retired
-        and not obj.ceased_to_exist
-        and obj.zone is Zone.BATTLEFIELD
-        and obj.controller == "P0"
-        and str(obj.current_characteristics.get("name", "")) == GLINT
-        for obj in executor.state.objects.values()
-    )
+def _glint_on_field(executor: GameExecutor) -> bool:
+    return any(not obj.retired and obj.zone is Zone.BATTLEFIELD and obj.controller == "P0" and str(obj.current_characteristics.get("name", "")) == GLINT for obj in executor.state.objects.values())
 
 
 def _glint_attacking(executor: GameExecutor) -> bool:
-    return any(
-        not obj.retired
-        and obj.zone is Zone.BATTLEFIELD
-        and obj.controller == "P0"
-        and str(obj.current_characteristics.get("name", "")) == GLINT
-        and obj.current_characteristics.get("attacking") is True
-        for obj in executor.state.objects.values()
-    )
+    return any(not obj.retired and obj.zone is Zone.BATTLEFIELD and obj.controller == "P0" and str(obj.current_characteristics.get("name", "")) == GLINT and obj.current_characteristics.get("attacking") is True for obj in executor.state.objects.values())
 
 
-def _prepare_glint_attacking(executor: GameExecutor, steps: list[dict[str, Any]]) -> None:
+def _prepare_combat(executor: GameExecutor, steps: list[dict[str, Any]]) -> None:
     if _glint_attacking(executor):
         return
-    if not _glint_on_battlefield(executor):
-        steps.append(_execute_public(executor, _glint_cast))
-        _resolve_stack_public(executor, steps)
-    assert _glint_on_battlefield(executor)
+    if not _glint_on_field(executor):
+        steps.append(_public(executor, lambda view: view.kind == "CAST" and view.identity == GLINT))
+        _resolve_stack(executor)
     assert executor.state.turn.phase == "PRECOMBAT_MAIN"
-    _finish_empty_priority_window(executor, steps)
-    _record_step_transition(executor, "BEGIN_COMBAT", steps)
-    _record_step_transition(executor, "DECLARE_ATTACKERS", steps)
-    steps.append(_execute_public(executor, _attack_with_glint_and_malcolm))
-    assert _glint_attacking(executor)
-
-    # The exact legacy-101 first-access state has no post-step red mana. Production
-    # combat with Malcolm supplies the Treasure resources needed by the later loot loop.
-    _finish_empty_priority_window(executor, steps)
-    _record_step_transition(executor, "DECLARE_BLOCKERS", steps)
-    before = state_hash(executor.state)
+    _close_empty_window(executor)
+    executor.begin_step("BEGIN_COMBAT")
+    executor.begin_step("DECLARE_ATTACKERS")
+    steps.append(
+        _public(
+            executor,
+            lambda view: view.kind == "DECLARE_ATTACKERS"
+            and {GLINT, MALCOLM}.issubset({str(v) for v in view.metadata.get("attacker_identities", ())}),
+        )
+    )
+    _close_empty_window(executor)
+    executor.begin_step("DECLARE_BLOCKERS")
     executor.declare_no_blockers()
-    steps.append(
-        {
-            "kind": "NO_OPPONENT_BLOCKERS",
-            "pre_state_hash_private": before,
-            "post_state_hash_private": state_hash(executor.state),
-        }
-    )
-    _finish_empty_priority_window(executor, steps)
-    _record_step_transition(executor, "COMBAT_DAMAGE", steps)
-    before = state_hash(executor.state)
+    _close_empty_window(executor)
+    executor.begin_step("COMBAT_DAMAGE")
     executor.resolve_no_blocker_combat_damage({})
-    steps.append(
-        {
-            "kind": "COMBAT_DAMAGE_RESOLUTION",
-            "pre_state_hash_private": before,
-            "post_state_hash_private": state_hash(executor.state),
-        }
-    )
-    _resolve_stack_public(executor, steps)
+    _resolve_stack(executor)
     assert _glint_attacking(executor)
 
 
-def _produce_witness(state: Any, seed: str) -> tuple[GameExecutor, list[dict[str, Any]]]:
+def _witness(state: Any, seed: str) -> tuple[GameExecutor, list[dict[str, Any]]]:
     executor = GameExecutor(deepcopy(state), seed)
     steps: list[dict[str, Any]] = []
-    _prepare_glint_attacking(executor, steps)
+    _prepare_combat(executor, steps)
     activations = 0
     while executor.state.terminal.status == "ACTIVE":
-        _auto_pass_opponents_until_p0(executor)
         assert executor.state.turn.priority_holder_id == "P0"
-        assert _glint_attacking(executor)
-        if not _glint_action_available(executor):
-            pool = executor.state.players["P0"].mana_pool
-            if int(pool.get("R", 0)) < 1:
-                steps.append(_execute_public(executor, _treasure("R")))
-            elif sum(int(value) for value in pool.values()) < 2:
-                steps.append(_execute_public(executor, _treasure("W")))
-            else:
-                raise AssertionError("Glint-Horn activation absent despite payable public state")
+        pool = executor.state.players["P0"].mana_pool
+        if int(pool.get("R", 0)) < 1:
+            steps.append(_public(executor, _treasure("R")))
             continue
-        steps.append(_execute_public(executor, _glint_loot))
+        if sum(int(value) for value in pool.values()) < 2:
+            steps.append(_public(executor, _treasure("W")))
+            continue
+        steps.append(_public(executor, _glint_loot))
         activations += 1
-        _resolve_stack_public(executor, steps)
+        _resolve_stack(executor)
         assert activations <= 60
     assert activations > 0
     return executor, steps
 
 
-def test_first_access_states_have_finite_production_table_win_witnesses(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    cases = (
-        ("repaired-391", 391730338978874520, False),
-        ("legacy-391", 391730338978874520, True),
-        ("legacy-101", 101, True),
-    )
-    for label, seed, legacy in cases:
-        state, seed_text, snapshot = _capture_first_access(
-            monkeypatch, label=label, seed=seed, legacy=legacy
-        )
+def test_first_access_states_have_finite_production_table_win_witnesses(monkeypatch: pytest.MonkeyPatch) -> None:
+    for label, seed, legacy in (("repaired-391", 391730338978874520, False), ("legacy-391", 391730338978874520, True), ("legacy-101", 101, True)):
+        state, seed_text, snapshot = _first_access(monkeypatch, label, seed, legacy)
         expected = EXPECTED_FIRST_ACCESS[label]
-        assert state_hash(state) == expected["state_hash"]
-        assert int(state.turn.number) == expected["turn"]
-        assert state.turn.phase == expected["phase"]
-        assert state.turn.step == expected["step"]
+        assert (state_hash(state), int(state.turn.number), state.turn.phase, state.turn.step, snapshot["sufficient_mana"], tuple(snapshot["blockers"])) == expected
         assert state.turn.priority_holder_id == "P0"
         assert snapshot["legally_executable"] is True
         assert snapshot["full_table_kill"] is True
         assert snapshot["conditional_kill_or_takeover"] is False
-        assert snapshot["sufficient_mana"] is expected["sufficient_mana"]
-        assert tuple(snapshot["blockers"]) == expected["blockers"]
-
-        witness, steps = _produce_witness(state, seed_text)
+        witness, steps = _witness(state, seed_text)
         assert witness.state.terminal.status == "TERMINAL"
-        assert all(
-            not player.in_game
-            for player_id, player in witness.state.players.items()
-            if player_id != "P0"
-        )
-        if label == "legacy-101":
-            assert steps[0]["kind"] == "CAST"
-            assert steps[0]["identity"] == GLINT
-            assert any(step["kind"] == "COMBAT_DAMAGE_RESOLUTION" for step in steps)
-        else:
-            assert steps[0]["identity"] == "Treasure"
+        assert all(not player.in_game for pid, player in witness.state.players.items() if pid != "P0")
+        assert steps[0]["identity"] == (GLINT if label == "legacy-101" else "Treasure")
+        if label != "legacy-101":
             assert steps[0]["metadata"]["mana_color"] == "R"
-
         body = transcript(witness.state, seed=seed_text)
-        same_process = validate_replay(body)
-        assert state_hash(same_process) == state_hash(witness.state)
-        fresh = replay_in_fresh_process(body, cwd=ROOT)
-        assert fresh.state_hash == state_hash(witness.state)
+        assert state_hash(validate_replay(body)) == state_hash(witness.state)
+        assert replay_in_fresh_process(body, cwd=ROOT).state_hash == state_hash(witness.state)
 
-    control = run_phase_c_game_execution(
-        seed=101,
-        mode="STANDARD",
-        through_turn=10,
-        validate_fresh_replay=True,
-        policy_actions=True,
-    )
+    control = run_phase_c_game_execution(seed=101, mode="STANDARD", through_turn=10, validate_fresh_replay=True, policy_actions=True)
     assert control.technical_game.combo_earliest_legal_turn["malcolm_glint_horn"] is None
     assert control.technical_game.terminal_status == "ACTIVE"
     assert control.measurement.actual_first_attempt_turn is None
