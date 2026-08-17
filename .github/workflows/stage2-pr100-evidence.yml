@@ -1,0 +1,454 @@
+name: PR100 Stage2 Repaired Evidence
+
+on:
+  push:
+    branches: [automation/pr100-stage2-evidence-20260817]
+
+permissions:
+  contents: write
+
+env:
+  REPAIR_SHA: 4d15c18592a8df1a6ba23df034c3b68701088315
+  REPAIR_TREE: f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8
+  START_SHA: cbfbcd437a91f0c4481cba2173a8a6e8cd6553e8
+  START_TREE: 683243839e72a4c676cdd37310afc919775e762d
+  HIST_DIAG_SHA: 971f5567f47eb6f753a96a5809f72b5e9e23a404
+  BUILT_BRANCH: automation/pr100-stage2-evidence-built-20260817
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      IDENTITY_MODEL_SHA256: ${{ vars.IDENTITY_MODEL_V2_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REPAIR_SHA }}
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: uv sync --frozen --all-extras
+
+      - name: Verify exact repair state and historical evidence immutability
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$REPAIR_SHA"
+          test "$(git rev-parse HEAD^{tree})" = "$REPAIR_TREE"
+          test "$(git rev-parse HEAD^)" = "$START_SHA"
+          sha256sum docs/audit/phase-c-postpilot/evidence/pr100-corrected-behavior-971f5567.zip
+          test "$(sha256sum docs/audit/phase-c-postpilot/evidence/pr100-corrected-behavior-971f5567.zip | cut -d' ' -f1)" = "7e314f859d1e774b232f1d3daeed146441553e8f31c9aa0615a428d37a8aad8a"
+
+      - name: Recover exact prior diagnostic and add checkpoint-only summary field
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "$HIST_DIAG_SHA:.github/diagnostics/pr100_public_tiebreak_diagnostic.py.txt" > "${RUNNER_TEMP}/pr100_diag.py"
+          python - <<'PY'
+          from pathlib import Path
+          path = Path(__import__('os').environ['RUNNER_TEMP']) / 'pr100_diag.py'
+          text = path.read_text(encoding='utf-8')
+          old = '''            "combo_earliest_legal_turn": dict(
+                          execution.technical_game.combo_earliest_legal_turn
+                      ),
+          '''
+          new = '''            "combo_earliest_legal_turn": dict(
+                          execution.technical_game.combo_earliest_legal_turn
+                      ),
+                      "combo_checkpoint_access": {
+                          str(package): {str(turn): bool(value) for turn, value in checkpoints.items()}
+                          for package, checkpoints in execution.technical_game.combo_checkpoint_access.items()
+                      },
+          '''
+          if text.count(old) != 1:
+              raise SystemExit('historical diagnostic checkpoint anchor mismatch')
+          path.write_text(text.replace(old, new), encoding='utf-8')
+          PY
+
+      - name: Run exactly four repaired-head behavioral diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/stage2-traces"
+          for selector in legacy repaired; do
+            for seed in 101 391730338978874520; do
+              echo "=== ${selector} seed ${seed} ==="
+              uv run python "${RUNNER_TEMP}/pr100_diag.py" \
+                --repo . \
+                --seed "$seed" \
+                --selector "$selector" \
+                --commit "$REPAIR_SHA" \
+                --tree "$REPAIR_TREE" \
+                --fresh \
+                --out "${RUNNER_TEMP}/stage2-traces/${selector}-${seed}.json"
+            done
+          done
+          test "$(find "${RUNNER_TEMP}/stage2-traces" -maxdepth 1 -name '*.json' | wc -l)" -eq 4
+
+      - name: Independently recompute repaired-trace facts
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python - <<'PY'
+          from __future__ import annotations
+          import hashlib, json, os
+          from pathlib import Path
+
+          root = Path(os.environ['RUNNER_TEMP']) / 'stage2-traces'
+          glint = 'Glint-Horn Buccaneer'
+          ability = 'glint-horn:loot'
+
+          def load(selector: str, seed: int):
+              path = root / f'{selector}-{seed}.json'
+              raw = path.read_bytes()
+              data = json.loads(raw)
+              assert data['commit'] == os.environ['REPAIR_SHA']
+              assert data['tree'] == os.environ['REPAIR_TREE']
+              assert data['status'] == 'PASS'
+              assert data['summary']['outcome']['fresh_replay_equal'] is True
+              assert b'"discard_ids"' not in raw
+              return data, raw
+
+          def action_meta(record, key='actual_selected_public_action'):
+              return record[key].get('canonical_public_metadata', {})
+
+          def metrics(data, raw):
+              decisions = data['decisions']
+              selected = [r['actual_selected_public_action'] for r in decisions]
+              glint_candidates = [
+                  c for r in decisions for c in r['candidates']
+                  if c.get('public_identity') == glint
+              ]
+              glint_activates = [c for c in glint_candidates if c.get('action_kind') == 'ACTIVATE']
+              selected_casts = [a for a in selected if a.get('public_identity') == glint and a.get('action_kind') == 'CAST']
+              selected_loot = [
+                  r for r in decisions
+                  if r['actual_selected_public_action'].get('public_identity') == glint
+                  and r['actual_selected_public_action'].get('action_kind') == 'ACTIVATE'
+                  and action_meta(r).get('ability_id') == ability
+              ]
+              selected_attacks = [
+                  r for r in decisions
+                  if r['actual_selected_public_action'].get('action_kind') == 'DECLARE_ATTACKERS'
+                  and glint in set(action_meta(r).get('attacker_identities', ()))
+              ]
+              out = data['summary']['outcome']
+              dc = data['summary']['decision_counts']
+              return {
+                  'decision_count': len(decisions),
+                  'total_candidate_count': sum(int(r['total_legal_action_count']) for r in decisions),
+                  'distinct_public_key_tie_count': sum(r['tie_classification'] == 'DISTINCT_PUBLIC_KEYS' for r in decisions),
+                  'selector_preference_disagreement_count': sum(bool(r['historical_and_repaired_selections_differ']) for r in decisions),
+                  'first_selector_preference_disagreement_index': next((int(r['decision_index']) for r in decisions if r['historical_and_repaired_selections_differ']), None),
+                  'glint_horn_candidate_count': len(glint_candidates),
+                  'glint_horn_activate_candidate_count': len(glint_activates),
+                  'selected_glint_horn_cast_count': len(selected_casts),
+                  'selected_attacker_declarations_containing_glint_horn': len(selected_attacks),
+                  'selected_glint_horn_loot_activation_count': len(selected_loot),
+                  'attacking_turns': sorted({int(r['turn_number']) for r in selected_attacks}),
+                  'actual_first_attempt_turn': out['actual_first_attempt_turn'],
+                  'attempt_package': out['attempt_package'],
+                  'combo_earliest_legal_turn': out['combo_earliest_legal_turn'],
+                  'combo_checkpoint_access': out.get('combo_checkpoint_access', {}),
+                  'terminal_status': out['terminal_status'],
+                  'controlled_turns_completed': out['controlled_turns_completed'],
+                  'command_count': out['command_count'],
+                  'final_state_hash': out['final_state_hash'],
+                  'fresh_replay_state_hash': out['fresh_replay_state_hash'],
+                  'fresh_replay_equal': out['fresh_replay_equal'],
+                  'member_sha256': hashlib.sha256(raw).hexdigest(),
+                  'member_size_bytes': len(raw),
+                  'trace_summary_decision_counts': dc,
+              }
+
+          all_data = {}
+          members = []
+          for selector in ('legacy', 'repaired'):
+              for seed in (101, 391730338978874520):
+                  data, raw = load(selector, seed)
+                  key = f'{selector}-{seed}'
+                  all_data[key] = {'data': data, 'metrics': metrics(data, raw)}
+                  members.append({
+                      'name': f'{key}.json', 'selector': selector, 'seed': seed,
+                      'sha256': hashlib.sha256(raw).hexdigest(), 'size_bytes': len(raw),
+                      'commit': data['commit'], 'tree': data['tree'], 'status': data['status'],
+                  })
+
+          pair_metrics = {}
+          for seed in (101, 391730338978874520):
+              legacy = all_data[f'legacy-{seed}']['data']['decisions']
+              repaired = all_data[f'repaired-{seed}']['data']['decisions']
+              limit = min(len(legacy), len(repaired))
+              def first(pred):
+                  return next((i for i in range(limit) if pred(legacy[i], repaired[i])), None)
+              pair_metrics[str(seed)] = {
+                  'first_actual_public_key_divergence_index': first(lambda a,b: a['actual_selected_public_action']['public_action_key'] != b['actual_selected_public_action']['public_action_key']),
+                  'first_post_decision_full_state_divergence_index': first(lambda a,b: a.get('post_decision_full_state_hash') != b.get('post_decision_full_state_hash')),
+                  'first_resulting_public_state_digest_divergence_index': first(lambda a,b: a.get('resulting_public_state_digest') != b.get('resulting_public_state_digest')),
+                  'common_index_count': limit,
+              }
+
+          result = {
+              'schema_version': 'pr100-stage2-independent-trace-analysis-v1',
+              'repair_commit': os.environ['REPAIR_SHA'],
+              'repair_tree': os.environ['REPAIR_TREE'],
+              'runs': {key: value['metrics'] for key, value in all_data.items()},
+              'paired_first_divergences': pair_metrics,
+              'members': members,
+              'discard_ids_absent_from_all_trace_bytes': True,
+          }
+          out = Path(os.environ['RUNNER_TEMP']) / 'stage2-trace-analysis.json'
+          out.write_text(json.dumps(result, indent=2, sort_keys=True), encoding='utf-8')
+          print(json.dumps(result, indent=2, sort_keys=True))
+          PY
+
+      - name: Run unchanged seed-391 terminal regression and required validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > "${RUNNER_TEMP}/stage2-validation-status.tsv"
+          mkdir -p "${RUNNER_TEMP}/stage2-validation"
+          run_capture() {
+            local name="$1"; shift
+            echo "+ $*"
+            set +e
+            "$@" >"${RUNNER_TEMP}/stage2-validation/${name}.log" 2>&1
+            local code=$?
+            set -e
+            cat "${RUNNER_TEMP}/stage2-validation/${name}.log"
+            printf '%s\t%s\n' "$name" "$code" >> "${RUNNER_TEMP}/stage2-validation-status.tsv"
+          }
+          run_capture 01-format uv run ruff format --check --diff .
+          run_capture 02-ruff uv run ruff check .
+          run_capture 03-mypy uv run mypy src
+          run_capture 04-glint uv run pytest -q tests/phase_b/test_glint_horn_action_surface.py -vv
+          run_capture 05-policy-boundary uv run pytest -q tests/phase_b/test_policy_information_boundary.py
+          run_capture 06-policy-boundary-gate uv run python scripts/check_policy_information_boundary.py
+          run_capture 07-policy-broker uv run pytest -q tests/phase_b/test_policy_broker.py
+          run_capture 08-glint-transcript uv run pytest -q tests/phase_b/transcripts/test_pb_t06_glint_curiosity.py
+          run_capture 09-terminal uv run pytest -q tests/phase_c/test_phase_c_terminal_cleanup.py -vv
+          run_capture 10-full-pytest uv run pytest -q --tb=short
+          uv run python - <<'PY'
+          from __future__ import annotations
+          import json, os, re
+          from pathlib import Path
+          temp = Path(os.environ['RUNNER_TEMP'])
+          statuses = {}
+          for line in (temp/'stage2-validation-status.tsv').read_text().splitlines():
+              name, code = line.split('\t')
+              log = (temp/'stage2-validation'/f'{name}.log').read_text(encoding='utf-8')
+              lines = [x.strip() for x in log.splitlines() if x.strip()]
+              summary = next((x for x in reversed(lines) if re.search(r'\b(passed|failed|error|errors)\b', x, re.I)), lines[-1] if lines else '')
+              statuses[name] = {'exit_code': int(code), 'summary': summary}
+          (temp/'stage2-validation-pre-evidence.json').write_text(json.dumps(statuses, indent=2, sort_keys=True))
+          print(json.dumps(statuses, indent=2, sort_keys=True))
+          PY
+          # All required nonterminal focused/static commands must pass here.
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          data=json.loads((Path(os.environ['RUNNER_TEMP'])/'stage2-validation-pre-evidence.json').read_text())
+          required=['01-format','02-ruff','03-mypy','04-glint','05-policy-boundary','06-policy-boundary-gate','07-policy-broker','08-glint-transcript']
+          bad=[name for name in required if data[name]['exit_code'] != 0]
+          if bad: raise SystemExit(f'unexpected focused/static failures: {bad}')
+          PY
+
+      - name: Build Stage2 report JSON archive and evidence index
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python - <<'PY'
+          from __future__ import annotations
+          import hashlib, json, os, zipfile
+          from pathlib import Path
+
+          root = Path.cwd()
+          temp = Path(os.environ['RUNNER_TEMP'])
+          trace_dir = temp/'stage2-traces'
+          analysis = json.loads((temp/'stage2-trace-analysis.json').read_text())
+          validation = json.loads((temp/'stage2-validation-pre-evidence.json').read_text())
+          repair_short = os.environ['REPAIR_SHA'][:8]
+          evidence_dir = root/'docs/audit/phase-c-postpilot/evidence'
+          archive = evidence_dir/f'pr100-glint-horn-repaired-behavior-{repair_short}.zip'
+          with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+              for path in sorted(trace_dir.glob('*.json')):
+                  zf.write(path, arcname=path.name)
+          archive_bytes = archive.read_bytes()
+          archive_sha = hashlib.sha256(archive_bytes).hexdigest()
+
+          terminal_pass = validation['09-terminal']['exit_code'] == 0
+          repaired391 = analysis['runs']['repaired-391730338978874520']
+          terminal_result = {
+              'command': 'uv run pytest -q tests/phase_c/test_phase_c_terminal_cleanup.py -vv',
+              'passed': terminal_pass,
+              'exit_code': validation['09-terminal']['exit_code'],
+              'resulting_terminal_status': repaired391['terminal_status'],
+              'frozen_expectation': 'TERMINAL',
+              'test_expectation_modified': False,
+              'broker_repair_alone_restored_frozen_terminal_expectation': terminal_pass,
+          }
+          blockers = ['ACCESS_WITNESS_VALIDATION_REQUIRED', 'ATTEMPT_DEFINITION_OWNER_DECISION_REQUIRED']
+          if not terminal_pass:
+              blockers.insert(0, 'SEED_391_TERMINAL_REGRESSION_REMAINS')
+
+          stage2 = {
+              'schema_version': 'phase-c-glint-horn-cost-choice-repair-v1',
+              'classification': 'BROKER_COST_CHOICE_REPAIR_CONFIRMED',
+              'branch': 'hardening/public-policy-noninterference',
+              'stage1_starting_commit': os.environ['START_SHA'],
+              'stage1_starting_tree': os.environ['START_TREE'],
+              'repair_commit': os.environ['REPAIR_SHA'],
+              'repair_tree': os.environ['REPAIR_TREE'],
+              'repair_parent': os.environ['START_SHA'],
+              'evidence_publication_commit': None,
+              'production_files_changed': ['src/mtg_policy/broker_core.py','src/mtg_policy/public_actions.py'],
+              'test_files_changed': ['tests/phase_b/test_glint_horn_action_surface.py','tests/phase_b/test_policy_information_boundary.py'],
+              'stage1_diagnosis': ['docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.md','docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.json'],
+              'old_archive': {'path':'docs/audit/phase-c-postpilot/evidence/pr100-corrected-behavior-971f5567.zip','sha256':'7e314f859d1e774b232f1d3daeed146441553e8f31c9aa0615a428d37a8aad8a'},
+              'new_archive': {'path':str(archive.relative_to(root)),'sha256':archive_sha,'size_bytes':len(archive_bytes),'members':analysis['members']},
+              'trace_analysis': analysis,
+              'negative_controls': {'not_attacking':'PASS','insufficient_mana':'PASS','no_discardable_card':'PASS','no_priority':'PASS','executor_missing_discard_ids_rejected':'PASS'},
+              'hidden_information_noninterference': {'single_candidate':'PASS','multiple_semantically_different_candidates':'PASS','duplicate_equivalence':'PASS','hidden_only_mutation':'PASS','discard_ids_rejected_from_public_key':'PASS','discard_ids_absent_from_raw_public_metadata':analysis['discard_ids_absent_from_all_trace_bytes']},
+              'replay': {'single_candidate_same_process':'PASS','single_candidate_fresh_process':'PASS','four_trace_fresh_replay':all(run['fresh_replay_equal'] for run in analysis['runs'].values())},
+              'repair_scope': 'Generally correct for battlefield activated discard costs represented by the existing generic cost["discard"] schema; exact-deck proof covers Glint-Horn. No universality claim for other non-mana cost types.',
+              'executor_changed': False,
+              'seed_391_terminal_regression': terminal_result,
+              'attempt_semantics': {'implementation_changed':False,'owner_decision_required':True,'status':'EXISTING_DEFINITION_REPORTED_ONLY'},
+              'access_witness': {'combo_access_changed':False,'finite_witness_certified_by_stage2':False,'status':'ACCESS_WITNESS_VALIDATION_REQUIRED'},
+              'validation_pre_evidence': validation,
+              'remaining_blockers': blockers,
+              'owner_decision_required': True,
+              'corrected_pilot_authorized': False,
+              'replacement_pilot_authorized': False,
+              'full_study_authorized': False,
+              'historical_artifacts_modified': False,
+              'pr100_certified': False,
+              'pr100_ready_for_review': False,
+              'pr100_merged': False,
+              'pr99_modified_or_integrated': False,
+          }
+          json_path = root/'docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.json'
+          json_path.write_text(json.dumps(stage2, indent=2, sort_keys=True)+'\n', encoding='utf-8')
+
+          def run_line(key):
+              r=analysis['runs'][key]
+              cp=r.get('combo_checkpoint_access',{}).get('malcolm_glint_horn',{})
+              return f"| {key} | {r['decision_count']} | {r['distinct_public_key_tie_count']} | {r['selector_preference_disagreement_count']} | {r['glint_horn_candidate_count']} | {r['glint_horn_activate_candidate_count']} | {r['selected_glint_horn_loot_activation_count']} | {r['attacking_turns']} | {r['actual_first_attempt_turn']} / {r['attempt_package']} | {cp} | {r['terminal_status']} / {r['controlled_turns_completed']} |"
+          pair101=analysis['paired_first_divergences']['101']
+          pair391=analysis['paired_first_divergences']['391730338978874520']
+          md=f'''# Phase C Glint-Horn Cost-Choice Repair\n\n## Status\n\nClassification: **BROKER_COST_CHOICE_REPAIR_CONFIRMED**. This is a Stage 2 action-surface repair and bounded four-trace remeasurement. It is not pilot authorization or certification.\n\n## Exact repair\n\nStarting head `{os.environ['START_SHA']}` / tree `{os.environ['START_TREE']}` was repaired by `{os.environ['REPAIR_SHA']}` / tree `{os.environ['REPAIR_TREE']}`. The executor was not changed. `ActionBroker` now enumerates explicit battlefield discard-cost bindings before the normal production executor probe, keeps `discard_ids` private, and publishes only legitimate visible card semantics. `PublicActionKey` explicitly rejects `discard_ids`.\n\nThe implementation is generic for battlefield activated discard costs represented by the repository's existing `cost["discard"]` schema. The exact-deck proof is Glint-Horn; Stage 2 does not claim support for unrelated non-mana cost types.\n\n## Information boundary and legality\n\nSingle-candidate execution, multiple semantically distinct candidates, equivalent duplicates, hidden-only mutation, same-process replay, and fresh replay all pass. Equivalent duplicate discard choices collapse to one public equivalence class before opaque representative resolution. The executor still rejects omitted `discard_ids`. All four Stage 1 negative controls pass.\n\n## Repaired-head frozen diagnostics\n\nThese are recomputed at the repair commit and replace the old archive **only as evidence about the repaired action surface**. The historical archive remains immutable historical evidence.\n\n| Run | Decisions | Distinct-key ties | Selector disagreements | Glint candidates | Glint ACTIVATE candidates | Selected loot | Attacking turns | Attempt | Malcolm/Glint checkpoints | Terminal / controlled turns |\n|---|---:|---:|---:|---:|---:|---:|---|---|---|---|\n{run_line('legacy-101')}\n{run_line('repaired-101')}\n{run_line('legacy-391730338978874520')}\n{run_line('repaired-391730338978874520')}\n\nPaired first-divergence recomputation:\n\n- Seed 101: actual public-key divergence `{pair101['first_actual_public_key_divergence_index']}`, post-decision full-state divergence `{pair101['first_post_decision_full_state_divergence_index']}`, resulting public-state digest divergence `{pair101['first_resulting_public_state_digest_divergence_index']}`.\n- Seed 391730338978874520: actual public-key divergence `{pair391['first_actual_public_key_divergence_index']}`, post-decision full-state divergence `{pair391['first_post_decision_full_state_divergence_index']}`, resulting public-state digest divergence `{pair391['first_resulting_public_state_digest_divergence_index']}`.\n\nArchive: `{archive.relative_to(root)}` SHA-256 `{archive_sha}`. Every raw member names repair commit/tree and has fresh replay equality.\n\n## Seed-391 terminal regression\n\nExact command: `uv run pytest -q tests/phase_c/test_phase_c_terminal_cleanup.py -vv`. Result: **{'PASS' if terminal_pass else 'FAIL'}**. Repaired-selector trace terminal status: `{repaired391['terminal_status']}`. Frozen expectation remains `TERMINAL`; the test expectation was not modified.\n\n## Attempt semantics and access witness\n\nStage 2 does not change `_GameMeasurementCapture._action_commits_to_package`, `observe_selected_action`, `actual_first_attempt_turn`, or package-attempt semantics. The four traces report the current implementation's result only. Owner methodology decision remains required.\n\nStage 2 also does not change `combo_access.py`. Reported access checkpoints were captured, but this stage does not independently certify a finite production-valid witness for every reported access result. `ACCESS_WITNESS_VALIDATION_REQUIRED` remains.\n\n## Validation before evidence publication\n\nFocused Glint-Horn, public-information boundary, policy-boundary gate, broker, transcript, ruff, and mypy commands pass. The unchanged terminal test and full pytest results are recorded verbatim in the companion JSON and final Stage 2 report. Repository evidence gates are run after these new artifacts are indexed.\n\n## Governance\n\n- Corrected pilot authorized: `false`\n- Replacement 500/200 pilot authorized: `false`\n- Full study authorized: `false`\n- Historical pilot artifacts modified: `false`\n- PR #100 certified: `false`\n- PR #100 ready for review: `false`\n- PR #100 merged: `false`\n- PR #99 modified or integrated: `false`\n\nRemaining blockers: {', '.join(blockers)}.\n'''
+          md_path=root/'docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.md'
+          md_path.write_text(md, encoding='utf-8')
+
+          index_path=root/'docs/audit/EVIDENCE_INDEX.json'
+          index=json.loads(index_path.read_text(encoding='utf-8'))
+          def entry(kind,path,extra=None):
+              p=root/path; raw=p.read_bytes(); value={'kind':kind,'path':path,'sha256':hashlib.sha256(raw).hexdigest(),'size_bytes':len(raw)}
+              if extra: value.update(extra)
+              return value
+          index['artifacts'].extend([
+              entry('glint_horn_cost_choice_repair_markdown', str(md_path.relative_to(root))),
+              entry('glint_horn_cost_choice_repair_json', str(json_path.relative_to(root))),
+              entry('raw_evidence_zip', str(archive.relative_to(root)), {'members':analysis['members']}),
+          ])
+          index_path.write_text(json.dumps(index, indent=2, sort_keys=True)+'\n', encoding='utf-8')
+          print(json.dumps({'archive_sha256':archive_sha,'blockers':blockers,'terminal':terminal_result}, indent=2))
+          PY
+
+      - name: Run repository evidence gates on indexed candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python scripts/check_repository_evidence.py | tee "${RUNNER_TEMP}/stage2-validation/11-repository-evidence.log"
+          uv run pytest -q tests/test_repository_evidence_gate.py | tee "${RUNNER_TEMP}/stage2-validation/12-repository-evidence-gate.log"
+
+      - name: Commit evidence payload then bind its publication SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/audit/EVIDENCE_INDEX.json \
+            docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.md \
+            docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.json \
+            docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip
+          git commit -m "audit: publish Stage 2 Glint-Horn repair evidence"
+          evidence_payload_sha="$(git rev-parse HEAD)"
+          echo "EVIDENCE_PAYLOAD_SHA=$evidence_payload_sha"
+          uv run python - <<'PY'
+          import hashlib, json, os, subprocess
+          from pathlib import Path
+          root=Path.cwd()
+          payload=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          jp=root/'docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.json'
+          data=json.loads(jp.read_text())
+          data['evidence_publication_commit']=payload
+          jp.write_text(json.dumps(data,indent=2,sort_keys=True)+'\n')
+          ip=root/'docs/audit/EVIDENCE_INDEX.json'
+          index=json.loads(ip.read_text())
+          rel=str(jp.relative_to(root)); raw=jp.read_bytes()
+          item=next(x for x in index['artifacts'] if x['path']==rel)
+          item['sha256']=hashlib.sha256(raw).hexdigest(); item['size_bytes']=len(raw)
+          ip.write_text(json.dumps(index,indent=2,sort_keys=True)+'\n')
+          PY
+          uv run python scripts/check_repository_evidence.py
+          uv run pytest -q tests/test_repository_evidence_gate.py
+          git add docs/audit/EVIDENCE_INDEX.json docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.json
+          git commit -m "audit: bind Stage 2 publication commit"
+          final_sha="$(git rev-parse HEAD)"
+          final_tree="$(git rev-parse HEAD^{tree})"
+          echo "FINAL_EVIDENCE_SHA=$final_sha"
+          echo "FINAL_EVIDENCE_TREE=$final_tree"
+          git push --force origin "HEAD:refs/heads/$BUILT_BRANCH"
+
+      - name: Read back exact publication bytes and hash-verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "refs/heads/$BUILT_BRANCH:refs/remotes/origin/$BUILT_BRANCH"
+          final_sha="$(git rev-parse "origin/$BUILT_BRANCH")"
+          final_tree="$(git rev-parse "$final_sha^{tree}")"
+          echo "READBACK_FINAL_SHA=$final_sha"
+          echo "READBACK_FINAL_TREE=$final_tree"
+          rm -rf "${RUNNER_TEMP}/readback"
+          git worktree add --detach "${RUNNER_TEMP}/readback" "$final_sha"
+          cd "${RUNNER_TEMP}/readback"
+          uv sync --frozen --all-extras
+          uv run python scripts/check_repository_evidence.py
+          uv run pytest -q tests/test_repository_evidence_gate.py
+          uv run python - <<'PY'
+          from __future__ import annotations
+          import hashlib, json, zipfile
+          from pathlib import Path
+          root=Path.cwd()
+          index=json.loads((root/'docs/audit/EVIDENCE_INDEX.json').read_text())
+          jp=root/'docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.json'
+          mp=root/'docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.md'
+          data=json.loads(jp.read_text())
+          assert data['evidence_publication_commit']
+          archive=root/data['new_archive']['path']
+          assert jp.stat().st_size and mp.stat().st_size and archive.stat().st_size
+          by_path={item['path']:item for item in index['artifacts']}
+          for path in (jp,mp,archive):
+              rel=str(path.relative_to(root)); raw=path.read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==by_path[rel]['sha256']
+              assert len(raw)==by_path[rel]['size_bytes']
+          with zipfile.ZipFile(archive) as zf:
+              assert len(zf.namelist())==4
+              for member in data['new_archive']['members']:
+                  raw=zf.read(member['name'])
+                  assert hashlib.sha256(raw).hexdigest()==member['sha256']
+                  assert len(raw)==member['size_bytes']
+                  parsed=json.loads(raw)
+                  assert parsed['commit']==data['repair_commit']
+                  assert parsed['tree']==data['repair_tree']
+                  assert parsed['status']=='PASS'
+          old=root/data['old_archive']['path']
+          assert hashlib.sha256(old.read_bytes()).hexdigest()==data['old_archive']['sha256']
+          print(json.dumps({'readback':'PASS','archive_sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),'members':len(data['new_archive']['members']),'json_parses':True,'files_nonempty':True},indent=2))
+          PY
