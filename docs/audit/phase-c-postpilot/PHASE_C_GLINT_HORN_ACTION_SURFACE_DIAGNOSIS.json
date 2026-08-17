@@ -1,4 +1,13 @@
 {
+  "attempt_definition_review": {
+    "casting_glint_horn_alone_can_count_as_attempt": true,
+    "code_spec_alignment": "AMBIGUOUS_WRITTEN_SPEC",
+    "condition": "Only when the current access snapshot marks the package legally executable.",
+    "implementation": "When the access snapshot says a package is legally executable, _GameMeasurementCapture.observe_selected_action records an attempt if _action_commits_to_package returns true. For Malcolm/Glint-Horn, declaring Glint-Horn as an attacker counts, and otherwise a non-pass action whose public identity is one of the package pieces counts.",
+    "legacy_seed_101_consequence": "A Turn-10 Glint-Horn cast can satisfy the current implementation's package-commit predicate even though no Glint-Horn activation appears in that trace.",
+    "owner_decision_required": true,
+    "written_definition": "Phase C measurement authorities require first actual attempt reporting but do not define which concrete action starts an attempt."
+  },
   "branch": "hardening/public-policy-noninterference",
   "broker_test": {
     "broker_selected_action_executed": false,
@@ -316,15 +325,6 @@
   "standing_access_property": "Every reported access result must contain or be reproducible as a finite production-valid witness sequence. The first witness action must be legal at the reported state, and each later witness action must become legal after executing the prior production action until the defined success condition is reached. A same-decision final-activation requirement is not adopted.",
   "title": "Phase C Glint-Horn Action Surface Diagnosis",
   "tree": "66c5883d7c93412fb02e3d238b47bf064f685391",
-  "attempt_definition_review": {
-    "casting_glint_horn_alone_can_count_as_attempt": true,
-    "code_spec_alignment": "AMBIGUOUS_WRITTEN_SPEC",
-    "condition": "Only when the current access snapshot marks the package legally executable.",
-    "implementation": "When the access snapshot says a package is legally executable, _GameMeasurementCapture.observe_selected_action records an attempt if _action_commits_to_package returns true. For Malcolm/Glint-Horn, declaring Glint-Horn as an attacker counts, and otherwise a non-pass action whose public identity is one of the package pieces counts.",
-    "legacy_seed_101_consequence": "A Turn-10 Glint-Horn cast can satisfy the current implementation's package-commit predicate even though no Glint-Horn activation appears in that trace.",
-    "owner_decision_required": true,
-    "written_definition": "Phase C measurement authorities require first actual attempt reporting but do not define which concrete action starts an attempt."
-  },
   "validation": {
     "certification_candidates_claimed": false,
     "commands": [
