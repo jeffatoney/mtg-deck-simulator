@@ -26,9 +26,7 @@ from mtg_runs.replay_audit import replay_in_fresh_process
 
 ROOT = Path(__file__).resolve().parents[2]
 ARCHIVE = (
-    ROOT
-    / "docs/audit/phase-c-postpilot/evidence/"
-    "pr100-glint-horn-repaired-behavior-4d15c185.zip"
+    ROOT / "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip"
 )
 CONTRACT_PATH = ROOT / "tests/phase_c/test_malcolm_glint_horn_witness_contract.py"
 GLINT = "Glint-Horn Buccaneer"
@@ -53,8 +51,7 @@ def _load_contract() -> ModuleType:
 def _load_payloads() -> dict[str, dict[str, Any]]:
     with zipfile.ZipFile(ARCHIVE) as bundle:
         return {
-            label: json.loads(bundle.read(member))
-            for label, (member, _seed) in MEMBERS.items()
+            label: json.loads(bundle.read(member)) for label, (member, _seed) in MEMBERS.items()
         }
 
 
@@ -75,11 +72,7 @@ def _capture_exact_archive_states(
         label = str(current["label"])
         if label and label not in captured:
             snapshot = next(
-                (
-                    item
-                    for item in result
-                    if item.package == PACKAGE and item.legally_executable
-                ),
+                (item for item in result if item.package == PACKAGE and item.legally_executable),
                 None,
             )
             if snapshot is not None:
@@ -191,10 +184,7 @@ def _state_facts(state: Any, seed: str, snapshot: dict[str, Any]) -> dict[str, A
         since = status.get("controller_since_turn")
         creature = "Creature" in card_types
         summoning_sick = bool(
-            creature
-            and "Haste" not in keywords
-            and since is not None
-            and int(since) >= turn
+            creature and "Haste" not in keywords and since is not None and int(since) >= turn
         )
         battlefield.append(
             {
@@ -210,7 +200,10 @@ def _state_facts(state: Any, seed: str, snapshot: dict[str, Any]) -> dict[str, A
             }
         )
         if obj.controller == "P0" and status.get("tap") == "UNTAPPED":
-            if any(ability.get("mana_ability") for ability in obj.current_characteristics.get("abilities", ())):
+            if any(
+                ability.get("mana_ability")
+                for ability in obj.current_characteristics.get("abilities", ())
+            ):
                 untapped_sources.append(name)
 
     hand_key = f"{Zone.HAND.value}:P0"
@@ -249,13 +242,10 @@ def _state_facts(state: Any, seed: str, snapshot: dict[str, Any]) -> dict[str, A
         "p0_mana_pool": dict(sorted(state.players["P0"].mana_pool.items())),
         "untapped_mana_sources": sorted(untapped_sources),
         "treasure_count": sum(
-            item["controller"] == "P0" and item["identity"] == "Treasure"
-            for item in battlefield
+            item["controller"] == "P0" and item["identity"] == "Treasure" for item in battlefield
         ),
         "untapped_treasure_count": sum(
-            item["controller"] == "P0"
-            and item["identity"] == "Treasure"
-            and not item["tapped"]
+            item["controller"] == "P0" and item["identity"] == "Treasure" and not item["tapped"]
             for item in battlefield
         ),
         "library_size": len(state.zones.get(library_key, ())),
@@ -327,8 +317,7 @@ def test_emit_stage3_state_and_witness_probe(monkeypatch: pytest.MonkeyPatch) ->
             "same_process_state_hash": state_hash(same_process),
             "fresh_replay_state_hash": fresh.state_hash,
             "glint_activation_count": sum(
-                step["kind"] == "ACTIVATE" and step["identity"] == GLINT
-                for step in steps
+                step["kind"] == "ACTIVATE" and step["identity"] == GLINT for step in steps
             ),
             "treasure_activation_count": sum(step["identity"] == "Treasure" for step in steps),
             "steps": [_step_facts(step) for step in steps],
