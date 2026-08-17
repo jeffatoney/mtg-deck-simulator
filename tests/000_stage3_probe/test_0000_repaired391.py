@@ -40,7 +40,6 @@ def test_repaired_391_first_access_probe() -> None:
         ),
     }
     pytest.exit(
-        "STAGE3_REPAIRED391_PROBE="
-        + json.dumps(payload, sort_keys=True, separators=(",", ":")),
+        "STAGE3_REPAIRED391_PROBE=" + json.dumps(payload, sort_keys=True, separators=(",", ":")),
         returncode=1,
     )
