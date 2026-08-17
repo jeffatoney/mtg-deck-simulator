@@ -1,0 +1,531 @@
+{
+  "access_witness": {
+    "combo_access_changed": false,
+    "finite_witness_certified_by_stage2": false,
+    "status": "ACCESS_WITNESS_VALIDATION_REQUIRED"
+  },
+  "attempt_semantics": {
+    "implementation_changed": false,
+    "owner_decision_required": true,
+    "status": "EXISTING_DEFINITION_REPORTED_ONLY"
+  },
+  "branch": "hardening/public-policy-noninterference",
+  "classification": "BROKER_COST_CHOICE_REPAIR_CONFIRMED",
+  "corrected_pilot_authorized": false,
+  "evidence_publication_commit": null,
+  "executor_changed": false,
+  "full_study_authorized": false,
+  "hidden_information_noninterference": {
+    "discard_ids_absent_from_raw_public_metadata": true,
+    "discard_ids_rejected_from_public_key": "PASS",
+    "duplicate_equivalence": "PASS",
+    "hidden_only_mutation": "PASS",
+    "multiple_semantically_different_candidates": "PASS",
+    "single_candidate": "PASS"
+  },
+  "historical_artifacts_modified": false,
+  "initial_nondurable_trace_and_validation_run_id": 32016837499,
+  "initial_nondurable_trace_disposition": "temporary raw outputs were lost after a reserved evidence-kind indexing error; this durable reproduction is byte-identical member-for-member",
+  "negative_controls": {
+    "executor_missing_discard_ids_rejected": "PASS",
+    "insufficient_mana": "PASS",
+    "no_discardable_card": "PASS",
+    "no_priority": "PASS",
+    "not_attacking": "PASS"
+  },
+  "new_archive": {
+    "members": [
+      {
+        "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+        "name": "legacy-101.json",
+        "seed": 101,
+        "selector": "legacy",
+        "sha256": "5dc7311cab76a3bcd58c19542173965042046b8903177949d256a5a5de199108",
+        "size_bytes": 1348487,
+        "status": "PASS",
+        "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+      },
+      {
+        "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+        "name": "legacy-391730338978874520.json",
+        "seed": 391730338978874520,
+        "selector": "legacy",
+        "sha256": "2835e668e60b94f9e4d9cd8ab1bf5d201838ab44c54ab3d3cec85e116cd01167",
+        "size_bytes": 3066172,
+        "status": "PASS",
+        "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+      },
+      {
+        "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+        "name": "repaired-101.json",
+        "seed": 101,
+        "selector": "repaired",
+        "sha256": "721d86249de6918a58161e4fcb65d1407f5e6c22dbd88fbb25664b90bd93930f",
+        "size_bytes": 1297445,
+        "status": "PASS",
+        "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+      },
+      {
+        "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+        "name": "repaired-391730338978874520.json",
+        "seed": 391730338978874520,
+        "selector": "repaired",
+        "sha256": "0276d308ed13f6f43783f0058cd841773cb18f639420b0de272b8d5842d0a9ea",
+        "size_bytes": 2022890,
+        "status": "PASS",
+        "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+      }
+    ],
+    "path": "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip",
+    "sha256": "5f1706e2a9f1ef906938f6eef972c0f7258226f5b2e5dcb0ed008febb62eb996",
+    "size_bytes": 429275
+  },
+  "old_archive": {
+    "path": "docs/audit/phase-c-postpilot/evidence/pr100-corrected-behavior-971f5567.zip",
+    "sha256": "7e314f859d1e774b232f1d3daeed146441553e8f31c9aa0615a428d37a8aad8a"
+  },
+  "owner_decision_required": true,
+  "pr100_certified": false,
+  "pr100_merged": false,
+  "pr100_ready_for_review": false,
+  "pr99_modified_or_integrated": false,
+  "production_files_changed": [
+    "src/mtg_policy/broker_core.py",
+    "src/mtg_policy/public_actions.py"
+  ],
+  "remaining_blockers": [
+    "SEED_391_TERMINAL_REGRESSION_REMAINS",
+    "ACCESS_WITNESS_VALIDATION_REQUIRED",
+    "ATTEMPT_DEFINITION_OWNER_DECISION_REQUIRED"
+  ],
+  "repair_commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+  "repair_parent": "cbfbcd437a91f0c4481cba2173a8a6e8cd6553e8",
+  "repair_scope": "Generally correct for battlefield activated discard costs represented by existing generic cost[\"discard\"] schema; exact-deck proof covers Glint-Horn. No universality claim for other non-mana cost types.",
+  "repair_tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8",
+  "replacement_pilot_authorized": false,
+  "replay": {
+    "four_trace_fresh_replay": true,
+    "single_candidate_fresh_process": "PASS",
+    "single_candidate_same_process": "PASS"
+  },
+  "schema_version": "phase-c-glint-horn-cost-choice-repair-v1",
+  "seed_391_terminal_regression": {
+    "broker_repair_alone_restored_frozen_terminal_expectation": false,
+    "command": "uv run pytest -q tests/phase_c/test_phase_c_terminal_cleanup.py -vv",
+    "exit_code": 1,
+    "frozen_expectation": "TERMINAL",
+    "passed": false,
+    "resulting_terminal_status": "ACTIVE",
+    "test_expectation_modified": false
+  },
+  "stage1_diagnosis": [
+    "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.md",
+    "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.json"
+  ],
+  "stage1_starting_commit": "cbfbcd437a91f0c4481cba2173a8a6e8cd6553e8",
+  "stage1_starting_tree": "683243839e72a4c676cdd37310afc919775e762d",
+  "test_files_changed": [
+    "tests/phase_b/test_glint_horn_action_surface.py",
+    "tests/phase_b/test_policy_information_boundary.py"
+  ],
+  "trace_analysis": {
+    "discard_ids_absent_from_all_trace_bytes": true,
+    "members": [
+      {
+        "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+        "name": "legacy-101.json",
+        "seed": 101,
+        "selector": "legacy",
+        "sha256": "5dc7311cab76a3bcd58c19542173965042046b8903177949d256a5a5de199108",
+        "size_bytes": 1348487,
+        "status": "PASS",
+        "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+      },
+      {
+        "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+        "name": "legacy-391730338978874520.json",
+        "seed": 391730338978874520,
+        "selector": "legacy",
+        "sha256": "2835e668e60b94f9e4d9cd8ab1bf5d201838ab44c54ab3d3cec85e116cd01167",
+        "size_bytes": 3066172,
+        "status": "PASS",
+        "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+      },
+      {
+        "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+        "name": "repaired-101.json",
+        "seed": 101,
+        "selector": "repaired",
+        "sha256": "721d86249de6918a58161e4fcb65d1407f5e6c22dbd88fbb25664b90bd93930f",
+        "size_bytes": 1297445,
+        "status": "PASS",
+        "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+      },
+      {
+        "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+        "name": "repaired-391730338978874520.json",
+        "seed": 391730338978874520,
+        "selector": "repaired",
+        "sha256": "0276d308ed13f6f43783f0058cd841773cb18f639420b0de272b8d5842d0a9ea",
+        "size_bytes": 2022890,
+        "status": "PASS",
+        "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+      }
+    ],
+    "paired_first_divergences": {
+      "101": {
+        "common_index_count": 154,
+        "first_actual_public_key_divergence_index": 9,
+        "first_post_decision_full_state_divergence_index": 0,
+        "first_resulting_public_state_digest_divergence_index": 0
+      },
+      "391730338978874520": {
+        "common_index_count": 220,
+        "first_actual_public_key_divergence_index": 9,
+        "first_post_decision_full_state_divergence_index": 9,
+        "first_resulting_public_state_digest_divergence_index": 9
+      }
+    },
+    "repair_commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+    "repair_tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8",
+    "reproduces_nondurable_run_32016837499_exactly": true,
+    "runs": {
+      "legacy-101": {
+        "actual_first_attempt_turn": 10,
+        "attacking_turns": [
+          10
+        ],
+        "attempt_package": "malcolm_glint_horn",
+        "combo_checkpoint_access": {
+          "dualcaster_electroduplicate": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "dualcaster_twinflame": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "lightning_rig_crab_umbra_malcolm": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "malcolm_glint_horn": {
+            "10": true,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "niv_mizzet_curiosity": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "psychosis_crawler_draw": {
+            "10": true,
+            "5": false,
+            "6": false,
+            "8": false
+          }
+        },
+        "combo_earliest_legal_turn": {
+          "dualcaster_electroduplicate": null,
+          "dualcaster_twinflame": null,
+          "lightning_rig_crab_umbra_malcolm": null,
+          "malcolm_glint_horn": 10,
+          "niv_mizzet_curiosity": null,
+          "psychosis_crawler_draw": 9
+        },
+        "command_count": 490,
+        "controlled_turns_completed": 10,
+        "decision_count": 154,
+        "distinct_public_key_tie_count": 48,
+        "final_state_hash": "01e9ac38513f8d7da95300701648acc09e50b91ba61737c837b0dd3df1957aa3",
+        "first_selector_preference_disagreement_index": 9,
+        "fresh_replay_equal": true,
+        "fresh_replay_state_hash": "01e9ac38513f8d7da95300701648acc09e50b91ba61737c837b0dd3df1957aa3",
+        "glint_horn_activate_candidate_count": 7,
+        "glint_horn_candidate_count": 13,
+        "member_sha256": "5dc7311cab76a3bcd58c19542173965042046b8903177949d256a5a5de199108",
+        "member_size_bytes": 1348487,
+        "selected_attacker_declarations_containing_glint_horn": 1,
+        "selected_glint_horn_cast_count": 1,
+        "selected_glint_horn_loot_activation_count": 2,
+        "selector_preference_disagreement_count": 32,
+        "terminal_status": "ACTIVE",
+        "total_candidate_count": 491
+      },
+      "legacy-391730338978874520": {
+        "actual_first_attempt_turn": 6,
+        "attacking_turns": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "attempt_package": "malcolm_glint_horn",
+        "combo_checkpoint_access": {
+          "dualcaster_electroduplicate": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "dualcaster_twinflame": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "lightning_rig_crab_umbra_malcolm": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "malcolm_glint_horn": {
+            "10": true,
+            "5": false,
+            "6": true,
+            "8": true
+          },
+          "niv_mizzet_curiosity": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "psychosis_crawler_draw": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          }
+        },
+        "combo_earliest_legal_turn": {
+          "dualcaster_electroduplicate": null,
+          "dualcaster_twinflame": null,
+          "lightning_rig_crab_umbra_malcolm": null,
+          "malcolm_glint_horn": 6,
+          "niv_mizzet_curiosity": null,
+          "psychosis_crawler_draw": null
+        },
+        "command_count": 793,
+        "controlled_turns_completed": 10,
+        "decision_count": 274,
+        "distinct_public_key_tie_count": 98,
+        "final_state_hash": "a112746af20437ba49f463112af2bb61301186794767a46ae12374d208b4af24",
+        "first_selector_preference_disagreement_index": 9,
+        "fresh_replay_equal": true,
+        "fresh_replay_state_hash": "a112746af20437ba49f463112af2bb61301186794767a46ae12374d208b4af24",
+        "glint_horn_activate_candidate_count": 53,
+        "glint_horn_candidate_count": 55,
+        "member_sha256": "2835e668e60b94f9e4d9cd8ab1bf5d201838ab44c54ab3d3cec85e116cd01167",
+        "member_size_bytes": 3066172,
+        "selected_attacker_declarations_containing_glint_horn": 5,
+        "selected_glint_horn_cast_count": 1,
+        "selected_glint_horn_loot_activation_count": 9,
+        "selector_preference_disagreement_count": 61,
+        "terminal_status": "ACTIVE",
+        "total_candidate_count": 1384
+      },
+      "repaired-101": {
+        "actual_first_attempt_turn": null,
+        "attacking_turns": [],
+        "attempt_package": null,
+        "combo_checkpoint_access": {
+          "dualcaster_electroduplicate": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "dualcaster_twinflame": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "lightning_rig_crab_umbra_malcolm": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "malcolm_glint_horn": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "niv_mizzet_curiosity": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "psychosis_crawler_draw": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          }
+        },
+        "combo_earliest_legal_turn": {
+          "dualcaster_electroduplicate": null,
+          "dualcaster_twinflame": null,
+          "lightning_rig_crab_umbra_malcolm": null,
+          "malcolm_glint_horn": null,
+          "niv_mizzet_curiosity": null,
+          "psychosis_crawler_draw": null
+        },
+        "command_count": 529,
+        "controlled_turns_completed": 10,
+        "decision_count": 154,
+        "distinct_public_key_tie_count": 32,
+        "final_state_hash": "f282b014606ead2931f9819709e0becd9995051b4146e9f28e33a92100c7914c",
+        "first_selector_preference_disagreement_index": 9,
+        "fresh_replay_equal": true,
+        "fresh_replay_state_hash": "f282b014606ead2931f9819709e0becd9995051b4146e9f28e33a92100c7914c",
+        "glint_horn_activate_candidate_count": 0,
+        "glint_horn_candidate_count": 0,
+        "member_sha256": "721d86249de6918a58161e4fcb65d1407f5e6c22dbd88fbb25664b90bd93930f",
+        "member_size_bytes": 1297445,
+        "selected_attacker_declarations_containing_glint_horn": 0,
+        "selected_glint_horn_cast_count": 0,
+        "selected_glint_horn_loot_activation_count": 0,
+        "selector_preference_disagreement_count": 20,
+        "terminal_status": "ACTIVE",
+        "total_candidate_count": 452
+      },
+      "repaired-391730338978874520": {
+        "actual_first_attempt_turn": null,
+        "attacking_turns": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "attempt_package": null,
+        "combo_checkpoint_access": {
+          "dualcaster_electroduplicate": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "dualcaster_twinflame": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "lightning_rig_crab_umbra_malcolm": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "malcolm_glint_horn": {
+            "10": true,
+            "5": true,
+            "6": true,
+            "8": true
+          },
+          "niv_mizzet_curiosity": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          },
+          "psychosis_crawler_draw": {
+            "10": false,
+            "5": false,
+            "6": false,
+            "8": false
+          }
+        },
+        "combo_earliest_legal_turn": {
+          "dualcaster_electroduplicate": null,
+          "dualcaster_twinflame": null,
+          "lightning_rig_crab_umbra_malcolm": null,
+          "malcolm_glint_horn": 5,
+          "niv_mizzet_curiosity": null,
+          "psychosis_crawler_draw": null
+        },
+        "command_count": 733,
+        "controlled_turns_completed": 10,
+        "decision_count": 220,
+        "distinct_public_key_tie_count": 63,
+        "final_state_hash": "c7befd46b2593322c77b67c4fa555e032ea4fdea5ccf037c158ee58f92b1b618",
+        "first_selector_preference_disagreement_index": 9,
+        "fresh_replay_equal": true,
+        "fresh_replay_state_hash": "c7befd46b2593322c77b67c4fa555e032ea4fdea5ccf037c158ee58f92b1b618",
+        "glint_horn_activate_candidate_count": 0,
+        "glint_horn_candidate_count": 1,
+        "member_sha256": "0276d308ed13f6f43783f0058cd841773cb18f639420b0de272b8d5842d0a9ea",
+        "member_size_bytes": 2022890,
+        "selected_attacker_declarations_containing_glint_horn": 6,
+        "selected_glint_horn_cast_count": 1,
+        "selected_glint_horn_loot_activation_count": 0,
+        "selector_preference_disagreement_count": 46,
+        "terminal_status": "ACTIVE",
+        "total_candidate_count": 770
+      }
+    },
+    "schema_version": "pr100-stage2-independent-trace-analysis-v1"
+  },
+  "trace_generation_workflow_run_id": 32019001109,
+  "validation_pre_evidence": {
+    "01-format": {
+      "exit_code": 0,
+      "summary": "234 files already formatted"
+    },
+    "02-ruff": {
+      "exit_code": 0,
+      "summary": "All checks passed!"
+    },
+    "03-mypy": {
+      "exit_code": 0,
+      "summary": "Success: no issues found in 82 source files"
+    },
+    "04-glint": {
+      "exit_code": 0,
+      "summary": "12 passed in 0.99s"
+    },
+    "05-policy-boundary": {
+      "exit_code": 0,
+      "summary": "4 passed in 0.36s"
+    },
+    "06-policy-boundary-gate": {
+      "exit_code": 0,
+      "summary": "PASS: handle-free public action views; opaque handles confined to execution/post-selection"
+    },
+    "07-policy-broker": {
+      "exit_code": 0,
+      "summary": "5 passed in 0.23s"
+    },
+    "08-glint-transcript": {
+      "exit_code": 0,
+      "summary": "1 passed in 0.23s"
+    },
+    "09-terminal": {
+      "exit_code": 1,
+      "summary": "1 failed in 146.83s (0:02:26)"
+    },
+    "10-full-pytest": {
+      "exit_code": 1,
+      "summary": "1 failed, 426 passed in 883.73s (0:14:43)"
+    }
+  },
+  "validation_source_workflow_run_id": 32016837499
+}

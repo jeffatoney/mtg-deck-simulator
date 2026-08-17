@@ -89,6 +89,66 @@
       "path": "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.json",
       "sha256": "c2ce416aef3a3fb1cf967af80a6b614a9e45b18618112bbab5d628bd5b8fb94d",
       "size_bytes": 15552
+    },
+    {
+      "kind": "glint_horn_cost_choice_repair_markdown",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.md",
+      "sha256": "72089669d16d6dfd904a2f34a2e0160e92ba01da49de41e7fec7822132a66f6b",
+      "size_bytes": 4284
+    },
+    {
+      "kind": "glint_horn_cost_choice_repair_json",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.json",
+      "sha256": "8b9c8efd96462dd21e4c6cb44598e54261520e6966f1646ae7c2e76217eb6cb5",
+      "size_bytes": 18548
+    },
+    {
+      "kind": "glint_horn_cost_choice_raw_evidence_zip",
+      "members": [
+        {
+          "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+          "name": "legacy-101.json",
+          "seed": 101,
+          "selector": "legacy",
+          "sha256": "5dc7311cab76a3bcd58c19542173965042046b8903177949d256a5a5de199108",
+          "size_bytes": 1348487,
+          "status": "PASS",
+          "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+        },
+        {
+          "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+          "name": "legacy-391730338978874520.json",
+          "seed": 391730338978874520,
+          "selector": "legacy",
+          "sha256": "2835e668e60b94f9e4d9cd8ab1bf5d201838ab44c54ab3d3cec85e116cd01167",
+          "size_bytes": 3066172,
+          "status": "PASS",
+          "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+        },
+        {
+          "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+          "name": "repaired-101.json",
+          "seed": 101,
+          "selector": "repaired",
+          "sha256": "721d86249de6918a58161e4fcb65d1407f5e6c22dbd88fbb25664b90bd93930f",
+          "size_bytes": 1297445,
+          "status": "PASS",
+          "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+        },
+        {
+          "commit": "4d15c18592a8df1a6ba23df034c3b68701088315",
+          "name": "repaired-391730338978874520.json",
+          "seed": 391730338978874520,
+          "selector": "repaired",
+          "sha256": "0276d308ed13f6f43783f0058cd841773cb18f639420b0de272b8d5842d0a9ea",
+          "size_bytes": 2022890,
+          "status": "PASS",
+          "tree": "f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"
+        }
+      ],
+      "path": "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip",
+      "sha256": "5f1706e2a9f1ef906938f6eef972c0f7258226f5b2e5dcb0ed008febb62eb996",
+      "size_bytes": 429275
     }
   ],
   "rules": {
