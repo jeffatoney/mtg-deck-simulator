@@ -1,0 +1,45 @@
+name: PR100 One-Time Formatter
+
+on:
+  push:
+    branches:
+      - hardening/public-policy-noninterference
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/public-policy-noninterference
+          fetch-depth: 0
+      - name: Apply the exact Ruff formatting hunk
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/mtg_runs/phase_c_runner.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''                _priority_window(
+                              executor, policy, exploratory=exploratory, measurement=measurement
+                          )'''
+          new = '''                _priority_window(executor, policy, exploratory=exploratory, measurement=measurement)'''
+          if text.count(old) != 1:
+              raise SystemExit(f"expected exactly one formatting target, found {text.count(old)}")
+          path.write_text(text.replace(old, new), encoding="utf-8")
+          PY
+          git diff --check
+      - name: Commit the formatting-only change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/mtg_runs/phase_c_runner.py
+          if git diff --cached --quiet; then
+            echo "No formatting change required."
+            exit 0
+          fi
+          git commit -m "style: format terminal cleanup helper"
+          git push origin HEAD:hardening/public-policy-noninterference
