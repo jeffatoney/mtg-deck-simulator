@@ -1,5 +1,5 @@
 {
-  "AGENTS.md": {"bytes": 9353, "sha256": "2af4b18868cbcefc035f957810118826cf92e5b3b3c2a63e303da8a26bed382f"},
+  "AGENTS.md": {"bytes": 11125, "sha256": "c764bdd7653a74b70aefeaadebe8da37da528fd81269dec15c69ef4e563c22b1"},
   "README.md": {"bytes": 3284, "sha256": "8a302b2cb2fe063f55d78f84ee0a0cf2dc3d984734e487a04207c2ece18040f5"},
   "docs/architecture/PROPOSED_ARCHITECTURE.md": {"bytes": 5835, "sha256": "81d57de507585b9f9b4083b0a24015a613a69e092978a10ce8011ecb69f2ddbd"},
   "docs/architecture/TRACEABILITY_TEMPLATE.csv": {"bytes": 103, "sha256": "d550dcb449ef09e403fc2ec9e65597ecb29a808c787870c2236700991bd7212a"},

@@ -454,6 +454,32 @@ def _cleanup_discard_ids(executor: GameExecutor, provider: Any) -> tuple[str, ..
     return tuple(by_handle[handle] for handle in selection.selected_handles)
 
 
+def _run_cleanup_step(
+    executor: GameExecutor,
+    policy: StandardPolicy,
+    provider: Any,
+    *,
+    exploratory: "_OneLayerExplorer | None" = None,
+    measurement: _GameMeasurementCapture | None = None,
+    policy_actions: bool,
+) -> None:
+    while executor.state.terminal.status == "ACTIVE":
+        discard_ids = _cleanup_discard_ids(executor, provider)
+        executor.begin_step("CLEANUP", {"discard_ids": list(discard_ids)})
+        if not executor.state.turn.cleanup_repeat_pending:
+            return
+        # Resolve cleanup triggers, but do not pass on an empty stack: the
+        # next cleanup iteration may require a new deterministic discard.
+        while executor.state.stack and executor.state.terminal.status == "ACTIVE":
+            (
+                _priority_window(
+                    executor, policy, exploratory=exploratory, measurement=measurement
+                )
+                if policy_actions and _policy_window_required("CLEANUP", executor)
+                else _resolve_required_stack(executor)
+            )
+
+
 def _combo_evaluation(executor: GameExecutor, tracker: ComboAccessTracker) -> SearchEvaluation:
     current = tracker.observe(executor)
     immediate = any(record.legally_executable and record.full_table_kill for record in current)
@@ -1061,23 +1087,14 @@ def run_phase_c_game_execution(
             if state.terminal.status != "ACTIVE":
                 break
             if step == "CLEANUP":
-                while True:
-                    discard_ids = _cleanup_discard_ids(executor, provider)
-                    executor.begin_step("CLEANUP", {"discard_ids": list(discard_ids)})
-                    if not state.turn.cleanup_repeat_pending:
-                        break
-                    # Resolve cleanup triggers, but do not pass on an empty stack: the
-                    # next cleanup iteration may require a new deterministic discard.
-                    while state.stack and state.terminal.status == "ACTIVE":
-                        (
-                            _priority_window(
-                                executor, policy, exploratory=explorer, measurement=capture
-                            )
-                            if policy_actions and _policy_window_required("CLEANUP", executor)
-                            else _resolve_required_stack(executor)
-                        )
-                    if state.terminal.status != "ACTIVE":
-                        break
+                _run_cleanup_step(
+                    executor,
+                    policy,
+                    provider,
+                    exploratory=explorer,
+                    measurement=capture,
+                    policy_actions=policy_actions,
+                )
                 continue
             if step == "DECLARE_BLOCKERS":
                 attackers = any(
