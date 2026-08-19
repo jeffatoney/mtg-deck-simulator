@@ -472,9 +472,7 @@ def _run_cleanup_step(
         # next cleanup iteration may require a new deterministic discard.
         while executor.state.stack and executor.state.terminal.status == "ACTIVE":
             (
-                _priority_window(
-                    executor, policy, exploratory=exploratory, measurement=measurement
-                )
+                _priority_window(executor, policy, exploratory=exploratory, measurement=measurement)
                 if policy_actions and _policy_window_required("CLEANUP", executor)
                 else _resolve_required_stack(executor)
             )
