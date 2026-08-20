@@ -36,9 +36,7 @@ def _json_dump(path: Path, value: Any) -> None:
 
 
 def _git_sha() -> str:
-    return subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
-    ).strip()
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
 def _percentile(values: list[float], percentile: float) -> float:
@@ -106,9 +104,7 @@ def _worker(seed: int, corpus: dict[str, Any]) -> dict[str, Any]:
         counters["broker_refresh_count"] += 1
         counters["legal_action_count"] += legal_count
         counters["semantic_action_class_count"] += class_count
-        counters["max_legal_action_count"] = max(
-            counters["max_legal_action_count"], legal_count
-        )
+        counters["max_legal_action_count"] = max(counters["max_legal_action_count"], legal_count)
         counters["max_semantic_action_class_count"] = max(
             counters["max_semantic_action_class_count"], class_count
         )
@@ -117,9 +113,8 @@ def _worker(seed: int, corpus: dict[str, Any]) -> dict[str, Any]:
         phase = str(self.executor.state.turn.phase)
         if turn <= 2 and legal_count <= int(thresholds["low_action_max_legal_actions"]):
             mark("low_action_opening_state", event)
-        if (
-            phase in {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"}
-            and legal_count >= int(thresholds["high_action_min_legal_actions"])
+        if phase in {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"} and legal_count >= int(
+            thresholds["high_action_min_legal_actions"]
         ):
             mark("high_action_main_phase", event)
         land_ids = {
@@ -329,9 +324,7 @@ def _aggregate(corpus: dict[str, Any], trials: list[dict[str, Any]]) -> dict[str
         "peak_memory",
         "process_peak_rss_bytes",
     )
-    aggregate = {
-        name: _stats([float(trial[name]) for trial in trials]) for name in metric_names
-    }
+    aggregate = {name: _stats([float(trial[name]) for trial in trials]) for name in metric_names}
     coverage: dict[str, dict[str, Any]] = {}
     for trial in trials:
         for name, event in dict(trial["coverage"]).items():
