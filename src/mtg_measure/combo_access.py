@@ -58,8 +58,11 @@ class ComboAccessTracker:
         self,
         player_id: str,
         package_definitions: Mapping[str, Sequence[str]],
+        *,
+        opponent_mana_profile: str = "blue_red_available",
     ) -> None:
         self.player_id = player_id
+        self.opponent_mana_profile = str(opponent_mana_profile)
         self.package_definitions = {
             str(package): tuple(str(card) for card in cards)
             for package, cards in package_definitions.items()
@@ -97,11 +100,15 @@ class ComboAccessTracker:
         *,
         additional_sources: Sequence[ResourceSource] = (),
     ) -> ResourcePaymentResult:
+        profile = str(
+            getattr(executor, "opponent_mana_profile", self.opponent_mana_profile)
+        )
         return solve_state_payment(
             executor.state,
             self.player_id,
             tuple(steps),
             additional_sources=tuple(additional_sources),
+            opponent_mana_profile=profile,
         )
 
     def _payment_steps_for_costs(
@@ -738,7 +745,14 @@ def bind_combo_access_tracker(
     executor: Any,
     player_id: str,
     package_definitions: Mapping[str, Sequence[str]],
+    *,
+    opponent_mana_profile: str = "blue_red_available",
 ) -> ComboAccessTracker:
-    tracker = ComboAccessTracker(player_id, package_definitions)
+    tracker = ComboAccessTracker(
+        player_id,
+        package_definitions,
+        opponent_mana_profile=opponent_mana_profile,
+    )
+    executor.opponent_mana_profile = str(opponent_mana_profile)
     executor.combo_access_tracker = tracker
     return tracker
