@@ -137,11 +137,7 @@ class ComboAccessTracker:
         payment_steps: Sequence[PaymentStep],
     ) -> bool:
         payment_steps = tuple(payment_steps)
-        window = (
-            payment_steps[-1].window
-            if payment_steps
-            else self._current_payment_window(executor)
-        )
+        window = payment_steps[-1].window if payment_steps else self._current_payment_window(executor)
         for obj in self._active_objects(executor):
             if obj.owner != self.player_id or obj.zone is not Zone.HAND:
                 continue
@@ -673,9 +669,7 @@ class ComboAccessTracker:
         )
         crawler_payment = self._solve_payment(executor, payment_steps)
         can_cast = bool(
-            hand_crawler
-            and self._main_phase_priority(executor)
-            and crawler_payment.feasible
+            hand_crawler and self._main_phase_priority(executor) and crawler_payment.feasible
         )
         active = bool(crawler) or can_cast
         # This package is intentionally conditional: Crawler converts subsequent draws
