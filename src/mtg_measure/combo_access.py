@@ -137,7 +137,9 @@ class ComboAccessTracker:
         payment_steps: Sequence[PaymentStep],
     ) -> bool:
         payment_steps = tuple(payment_steps)
-        window = payment_steps[-1].window if payment_steps else self._current_payment_window(executor)
+        window = (
+            payment_steps[-1].window if payment_steps else self._current_payment_window(executor)
+        )
         for obj in self._active_objects(executor):
             if obj.owner != self.player_id or obj.zone is not Zone.HAND:
                 continue
