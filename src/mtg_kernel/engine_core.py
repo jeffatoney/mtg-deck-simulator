@@ -1568,19 +1568,6 @@ class GameExecutor:
                             self._event("SBA_AURA_TO_GRAVEYARD"),
                         )
                         changed = True
-            for obj in list(self.state.objects.values()):
-                if (
-                    obj.retired
-                    or obj.zone not in {Zone.GRAVEYARD, Zone.EXILE}
-                    or not obj.component_card_instance_ids
-                ):
-                    continue
-                instance = self.state.card_instances[obj.component_card_instance_ids[0]]
-                if (
-                    instance.commander_designation
-                    and obj.object_id not in self.state.pending_commander_choices
-                ):
-                    self.state.pending_commander_choices.append(obj.object_id)
             for player in self.state.players.values():
                 if player.in_game and (player.life <= 0 or player.failed_draw_count > 0):
                     player.in_game = False

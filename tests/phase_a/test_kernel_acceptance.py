@@ -592,6 +592,13 @@ def test_commander_optional_return_and_commander_damage_terminal() -> None:
     assert grave.object_id in state.pending_commander_choices
     declined = executor.commander_return_choice("P0", grave.object_id, False)
     assert declined.zone is Zone.GRAVEYARD and state.choices[-1].selected == "DECLINE"
+    executor.check_state_based_actions()
+    assert grave.object_id not in state.pending_commander_choices
+
+    moved_again = executor.zones.move(grave.object_id, Zone.EXILE, "TEST", executor._event("TEST"))
+    assert moved_again is not None
+    executor.check_state_based_actions()
+    assert state.pending_commander_choices == [moved_again.object_id]
 
     state2, executor2 = funded_game()
     commander2 = add_card(

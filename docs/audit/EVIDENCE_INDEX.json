@@ -1,0 +1,104 @@
+{
+  "artifacts": [
+    {
+      "kind": "evidence_policy",
+      "path": "docs/audit/REPOSITORY_EVIDENCE_POLICY.md",
+      "sha256": "ac254a943a8691436142c6e2da5fd9953c55d73c3e9593c9cb7b354a868fdab0",
+      "size_bytes": 5247
+    },
+    {
+      "kind": "audit_addendum",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_POSTPILOT_NONINTERFERENCE_ADDENDUM.md",
+      "sha256": "ae66e5aa1f7f71e48e61651e49c10fda4148103db45d3fb6e0c99fd1d6c3d559",
+      "size_bytes": 4253
+    },
+    {
+      "kind": "behavioral_analysis_markdown",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_PUBLIC_TIEBREAK_BEHAVIORAL_ANALYSIS.md",
+      "sha256": "74c16cbd4454b52cd3f7b844ef3203733d13ad3c045ebc795abd715859406c7d",
+      "size_bytes": 8452
+    },
+    {
+      "kind": "behavioral_analysis_json",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_PUBLIC_TIEBREAK_BEHAVIORAL_ANALYSIS.json",
+      "sha256": "bf39528930a1b3ca74d7d747a46c4e0f17f72db78d9d052abab57c188f9c3e26",
+      "size_bytes": 15423
+    },
+    {
+      "kind": "evidence_manifest",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_PUBLIC_TIEBREAK_EVIDENCE_MANIFEST.json",
+      "sha256": "74ace7713b3a3d20dc712ba9e897952eff1f720d3ad5510186ba72e65224321a",
+      "size_bytes": 2320
+    },
+    {
+      "kind": "raw_evidence_zip",
+      "members": [
+        {"commit":"971f5567f47eb6f753a96a5809f72b5e9e23a404","name":"legacy-101.json","seed":101,"selector":"legacy","sha256":"0c115d4c22b75395340ed2c7e3c9448ceb5d1f31baad8fd3635efe1f9d99b550","size_bytes":1177980,"status":"PASS","tree":"002ee839864905fc4f3052776b72def6c9e86473"},
+        {"commit":"971f5567f47eb6f753a96a5809f72b5e9e23a404","name":"legacy-391730338978874520.json","seed":391730338978874520,"selector":"legacy","sha256":"3140412e6d5a50a2eb6eead54e071e6168ac2dde2bad4cb0b2638c6259b5862f","size_bytes":3229854,"status":"PASS","tree":"002ee839864905fc4f3052776b72def6c9e86473"},
+        {"commit":"971f5567f47eb6f753a96a5809f72b5e9e23a404","name":"repaired-101.json","seed":101,"selector":"repaired","sha256":"1658b0a76d3f35b4d3bac7cfe05d5d1277de2651fa2feb0e5809f3466e488d68","size_bytes":1296585,"status":"PASS","tree":"002ee839864905fc4f3052776b72def6c9e86473"},
+        {"commit":"971f5567f47eb6f753a96a5809f72b5e9e23a404","name":"repaired-391730338978874520.json","seed":391730338978874520,"selector":"repaired","sha256":"6db8c5bfe21a28a64924471e49be9feab2412936acb059add7ac6f6e1c61c5cd","size_bytes":2022034,"status":"PASS","tree":"002ee839864905fc4f3052776b72def6c9e86473"}
+      ],
+      "path": "docs/audit/phase-c-postpilot/evidence/pr100-corrected-behavior-971f5567.zip",
+      "sha256": "7e314f859d1e774b232f1d3daeed146441553e8f31c9aa0615a428d37a8aad8a",
+      "size_bytes": 440504
+    },
+    {
+      "kind": "glint_horn_action_surface_diagnosis_markdown",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.md",
+      "sha256": "f49bc28b47d65474bfdf60d347da6fc6a3e3284da6752a0e08b74b9d44aae746",
+      "size_bytes": 16488
+    },
+    {
+      "kind": "glint_horn_action_surface_diagnosis_json",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_ACTION_SURFACE_DIAGNOSIS.json",
+      "sha256": "c2ce416aef3a3fb1cf967af80a6b614a9e45b18618112bbab5d628bd5b8fb94d",
+      "size_bytes": 15552
+    },
+    {
+      "kind": "glint_horn_cost_choice_repair_markdown",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.md",
+      "sha256": "72089669d16d6dfd904a2f34a2e0160e92ba01da49de41e7fec7822132a66f6b",
+      "size_bytes": 4284
+    },
+    {
+      "kind": "glint_horn_cost_choice_repair_json",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_GLINT_HORN_COST_CHOICE_REPAIR.json",
+      "sha256": "84ccaaed2219cf06112f5fd4235e7410691753b9469a4bc0c976a6482328dde8",
+      "size_bytes": 18586
+    },
+    {
+      "kind": "glint_horn_cost_choice_raw_evidence_zip",
+      "members": [
+        {"commit":"4d15c18592a8df1a6ba23df034c3b68701088315","name":"legacy-101.json","seed":101,"selector":"legacy","sha256":"5dc7311cab76a3bcd58c19542173965042046b8903177949d256a5a5de199108","size_bytes":1348487,"status":"PASS","tree":"f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"},
+        {"commit":"4d15c18592a8df1a6ba23df034c3b68701088315","name":"legacy-391730338978874520.json","seed":391730338978874520,"selector":"legacy","sha256":"2835e668e60b94f9e4d9cd8ab1bf5d201838ab44c54ab3d3cec85e116cd01167","size_bytes":3066172,"status":"PASS","tree":"f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"},
+        {"commit":"4d15c18592a8df1a6ba23df034c3b68701088315","name":"repaired-101.json","seed":101,"selector":"repaired","sha256":"721d86249de6918a58161e4fcb65d1407f5e6c22dbd88fbb25664b90bd93930f","size_bytes":1297445,"status":"PASS","tree":"f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"},
+        {"commit":"4d15c18592a8df1a6ba23df034c3b68701088315","name":"repaired-391730338978874520.json","seed":391730338978874520,"selector":"repaired","sha256":"0276d308ed13f6f43783f0058cd841773cb18f639420b0de272b8d5842d0a9ea","size_bytes":2022890,"status":"PASS","tree":"f1ac2c11f1b0e989e13d3e7d72480779cfb7f4c8"}
+      ],
+      "path": "docs/audit/phase-c-postpilot/evidence/pr100-glint-horn-repaired-behavior-4d15c185.zip",
+      "sha256": "5f1706e2a9f1ef906938f6eef972c0f7258226f5b2e5dcb0ed008febb62eb996",
+      "size_bytes": 429275
+    },
+    {
+      "kind": "malcolm_glint_horn_witness_terminal_diagnosis_json",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_MALCOLM_GLINT_HORN_WITNESS_AND_TERMINAL_DIAGNOSIS.json",
+      "sha256": "510c9541f38a2d7617472d7f9f20f74d1561f7701689aa7eb8e3cd85b0a520ec",
+      "size_bytes": 19555
+    },
+    {
+      "kind": "malcolm_glint_horn_witness_terminal_diagnosis_markdown",
+      "path": "docs/audit/phase-c-postpilot/PHASE_C_MALCOLM_GLINT_HORN_WITNESS_AND_TERMINAL_DIAGNOSIS.md",
+      "sha256": "cd5c08477f0cf4c7265f01ec4b0252d4c691883aa475622ccd4565e7e064b64c",
+      "size_bytes": 15037
+    }
+  ],
+  "rules": {
+    "all_files_under_tracked_roots_must_be_indexed": true,
+    "index_is_not_self_hashed": true,
+    "repository_evidence_check": "scripts/check_repository_evidence.py"
+  },
+  "schema_version": "1.0.0",
+  "title": "Repository Durable Evidence Index",
+  "tracked_roots": [
+    "docs/audit/phase-c-postpilot"
+  ]
+}

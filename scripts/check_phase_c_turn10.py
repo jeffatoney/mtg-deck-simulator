@@ -30,10 +30,14 @@ def main() -> int:
         errors.append("fresh-process replay diverged from the Turn-10 final state")
     if game.command_count < 100:
         errors.append("Turn-10 production run recorded implausibly few commands")
-    if measurement.actual_first_attempt_turn != 10:
-        errors.append("frozen seed 101 no longer records its first actual attempt on Turn 10")
-    if measurement.attempt_package != "malcolm_glint_horn":
-        errors.append("frozen seed 101 no longer attempts the expected Malcolm/Glint-Horn line")
+    # The public-policy noninterference repair intentionally replaces the prior
+    # hidden-state-dependent final tie-break. Keep the same frozen smoke seed but
+    # lock its repaired STANDARD result rather than tuning the new public order to
+    # reproduce the historical tie outcome.
+    if measurement.actual_first_attempt_turn is not None:
+        errors.append("repaired public-policy seed 101 actual-attempt baseline drifted")
+    if measurement.attempt_package is not None:
+        errors.append("repaired public-policy seed 101 attempt-package baseline drifted")
     if set(measurement.checkpoint_table_win_access) != {5, 6, 8, 10}:
         errors.append("Turn-10 measurement omits a frozen checkpoint")
     if len(measurement.combo_records) != 24:

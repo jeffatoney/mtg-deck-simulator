@@ -9,6 +9,12 @@ from typing import Any
 
 from mtg_policy.broker import ObservedAction
 from mtg_policy.config import PolicyBundle
+from mtg_policy.public_actions import (
+    PolicyActionView,
+    PublicActionKey,
+    public_action_classes,
+    resolve_selected_action_handle,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 _GUARDRAIL_PATH = ROOT / "docs/spec/phase-c/NO_OPPONENT_POLICY_GUARDRAIL.json"
@@ -183,7 +189,7 @@ class StandardPolicy:
 
     @staticmethod
     def _targets_are_all_actor_owned_or_controlled(
-        observation: dict[str, Any], action: ObservedAction
+        observation: dict[str, Any], action: PolicyActionView
     ) -> bool:
         player = observation.get("player")
         if not isinstance(player, str) or not player:
@@ -210,7 +216,7 @@ class StandardPolicy:
                 return False
         return True
 
-    def _no_opponent_self_class(self, observation: dict[str, Any], action: ObservedAction) -> str:
+    def _no_opponent_self_class(self, observation: dict[str, Any], action: PolicyActionView) -> str:
         if self.opponent_interaction_modeled:
             return "INTERACTIVE"
         effect_kinds = _NO_OPPONENT_REVIEWED_SELF_EFFECTS.intersection(action.tags)
@@ -233,14 +239,17 @@ class StandardPolicy:
             return True
         raise ValueError(f"unsupported optional trigger effect for standard policy: {effect_kind}")
 
-    def select_action(
+    def select_public_action_key(
         self, observation: dict[str, Any], actions: tuple[ObservedAction, ...]
-    ) -> str:
+    ) -> PublicActionKey:
+        """Select a public semantic action class without receiving capability handles."""
+
         self._validate_observation(observation)
         if not actions:
             raise ValueError("standard policy received no legal actions")
+        action_classes = public_action_classes(actions)
 
-        def score(action: ObservedAction) -> tuple[int, int, int, int, int, str]:
+        def score(action: PolicyActionView) -> tuple[int, int, int, int, int, str]:
             tags = set(action.tags)
             value = 0
             if action.kind == "PLAY_LAND":
@@ -261,9 +270,7 @@ class StandardPolicy:
                 attacker_count = int(action.metadata.get("attacker_count", 0))
                 opponent_count = int(action.metadata.get("opponent_count", 0))
                 pirate_count = int(action.metadata.get("pirate_count", 0))
-                identities = {
-                    str(value) for value in action.metadata.get("attacker_identities", ())
-                }
+                identities = {str(item) for item in action.metadata.get("attacker_identities", ())}
                 value += 30 * attacker_count + 25 * opponent_count + 20 * pirate_count
                 if "Malcolm, Keen-Eyed Navigator" in identities:
                     value += 25
@@ -275,7 +282,14 @@ class StandardPolicy:
             if self.opponent_interaction_modeled:
                 if action.kind == "PASS_PRIORITY":
                     value -= 100
-                return (0, value, 0, -action.mana_value, -action.target_count, action.handle)
+                return (
+                    0,
+                    value,
+                    0,
+                    -action.mana_value,
+                    -action.target_count,
+                    action.key.canonical_json,
+                )
 
             classification = self._no_opponent_self_class(observation, action)
             if classification == "DEFENSIVE_SELF_ONLY":
@@ -300,7 +314,13 @@ class StandardPolicy:
                 pass_preference,
                 -action.mana_value,
                 -action.target_count,
-                action.handle,
+                action.key.canonical_json,
             )
 
-        return max(actions, key=score).handle
+        return max(action_classes, key=lambda candidate: score(candidate.action)).key
+
+    def select_action(
+        self, observation: dict[str, Any], actions: tuple[ObservedAction, ...]
+    ) -> str:
+        selected_key = self.select_public_action_key(observation, actions)
+        return resolve_selected_action_handle(actions, selected_key)

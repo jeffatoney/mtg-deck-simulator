@@ -31,13 +31,16 @@ def main() -> int:
         errors.append("Phase B acceptance evidence label is not clean production path")
     active = _strings(data.get("active_binding"), "active_binding", errors)
     decisions = _strings(data.get("architecture_decisions"), "architecture_decisions", errors)
+    standing_gates = _strings(data.get("standing_gates"), "standing_gates", errors)
     archival = _strings(data.get("archival_reference_only"), "archival_reference_only", errors)
     forbidden = _strings(data.get("forbidden_active_paths"), "forbidden_active_paths", errors)
     locked = _strings(data.get("locked_commands"), "locked_commands", errors)
     blockers = _strings(data.get("blocking_requirement_ids"), "blocking_requirement_ids", errors)
-    for relative in active + decisions:
+    for relative in active + decisions + standing_gates:
         if not (ROOT / relative).is_file():
             errors.append(f"missing active Phase B authority file: {relative}")
+    if set(standing_gates) != {"scripts/check_policy_information_boundary.py"}:
+        errors.append("Phase B standing policy-information gate is missing or changed")
     for relative in forbidden:
         if (ROOT / relative).exists():
             errors.append(f"forbidden active path exists: {relative}")
@@ -86,6 +89,7 @@ def main() -> int:
                 "schema_version": data["schema_version"],
                 "active_binding_count": len(active),
                 "architecture_decision_count": len(decisions),
+                "standing_gate_count": len(standing_gates),
                 "blocking_requirement_count": len(blockers),
                 "pilot_and_study_locked": True,
                 "acceptance_evidence_label": data["only_acceptance_evidence_label"],

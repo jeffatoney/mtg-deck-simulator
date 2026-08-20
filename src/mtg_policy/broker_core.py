@@ -197,6 +197,63 @@ class ActionBroker:
     def _ability_choice_variants(ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:
         return ActionBroker._effect_choice_variants(dict(ability.get("effect", {})))
 
+    def _public_card_semantics(self, obj: GameObject) -> dict[str, Any]:
+        """Return the same visible card facts used by strategic card selection."""
+        return {
+            "identity": str(obj.current_characteristics.get("name", "")),
+            "mana_value": int(obj.current_characteristics.get("mana_value", 0)),
+            "card_types": tuple(
+                str(value) for value in obj.current_characteristics.get("card_types", ())
+            ),
+            "effect_kinds": tuple(self.executor._strategic_effect_kinds(obj)),
+        }
+
+    @staticmethod
+    def _public_card_semantic_sort_key(semantics: dict[str, Any]) -> tuple[Any, ...]:
+        return (
+            str(semantics["identity"]),
+            int(semantics["mana_value"]),
+            tuple(str(value) for value in semantics["card_types"]),
+            tuple(str(value) for value in semantics["effect_kinds"]),
+        )
+
+    def _additional_cost_choice_variants(
+        self, ability: dict[str, Any]
+    ) -> tuple[tuple[dict[str, Any], dict[str, Any]], ...]:
+        """Bind explicit discard costs privately before the executor legality probe."""
+        cost = dict(ability.get("cost", {}))
+        discard_count = int(cost.get("discard", 0))
+        if discard_count < 0:
+            return ()
+        if discard_count == 0:
+            return (({}, {}),)
+
+        hand_key = f"{Zone.HAND.value}:{self.player_id}"
+        hand = tuple(self.executor.state.zones.get(hand_key, ()))
+        candidates = [
+            self.executor.state.objects[object_id]
+            for object_id in hand
+            if object_id in self.executor.state.objects
+            and not self.executor.state.objects[object_id].retired
+            and not self.executor.state.objects[object_id].ceased_to_exist
+            and self.executor.state.objects[object_id].owner == self.player_id
+            and self.executor.state.objects[object_id].zone is Zone.HAND
+        ]
+        if len(candidates) < discard_count:
+            return ()
+
+        variants: list[tuple[dict[str, Any], dict[str, Any]]] = []
+        for selected in combinations(candidates, discard_count):
+            public_cards = [self._public_card_semantics(card) for card in selected]
+            public_cards.sort(key=self._public_card_semantic_sort_key)
+            variants.append(
+                (
+                    {"discard_ids": [card.object_id for card in selected]},
+                    {"discard_cards": public_cards},
+                )
+            )
+        return tuple(variants)
+
     @staticmethod
     def _public_choice_metadata(choices: dict[str, Any]) -> dict[str, Any]:
         metadata: dict[str, Any] = {}
@@ -324,32 +381,36 @@ class ActionBroker:
                 if not effect_execution_supported(dict(ability.get("effect", {}))):
                     continue
                 schema = dict(ability.get("target_schema", {}))
+                cost_variants = self._additional_cost_choice_variants(ability)
                 for targets in self._target_sets(self.player_id, schema):
-                    for choices in self._ability_choice_variants(ability):
-                        arguments = {
-                            "actor": self.player_id,
-                            "source_id": obj.object_id,
-                            "ability": str(ability["ability_id"]),
-                            "targets": targets,
-                            "choices": choices,
-                        }
-                        if not self._probe("activate", arguments):
-                            continue
-                        target_handles = self._public_target_handles(targets)
-                        public = ObservedAction(
-                            "",
-                            "ACTIVATE",
-                            str(obj.current_characteristics.get("name")),
-                            0,
-                            self._tags(obj, ability),
-                            len(targets),
-                            {
-                                "ability_id": ability["ability_id"],
-                                "target_handles": target_handles,
-                                **self._public_choice_metadata(choices),
-                            },
-                        )
-                        result.append(_InternalAction("activate", arguments, public))
+                    for effect_choices in self._ability_choice_variants(ability):
+                        for cost_choices, public_cost_metadata in cost_variants:
+                            choices = {**effect_choices, **cost_choices}
+                            arguments = {
+                                "actor": self.player_id,
+                                "source_id": obj.object_id,
+                                "ability": str(ability["ability_id"]),
+                                "targets": targets,
+                                "choices": choices,
+                            }
+                            if not self._probe("activate", arguments):
+                                continue
+                            target_handles = self._public_target_handles(targets)
+                            public = ObservedAction(
+                                "",
+                                "ACTIVATE",
+                                str(obj.current_characteristics.get("name")),
+                                0,
+                                self._tags(obj, ability),
+                                len(targets),
+                                {
+                                    "ability_id": ability["ability_id"],
+                                    "target_handles": target_handles,
+                                    **self._public_choice_metadata(effect_choices),
+                                    **public_cost_metadata,
+                                },
+                            )
+                            result.append(_InternalAction("activate", arguments, public))
         return result
 
     def _candidate_hand_activations(self) -> list[_InternalAction]:

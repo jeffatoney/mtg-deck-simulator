@@ -76,6 +76,8 @@ class ZoneService:
         old = self.state.objects[object_id]
         if old.retired or old.ceased_to_exist:
             raise IllegalAction("cannot move a retired object")
+        if object_id in self.state.pending_commander_choices:
+            self.state.pending_commander_choices.remove(object_id)
         self._remove_from_zone(old)
         self.identity.snapshot_lki(old)
         old.retired = True
@@ -187,6 +189,11 @@ class ZoneService:
                 )
             self.state.objects[successor.object_id] = successor
             self.register(successor)
+            if destination in {Zone.GRAVEYARD, Zone.EXILE} and any(
+                self.state.card_instances[card_id].commander_designation
+                for card_id in successor.component_card_instance_ids
+            ):
+                self.state.pending_commander_choices.append(successor.object_id)
 
         change = ZoneChange(
             self.identity.new_id("zone-change"),

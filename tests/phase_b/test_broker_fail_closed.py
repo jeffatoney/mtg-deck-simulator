@@ -134,8 +134,10 @@ def test_verified_niv_automatic_battlefield_behavior_allows_broker_refresh() -> 
 def test_pending_commander_return_choice_suppresses_priority_actions() -> None:
     state, executor, specs = scenario("commander-choice")
     commander = add_card(
-        executor, specs["Malcolm, Keen-Eyed Navigator"], Zone.EXILE, commander=True
+        executor, specs["Malcolm, Keen-Eyed Navigator"], Zone.BATTLEFIELD, commander=True
     )
+    exiled = executor.zones.move(commander.object_id, Zone.EXILE, "TEST", executor._event("TEST"))
+    assert exiled is not None
     executor.check_state_based_actions()
     broker = ActionBroker(executor, "P0")
     observation, actions = broker.refresh()
@@ -147,6 +149,6 @@ def test_pending_commander_return_choice_suppresses_priority_actions() -> None:
         for obj in state.objects.values()
         if not obj.retired
         and obj.zone is Zone.COMMAND
-        and obj.component_card_instance_ids == commander.component_card_instance_ids
+        and obj.component_card_instance_ids == exiled.component_card_instance_ids
     ]
     assert len(successors) == 1 and not state.pending_commander_choices
