@@ -59,6 +59,16 @@ The known floating-pool/Treasure contradiction is covered by a focused fixture c
 
 A separate regression records the Rule 106.4 correction: mana floating in precombat main cannot be assumed to survive into a later combat payment. Persistent untapped battlefield sources may remain available across that boundary.
 
+## Stage 2 resource-legality corrections
+
+The shared model also records three source-level corrections discovered during PR review:
+
+- Opponent-profile mana sources read the active modeled profile. `blue_red_available` exposes U/R, while `no_known_colors` exposes no opponent-derived colors. Unknown profiles fail closed.
+- A known pain-land mode that would be lethal in the current state is omitted without suppressing an independent safe mana mode on the same permanent. This preserves Shivan Reef's `{C}` production at one life while rejecting its damaging U/R alternatives.
+- An unspent persistent tap-and-sacrifice source untaps at an explicit untap boundary. A source already sacrificed remains gone because sacrifice reduces remaining capacity rather than merely marking that capacity tapped.
+
+The repaired seed `391730338978874520` Turn-5 combat-damage witness is a deliberate Stage 2 resource-legality correction. Its public state hash and historical archived evidence are unchanged. The old measurement said `sufficient_mana = false` even though the same state was already classified as legally executable/full-table-kill and the production witness legally activates Treasure before Glint-Horn. The Stage 2 regression now independently solves the current `{1}{R}` activation, checks that the allocation contains exactly two paid mana units, and verifies that any Treasure allocation does not exceed the number of untapped Treasure permanents in the captured state. The corrected current measurement is `sufficient_mana = true` with no mana blocker; the historical archive itself is not modified.
+
 ## Future consumers
 
 Future Strategic Context, REQUIREMENTS_AWARE, and exploratory search should consume this resource API rather than introducing new resource counters. Stage 2 intentionally does not implement those future consumers.
@@ -70,6 +80,7 @@ The branch preserves the required tests-first sequence:
 1. `3f33d48db408d0d7374a7fb8ab7fd03664fbf96a` added the low-level acceptance tests before the solver implementation.
 2. `29ad9081547881c440c5817226ad189b69c10072` added state integration and Malcolm/Glint-Horn contradiction tests before the state adapter and consumer refactor.
 3. Solver and integration implementation commits follow those test commits.
+4. Review-edge regressions for tapped Treasure untap behavior, opponent-profile sensitivity, and lethal pain-land alternatives were committed before their corresponding fixes.
 
 Expected values in those tests are hand-specified contract values, not generated from implementation output.
 
