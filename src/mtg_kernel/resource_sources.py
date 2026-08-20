@@ -23,6 +23,10 @@ from mtg_kernel.resource_payment import (
 )
 
 _MANA_COLORS = ("W", "U", "B", "R", "G", "C")
+_OPPONENT_MANA_PROFILE_COLORS: dict[str, tuple[str, ...]] = {
+    "blue_red_available": ("U", "R"),
+    "no_known_colors": (),
+}
 
 
 @dataclass(frozen=True)
@@ -121,6 +125,8 @@ def _effect_productions(
     player_id: str,
     obj: GameObject,
     ability: Mapping[str, Any],
+    *,
+    opponent_mana_profile: str,
 ) -> tuple[ManaProduction, ...]:
     effect = ability.get("effect", {})
     if not isinstance(effect, Mapping):
@@ -146,15 +152,21 @@ def _effect_productions(
             _commander_colors(state, player_id), activation_cost=activation_cost
         )
     if kind == "ADD_OPPONENT_PROFILE_COLOR":
-        # This is the exact current clean-engine opponent-profile contract used by
-        # the runtime effect: a modeled blue/red opponent mana profile.
-        return _choice_productions(("U", "R"), activation_cost=activation_cost)
+        if opponent_mana_profile not in _OPPONENT_MANA_PROFILE_COLORS:
+            raise UnsupportedCapability(
+                f"unsupported opponent mana profile: {opponent_mana_profile}"
+            )
+        colors = _OPPONENT_MANA_PROFILE_COLORS[opponent_mana_profile]
+        if not colors:
+            return ()
+        return _choice_productions(colors, activation_cost=activation_cost)
     if kind == "ADD_CHOSEN_MANA_AND_DAMAGE_SELF":
         damage = int(effect.get("damage", 1))
         if state.players[player_id].life <= damage:
-            raise UnsupportedCapability(
-                "damage-producing mana source is not previewed when activation may be lethal"
-            )
+            # This known activation is currently illegal because it would cause a
+            # state-based loss. Omit only this production mode; other independent
+            # mana abilities on the same permanent remain available.
+            return ()
         return _choice_productions(effect.get("choices", ()), activation_cost=activation_cost)
     if kind == "ADD_BLUE_OR_FIXED_CHOSEN":
         fixed = str(obj.current_characteristics.get("chosen_color", ""))
@@ -181,7 +193,11 @@ def _treasure_source(obj: GameObject) -> ResourceSource | None:
 
 
 def _permanent_mana_source(
-    state: GameState, player_id: str, obj: GameObject
+    state: GameState,
+    player_id: str,
+    obj: GameObject,
+    *,
+    opponent_mana_profile: str,
 ) -> ResourceSource | None:
     mana_abilities = [
         ability
@@ -212,8 +228,16 @@ def _permanent_mana_source(
     productions = tuple(
         production
         for ability in mana_abilities
-        for production in _effect_productions(state, player_id, obj, ability)
+        for production in _effect_productions(
+            state,
+            player_id,
+            obj,
+            ability,
+            opponent_mana_profile=opponent_mana_profile,
+        )
     )
+    if not productions:
+        return None
     name = str(obj.current_characteristics.get("name", "unnamed permanent"))
     tapped = tap_to_activate and not _tap_ability_available(state, player_id, obj)
     return ResourceSource(
@@ -228,18 +252,30 @@ def _permanent_mana_source(
     )
 
 
-def resource_inventory_from_state(state: GameState, player_id: str) -> ResourceInventory:
+def resource_inventory_from_state(
+    state: GameState,
+    player_id: str,
+    *,
+    opponent_mana_profile: str = "blue_red_available",
+) -> ResourceInventory:
     """Extract current usable resources without reading hidden-zone contents."""
 
     if player_id not in state.players:
         raise IllegalAction("resource preview player does not exist")
+    if opponent_mana_profile not in _OPPONENT_MANA_PROFILE_COLORS:
+        raise UnsupportedCapability(f"unsupported opponent mana profile: {opponent_mana_profile}")
     sources: list[ResourceSource] = []
     for obj in _active_controlled_permanents(state, player_id):
         treasure = _treasure_source(obj)
         if treasure is not None:
             sources.append(treasure)
             continue
-        source = _permanent_mana_source(state, player_id, obj)
+        source = _permanent_mana_source(
+            state,
+            player_id,
+            obj,
+            opponent_mana_profile=opponent_mana_profile,
+        )
         if source is not None:
             sources.append(source)
     floating = tuple(
@@ -263,10 +299,15 @@ def solve_state_payment(
     steps: Sequence[PaymentStep],
     *,
     additional_sources: Sequence[ResourceSource] = (),
+    opponent_mana_profile: str = "blue_red_available",
 ) -> ResourcePaymentResult:
     """Adapt current state into the single authoritative payment solver."""
 
-    inventory = resource_inventory_from_state(state, player_id)
+    inventory = resource_inventory_from_state(
+        state,
+        player_id,
+        opponent_mana_profile=opponent_mana_profile,
+    )
     return solve_resource_payment(
         (*inventory.sources, *tuple(additional_sources)),
         tuple(steps),
