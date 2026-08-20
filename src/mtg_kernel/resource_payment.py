@@ -268,6 +268,35 @@ def _helpful(prod: ManaProduction, reqs: tuple[_Req, ...], tags: tuple[str, ...]
     )
 
 
+def _spendable_upper_bound(
+    state: _State,
+    reqs: tuple[_Req, ...],
+    tags: tuple[str, ...],
+    win: PaymentWindow,
+    sources: tuple[ResourceSource, ...],
+) -> int:
+    """Return a safe upper bound on units that could satisfy this payment step."""
+
+    relevant_colors = {color for req in reqs for color in req.options}
+    pool_units = sum(
+        1
+        for atom in state.pool
+        if atom.color in relevant_colors and set(atom.tags).issubset(tags)
+    )
+    source_units = 0
+    for source, cap in zip(sources, state.caps, strict=True):
+        if not _available(source, cap, win):
+            continue
+        production_units = [
+            sum(amount for _, amount in production.mana)
+            for production in source.productions
+            if _helpful(production, reqs, tags)
+        ]
+        if production_units:
+            source_units += (cap.remaining - cap.unavailable) * max(production_units)
+    return pool_units + source_units
+
+
 def _consume(state: _State, i: int, source: ResourceSource) -> _State:
     caps = list(state.caps)
     cap = caps[i]
@@ -303,6 +332,8 @@ def _pay(
     if key in seen:
         return
     seen.add(key)
+    if _spendable_upper_bound(state, reqs, tags, win, sources) < len(reqs):
+        return
     req, rest = reqs[0], reqs[1:]
     used_atoms: set[_Atom] = set()
     for i, atom in enumerate(state.pool):
