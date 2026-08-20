@@ -393,19 +393,18 @@ def _solve(
             return _Solution(state, (), ())
         step = steps[i]
         state = _window(state, step.window, sources)
-        candidates = list(
-            _pay(
-                state,
-                _reqs(step.mana_cost),
-                label=step.label,
-                tags=step.context_tags,
-                win=step.window,
-                sources=sources,
-                seen=set(),
-            )
-        )
-        candidates.sort(key=lambda x: (_canon(x[1], (step,)), x[0].pool, x[0].caps))
-        for paid, alloc in candidates:
+        # Sources are normalized and productions are deterministic, so the first
+        # feasible path is the canonical allocation. Iterate lazily instead of
+        # materializing and sorting every equivalent payment permutation.
+        for paid, alloc in _pay(
+            state,
+            _reqs(step.mana_cost),
+            label=step.label,
+            tags=step.context_tags,
+            win=step.window,
+            sources=sources,
+            seen=set(),
+        ):
             tail = search(i + 1, paid)
             if tail is not None:
                 canonical = _canon(alloc, (step,))
