@@ -14,6 +14,8 @@ from mtg_kernel.engine import GameExecutor
 from mtg_kernel.hashing import state_hash
 from mtg_kernel.models import Zone
 from mtg_kernel.replay import transcript, validate_replay
+from mtg_kernel.resource_payment import PaymentStep, PaymentWindow
+from mtg_kernel.resource_sources import solve_state_payment
 from mtg_measure.combo_access import ComboAccessTracker
 from mtg_policy.broker import ActionBroker
 from mtg_policy.public_actions import (
@@ -84,8 +86,8 @@ EXPECTED_FIRST_ACCESS = {
         5,
         "COMBAT",
         "COMBAT_DAMAGE",
-        False,
-        ("INSUFFICIENT_MANA_OR_DISCARD",),
+        True,
+        (),
     ),
     "legacy-391": (
         "648d4c4f54b92261fb33e73ee51e6ea632a304845726c68dfd3a8917470afd18",
@@ -412,6 +414,39 @@ def _witness(state: Any, seed: str) -> tuple[GameExecutor, list[dict[str, Any]]]
     return executor, steps
 
 
+def _assert_repaired_turn_five_payment(state: Any) -> None:
+    payment = solve_state_payment(
+        state,
+        "P0",
+        (
+            PaymentStep(
+                "malcolm_glint_horn:activation:1",
+                "{1}{R}",
+                PaymentWindow(0, "captured-combat-damage"),
+                context_tags=("ACTIVATED_ABILITY",),
+            ),
+        ),
+    )
+    assert payment.feasible is True
+    assert sum(item.amount for item in payment.canonical_allocation) == 2
+    untapped_treasures = sum(
+        1
+        for obj in state.objects.values()
+        if not obj.retired
+        and not obj.ceased_to_exist
+        and obj.zone is Zone.BATTLEFIELD
+        and obj.controller == "P0"
+        and str(obj.current_characteristics.get("name", "")) == "Treasure"
+        and (obj.permanent_status or {}).get("tap") == "UNTAPPED"
+    )
+    treasure_used = sum(
+        item.amount
+        for item in payment.canonical_allocation
+        if item.source_semantic_id == "Treasure:treasure-mana"
+    )
+    assert treasure_used <= untapped_treasures
+
+
 def test_first_access_states_have_finite_production_table_win_witnesses(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -421,6 +456,8 @@ def test_first_access_states_have_finite_production_table_win_witnesses(
         ("legacy-101", 101, True),
     ):
         state, seed_text, snapshot = _first_access(monkeypatch, label, seed, legacy)
+        if label == "repaired-391":
+            _assert_repaired_turn_five_payment(state)
         expected = EXPECTED_FIRST_ACCESS[label]
         assert (
             state_hash(state),
