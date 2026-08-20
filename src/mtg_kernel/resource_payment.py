@@ -279,9 +279,7 @@ def _spendable_upper_bound(
 
     relevant_colors = {color for req in reqs for color in req.options}
     pool_units = sum(
-        1
-        for atom in state.pool
-        if atom.color in relevant_colors and set(atom.tags).issubset(tags)
+        1 for atom in state.pool if atom.color in relevant_colors and set(atom.tags).issubset(tags)
     )
     source_units = 0
     for source, cap in zip(sources, state.caps, strict=True):
