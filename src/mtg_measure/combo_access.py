@@ -100,9 +100,7 @@ class ComboAccessTracker:
         *,
         additional_sources: Sequence[ResourceSource] = (),
     ) -> ResourcePaymentResult:
-        profile = str(
-            getattr(executor, "opponent_mana_profile", self.opponent_mana_profile)
-        )
+        profile = str(getattr(executor, "opponent_mana_profile", self.opponent_mana_profile))
         return solve_state_payment(
             executor.state,
             self.player_id,
