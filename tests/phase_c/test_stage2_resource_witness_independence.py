@@ -47,8 +47,7 @@ def _prove_initial_glint_activation_executes(executor: GameExecutor) -> None:
             broker.execute(int(observation["generation"]), glint.handle)
             new_actions = executor.state.actions[before:]
             assert any(
-                action.kind == "ACTIVATE"
-                and action.metadata.get("ability_id") == "glint-horn:loot"
+                action.kind == "ACTIVATE" and action.metadata.get("ability_id") == "glint-horn:loot"
                 for action in new_actions
             )
             return

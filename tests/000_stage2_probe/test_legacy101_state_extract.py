@@ -88,13 +88,10 @@ def _facts(state: Any, snapshot: dict[str, Any]) -> dict[str, Any]:
             key=lambda item: (str(item["controller"]), str(item["identity"])),
         ),
         "p0_hand": hand,
-        "p0_mana_pool": {
-            key: int(value) for key, value in state.players["P0"].mana_pool.items()
-        },
+        "p0_mana_pool": {key: int(value) for key, value in state.players["P0"].mana_pool.items()},
         "p0_untapped_mana_sources": sorted(untapped_mana_sources),
         "p0_treasure_count": sum(
-            item["controller"] == "P0" and item["identity"] == "Treasure"
-            for item in battlefield
+            item["controller"] == "P0" and item["identity"] == "Treasure" for item in battlefield
         ),
         "p0_library_size": len(state.zones.get(library_key, ())),
         "opponent_life_totals": {
@@ -138,7 +135,6 @@ def test_extract_current_legacy_101_first_access_state() -> None:
         "menu_selected": _menu_selected(state, seed_text),
     }
     pytest.exit(
-        "STAGE2_LEGACY101_STATE="
-        + json.dumps(payload, sort_keys=True, separators=(",", ":")),
+        "STAGE2_LEGACY101_STATE=" + json.dumps(payload, sort_keys=True, separators=(",", ":")),
         returncode=1,
     )
