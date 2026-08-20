@@ -1,4 +1,5 @@
 """Authoritative card-agnostic ordered mana/resource feasibility solver."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -217,24 +218,15 @@ def _reqs(cost: str) -> tuple[_Req, ...]:
     parsed = parse_mana_cost(cost)
     out: list[_Req] = []
     for color in COLORS:
-        out.extend(
-            _Req(f"{color}:{i}", (color,))
-            for i in range(int(parsed.get(color, 0)))
-        )
+        out.extend(_Req(f"{color}:{i}", (color,)) for i in range(int(parsed.get(color, 0))))
     for key in sorted(k for k in parsed if k.startswith(HYBRID_PREFIX)):
-        opts = tuple(
-            sorted(key.removeprefix(HYBRID_PREFIX).split("/"), key=_ORDER.__getitem__)
-        )
+        opts = tuple(sorted(key.removeprefix(HYBRID_PREFIX).split("/"), key=_ORDER.__getitem__))
         out.extend(_Req(f"{key}:{i}", opts) for i in range(int(parsed[key])))
-    out.extend(
-        _Req(f"GENERIC:{i}", tuple(COLORS)) for i in range(int(parsed["GENERIC"]))
-    )
+    out.extend(_Req(f"GENERIC:{i}", tuple(COLORS)) for i in range(int(parsed["GENERIC"])))
     return tuple(out)
 
 
-def _initial(
-    sources: tuple[ResourceSource, ...], floating: Sequence[FloatingMana]
-) -> _State:
+def _initial(sources: tuple[ResourceSource, ...], floating: Sequence[FloatingMana]) -> _State:
     atoms = tuple(
         sorted(
             _Atom(f.color, f.semantic_id, f.spend_tags)
@@ -242,16 +234,11 @@ def _initial(
             for _ in range(f.amount)
         )
     )
-    caps = tuple(
-        _Cap(s.count, s.count if s.tapped or s.enters_tapped else 0)
-        for s in sources
-    )
+    caps = tuple(_Cap(s.count, s.count if s.tapped or s.enters_tapped else 0) for s in sources)
     return _State(atoms, caps, None)
 
 
-def _window(
-    state: _State, win: PaymentWindow, sources: tuple[ResourceSource, ...]
-) -> _State:
+def _window(state: _State, win: PaymentWindow, sources: tuple[ResourceSource, ...]) -> _State:
     if state.window == win.ordinal:
         return state
     if state.window is not None and win.ordinal < state.window:
@@ -275,9 +262,7 @@ def _available(source: ResourceSource, cap: _Cap, win: PaymentWindow) -> bool:
     )
 
 
-def _helpful(
-    prod: ManaProduction, reqs: tuple[_Req, ...], tags: tuple[str, ...]
-) -> bool:
+def _helpful(prod: ManaProduction, reqs: tuple[_Req, ...], tags: tuple[str, ...]) -> bool:
     return set(prod.spend_tags).issubset(tags) and any(
         color in req.options for color, _ in prod.mana for req in reqs
     )
@@ -297,9 +282,7 @@ def _consume(state: _State, i: int, source: ResourceSource) -> _State:
 def _produce(state: _State, source: ResourceSource, prod: ManaProduction) -> _State:
     pool = list(state.pool)
     for color, amount in prod.mana:
-        pool.extend(
-            _Atom(color, source.semantic_id, prod.spend_tags) for _ in range(amount)
-        )
+        pool.extend(_Atom(color, source.semantic_id, prod.spend_tags) for _ in range(amount))
     return _State(tuple(sorted(pool)), state.caps, state.window)
 
 
@@ -323,11 +306,7 @@ def _pay(
     req, rest = reqs[0], reqs[1:]
     used_atoms: set[_Atom] = set()
     for i, atom in enumerate(state.pool):
-        if (
-            atom in used_atoms
-            or atom.color not in req.options
-            or not set(atom.tags).issubset(tags)
-        ):
+        if atom in used_atoms or atom.color not in req.options or not set(atom.tags).issubset(tags):
             continue
         used_atoms.add(atom)
         pool = list(state.pool)
@@ -355,15 +334,19 @@ def _pay(
             act_reqs = _reqs(act_cost)
             act_label = f"{label}:source:{source.semantic_id}"
             paths: Iterable[tuple[_State, tuple[PaymentAllocation, ...]]]
-            paths = _pay(
-                consumed,
-                act_reqs,
-                label=act_label,
-                tags=("ACTIVATED_ABILITY", "MANA_ABILITY"),
-                win=win,
-                sources=sources,
-                seen=seen,
-            ) if act_reqs else ((consumed, ()),)
+            paths = (
+                _pay(
+                    consumed,
+                    act_reqs,
+                    label=act_label,
+                    tags=("ACTIVATED_ABILITY", "MANA_ABILITY"),
+                    win=win,
+                    sources=sources,
+                    seen=seen,
+                )
+                if act_reqs
+                else ((consumed, ()),)
+            )
             for paid, act_alloc in paths:
                 produced = _produce(paid, source, prod)
                 for end, tail in _pay(
@@ -428,10 +411,9 @@ def _solve(
                 canonical = _canon(alloc, (step,))
                 public = tuple(a for a in canonical if ":source:" not in a.step_label)
                 result = PaymentStepResult(step.label, step.window.label, step.mana_cost, public)
-                return _Solution(
-                    tail.state, (result, *tail.steps), (*canonical, *tail.allocations)
-                )
+                return _Solution(tail.state, (result, *tail.steps), (*canonical, *tail.allocations))
         return None
+
     return search(0, _initial(sources, floating))
 
 
@@ -479,23 +461,15 @@ def _diagnose(
         if deficit:
             colored.append((color, deficit))
             reasons.add(
-                {"R": RED_PIP_DEFICIT, "U": BLUE_PIP_DEFICIT}.get(
-                    color, f"{color}_PIP_DEFICIT"
-                )
+                {"R": RED_PIP_DEFICIT, "U": BLUE_PIP_DEFICIT}.get(color, f"{color}_PIP_DEFICIT")
             )
     colorless = max(0, int(parsed.get("C", 0)) - potential["C"])
     if colorless:
         reasons.add(COLORLESS_REQUIREMENT_DEFICIT)
 
     required = sum(
-        int(value)
-        for key, value in parsed.items()
-        if not key.startswith(HYBRID_PREFIX)
-    ) + sum(
-        int(value)
-        for key, value in parsed.items()
-        if key.startswith(HYBRID_PREFIX)
-    )
+        int(value) for key, value in parsed.items() if not key.startswith(HYBRID_PREFIX)
+    ) + sum(int(value) for key, value in parsed.items() if key.startswith(HYBRID_PREFIX))
     available = len(state.pool) + sum(
         (cap.remaining - cap.unavailable)
         * max(sum(amount for _, amount in production.mana) for production in source.productions)
@@ -529,8 +503,7 @@ def _diagnose(
     if any(
         _available(source, cap, step.window)
         and any(
-            production.spend_tags
-            and not set(production.spend_tags).issubset(step.context_tags)
+            production.spend_tags and not set(production.spend_tags).issubset(step.context_tags)
             for production in source.productions
         )
         for source, cap in zip(sources, state.caps, strict=True)
@@ -556,18 +529,11 @@ def solve_resource_payment(
     sources = _normalize(tuple(sources))
     steps = tuple(steps)
     floating = tuple(sorted(floating_mana))
-    if any(
-        second.window.ordinal < first.window.ordinal
-        for first, second in zip(steps, steps[1:])
-    ):
+    if any(second.window.ordinal < first.window.ordinal for first, second in zip(steps, steps[1:])):
         raise IllegalAction("payment step windows must be nondecreasing")
     windows = tuple(dict.fromkeys(step.window for step in steps))
     safe = tuple(
-        sorted(
-            str(value)
-            for value in assumptions
-            if not str(value).startswith("library-order:")
-        )
+        sorted(str(value) for value in assumptions if not str(value).startswith("library-order:"))
     )
     solved = _solve(sources, steps, floating)
     if solved is not None:
