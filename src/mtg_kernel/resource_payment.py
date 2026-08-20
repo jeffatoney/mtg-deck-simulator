@@ -246,7 +246,7 @@ def _window(state: _State, win: PaymentWindow, sources: tuple[ResourceSource, ..
     caps = list(state.caps)
     if win.untap_before:
         for i, source in enumerate(sources):
-            if source.persistent and not source.sacrifice_to_activate:
+            if source.persistent:
                 caps[i] = _Cap(caps[i].remaining, 0)
     return _State(() if win.clear_pool_before else state.pool, tuple(caps), win.ordinal)
 
