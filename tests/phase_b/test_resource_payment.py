@@ -161,7 +161,9 @@ def test_sacrificed_treasure_does_not_return_after_untap_transition() -> None:
     assert result.feasible is False
     assert result.first_failed_step == "second"
     capacity = next(
-        value for value in result.remaining_source_capacity if value.source_semantic_id == "treasure"
+        value
+        for value in result.remaining_source_capacity
+        if value.source_semantic_id == "treasure"
     )
     assert capacity.remaining == 0
 
