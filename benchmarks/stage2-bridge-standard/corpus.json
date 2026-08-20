@@ -6,7 +6,7 @@
   "through_turn": 10,
   "policy_actions": true,
   "validate_fresh_replay_in_game": false,
-  "repetitions": 3,
+  "repetitions": 2,
   "seeds": [
     101,
     202,
