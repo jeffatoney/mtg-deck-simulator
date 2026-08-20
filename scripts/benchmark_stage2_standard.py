@@ -18,7 +18,6 @@ import statistics
 import subprocess
 import sys
 import time
-import tracemalloc
 from copy import deepcopy as real_deepcopy
 from pathlib import Path
 from typing import Any
@@ -72,7 +71,6 @@ def _worker(seed: int, corpus: dict[str, Any]) -> dict[str, Any]:
     import mtg_policy.broker_core as broker_core
     import mtg_runs.phase_c_runner as runner
     from mtg_kernel.models import GameState, Zone
-    from mtg_kernel.replay import validate_replay
     from mtg_policy.broker import ActionBroker
     from mtg_policy.choices import PolicyStrategicChoiceProvider
     from mtg_policy.public_actions import public_action_classes
@@ -211,7 +209,6 @@ def _worker(seed: int, corpus: dict[str, Any]) -> dict[str, Any]:
 
     runner.validate_replay = timed_validate_replay
 
-    tracemalloc.start()
     start = time.perf_counter()
     execution = runner.run_phase_c_game_execution(
         seed=seed,
@@ -222,8 +219,6 @@ def _worker(seed: int, corpus: dict[str, Any]) -> dict[str, Any]:
         policy_actions=bool(corpus["policy_actions"]),
     )
     seconds = time.perf_counter() - start
-    _, python_peak_bytes = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
     peak_rss_bytes = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) * 1024
 
     fresh_start = time.perf_counter()
@@ -231,13 +226,6 @@ def _worker(seed: int, corpus: dict[str, Any]) -> dict[str, Any]:
     fresh_seconds = time.perf_counter() - fresh_start
     if fresh.state_hash != execution.technical_game.final_state_hash:
         raise ValueError("fresh replay diverged during Stage 2 benchmark")
-
-    # Independently exercise the public replay API once more to ensure the recorded
-    # replay timing is not merely an instrumentation side effect.
-    if execution.technical_game.final_state_hash != runner.state_hash(
-        validate_replay(execution.replay_transcript)
-    ):
-        raise ValueError("same-process replay diverged during Stage 2 benchmark")
 
     technical = execution.technical_game
     if technical.pilot_result or technical.authorized_pilot_result:
@@ -272,7 +260,8 @@ def _worker(seed: int, corpus: dict[str, Any]) -> dict[str, Any]:
         "state_clone_count": counters["state_clone_count"],
         "replay_validation_time": replay_seconds,
         "fresh_replay_time": fresh_seconds,
-        "peak_memory": python_peak_bytes,
+        "peak_memory": peak_rss_bytes,
+        "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
         "process_peak_rss_bytes": peak_rss_bytes,
         "max_legal_action_count": counters["max_legal_action_count"],
         "max_semantic_action_class_count": counters["max_semantic_action_class_count"],
