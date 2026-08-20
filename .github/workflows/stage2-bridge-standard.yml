@@ -1,6 +1,14 @@
 name: Stage 2 Bridge STANDARD Benchmark
 
 on:
+  pull_request:
+    paths:
+      - "benchmarks/stage2-bridge-standard/**"
+      - "scripts/benchmark_stage2_standard.py"
+      - "src/mtg_kernel/resource_payment.py"
+      - "src/mtg_kernel/resource_sources.py"
+      - "src/mtg_measure/combo_access.py"
+      - ".github/workflows/stage2-bridge-standard.yml"
   push:
     branches:
       - hardening/shared-resource-accounting
@@ -49,7 +57,7 @@ jobs:
       - name: Upload benchmark result
         uses: actions/upload-artifact@v4
         with:
-          name: stage2-bridge-standard-${{ github.sha }}
+          name: stage2-bridge-standard-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/stage2-bridge-standard/result.json
           if-no-files-found: error
           retention-days: 30
