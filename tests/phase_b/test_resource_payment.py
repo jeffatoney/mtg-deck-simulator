@@ -51,6 +51,7 @@ def flexible(
     *,
     count: int = 1,
     sacrifice: bool = False,
+    tapped: bool = False,
     available_from_window: int = 0,
     execution_refs: tuple[str, ...] = (),
 ) -> ResourceSource:
@@ -61,6 +62,7 @@ def flexible(
         tap_to_activate=True,
         sacrifice_to_activate=sacrifice,
         persistent=True,
+        tapped=tapped,
         available_from_window=available_from_window,
         execution_refs=execution_refs,
     )
@@ -138,6 +140,30 @@ def test_treasure_persists_across_turns_until_used_or_removed() -> None:
     )
     assert result.feasible is True
     assert result.canonical_allocation[0].source_semantic_id == "treasure"
+
+
+def test_tapped_treasure_untaps_at_explicit_untap_transition() -> None:
+    tapped = flexible("treasure", colors=("R",), sacrifice=True, tapped=True)
+    assert solve_resource_payment((tapped,), (pay("{R}", window=NOW),)).feasible is False
+    later = solve_resource_payment((tapped,), (pay("{R}", window=UNTAP_LATER),))
+    assert later.feasible is True
+    assert later.canonical_allocation[0].source_semantic_id == "treasure"
+
+
+def test_sacrificed_treasure_does_not_return_after_untap_transition() -> None:
+    result = solve_resource_payment(
+        (flexible("treasure", colors=("R",), sacrifice=True),),
+        (
+            pay("{R}", label="first"),
+            pay("{R}", window=UNTAP_LATER, label="second"),
+        ),
+    )
+    assert result.feasible is False
+    assert result.first_failed_step == "second"
+    capacity = next(
+        value for value in result.remaining_source_capacity if value.source_semantic_id == "treasure"
+    )
+    assert capacity.remaining == 0
 
 
 def test_source_arriving_after_window_cannot_pay_earlier_cost() -> None:
