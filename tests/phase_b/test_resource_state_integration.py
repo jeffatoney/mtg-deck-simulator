@@ -38,9 +38,7 @@ def _permanent(
 
 def _malcolm_glint_fixture(*, treasure_object_id: str = "treasure-object") -> GameState:
     players = {
-        "P0": PlayerState(
-            "P0", mana_pool={"W": 0, "U": 0, "B": 0, "R": 1, "G": 0, "C": 0}
-        ),
+        "P0": PlayerState("P0", mana_pool={"W": 0, "U": 0, "B": 0, "R": 1, "G": 0, "C": 0}),
         "P1": PlayerState("P1", life=1),
         "P2": PlayerState("P2", life=1),
         "P3": PlayerState("P3", life=1),
