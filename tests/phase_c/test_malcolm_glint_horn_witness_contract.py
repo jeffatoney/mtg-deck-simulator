@@ -94,8 +94,8 @@ EXPECTED_FIRST_ACCESS = {
         6,
         "COMBAT",
         "COMBAT_DAMAGE",
-        False,
-        ("INSUFFICIENT_MANA_OR_DISCARD",),
+        True,
+        (),
     ),
     "legacy-101": (
         "357b54ef412fbcce95e24a466ddce14bfefb6f96e13cd3d87f75d8c00569c4e1",
@@ -414,7 +414,7 @@ def _witness(state: Any, seed: str) -> tuple[GameExecutor, list[dict[str, Any]]]
     return executor, steps
 
 
-def _assert_repaired_turn_five_payment(state: Any) -> None:
+def _assert_captured_combat_payment(state: Any) -> None:
     payment = solve_state_payment(
         state,
         "P0",
@@ -456,8 +456,8 @@ def test_first_access_states_have_finite_production_table_win_witnesses(
         ("legacy-101", 101, True),
     ):
         state, seed_text, snapshot = _first_access(monkeypatch, label, seed, legacy)
-        if label == "repaired-391":
-            _assert_repaired_turn_five_payment(state)
+        if label in {"repaired-391", "legacy-391"}:
+            _assert_captured_combat_payment(state)
         expected = EXPECTED_FIRST_ACCESS[label]
         assert (
             state_hash(state),
