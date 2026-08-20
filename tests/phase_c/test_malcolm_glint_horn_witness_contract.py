@@ -377,7 +377,7 @@ def _prepare_combat(executor: GameExecutor, steps: list[dict[str, Any]]) -> None
             lambda view: (
                 view.kind == "DECLARE_ATTACKERS"
                 and {GLINT, MALCOLM}.issubset(
-                    {str(v) for v in view.metadata.get("attacker_identities", ()))
+                    {str(v) for v in view.metadata.get("attacker_identities", ())}
                 )
             ),
         )
