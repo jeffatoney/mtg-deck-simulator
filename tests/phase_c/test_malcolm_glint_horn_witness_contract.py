@@ -307,6 +307,22 @@ def _public(
     }
 
 
+def _public_available(
+    executor: GameExecutor, predicate: Callable[[PolicyActionView], bool]
+) -> bool:
+    assert executor.state.turn.priority_holder_id == "P0"
+    _observation, actions = ActionBroker(executor, "P0").refresh()
+    return any(predicate(policy_action_view(action)) for action in actions)
+
+
+def _mana_ability(view: PolicyActionView) -> bool:
+    return view.kind == "ACTIVATE" and bool({"MANA_ABILITY", "ADD_MANA"}.intersection(view.tags))
+
+
+def _glint_cast(view: PolicyActionView) -> bool:
+    return view.kind == "CAST" and view.identity == GLINT
+
+
 def _treasure(color: str) -> Callable[[PolicyActionView], bool]:
     return lambda view: (
         view.kind == "ACTIVATE"
@@ -365,7 +381,12 @@ def _prepare_combat(executor: GameExecutor, steps: list[dict[str, Any]]) -> None
     if _glint_attacking(executor):
         return
     if not _glint_on_field(executor):
-        steps.append(_public(executor, lambda view: view.kind == "CAST" and view.identity == GLINT))
+        mana_activations = 0
+        while not _public_available(executor, _glint_cast):
+            steps.append(_public(executor, _mana_ability))
+            mana_activations += 1
+            assert mana_activations <= 12
+        steps.append(_public(executor, _glint_cast))
         _resolve_stack(executor)
     assert executor.state.turn.phase == "PRECOMBAT_MAIN"
     _close_empty_window(executor)
@@ -476,8 +497,16 @@ def test_first_access_states_have_finite_production_table_win_witnesses(
         assert all(
             not player.in_game for pid, player in witness.state.players.items() if pid != "P0"
         )
-        assert steps[0]["identity"] == (GLINT if label == "legacy-101" else "Treasure")
-        if label != "legacy-101":
+        if label == "legacy-101":
+            cast_index = next(
+                index
+                for index, step in enumerate(steps)
+                if step["kind"] == "CAST" and step["identity"] == GLINT
+            )
+            assert cast_index > 0
+            assert all(step["kind"] == "ACTIVATE" for step in steps[:cast_index])
+        else:
+            assert steps[0]["identity"] == "Treasure"
             assert steps[0]["metadata"]["mana_color"] == "R"
         body = transcript(witness.state, seed=seed_text)
         assert state_hash(validate_replay(body)) == state_hash(witness.state)
