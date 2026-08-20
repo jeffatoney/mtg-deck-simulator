@@ -136,9 +136,7 @@ def test_opponent_profile_mana_respects_no_known_colors_sensitivity() -> None:
         "orchard-object",
         "Exotic Orchard",
         card_types=("Land",),
-        abilities=(
-            _mana_ability("orchard:mana", {"kind": "ADD_OPPONENT_PROFILE_COLOR"}),
-        ),
+        abilities=(_mana_ability("orchard:mana", {"kind": "ADD_OPPONENT_PROFILE_COLOR"}),),
     )
     state = _single_source_state(orchard)
     step = PaymentStep("blue", "{U}", PaymentWindow(0, "current"))
