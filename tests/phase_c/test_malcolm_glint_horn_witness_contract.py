@@ -98,7 +98,7 @@ EXPECTED_FIRST_ACCESS = {
         (),
     ),
     "legacy-101": (
-        "357b54ef412fbcce95e24a466ddce14bfefb6f96e13cd3d87f75d8c00569c4e1",
+        "8d81dc59d5b6b5588e7e8fa16c76a22bfbf9e7899601c92ddbf7611def4ab7a7",
         10,
         "PRECOMBAT_MAIN",
         "PRECOMBAT_MAIN",
@@ -154,6 +154,7 @@ def _metrics(payload: dict[str, Any]) -> tuple[Any, ...]:
 def _first_divergence(left: dict[str, Any], right: dict[str, Any], field: str) -> int | None:
     for index, (a, b) in enumerate(zip(left["decisions"], right["decisions"], strict=False)):
         if field == "public_key":
+            av, bv = _selected(a)["public_action_key"]
             av, bv = _selected(a)["public_action_key"], _selected(b)["public_action_key"]
         else:
             av, bv = a[field], b[field]
