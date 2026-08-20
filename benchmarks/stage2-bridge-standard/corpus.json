@@ -1,0 +1,38 @@
+{
+  "schema_version": "stage2-bridge-standard-corpus-v1",
+  "base_main_sha": "f6ada4d656002a9942b6938c54e8565f5f9d0c7a",
+  "mode": "STANDARD",
+  "policy_config_id": "anchor_balanced",
+  "through_turn": 10,
+  "policy_actions": true,
+  "validate_fresh_replay_in_game": false,
+  "repetitions": 3,
+  "seeds": [
+    101,
+    202,
+    303,
+    404,
+    505,
+    606,
+    771,
+    391730338978874520
+  ],
+  "required_coverage": [
+    "representative_complete_10_turn_game",
+    "low_action_opening_state",
+    "high_action_main_phase",
+    "multiple_playable_lands",
+    "multiple_mana_abilities",
+    "tutor_choice_state",
+    "attack_choice_state",
+    "discard_choice_state",
+    "protection_choice_state",
+    "malcolm_glint_horn_treasure_state",
+    "many_semantic_legal_action_classes"
+  ],
+  "coverage_thresholds": {
+    "low_action_max_legal_actions": 4,
+    "high_action_min_legal_actions": 12,
+    "many_semantic_classes_minimum": 10
+  }
+}
