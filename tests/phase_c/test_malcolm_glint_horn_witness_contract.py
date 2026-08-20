@@ -154,7 +154,6 @@ def _metrics(payload: dict[str, Any]) -> tuple[Any, ...]:
 def _first_divergence(left: dict[str, Any], right: dict[str, Any], field: str) -> int | None:
     for index, (a, b) in enumerate(zip(left["decisions"], right["decisions"], strict=False)):
         if field == "public_key":
-            av, bv = _selected(a)["public_action_key"]
             av, bv = _selected(a)["public_action_key"], _selected(b)["public_action_key"]
         else:
             av, bv = a[field], b[field]
@@ -378,7 +377,7 @@ def _prepare_combat(executor: GameExecutor, steps: list[dict[str, Any]]) -> None
             lambda view: (
                 view.kind == "DECLARE_ATTACKERS"
                 and {GLINT, MALCOLM}.issubset(
-                    {str(v) for v in view.metadata.get("attacker_identities", ())}
+                    {str(v) for v in view.metadata.get("attacker_identities", ()))
                 )
             ),
         )
