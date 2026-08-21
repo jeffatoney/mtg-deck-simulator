@@ -33,9 +33,7 @@ def _put_named_permanent_on_battlefield(executor, name: str):
 
 @pytest.mark.parametrize("name", ("Command Tower", "Arcane Signet"))
 def test_commander_color_resource_sources_are_production_broker_executable(name: str) -> None:
-    _state, executor, _ = build_exact_game(
-        f"stage2-commander-color-broker:{name}", PLAYER_IDS
-    )
+    _state, executor, _ = build_exact_game(f"stage2-commander-color-broker:{name}", PLAYER_IDS)
     executor.state.turn.active_player_id = "P0"
     executor.state.turn.priority_holder_id = "P0"
     executor.state.turn.phase = "PRECOMBAT_MAIN"
