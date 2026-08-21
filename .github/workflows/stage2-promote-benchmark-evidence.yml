@@ -1,0 +1,64 @@
+name: Stage 2 Benchmark Evidence Transfer
+
+on:
+  push:
+    branches:
+      - hardening/shared-resource-accounting
+    paths:
+      - .github/workflows/stage2-promote-benchmark-evidence.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/shared-resource-accounting
+          fetch-depth: 0
+      - name: Download and verify exact benchmark artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9428802085/zip" \
+            --output "${RUNNER_TEMP}/stage2-benchmark.zip"
+          mkdir -p "${RUNNER_TEMP}/stage2-benchmark"
+          unzip -q "${RUNNER_TEMP}/stage2-benchmark.zip" -d "${RUNNER_TEMP}/stage2-benchmark"
+          test "$(find "${RUNNER_TEMP}/stage2-benchmark" -type f -name result.json | wc -l)" -eq 1
+          result="$(find "${RUNNER_TEMP}/stage2-benchmark" -type f -name result.json)"
+          echo "17bfe36d29322eeec7f5ef5be254469c4a435519b2ff95c8540a7dcb6260443e  ${result}" | sha256sum --check --status
+          python - "${result}" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          assert payload["subject_sha"] == "68141d430876a54cd7b528e667896a941b455316"
+          assert payload["base_main_sha"] == "f6ada4d656002a9942b6938c54e8565f5f9d0c7a"
+          assert payload["trial_count"] == payload["expected_trial_count"] == 16
+          assert payload["worker_errors"] == []
+          assert payload["aggregate"]["missing_required_coverage"] == []
+          assert payload["pilot_or_full_study_executed"] is False
+          assert payload["strategic_context_instantiated"] is False
+          assert payload["aggregate"]["recommended_owner_review_budget"]["status"] == "PROVISIONAL_NOT_FINAL"
+          PY
+          mkdir -p docs/audit/stage2-bridge-standard
+          cp "${result}" docs/audit/stage2-bridge-standard/RESULT.json
+          echo "17bfe36d29322eeec7f5ef5be254469c4a435519b2ff95c8540a7dcb6260443e  docs/audit/stage2-bridge-standard/RESULT.json" | sha256sum --check --status
+      - name: Commit exact benchmark observation
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- docs/audit/stage2-bridge-standard/RESULT.json
+          git diff --cached --exit-code --quiet && exit 1 || true
+          git commit -m "benchmark: record Stage 2 pre-optimization observation"
+          git push origin HEAD:hardening/shared-resource-accounting
