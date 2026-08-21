@@ -89,6 +89,11 @@ def _commander_colors(state: GameState, player_id: str) -> tuple[str, ...]:
     return tuple(color for color in _MANA_COLORS if color in colors)
 
 
+def commander_colors_from_state(state: GameState, player_id: str) -> tuple[str, ...]:
+    """Return the modeled commander colors shared by previews and broker execution."""
+    return _commander_colors(state, player_id)
+
+
 def _mana_map(raw: object) -> tuple[tuple[str, int], ...]:
     if not isinstance(raw, Mapping):
         raise UnsupportedCapability("mana-source effect is missing a mana mapping")
@@ -149,7 +154,7 @@ def _effect_productions(
         )
     if kind in {"ADD_COMMANDER_COLOR", "ADD_COMMANDER_COLOR_AND_MARK"}:
         return _choice_productions(
-            _commander_colors(state, player_id), activation_cost=activation_cost
+            commander_colors_from_state(state, player_id), activation_cost=activation_cost
         )
     if kind == "ADD_OPPONENT_PROFILE_COLOR":
         if opponent_mana_profile not in _OPPONENT_MANA_PROFILE_COLORS:
