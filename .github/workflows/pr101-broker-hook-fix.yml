@@ -1,0 +1,54 @@
+name: PR101 Broker Choice Hook Fix
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/pr101-broker-hook-fix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'hardening/shared-resource-accounting'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/shared-resource-accounting
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: uv sync --frozen --all-extras
+      - name: Make broker choice hook instance-aware
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/mtg_policy/broker_core.py')
+          text = path.read_text()
+          old = '''    @staticmethod\n    def _ability_choice_variants(ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:\n        return ActionBroker._effect_choice_variants(dict(ability.get("effect", {})))\n'''
+          new = '''    def _ability_choice_variants(self, ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:\n        return self._effect_choice_variants(dict(ability.get("effect", {})))\n'''
+          if old not in text:
+              raise SystemExit('broker_core hook anchor missing')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          uv run ruff format src/mtg_policy/broker_core.py src/mtg_policy/broker.py
+          uv run ruff check src/mtg_policy/broker_core.py src/mtg_policy/broker.py
+          uv run mypy src
+          uv run pytest -q tests/phase_b/test_stage2_resource_broker_profile_alignment.py
+          uv run pytest -q tests/phase_b/test_resource_state_integration.py tests/phase_b/test_glint_horn_action_surface.py
+      - name: Commit verified hook fix
+        run: |
+          git config user.name "jeffatoney"
+          git config user.email "jeff.a.toney@gmail.com"
+          git rm .github/workflows/pr101-broker-hook-fix.yml
+          git add -- src/mtg_policy/broker_core.py src/mtg_policy/broker.py
+          git commit -m "fix: make broker mana choice hook instance-aware"
+          git push origin HEAD:hardening/shared-resource-accounting
