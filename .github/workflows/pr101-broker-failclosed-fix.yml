@@ -1,0 +1,60 @@
+name: PR101 Broker Fail-Closed Fix
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/pr101-broker-failclosed-fix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'hardening/shared-resource-accounting'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hardening/shared-resource-accounting
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: uv sync --frozen --all-extras
+      - name: Make commander-color broker preview fail closed
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/mtg_policy/broker.py')
+          text = path.read_text()
+          import_anchor = 'from mtg_kernel.engine import MAIN_PHASES\n'
+          import_line = 'from mtg_kernel.errors import UnsupportedCapability\n'
+          if import_line not in text:
+              if import_anchor not in text:
+                  raise SystemExit('broker error import anchor missing')
+              text = text.replace(import_anchor, import_anchor + import_line, 1)
+          old = '''        if str(effect.get("kind", "NONE")) in {\n            "ADD_COMMANDER_COLOR",\n            "ADD_COMMANDER_COLOR_AND_MARK",\n        }:\n            return tuple(\n                {"mana_color": color}\n                for color in commander_colors_from_state(self.executor.state, self.player_id)\n            )\n'''
+          new = '''        if str(effect.get("kind", "NONE")) in {\n            "ADD_COMMANDER_COLOR",\n            "ADD_COMMANDER_COLOR_AND_MARK",\n        }:\n            try:\n                colors = commander_colors_from_state(self.executor.state, self.player_id)\n            except UnsupportedCapability:\n                return ()\n            return tuple({"mana_color": color} for color in colors)\n'''
+          if old not in text:
+              raise SystemExit('broker commander-color hook anchor missing')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          uv run ruff format src/mtg_policy/broker.py
+          uv run ruff check src/mtg_policy/broker.py
+          uv run mypy src
+          uv run pytest -q tests/phase_b/test_broker_fail_closed.py::test_broker_x_spells_expose_only_exact_payable_target_counts
+          uv run pytest -q tests/phase_b/test_stage2_resource_broker_profile_alignment.py tests/phase_b/test_resource_state_integration.py tests/phase_b/test_glint_horn_action_surface.py
+      - name: Commit verified fail-closed fix
+        run: |
+          git config user.name "jeffatoney"
+          git config user.email "jeff.a.toney@gmail.com"
+          git rm .github/workflows/pr101-broker-failclosed-fix.yml
+          git add -- src/mtg_policy/broker.py
+          git commit -m "fix: fail closed for unknown commander colors"
+          git push origin HEAD:hardening/shared-resource-accounting
