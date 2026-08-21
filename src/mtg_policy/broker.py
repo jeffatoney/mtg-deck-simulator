@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from mtg_kernel.engine import MAIN_PHASES
+from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.models import GameObject, Zone
 from mtg_kernel.phase_b_actions import (
     automatic_ability_execution_supported,
@@ -40,10 +41,11 @@ class ActionBroker(_CoreActionBroker):
             "ADD_COMMANDER_COLOR",
             "ADD_COMMANDER_COLOR_AND_MARK",
         }:
-            return tuple(
-                {"mana_color": color}
-                for color in commander_colors_from_state(self.executor.state, self.player_id)
-            )
+            try:
+                colors = commander_colors_from_state(self.executor.state, self.player_id)
+            except UnsupportedCapability:
+                return ()
+            return tuple({"mana_color": color} for color in colors)
         return super()._ability_choice_variants(ability)
 
     def _entry_trigger_choice_variants(
