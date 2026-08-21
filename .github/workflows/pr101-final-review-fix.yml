@@ -1,16 +1,18 @@
 name: PR101 Final Review Fix
 
 on:
-  push:
+  pull_request:
     branches:
-      - hardening/shared-resource-accounting
+      - main
+    paths:
+      - ".github/workflows/pr101-final-review-fix.yml"
 
 permissions:
   contents: write
 
 jobs:
   fix:
-    if: github.event.head_commit.message == 'chore: stage PR101 final review fix helper'
+    if: github.head_ref == 'hardening/shared-resource-accounting'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -30,147 +32,10 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --all-extras
 
-      - name: Configure git
-        run: |
-          git config user.name "jeffatoney"
-          git config user.email "jeff.a.toney@gmail.com"
-
-      - name: Add tests first
-        run: |
-          cat > tests/phase_b/test_stage2_resource_broker_profile_alignment.py <<'PY'
-          from __future__ import annotations
-
-          import pytest
-
-          from mtg_deck import build_exact_game
-          from mtg_kernel.models import Zone
-          from mtg_policy.broker import ActionBroker
-          from mtg_runs import phase_c_runner
-
-          PLAYER_IDS = ("P0", "P1", "P2", "P3")
-
-
-          def _put_named_permanent_on_battlefield(executor, name: str):
-              source = next(
-                  obj
-                  for obj in executor.state.objects.values()
-                  if not obj.retired
-                  and obj.owner == "P0"
-                  and str(obj.current_characteristics.get("name", "")) == name
-              )
-              event = executor._event("STAGE2_TEST_SETUP")
-              moved = executor.zones.move(
-                  source.object_id,
-                  Zone.BATTLEFIELD,
-                  "STAGE2_TEST_SETUP",
-                  event,
-                  controller="P0",
-                  face=0,
-              )
-              assert moved is not None
-              return moved
-
-
-          @pytest.mark.parametrize("name", ("Command Tower", "Arcane Signet"))
-          def test_commander_color_resource_sources_are_production_broker_executable(name: str) -> None:
-              _state, executor, _ = build_exact_game(
-                  f"stage2-commander-color-broker:{name}", PLAYER_IDS
-              )
-              executor.state.turn.active_player_id = "P0"
-              executor.state.turn.priority_holder_id = "P0"
-              executor.state.turn.phase = "PRECOMBAT_MAIN"
-              executor.state.turn.step = "PRECOMBAT_MAIN"
-              source = _put_named_permanent_on_battlefield(executor, name)
-
-              broker = ActionBroker(executor, "P0")
-              observation, actions = broker.refresh()
-              matches = [
-                  action
-                  for action in actions
-                  if action.kind == "ACTIVATE"
-                  and action.identity == name
-                  and action.metadata.get("mana_color") in {"U", "R"}
-              ]
-              assert {str(action.metadata["mana_color"]) for action in matches} == {"U", "R"}
-
-              blue = next(action for action in matches if action.metadata["mana_color"] == "U")
-              before = int(executor.state.players["P0"].mana_pool.get("U", 0))
-              broker.execute(int(observation["generation"]), blue.handle)
-              assert int(executor.state.players["P0"].mana_pool.get("U", 0)) == before + 1
-              current = executor.state.objects[source.object_id]
-              if current.retired:
-                  current = next(
-                      obj
-                      for obj in executor.state.objects.values()
-                      if not obj.retired
-                      and obj.owner == "P0"
-                      and str(obj.current_characteristics.get("name", "")) == name
-                      and obj.zone is Zone.BATTLEFIELD
-                  )
-              assert (current.permanent_status or {}).get("tap") == "TAPPED"
-
-
-          class _ProfileBound(RuntimeError):
-              pass
-
-
-          def test_phase_c_runner_threads_explicit_opponent_mana_profile(monkeypatch) -> None:
-              captured: dict[str, str] = {}
-
-              def fake_bind(executor, player_id, package_definitions, *, opponent_mana_profile):
-                  del executor, player_id, package_definitions
-                  captured["profile"] = str(opponent_mana_profile)
-                  raise _ProfileBound
-
-              monkeypatch.setattr(phase_c_runner, "bind_combo_access_tracker", fake_bind)
-              with pytest.raises(_ProfileBound):
-                  phase_c_runner.run_phase_c_game_execution(
-                      seed=101,
-                      mode="STANDARD",
-                      through_turn=1,
-                      opponent_mana_profile="no_known_colors",
-                  )
-              assert captured == {"profile": "no_known_colors"}
-          PY
-          git add -- tests/phase_b/test_stage2_resource_broker_profile_alignment.py
-          git commit -m "test: cover production mana profile alignment"
-          uv run pytest -q tests/phase_b/test_stage2_resource_broker_profile_alignment.py || true
-
-      - name: Apply production fixes
+      - name: Apply runner profile plumbing and verify focused regressions
         run: |
           python - <<'PY'
           from pathlib import Path
-
-          resource = Path("src/mtg_kernel/resource_sources.py")
-          text = resource.read_text()
-          anchor = '''def _mana_map(raw: object) -> tuple[tuple[str, int], ...]:\n'''
-          addition = '''def commander_colors_from_state(state: GameState, player_id: str) -> tuple[str, ...]:\n    """Return the same modeled commander colors used by resource previews and execution."""\n    return _commander_colors(state, player_id)\n\n\n'''
-          if addition not in text:
-              if anchor not in text:
-                  raise SystemExit("resource_sources insertion anchor missing")
-              text = text.replace(anchor, addition + anchor, 1)
-          text = text.replace(
-              '''            _commander_colors(state, player_id), activation_cost=activation_cost\n''',
-              '''            commander_colors_from_state(state, player_id), activation_cost=activation_cost\n''',
-              1,
-          )
-          resource.write_text(text)
-
-          broker = Path("src/mtg_policy/broker.py")
-          text = broker.read_text()
-          import_anchor = '''from mtg_kernel.models import GameObject, Zone\n'''
-          import_line = '''from mtg_kernel.resource_sources import commander_colors_from_state\n'''
-          if import_line not in text:
-              if import_anchor not in text:
-                  raise SystemExit("broker import anchor missing")
-              text = text.replace(import_anchor, import_anchor + import_line, 1)
-          method_anchor = '''    def _entry_trigger_choice_variants(\n'''
-          method = '''    def _ability_choice_variants(self, ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:\n        effect = dict(ability.get("effect", {}))\n        if str(effect.get("kind", "NONE")) in {\n            "ADD_COMMANDER_COLOR",\n            "ADD_COMMANDER_COLOR_AND_MARK",\n        }:\n            return tuple(\n                {"mana_color": color}\n                for color in commander_colors_from_state(self.executor.state, self.player_id)\n            )\n        return super()._ability_choice_variants(ability)\n\n'''
-          if method not in text:
-              if method_anchor not in text:
-                  raise SystemExit("broker method anchor missing")
-              text = text.replace(method_anchor, method + method_anchor, 1)
-          broker.write_text(text)
 
           runner = Path("src/mtg_runs/phase_c_runner.py")
           text = runner.read_text()
@@ -194,6 +59,10 @@ jobs:
           uv run pytest -q tests/phase_b/test_stage2_resource_broker_profile_alignment.py
           uv run pytest -q tests/phase_b/test_resource_state_integration.py tests/phase_b/test_glint_horn_action_surface.py
 
+      - name: Commit verified production fix
+        run: |
+          git config user.name "jeffatoney"
+          git config user.email "jeff.a.toney@gmail.com"
           git rm .github/workflows/pr101-final-review-fix.yml
           git add -- src/mtg_kernel/resource_sources.py src/mtg_policy/broker.py src/mtg_runs/phase_c_runner.py tests/phase_b/test_stage2_resource_broker_profile_alignment.py
           git commit -m "fix: align production broker resource profiles"
