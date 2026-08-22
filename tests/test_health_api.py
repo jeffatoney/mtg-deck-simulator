@@ -28,7 +28,9 @@ def _handoff(*, pilot_allowed: bool) -> dict[str, object]:
         "governance": {
             "pilot": {
                 "approval_status": "APPROVED" if pilot_allowed else "PENDING_OWNER_APPROVAL",
-                "authorization_status": "AUTHORIZED" if pilot_allowed else "LOCKED_PENDING_OWNER_APPROVAL",
+                "authorization_status": "AUTHORIZED"
+                if pilot_allowed
+                else "LOCKED_PENDING_OWNER_APPROVAL",
                 "execution_allowed": pilot_allowed,
                 "standard_games": 500,
                 "exploratory_games": 200,
