@@ -1,0 +1,253 @@
+{
+  "bindings": {
+    ".github/workflows/phase-c-diagnostic.yml": {
+      "sha256": "2120ec387bdc232d12155afbb8560a5141bf8f9a8f8066c05d0772bf4a4207e2"
+    },
+    ".github/workflows/phase-c-pilot.yml": {
+      "sha256": "e9525ce182a1914b53e25d771f8fa097cb657c23f863f0c437aaac2a337914fd"
+    },
+    "docs/audit/phase-a-certification/CERTIFICATION.json": {
+      "sha256": "91ea467ddf747a279dd823b6576f8dfe554f184cbb6576ae85177ecb99844d59"
+    },
+    "docs/audit/phase-b-certification/CERTIFICATION.json": {
+      "sha256": "7237a44a54865a1b5a52e581e425ba3f767eea1671285fae98afdca335751d40"
+    },
+    "docs/spec/phase-c/PHASE_C_PILOT_APPROVAL.json": {
+      "sha256": "8bbd61f813e1fefa4cf60ae96fa1d409dbb612a645d4bca2b970ad661c2e3287"
+    },
+    "docs/spec/phase-c/PHASE_C_PILOT_AUTHORIZATION.md": {
+      "sha256": "b72122bfb363b2b357e467dbef40d731ac63e56fb19e25b26b74598775787174"
+    },
+    "docs/spec/phase-c/PHASE_C_PILOT_CONFIG.json": {
+      "sha256": "c609c9a39e3187297fd83d275db4c94b5b5601a72918bd822a330bff1bfdfaca"
+    }
+  },
+  "certifications": {
+    "phase_a": {
+      "certified_content_commit": "511e0587a750f7b8b20059c0230c055160d2c135",
+      "certified_repository_tree_sha": "b68b06b47e67b2bd70cc4719479fb527525c3d8b",
+      "counts": {
+        "fail": 0,
+        "pass": 33,
+        "skip": 0,
+        "xfail": 0
+      },
+      "covered_content_sha256": "sha256:6309c17d280055b55e3e3e54a994a72bee874205eb83d91a6b801a8953e6df1d",
+      "file_sha256": "91ea467ddf747a279dd823b6576f8dfe554f184cbb6576ae85177ecb99844d59",
+      "github_run_id": "32521764886",
+      "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/32521764886",
+      "status": "PASS",
+      "verifier_run_id": "20260821T200638Z-511e0587a750"
+    },
+    "phase_b": {
+      "certified_content_commit": "511e0587a750f7b8b20059c0230c055160d2c135",
+      "certified_repository_tree_sha": "b68b06b47e67b2bd70cc4719479fb527525c3d8b",
+      "counts": {
+        "fail": 0,
+        "pass": 239,
+        "skip": 0,
+        "xfail": 0
+      },
+      "covered_content_sha256": "sha256:92aef3b334b1f6fa7b7900ac1864bbffeaf97050e1fe7c1114e58c4f8e2bbdc1",
+      "file_sha256": "7237a44a54865a1b5a52e581e425ba3f767eea1671285fae98afdca335751d40",
+      "github_run_id": "32521764886",
+      "github_run_url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/32521764886",
+      "status": "PASS",
+      "verifier_run_id": "20260821T215119Z-511e0587a750"
+    }
+  },
+  "do_not_hand_edit": true,
+  "generated_at_utc": "2026-08-22T05:28:24+00:00",
+  "generated_from_machine_state": true,
+  "github": {
+    "default_branch": "main",
+    "open_pull_requests": [
+      {
+        "base": "phase-c/pilot-authorization",
+        "draft": true,
+        "head": "staging/phase-c-paired-source",
+        "head_sha": "d8363850a55a587dd1b13203cf43a94fdd7b2b4d",
+        "number": 77,
+        "title": "TEMP: validate paired Phase C redesign",
+        "updated_at": "2026-08-07T08:19:51Z",
+        "url": "https://github.com/jeffatoney/mtg-deck-simulator/pull/77"
+      },
+      {
+        "base": "main",
+        "draft": true,
+        "head": "agent/interaction-coverage-contract",
+        "head_sha": "0a6e90d6a0346b837986bfe54ac5e676f22bd5c4",
+        "number": 88,
+        "title": "Coordinator: freeze interaction-level coverage contract",
+        "updated_at": "2026-08-08T08:23:31Z",
+        "url": "https://github.com/jeffatoney/mtg-deck-simulator/pull/88"
+      },
+      {
+        "base": "agent/interaction-coverage-contract",
+        "draft": true,
+        "head": "agent/policy-choice-replay-conformance",
+        "head_sha": "490960781ba8770cf5e0e9ac4f7bd69e58f5ae4a",
+        "number": 90,
+        "title": "Agent C: enforce policy choice replay conformance",
+        "updated_at": "2026-08-08T07:48:53Z",
+        "url": "https://github.com/jeffatoney/mtg-deck-simulator/pull/90"
+      },
+      {
+        "base": "agent/interaction-coverage-contract",
+        "draft": true,
+        "head": "agent/engine-rules-conformance",
+        "head_sha": "8447444dc6b40f9315c99f5e153bd21166d3341b",
+        "number": 91,
+        "title": "Agent B: tighten engine rules conformance",
+        "updated_at": "2026-08-08T08:31:23Z",
+        "url": "https://github.com/jeffatoney/mtg-deck-simulator/pull/91"
+      },
+      {
+        "base": "main",
+        "draft": true,
+        "head": "agent/integration-interaction-coverage",
+        "head_sha": "efed1d84296f24bb34c03d131192866205666b42",
+        "number": 92,
+        "title": "Integration: reconcile interaction coverage lanes",
+        "updated_at": "2026-08-08T22:51:38Z",
+        "url": "https://github.com/jeffatoney/mtg-deck-simulator/pull/92"
+      },
+      {
+        "base": "main",
+        "draft": true,
+        "head": "codex/phase-c-exploratory-v2",
+        "head_sha": "4c9a404fc9308ecc281711b4b9b48eef6dfd441b",
+        "number": 99,
+        "title": "Phase C: directed exploratory V2 redesign",
+        "updated_at": "2026-08-15T22:26:08Z",
+        "url": "https://github.com/jeffatoney/mtg-deck-simulator/pull/99"
+      },
+      {
+        "base": "main",
+        "draft": false,
+        "head": "feature/lovable-health-api",
+        "head_sha": "dd35b269ecaaf7899bdaa58dcf6c97ec0546a60d",
+        "number": 102,
+        "title": "Add read-only Lovable health API",
+        "updated_at": "2026-08-22T04:38:16Z",
+        "url": "https://github.com/jeffatoney/mtg-deck-simulator/pull/102"
+      },
+      {
+        "base": "feature/lovable-health-api",
+        "draft": true,
+        "head": "feature/lovable-deck-api",
+        "head_sha": "29b89d050f54d704ba33fb9ee73b1b91b329aaf2",
+        "number": 103,
+        "title": "Add exact read-only Lovable deck API",
+        "updated_at": "2026-08-22T04:44:13Z",
+        "url": "https://github.com/jeffatoney/mtg-deck-simulator/pull/103"
+      }
+    ],
+    "owner_review_issue": {
+      "latest_comments": [
+        {
+          "created_at": "2026-08-10T11:14:29Z",
+          "excerpt": "### Amendment implementation refinement\n\nThe first draft of PR #95 made PASS globally neutral in the no-opponent model. Its exact Turn-10 smoke remained legal/replay-clean but changed unrelated baseline sequencing substantially (seed 101 moved from the old Turn-10 Malcolm/Glint-Horn attempt to a Turn-6 Psychosis Crawler draw attempt). That exposed that global PASS neutralization was broader than the approved Path-A intent because some productive baseline actions currently rely on the existing non-searching scorer despite having no positive category bonus.\n\nPR #95 has therefore been narrowed be",
+          "id": 5239383415,
+          "updated_at": "2026-08-10T11:14:29Z",
+          "url": "https://github.com/jeffatoney/mtg-deck-simulator/issues/51#issuecomment-5239383415"
+        },
+        {
+          "created_at": "2026-08-11T04:34:16Z",
+          "excerpt": "## Repository-generated handoff protocol adopted\n\nPR #96 merged to `main` at `3ffff112409f5de7cac74c69d1e63dc3e3d967d3` after exact-head CI run #1010 / `31456412434` passed the full repository suite, Turn-10 production/fresh-replay smoke, Phase A and Phase B verifiers/candidate validation, no-game Phase C dry run, and both durable certification-current gates. GitHub comparison shows the merge commit has zero content differences from the validated PR head `3ed27208b3401dadce365fce208cf3cc150c5f37`.\n\nThis adopts `docs/audit/handoff/PROTOCOL.md` as the project handoff protocol. Current state is t",
+          "id": 5249019943,
+          "updated_at": "2026-08-11T04:34:16Z",
+          "url": "https://github.com/jeffatoney/mtg-deck-simulator/issues/51#issuecomment-5249019943"
+        },
+        {
+          "created_at": "2026-08-11T04:45:24Z",
+          "excerpt": "## Path-A amendment rebuild and precommitted technical holdout\n\nPR #95 has been rebuilt from current `main` after #94 and #96 rather than conflict-resolving its stale certification record. The policy work remains non-authorizing.\n\nThe machine-readable guardrail is now `docs/spec/phase-c/NO_OPPONENT_POLICY_GUARDRAIL.json`. It freezes the reviewed effect classes and binds the special STANDARD ranking to `PHASE_C_PILOT_CONFIG.json#/game_model/opponent_interaction_modeled`.\n\nImplementation intent:\n- preserve the existing non-searching STANDARD ordering outside the reviewed no-opponent self-interac",
+          "id": 5249085311,
+          "updated_at": "2026-08-11T04:45:24Z",
+          "url": "https://github.com/jeffatoney/mtg-deck-simulator/issues/51#issuecomment-5249085311"
+        },
+        {
+          "created_at": "2026-08-11T18:01:39Z",
+          "excerpt": "## Precommitted 64-seed technical holdout \u2014 complete and clean\n\nThe independent technical holdout precommitted before execution in `docs/spec/phase-c/PREPILOT_TECHNICAL_HOLDOUT.json` has now completed against exact `main` implementation commit:\n\n`b04b2ec7dc622a7afe4a6432f5f466926333c87f`\n\nHoldout workflow run: `31518902524`.\n\nMachine result:\n- preflight: PASS;\n- mode: STANDARD;\n- exact precommitted seeds: 64 / 64;\n- production-equivalent Turn-10 executions: 64 / 64 attempted;\n- pass count: 64;\n- fail count: 0;\n- distinct error count: 0;\n- fresh replay required and matched for every passing gam",
+          "id": 5256942751,
+          "updated_at": "2026-08-11T18:01:39Z",
+          "url": "https://github.com/jeffatoney/mtg-deck-simulator/issues/51#issuecomment-5256942751"
+        },
+        {
+          "created_at": "2026-08-13T21:36:22Z",
+          "excerpt": "OWNER DECISION \u2014 PHASE C PILOT AUTHORIZED\n\nJeff Toney authorized the exact 500 STANDARD / 200 paired EXPLORATORY Phase C pilot on 2026-08-13T21:34:51Z.\n\nReviewed implementation commit: `150671a8e7a78e5fa14b6b3aca2308f6af647df3`\nReviewed implementation tree: `37cf737691d516a0b7316270364724f91dd28856`\nGovernance-only activation commit: `319fd3f273899e8808888240ff881e97ae3976c1`\nLocked pilot config SHA-256: `c609c9a39e3187297fd83d275db4c94b5b5601a72918bd822a330bff1bfdfaca`\nPilot workflow SHA-256: `e9525ce182a1914b53e25d771f8fa097cb657c23f863f0c437aaac2a337914fd`\nConfirmation-token SHA-256: `1ffb5",
+          "id": 5286665548,
+          "updated_at": "2026-08-13T21:36:22Z",
+          "url": "https://github.com/jeffatoney/mtg-deck-simulator/issues/51#issuecomment-5286665548"
+        }
+      ],
+      "number": 51,
+      "state": "open",
+      "title": "[Phase C][Human Review] Approve the exact 500/200 pilot execution",
+      "updated_at": "2026-08-13T21:36:22Z",
+      "url": "https://github.com/jeffatoney/mtg-deck-simulator/issues/51"
+    },
+    "subject_workflow_runs": [
+      {
+        "conclusion": null,
+        "created_at": "2026-08-22T05:28:13Z",
+        "event": "workflow_run",
+        "head_sha": "8b69b0aa3c3896c26f9c0823fd102dfa9a87f41f",
+        "id": 32554424710,
+        "name": "Regenerate Repository Handoff",
+        "run_number": 6,
+        "status": "in_progress",
+        "updated_at": "2026-08-22T05:28:18Z",
+        "url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/32554424710"
+      },
+      {
+        "conclusion": "success",
+        "created_at": "2026-08-22T04:25:50Z",
+        "event": "push",
+        "head_sha": "8b69b0aa3c3896c26f9c0823fd102dfa9a87f41f",
+        "id": 32551675276,
+        "name": "CI",
+        "run_number": 1258,
+        "status": "completed",
+        "updated_at": "2026-08-22T05:28:12Z",
+        "url": "https://github.com/jeffatoney/mtg-deck-simulator/actions/runs/32551675276"
+      }
+    ]
+  },
+  "governance": {
+    "full_study": {
+      "authorization_status": "LOCKED_PENDING_POST_PILOT_REVIEW",
+      "execution_allowed": false,
+      "exploratory_games": 5000,
+      "standard_games": 20000
+    },
+    "pilot": {
+      "approval_status": "PENDING_OWNER_APPROVAL",
+      "approved_at": null,
+      "approved_by": null,
+      "authorization_status": "LOCKED_PENDING_OWNER_APPROVAL",
+      "execution_allowed": false,
+      "exploratory_games": 200,
+      "exploratory_shards": 10,
+      "standard_games": 500,
+      "standard_shards": 10
+    },
+    "study_model": {
+      "blocking_modeled": false,
+      "opponent_interaction_modeled": false,
+      "opponent_wins_modeled": false,
+      "paired_game_count": 200,
+      "primary_outcome": "LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS_BY_TURN_8",
+      "secondary_outcome": "EARLIEST_LEGAL_DETERMINISTIC_TABLE_WIN_ACCESS_TURN",
+      "through_turn": 10
+    }
+  },
+  "repository": {
+    "name": "jeffatoney/mtg-deck-simulator",
+    "subject_commit": "8b69b0aa3c3896c26f9c0823fd102dfa9a87f41f",
+    "subject_ref": "8b69b0aa3c3896c26f9c0823fd102dfa9a87f41f",
+    "subject_tree": "99514db84eb8169c7795f7c367d6516ef12265eb",
+    "tracked_worktree_dirty": false
+  },
+  "schema_version": "repository-handoff-v1"
+}
