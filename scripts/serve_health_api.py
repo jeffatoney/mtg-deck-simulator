@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Lock
 from time import monotonic
-from typing import Any
+from typing import Any, Iterable
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -378,11 +378,8 @@ def build_health_payload(
             "not treated as authoritative."
         )
 
-    # This milestone exposes health only. Governance authorization is reported separately;
-    # it never enables simulation execution through this API.
     gate_reason = (
-        f"{governance_prefix} Read-only health API only; simulation execution endpoints "
-        "are not exposed. "
+        f"{governance_prefix} Read-only API only; simulation execution endpoints are not exposed. "
         f"Handoff pilot governance: {pilot.get('authorizationStatus', 'UNKNOWN')}. "
         f"Handoff full-study governance: {full_study.get('authorizationStatus', 'UNKNOWN')}."
     )
@@ -409,8 +406,149 @@ def build_health_payload(
     }
 
 
-class HealthHandler(BaseHTTPRequestHandler):
-    server_version = "MTGHealth/2"
+def _type_line(
+    supertypes: Iterable[str], card_types: Iterable[str], subtypes: Iterable[str]
+) -> str:
+    left = " ".join((*supertypes, *card_types)).strip()
+    right = " ".join(subtypes).strip()
+    return f"{left} — {right}" if right else left
+
+
+def _face_type_line(face: dict[str, Any]) -> str:
+    supertypes = tuple(str(value) for value in face.get("supertypes", ()))
+    card_types = tuple(str(value) for value in face.get("card_types", face.get("types", ())))
+    subtypes = tuple(str(value) for value in face.get("subtypes", ()))
+    return _type_line(supertypes, card_types, subtypes)
+
+
+def _display_oracle_text(spec: Any) -> str:
+    if isinstance(spec.oracle_text, str):
+        return spec.oracle_text
+    sections: list[str] = []
+    for face in spec.faces:
+        name = str(face.get("name", "")).strip()
+        mana_cost = str(face.get("mana_cost", "")).strip()
+        oracle_text = face.get("oracle_text")
+        if not name or not isinstance(oracle_text, str) or not oracle_text.strip():
+            raise ValueError(f"incomplete display face for {spec.name}")
+        header = f"{name} — {_face_type_line(face)}"
+        if mana_cost:
+            header = f"{header} {mana_cost}"
+        sections.append(f"{header}\n{oracle_text}")
+    if not sections:
+        raise ValueError(f"card has no display Oracle text: {spec.name}")
+    return "\n\n".join(sections)
+
+
+def _display_type_line(spec: Any) -> str:
+    if len(spec.faces) > 1:
+        return " // ".join(_face_type_line(face) for face in spec.faces)
+    return _type_line(spec.supertypes, spec.card_types, spec.subtypes)
+
+
+def _primary_card_type(spec: Any) -> str:
+    supported = ("Land", "Creature", "Artifact", "Enchantment", "Instant", "Sorcery", "Planeswalker")
+    types = set(str(value) for value in spec.card_types)
+    for card_type in supported:
+        if card_type in types:
+            return card_type
+    raise ValueError(f"unsupported display card type for {spec.name}: {sorted(types)}")
+
+
+def _serialize_deck_card(spec: Any, *, card_id: str, commander: bool = False) -> dict[str, Any]:
+    return {
+        "id": card_id,
+        "name": spec.name,
+        "type": "Commander" if commander else _primary_card_type(spec),
+        "manaValue": int(spec.mana_value),
+        "colors": list(spec.colors),
+        "roles": [],
+        "oracleText": _display_oracle_text(spec),
+        "manaCost": spec.mana_cost,
+        "typeLine": _display_type_line(spec),
+        "oracleId": spec.oracle_id,
+        **({"isCommander": True} if commander else {}),
+    }
+
+
+def build_deck_payload() -> dict[str, Any]:
+    """Serialize the exact clean-engine deck package without creating a game."""
+
+    from mtg_cards.full_deck import load_full_deck_specs
+    from mtg_deck import load_exact_deck_package
+
+    package = load_exact_deck_package()
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+
+    cards: list[dict[str, Any]] = []
+    library_position = 0
+    for entry in package.library:
+        spec = specs.get(entry.name)
+        if spec is None:
+            raise ValueError(f"missing frozen Oracle-backed spec for {entry.name}")
+        for _ in range(entry.quantity):
+            cards.append(
+                _serialize_deck_card(
+                    spec,
+                    card_id=f"library-{library_position:03d}-{spec.oracle_id}",
+                )
+            )
+            library_position += 1
+
+    commanders: list[dict[str, Any]] = []
+    commander_identity: set[str] = set()
+    for commander_position, entry in enumerate(package.commanders):
+        spec = specs.get(entry.name)
+        if spec is None:
+            raise ValueError(f"missing frozen Oracle-backed commander spec for {entry.name}")
+        commanders.append(
+            _serialize_deck_card(
+                spec,
+                card_id=f"commander-{commander_position}-{spec.oracle_id}",
+                commander=True,
+            )
+        )
+        commander_identity.update(spec.color_identity)
+
+    if len(cards) != package.library_count or len(cards) != 98:
+        raise ValueError("deck API did not serialize exactly 98 library cards")
+    if len(commanders) != package.commander_count or len(commanders) != 2:
+        raise ValueError("deck API did not serialize exactly two commanders")
+    physical_ids = [card["id"] for card in (*cards, *commanders)]
+    if len(physical_ids) != len(set(physical_ids)):
+        raise ValueError("deck API produced duplicate physical card IDs")
+
+    ordered_colors = [color for color in "WUBRG" if color in commander_identity]
+    source_versions = sorted({spec.source_version for spec in specs.values()})
+    if len(source_versions) != 1:
+        raise ValueError("exact deck contains mixed Oracle source versions")
+
+    return {
+        "apiVersion": "deck-v1",
+        "id": "deck-malcolm-breeches",
+        "name": "Malcolm & Breeches",
+        "identityLabel": "Malcolm and Breeches",
+        "colorIdentity": ordered_colors,
+        "format": "Commander (Partner)",
+        "commanders": commanders,
+        "cards": cards,
+        "counts": {
+            "library": package.library_count,
+            "commanders": package.commander_count,
+            "physicalCards": package.physical_card_count,
+            "uniqueLibraryNames": len(package.library),
+        },
+        "source": {
+            "package": "mtg_deck.load_exact_deck_package",
+            "decklist": "docs/source/decklist.txt",
+            "commanders": "docs/source/commanders.txt",
+            "oracleSourceVersion": source_versions[0],
+        },
+    }
+
+
+class ApiHandler(BaseHTTPRequestHandler):
+    server_version = "MTGReadOnlyAPI/1"
 
     def _send_json(self, status: HTTPStatus, payload: dict[str, Any]) -> None:
         body = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -435,6 +573,21 @@ class HealthHandler(BaseHTTPRequestHandler):
         if path == "/api/health":
             self._send_json(HTTPStatus.OK, build_health_payload())
             return
+        if path == "/api/deck":
+            try:
+                payload = build_deck_payload()
+            except Exception as exc:  # noqa: BLE001 - fail closed at the HTTP boundary
+                self._send_json(
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                    {
+                        "status": "unavailable",
+                        "apiVersion": "deck-v1",
+                        "error": type(exc).__name__,
+                    },
+                )
+                return
+            self._send_json(HTTPStatus.OK, payload)
+            return
         self._send_json(HTTPStatus.NOT_FOUND, {"status": "not_found"})
 
     def log_message(self, format: str, *args: object) -> None:  # noqa: A002
@@ -446,8 +599,8 @@ class HealthHandler(BaseHTTPRequestHandler):
 def main() -> None:
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
-    server = ThreadingHTTPServer((host, port), HealthHandler)
-    print(f"MTG health API listening on http://{host}:{port}")
+    server = ThreadingHTTPServer((host, port), ApiHandler)
+    print(f"MTG read-only API listening on http://{host}:{port}")
     server.serve_forever()
 
 
