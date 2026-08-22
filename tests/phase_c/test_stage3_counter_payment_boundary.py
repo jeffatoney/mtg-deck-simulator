@@ -168,7 +168,6 @@ def test_existing_floating_pool_can_make_pay_feasible_without_source_activation(
     assert {
         allocation.source_semantic_id for allocation in request.payment_result.canonical_allocation
     } == {"floating:C"}
-    assert sum(request.payment_result.remaining_source_capacity_item.remaining for request.payment_result.remaining_source_capacity) if False else True
     decision = _counter_choice(state)
     assert decision.selected["outcome"] == "PAY"
     assert sum(decision.selected["payment"].values()) == 2
