@@ -200,9 +200,7 @@ class StrategicChoiceProvider(Protocol):
         self, request: OptionalTriggerRequest
     ) -> OptionalTriggerSelection: ...
 
-    def choose_counter_payment(
-        self, request: CounterPaymentRequest
-    ) -> CounterPaymentSelection: ...
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection: ...
 
 
 class RecordedStrategicChoiceProvider:
@@ -354,9 +352,7 @@ class RecordedStrategicChoiceProvider:
         evaluator_id, evaluator_sha, diagnostics = self._metadata(selected)
         return OptionalTriggerSelection(take, evaluator_id, evaluator_sha, diagnostics)
 
-    def choose_counter_payment(
-        self, request: CounterPaymentRequest
-    ) -> CounterPaymentSelection:
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection:
         if not self._counter_payments:
             raise ReplayError("replay transcript omits a recorded counter-payment choice")
         recorded = self._counter_payments.pop(0)
