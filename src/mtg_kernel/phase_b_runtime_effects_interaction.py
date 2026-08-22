@@ -2,16 +2,29 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from typing import Any
 
-from mtg_kernel.errors import IllegalAction
-from mtg_kernel.mana import pay_mana
+from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
 from mtg_kernel.phase_b_runtime_helpers import (
     _counter_to,
     _mark_eot_original,
     _spell_satisfies,
 )
+from mtg_kernel.resource_execution import execute_resource_payment_during_resolution
+from mtg_kernel.resource_payment import PaymentStep, PaymentWindow
+from mtg_kernel.resource_sources import solve_state_payment
+from mtg_kernel.strategic_choices import CounterPaymentRequest, CounterPaymentTarget, require_provider
+
+
+def _counter_payment_step(amount: int) -> PaymentStep:
+    return PaymentStep(
+        label="counter-payment",
+        mana_cost=f"{{{amount}}}",
+        window=PaymentWindow(0, "counter-payment-resolution"),
+        context_tags=("COUNTER_PAYMENT",),
+    )
 
 
 def _resolve_counter_unless_pay(
@@ -30,28 +43,85 @@ def _resolve_counter_unless_pay(
     if payer is None or payer not in self.state.players:
         raise IllegalAction("counter-unless-pay target has no available controller")
 
-    raw_decision = choices.get("counter_payment")
-    if not isinstance(raw_decision, dict):
-        raise IllegalAction("counter-unless-pay requires an explicit controller payment decision")
-    if raw_decision.get("player_id") != payer:
-        raise IllegalAction("counter payment decision must be anchored to the target controller")
-    pay = raw_decision.get("pay")
-    if not isinstance(pay, bool):
-        raise IllegalAction("counter payment decision must record a boolean pay value")
-
     amount = action.x_value if effect.get("amount_from_x") else int(effect.get("amount", 0))
     if amount < 0:
         raise IllegalAction("counter payment amount cannot be negative")
+    effect_kind = str(effect.get("kind", "COUNTER_UNLESS_PAY"))
+    step = _counter_payment_step(amount)
+    payment_result = solve_state_payment(self.state, payer, (step,))
+    legal_outcomes = ("PAY", "DECLINE") if payment_result.feasible else ("DECLINE",)
+    target_public = CounterPaymentTarget(
+        identity=str(target.current_characteristics.get("name", "")),
+        mana_value=int(target.current_characteristics.get("mana_value", 0)),
+        card_types=tuple(str(value) for value in target.current_characteristics.get("card_types", ())),
+        effect_kinds=self._strategic_effect_kinds(target),
+    )
+
+    raw_decision = choices.get("counter_payment")
+    evaluator_id = "explicit-rules-choice"
+    evaluator_sha256 = "0" * 64
+    diagnostics: dict[str, Any] = {}
+    decision_source = "EXPLICIT_ACTION_CHOICE"
+    if isinstance(raw_decision, dict):
+        if raw_decision.get("player_id") != payer:
+            raise IllegalAction("counter payment decision must be anchored to the target controller")
+        pay = raw_decision.get("pay")
+        if not isinstance(pay, bool):
+            raise IllegalAction("counter payment decision must record a boolean pay value")
+        outcome = "PAY" if pay else "DECLINE"
+        if outcome not in legal_outcomes:
+            raise IllegalAction("counter payment was selected but cannot be paid legally")
+    else:
+        # The injected Phase C provider controls the actor, not an arbitrary target
+        # controller.  Never invent an unmodeled opponent's resolution choice.
+        if payer != action.actor_id:
+            raise UnsupportedCapability(
+                "counter-unless-pay requires an explicit decision from an unmodeled opponent"
+            )
+        provider = require_provider(
+            getattr(self, "strategic_choice_provider", None),
+            "counter-unless-pay payment",
+        )
+        chooser = getattr(provider, "choose_counter_payment", None)
+        if not callable(chooser):
+            raise UnsupportedCapability(
+                "the strategic provider has no authorized counter-payment selection policy"
+            )
+        request = CounterPaymentRequest(
+            request_id=self.identity.new_id("strategic-request"),
+            actor_id=payer,
+            effect_kind=effect_kind,
+            turn_number=int(self.state.turn.number),
+            observation=self._strategic_observation(payer),
+            target=target_public,
+            payment_amount=amount,
+            legal_outcomes=legal_outcomes,
+            payment_result=payment_result,
+        )
+        selection = chooser(request)
+        outcome = selection.outcome
+        if outcome not in legal_outcomes:
+            raise IllegalAction("strategic provider selected an unavailable counter-payment outcome")
+        evaluator_id = selection.evaluator_id
+        evaluator_sha256 = selection.evaluator_sha256
+        diagnostics = dict(selection.diagnostics)
+        decision_source = "STRATEGIC_PROVIDER"
 
     payment: dict[str, int] = {}
-    if pay:
-        payment = pay_mana(self.state.players[payer].mana_pool, {"GENERIC": amount})
+    if outcome == "PAY":
+        payment = execute_resource_payment_during_resolution(
+            self,
+            payer,
+            step,
+            payment_result,
+        )
 
     decision_event = self._event(
         "COUNTER_PAYMENT_DECISION",
         action,
         payer=payer,
-        pay=pay,
+        pay=outcome == "PAY",
+        outcome=outcome,
         amount=amount,
         payment=payment,
         target_object_id=target.object_id,
@@ -62,15 +132,34 @@ def _resolve_counter_unless_pay(
             payer,
             "COUNTER_UNLESS_PAY",
             {
-                "pay": pay,
+                "schema_version": "counter-payment-choice-v3",
+                "choice_kind": "COUNTER_PAYMENT",
+                "effect_kind": effect_kind,
+                "decision_owner": payer,
+                "target_identity": target_public.identity,
+                "target_mana_value": target_public.mana_value,
+                "target_card_types": list(target_public.card_types),
+                "target_effect_kinds": list(target_public.effect_kinds),
                 "amount": amount,
+                "legal_modeled_alternatives": list(legal_outcomes),
+                "pay_legally_available": payment_result.feasible,
+                "resource_payment": asdict(payment_result),
+                "outcome": outcome,
+                "pay": outcome == "PAY",
                 "payment": payment,
-                "target_object_id": target.object_id,
+                "reason_code": str(
+                    diagnostics.get("reason_code", f"SELECTED_COUNTER_PAYMENT_{outcome}")
+                ),
+                "evaluator_id": evaluator_id,
+                "evaluator_sha256": evaluator_sha256,
+                "diagnostics": diagnostics,
+                "decision_source": decision_source,
+                "chosen_at": "RESOLUTION",
             },
             decision_event.event_id,
         )
     )
-    if not pay:
+    if outcome == "DECLINE":
         _counter_to(self, target, action, destination)
 
 
