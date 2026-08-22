@@ -91,8 +91,7 @@ def test_health_degrades_when_handoff_subject_commit_is_behind_main() -> None:
     assert payload["statusIntegrity"]["state"] == "STALE"
     assert payload["statusIntegrity"]["authoritative"] is False
     assert any(
-        issue["code"] == "HANDOFF_BEHIND_MAIN"
-        for issue in payload["statusIntegrity"]["issues"]
+        issue["code"] == "HANDOFF_BEHIND_MAIN" for issue in payload["statusIntegrity"]["issues"]
     )
     assert payload["productionRunsEnabled"] is False
 
@@ -113,8 +112,7 @@ def test_health_degrades_when_pilot_approval_sources_conflict() -> None:
     assert payload["statusIntegrity"]["handoffPilotApprovalStatus"] == "PENDING_OWNER_APPROVAL"
     assert payload["statusIntegrity"]["pilotActivationApprovalStatus"] == "APPROVED"
     assert any(
-        issue["code"] == "PILOT_APPROVAL_CONFLICT"
-        for issue in payload["statusIntegrity"]["issues"]
+        issue["code"] == "PILOT_APPROVAL_CONFLICT" for issue in payload["statusIntegrity"]["issues"]
     )
     assert "not treated as authoritative" in payload["gateReason"]
     assert payload["productionRunsEnabled"] is False
