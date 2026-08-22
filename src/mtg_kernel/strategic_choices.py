@@ -184,7 +184,12 @@ class CounterPaymentSelection:
 
 
 class StrategicChoiceProvider(Protocol):
-    """Observation-only policy interface called at rules-defined choice times."""
+    """Existing required observation-only policy interface.
+
+    Counter-payment selection is intentionally not a required member until a
+    production policy criterion is owner-authorized.  Rules capability-check the
+    optional ``CounterPaymentChoiceProvider`` extension at resolution time.
+    """
 
     def choose_cards(self, request: CardSelectionRequest) -> CardSelection: ...
 
@@ -199,6 +204,10 @@ class StrategicChoiceProvider(Protocol):
     def choose_optional_trigger(
         self, request: OptionalTriggerRequest
     ) -> OptionalTriggerSelection: ...
+
+
+class CounterPaymentChoiceProvider(Protocol):
+    """Optional semantic extension for an authorized counter-payment policy."""
 
     def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection: ...
 
