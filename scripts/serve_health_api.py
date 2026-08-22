@@ -135,8 +135,12 @@ def build_health_payload(
             },
         }
         repository_summary = {
-            "name": repository.get("name", REPOSITORY) if isinstance(repository, dict) else REPOSITORY,
-            "subjectCommit": repository.get("subject_commit") if isinstance(repository, dict) else None,
+            "name": repository.get("name", REPOSITORY)
+            if isinstance(repository, dict)
+            else REPOSITORY,
+            "subjectCommit": repository.get("subject_commit")
+            if isinstance(repository, dict)
+            else None,
             "subjectTree": repository.get("subject_tree") if isinstance(repository, dict) else None,
         }
         handoff_generated_at = handoff.get("generated_at_utc")
