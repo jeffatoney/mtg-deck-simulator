@@ -21,10 +21,10 @@ jobs:
           ref: hardening/shared-resource-accounting
           fetch-depth: 0
 
-      - name: Verify promotion parent
+      - name: Verify promotion ancestry
         run: |
-          test "$(git rev-parse HEAD^)" = "511e0587a750f7b8b20059c0230c055160d2c135"
-          test "$(git diff --name-only HEAD^ HEAD)" = ".github/workflows/pr101-promote-final-evidence.yml"
+          git merge-base --is-ancestor 511e0587a750f7b8b20059c0230c055160d2c135 HEAD
+          test "$(git diff --name-only 511e0587a750f7b8b20059c0230c055160d2c135 HEAD)" = ".github/workflows/pr101-promote-final-evidence.yml"
 
       - name: Download exact CI artifacts
         env:
@@ -51,7 +51,7 @@ jobs:
           bench = json.load(open(root + '/bench/result.json'))
           expected = '511e0587a750f7b8b20059c0230c055160d2c135'
           tree = 'b68b06b47e67b2bd70cc4719479fb527525c3d8b'
-          run_id = 32521764886
+          run_id = '32521764886'
           assert a['status'] == 'PASS' and a['certified_content_commit'] == expected
           assert b['status'] == 'PASS' and b['certified_content_commit'] == expected
           assert a['certified_repository_tree_sha'] == tree
