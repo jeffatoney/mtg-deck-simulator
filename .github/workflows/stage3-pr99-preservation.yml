@@ -1,0 +1,99 @@
+name: Stage 3 PR99 Prototype Preservation
+
+on:
+  pull_request:
+    paths:
+      - "docs/audit/stage3-pr99-disposition/**"
+      - ".github/workflows/stage3-pr99-preservation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  verify-frozen-prototype:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      PR_NUMBER: "99"
+      EXPECTED_PR_BASE: "150671a8e7a78e5fa14b6b3aca2308f6af647df3"
+      EXPECTED_PR_HEAD: "4c9a404fc9308ecc281711b4b9b48eef6dfd441b"
+      EXPECTED_COMMITS: "34"
+      EXPECTED_CHANGED_FILES: "37"
+      STAGE3_BASE: "8b69b0aa3c3896c26f9c0823fd102dfa9a87f41f"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Stage 3 base is an ancestor
+        run: git merge-base --is-ancestor "${STAGE3_BASE}" HEAD
+
+      - name: Verify PR 99 is still the frozen prototype
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          repo="${GITHUB_REPOSITORY}"
+          metadata="$(gh api "repos/${repo}/pulls/${PR_NUMBER}")"
+          test "$(jq -r '.state' <<<"${metadata}")" = "open"
+          test "$(jq -r '.draft' <<<"${metadata}")" = "true"
+          test "$(jq -r '.merged' <<<"${metadata}")" = "false"
+          test "$(jq -r '.base.sha' <<<"${metadata}")" = "${EXPECTED_PR_BASE}"
+          test "$(jq -r '.head.sha' <<<"${metadata}")" = "${EXPECTED_PR_HEAD}"
+          test "$(jq -r '.commits' <<<"${metadata}")" = "${EXPECTED_COMMITS}"
+          test "$(jq -r '.changed_files' <<<"${metadata}")" = "${EXPECTED_CHANGED_FILES}"
+
+      - name: Verify complete 37-file manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          repo="${GITHUB_REPOSITORY}"
+          gh api --paginate "repos/${repo}/pulls/${PR_NUMBER}/files?per_page=100" \
+            --jq '.[].filename' | sort > "${RUNNER_TEMP}/actual-files.txt"
+          sed -n '/## Complete changed-file manifest/,/## Human-readable file disposition/p' \
+            docs/audit/stage3-pr99-disposition/PR99_DISPOSITION.md \
+            | sed -n 's/^[0-9][0-9]*\. `\(.*\)`$/\1/p' \
+            | sort > "${RUNNER_TEMP}/expected-files.txt"
+          diff -u "${RUNNER_TEMP}/expected-files.txt" "${RUNNER_TEMP}/actual-files.txt"
+          test "$(wc -l < "${RUNNER_TEMP}/actual-files.txt")" -eq 37
+
+      - name: Compute exact frozen PR patch SHA-256
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          repo="${GITHUB_REPOSITORY}"
+          curl --fail --location --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github.patch" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${repo}/pulls/${PR_NUMBER}" \
+            --output "${RUNNER_TEMP}/pr99.patch"
+          patch_sha="$(sha256sum "${RUNNER_TEMP}/pr99.patch" | awk '{print $1}')"
+          patch_bytes="$(wc -c < "${RUNNER_TEMP}/pr99.patch" | tr -d ' ')"
+          jq -n \
+            --arg schema_version "stage3-pr99-preservation-digest-v1" \
+            --argjson pr_number 99 \
+            --arg prototype_base_sha "${EXPECTED_PR_BASE}" \
+            --arg prototype_head_sha "${EXPECTED_PR_HEAD}" \
+            --arg patch_sha256 "${patch_sha}" \
+            --argjson patch_byte_size "${patch_bytes}" \
+            --arg representation "GitHub REST pulls/99 response with Accept: application/vnd.github.patch" \
+            '{schema_version:$schema_version,pr_number:$pr_number,prototype_base_sha:$prototype_base_sha,prototype_head_sha:$prototype_head_sha,patch_sha256:$patch_sha256,patch_byte_size:$patch_byte_size,patch_representation:$representation}' \
+            > "${RUNNER_TEMP}/PR99_PRESERVATION_DIGEST.json"
+          cat "${RUNNER_TEMP}/PR99_PRESERVATION_DIGEST.json"
+
+      - name: Require extraction lock while digest is pending
+        run: |
+          grep -Fq 'Patch SHA-256: `PENDING_MACHINE_VERIFICATION`' \
+            docs/audit/stage3-pr99-disposition/PR99_DISPOSITION.md
+          grep -Fq 'Extraction lock: `LOCKED_UNTIL_PATCH_SHA256_IS_COMPUTED_AND_COMMITTED`' \
+            docs/audit/stage3-pr99-disposition/PR99_DISPOSITION.md
+
+      - name: Upload preservation digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage3-pr99-preservation-digest-${{ github.sha }}
+          path: ${{ runner.temp }}/PR99_PRESERVATION_DIGEST.json
+          if-no-files-found: error
+          retention-days: 30
