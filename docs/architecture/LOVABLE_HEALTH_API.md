@@ -22,17 +22,35 @@ The detailed health response includes the fields already consumed by the Lovable
 - `mode`
 - `checkedAt`
 
-It also reports repository provenance, certification summaries, governance summaries, and the status source.
+It also reports repository provenance, certification summaries, governance summaries, the status source, and a `statusIntegrity` object.
 
-## Authority and fail-closed behavior
+## Authority, freshness, and conflict detection
 
 The preferred status source is the generated machine handoff at:
 
 `handoff/current:docs/audit/handoff/CURRENT_HANDOFF.json`
 
-The server fetches that public repository artifact over HTTPS. If the handoff cannot be reached or parsed, it falls back to committed local certification and Phase C approval files and identifies the response as `local-repository-fallback`.
+The server does not present that handoff as authoritative merely because it is reachable. It independently checks two repository signals:
 
-The API remains fail-closed regardless of governance state:
+1. The handoff `repository.subject_commit` must equal the current `main` head commit.
+2. The handoff pilot approval state and approved game counts must agree with the Phase C pilot-activation approval record at `phase-c/pilot-activation:docs/spec/phase-c/PHASE_C_PILOT_APPROVAL.json`.
+
+These remote checks are cached briefly to avoid excessive unauthenticated GitHub API traffic.
+
+`statusIntegrity.state` is one of:
+
+- `CURRENT`: independent signals agree with the handoff. `statusIntegrity.authoritative` is `true`.
+- `STALE`: the handoff subject commit is behind or otherwise differs from current `main`.
+- `CONFLICT`: durable governance signals disagree, such as a handoff saying owner approval is pending while the pilot-activation approval record says `APPROVED`.
+- `UNVERIFIED`: one or more independent signals could not be checked.
+
+For `STALE`, `CONFLICT`, or `UNVERIFIED`, the top-level `status` is `degraded`, `statusIntegrity.authoritative` is `false`, and `gateReason` explicitly says handoff governance is not being treated as authoritative. The response still includes the handoff values for diagnosis, but callers must not present them as current repository truth.
+
+If the handoff cannot be reached or parsed, the service falls back to committed local certification and Phase C approval files and identifies the response as `local-repository-fallback`. That fallback is `UNVERIFIED` unless independent signals establish otherwise.
+
+## Fail-closed behavior
+
+The API remains fail-closed regardless of governance state or status integrity:
 
 - `productionRunsEnabled` is `false`.
 - `fullStudyEnabled` is `false`.
@@ -76,4 +94,4 @@ python scripts/serve_health_api.py
 
 The host must expose its assigned port through the `PORT` environment variable.
 
-The Lovable app should configure a single base URL (for example `SIMULATOR_API_URL`) and use that URL only for `getHealth()` in the first integration milestone. Deck data and simulation outputs remain on their existing source-backed/mock paths until separately migrated.
+The Lovable app should configure a single base URL and use that URL only for `getHealth()` in the first integration milestone. Deck data and simulation outputs remain on their existing source-backed/mock paths until separately migrated.
