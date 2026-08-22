@@ -116,9 +116,7 @@ def test_payment_possible_uses_semantic_solver_result_then_rules_execution_and_r
     assert {
         allocation.source_semantic_id for allocation in request.payment_result.canonical_allocation
     } == {"Island:mana-source"}
-    assert sum(
-        allocation.amount for allocation in request.payment_result.canonical_allocation
-    ) == 2
+    assert sum(allocation.amount for allocation in request.payment_result.canonical_allocation) == 2
     assert not hasattr(request, "pay_mana_ability_plan")
     assert not hasattr(request.target, "handle")
 
