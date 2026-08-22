@@ -162,9 +162,7 @@ def _resolve_counter_unless_pay(
                 "payment": payment,
                 "target_evaluation": diagnostics.get("target_evaluation"),
                 "mana_weight_microunits": diagnostics.get("mana_weight_microunits"),
-                "mana_cost_valuation_microunits": diagnostics.get(
-                    "mana_cost_valuation_microunits"
-                ),
+                "mana_cost_valuation_microunits": diagnostics.get("mana_cost_valuation_microunits"),
                 "decline_incremental_value_microunits": diagnostics.get(
                     "decline_incremental_value_microunits"
                 ),
