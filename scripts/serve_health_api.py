@@ -447,7 +447,15 @@ def _display_type_line(spec: Any) -> str:
 
 
 def _primary_card_type(spec: Any) -> str:
-    supported = ("Land", "Creature", "Artifact", "Enchantment", "Instant", "Sorcery", "Planeswalker")
+    supported = (
+        "Land",
+        "Creature",
+        "Artifact",
+        "Enchantment",
+        "Instant",
+        "Sorcery",
+        "Planeswalker",
+    )
     types = set(str(value) for value in spec.card_types)
     for card_type in supported:
         if card_type in types:
