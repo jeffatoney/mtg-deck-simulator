@@ -15,7 +15,11 @@ from mtg_kernel.phase_b_runtime_helpers import (
 from mtg_kernel.resource_execution import execute_resource_payment_during_resolution
 from mtg_kernel.resource_payment import PaymentStep, PaymentWindow
 from mtg_kernel.resource_sources import solve_state_payment
-from mtg_kernel.strategic_choices import CounterPaymentRequest, CounterPaymentTarget, require_provider
+from mtg_kernel.strategic_choices import (
+    CounterPaymentRequest,
+    CounterPaymentTarget,
+    require_provider,
+)
 
 
 def _counter_payment_step(amount: int) -> PaymentStep:
@@ -53,7 +57,9 @@ def _resolve_counter_unless_pay(
     target_public = CounterPaymentTarget(
         identity=str(target.current_characteristics.get("name", "")),
         mana_value=int(target.current_characteristics.get("mana_value", 0)),
-        card_types=tuple(str(value) for value in target.current_characteristics.get("card_types", ())),
+        card_types=tuple(
+            str(value) for value in target.current_characteristics.get("card_types", ())
+        ),
         effect_kinds=self._strategic_effect_kinds(target),
     )
 
@@ -64,7 +70,9 @@ def _resolve_counter_unless_pay(
     decision_source = "EXPLICIT_ACTION_CHOICE"
     if isinstance(raw_decision, dict):
         if raw_decision.get("player_id") != payer:
-            raise IllegalAction("counter payment decision must be anchored to the target controller")
+            raise IllegalAction(
+                "counter payment decision must be anchored to the target controller"
+            )
         pay = raw_decision.get("pay")
         if not isinstance(pay, bool):
             raise IllegalAction("counter payment decision must record a boolean pay value")
@@ -101,7 +109,9 @@ def _resolve_counter_unless_pay(
         selection = chooser(request)
         outcome = selection.outcome
         if outcome not in legal_outcomes:
-            raise IllegalAction("strategic provider selected an unavailable counter-payment outcome")
+            raise IllegalAction(
+                "strategic provider selected an unavailable counter-payment outcome"
+            )
         evaluator_id = selection.evaluator_id
         evaluator_sha256 = selection.evaluator_sha256
         diagnostics = dict(selection.diagnostics)
