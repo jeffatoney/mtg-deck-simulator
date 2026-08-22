@@ -23,8 +23,17 @@ from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.mana import parse_mana_cost, pay_mana
 from mtg_kernel.models import GameObject
 from mtg_kernel.phase_b_marked_mana import MARKED_COMMANDER_MANA_KIND, _consume_markers
-from mtg_kernel.resource_payment import ManaProduction, PaymentAllocation, PaymentStep, ResourcePaymentResult
-from mtg_kernel.resource_sources import _effect_productions, resource_inventory_from_state, solve_state_payment
+from mtg_kernel.resource_payment import (
+    ManaProduction,
+    PaymentAllocation,
+    PaymentStep,
+    ResourcePaymentResult,
+)
+from mtg_kernel.resource_sources import (
+    _effect_productions,
+    resource_inventory_from_state,
+    solve_state_payment,
+)
 
 
 @dataclass(frozen=True)
@@ -119,7 +128,9 @@ def _variants_for_object(
             opponent_mana_profile=opponent_mana_profile,
         )
         if len(choices) != len(productions):
-            raise UnsupportedCapability("resource execution choices differ from semantic productions")
+            raise UnsupportedCapability(
+                "resource execution choices differ from semantic productions"
+            )
         for production, choice in zip(productions, choices, strict=True):
             variants.append(
                 _ExecutionVariant(
@@ -341,7 +352,9 @@ def _activate_semantic_source(
     if remaining_activation_payment != 0:
         raise IllegalAction("canonical resource allocation activation-cost binding is incomplete")
     if sum(aggregate_activation_payment.values()) != expected_activation_payment:
-        raise IllegalAction("rules execution payment differs from canonical activation-cost allocation")
+        raise IllegalAction(
+            "rules execution payment differs from canonical activation-cost allocation"
+        )
     _consume_marked_payment(
         context.executor,
         context.player_id,
