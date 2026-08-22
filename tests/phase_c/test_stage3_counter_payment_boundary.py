@@ -20,11 +20,19 @@ from mtg_kernel.serialization import state_to_data
 from mtg_kernel.strategic_choices import (
     CounterPaymentRequest,
     CounterPaymentSelection,
+    CounterPaymentTarget,
     RecordedStrategicChoiceProvider,
+)
+from mtg_policy import (
+    ContextualEvaluator,
+    PolicyStrategicChoiceProvider,
+    load_evaluator_config,
+    load_policy_matrix,
 )
 
 PLAYERS = ("P0", "P1", "P2", "P3")
 MANA_SYMBOLS = ("W", "U", "B", "R", "G", "C")
+MICRO = 1_000_000
 
 
 @dataclass
@@ -41,6 +49,23 @@ class _CounterProvider:
             "1" * 64,
             {"reason_code": f"STAGE3_TEST_{selected}"},
         )
+
+
+@dataclass
+class _CapturingProductionProvider:
+    provider: PolicyStrategicChoiceProvider
+    requests: list[CounterPaymentRequest]
+
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection:
+        self.requests.append(request)
+        return self.provider.choose_counter_payment(request)
+
+
+def _production_provider() -> PolicyStrategicChoiceProvider:
+    bundle = next(
+        item for item in load_policy_matrix() if item.policy_config_id == "anchor_balanced"
+    )
+    return PolicyStrategicChoiceProvider(bundle, ContextualEvaluator(load_evaluator_config()))
 
 
 def _setup_self_counter(
@@ -74,6 +99,34 @@ def _setup_self_counter(
         pierce.object_id,
         targets=(TargetRef(target.object_id),),
         choices=counter_choices,
+    )
+    assert sum(state.players["P0"].mana_pool.values()) == 0
+    return state, executor, target
+
+
+def _setup_syncopate_self_counter(
+    *,
+    provider: object,
+    x_value: int,
+) -> tuple[object, object, object]:
+    seed = f"stage3-syncopate-x-{x_value}"
+    state, executor = new_game(PLAYERS, seed)
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    state.turn.phase = "PRECOMBAT_MAIN"
+    state.players["P0"].mana_pool.update({symbol: 0 for symbol in MANA_SYMBOLS})
+    state.players["P0"].mana_pool["U"] = x_value + 2
+    for _ in range(x_value):
+        add_card(executor, specs["Island"], Zone.BATTLEFIELD, owner="P0")
+    opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P0")
+    syncopate = add_card(executor, specs["Syncopate"], Zone.HAND, owner="P0")
+    state.replay_initial_state = state_to_data(state)
+    executor.bind_strategic_choice_provider(provider)
+    target = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
+    executor.cast(
+        "P0",
+        syncopate.object_id,
+        targets=(TargetRef(target.object_id),),
+        x_value=x_value,
     )
     assert sum(state.players["P0"].mana_pool.values()) == 0
     return state, executor, target
@@ -247,6 +300,7 @@ def test_explicit_rules_choice_remains_supported_without_a_policy_provider() -> 
     assert decision.selected["decision_source"] == "EXPLICIT_ACTION_CHOICE"
     assert decision.selected["outcome"] == "DECLINE"
     assert decision.selected["pay_legally_available"] is True
+    assert decision.selected["counter_destination"] == "GRAVEYARD"
     assert state.objects[target.object_id].retired
 
 
@@ -274,11 +328,14 @@ def test_recorded_replay_rejects_outcome_not_legal_in_current_request() -> None:
             {
                 "kind": "COUNTER_UNLESS_PAY",
                 "selected": {
+                    "schema_version": "counter-payment-choice-v4",
                     "decision_source": "STRATEGIC_PROVIDER",
                     "decision_owner": request.actor_id,
                     "effect_kind": request.effect_kind,
                     "target_identity": request.target.identity,
                     "amount": request.payment_amount,
+                    "actual_required_payment": request.payment_amount,
+                    "counter_destination": "GRAVEYARD",
                     "outcome": "PAY",
                     "evaluator_id": "recorded-test",
                     "evaluator_sha256": "3" * 64,
@@ -309,3 +366,143 @@ def test_unmodeled_opponent_payment_without_explicit_choice_fails_closed() -> No
 
     with pytest.raises(UnsupportedCapability, match="unmodeled opponent"):
         _resolve_one_stack_object(executor)
+
+
+def test_authorized_production_policy_records_full_evidence_and_freshly_recomputes() -> None:
+    capturing = _CapturingProductionProvider(_production_provider(), [])
+    state, executor, target = _setup_self_counter(provider=capturing, islands=2)
+    _resolve_one_stack_object(executor)
+
+    assert len(capturing.requests) == 1
+    request = capturing.requests[0]
+    decision = _counter_choice(state)
+    selected = decision.selected
+
+    assert selected["schema_version"] == "counter-payment-choice-v4"
+    assert selected["decision_source"] == "STRATEGIC_PROVIDER"
+    assert selected["actual_required_payment"] == 2
+    assert selected["counter_destination"] == "GRAVEYARD"
+    assert selected["legal_modeled_alternatives"] == ["PAY", "DECLINE"]
+    assert selected["mana_weight_microunits"] == 8 * MICRO
+    assert selected["mana_cost_valuation_microunits"] == 16 * MICRO
+    assert selected["decline_incremental_value_microunits"] == 0
+    assert isinstance(selected["target_evaluation"], dict)
+    assert selected["evaluator_id"] == "contextual_combo_v1"
+    assert len(selected["evaluator_sha256"]) == 64
+    assert selected["reason_code"] in {
+        "PAY_TARGET_VALUE_GREATER_THAN_PAYMENT_MANA_COST",
+        "DECLINE_TARGET_VALUE_NOT_GREATER_THAN_PAYMENT_MANA_COST",
+    }
+
+    fresh = _production_provider().choose_counter_payment(request)
+    assert fresh.outcome == selected["outcome"]
+    assert fresh.evaluator_id == selected["evaluator_id"]
+    assert fresh.evaluator_sha256 == selected["evaluator_sha256"]
+    assert fresh.diagnostics["target_evaluation"] == selected["target_evaluation"]
+    assert fresh.diagnostics["mana_cost_valuation_microunits"] == 16 * MICRO
+
+    if selected["outcome"] == "PAY":
+        assert target.object_id in state.stack
+    else:
+        assert state.objects[target.object_id].retired
+
+    replayed = validate_replay(transcript(state, seed=executor.seed))
+    assert state_hash(replayed) == state_hash(state)
+
+
+def test_authorized_policy_characterizes_frozen_evaluator_dispositions_and_tie_declines() -> None:
+    capture = _CounterProvider("DECLINE", [])
+    _state, executor, _target = _setup_self_counter(provider=capture, islands=2)
+    _resolve_one_stack_object(executor)
+    base_request = capture.requests[0]
+    provider = _production_provider()
+
+    cases = (
+        (CounterPaymentTarget("Synthetic Draw", 1, ("Instant",), ("DRAW",)), 13, "DECLINE"),
+        (CounterPaymentTarget("Synthetic Interaction", 1, ("Instant",), ("COUNTER",)), 9, "DECLINE"),
+        (CounterPaymentTarget("Synthetic Tutor", 1, ("Instant",), ("TRANSMUTE",)), 19, "PAY"),
+        (
+            CounterPaymentTarget(
+                "Synthetic Combo Engine",
+                1,
+                ("Instant",),
+                ("CREATE_SPELL_COPY",),
+            ),
+            23,
+            "PAY",
+        ),
+        (CounterPaymentTarget("Curiosity", 1, ("Enchantment",), ("ATTACH_AURA",)), 29, "PAY"),
+        (
+            CounterPaymentTarget(
+                "Synthetic Tie",
+                1,
+                ("Instant",),
+                ("CANT_BE_BLOCKED", "SCRY"),
+            ),
+            16,
+            "DECLINE",
+        ),
+    )
+
+    for target, expected_score, expected_outcome in cases:
+        selection = provider.choose_counter_payment(replace(base_request, target=target))
+        assert selection.outcome == expected_outcome
+        assert selection.diagnostics["target_evaluation"]["score_microunits"] == (
+            expected_score * MICRO
+        )
+        assert selection.diagnostics["mana_cost_valuation_microunits"] == 16 * MICRO
+
+
+def test_authorized_policy_fails_closed_if_frozen_mana_weight_drifts() -> None:
+    provider = _production_provider()
+    capture = _CounterProvider("DECLINE", [])
+    _state, executor, _target = _setup_self_counter(provider=capture, islands=2)
+    _resolve_one_stack_object(executor)
+    request = capture.requests[0]
+
+    from types import MappingProxyType
+
+    drifted_weights = dict(provider.evaluator.config.weights)
+    drifted_weights["mana"] = 4.0
+    drifted_config = replace(
+        provider.evaluator.config,
+        weights=MappingProxyType(drifted_weights),
+    )
+    drifted = PolicyStrategicChoiceProvider(
+        provider.bundle,
+        ContextualEvaluator(drifted_config),
+    )
+
+    with pytest.raises(UnsupportedCapability, match="frozen mana weight of 8"):
+        drifted.choose_counter_payment(request)
+
+
+@pytest.mark.parametrize("x_value", [1, 3])
+def test_syncopate_uses_cast_time_x_for_payment_valuation_and_records_exile(
+    x_value: int,
+) -> None:
+    capturing = _CapturingProductionProvider(_production_provider(), [])
+    state, executor, _target = _setup_syncopate_self_counter(
+        provider=capturing,
+        x_value=x_value,
+    )
+    _resolve_one_stack_object(executor)
+
+    assert len(capturing.requests) == 1
+    request = capturing.requests[0]
+    selected = _counter_choice(state).selected
+    assert request.effect_kind == "COUNTER_UNLESS_PAY_EXILE"
+    assert request.payment_amount == x_value
+    assert selected["amount"] == x_value
+    assert selected["actual_required_payment"] == x_value
+    assert selected["counter_destination"] == "EXILE"
+    assert selected["mana_weight_microunits"] == 8 * MICRO
+    assert selected["mana_cost_valuation_microunits"] == x_value * 8 * MICRO
+    assert selected["decline_incremental_value_microunits"] == 0
+
+    fresh = _production_provider().choose_counter_payment(request)
+    assert fresh.outcome == selected["outcome"]
+    assert fresh.diagnostics["mana_cost_valuation_microunits"] == x_value * 8 * MICRO
+
+    replayed = validate_replay(transcript(state, seed=executor.seed))
+    assert state_hash(replayed) == state_hash(state)
