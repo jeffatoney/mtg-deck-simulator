@@ -186,9 +186,7 @@ def test_feasibility_does_not_activate_executor_before_policy_selection() -> Non
             self.action_count_at_choice: int | None = None
             self.tap_states_at_choice: tuple[str, ...] = ()
 
-        def choose_counter_payment(
-            self, request: CounterPaymentRequest
-        ) -> CounterPaymentSelection:
+        def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection:
             state = holder["state"]
             self.requests.append(request)
             self.action_count_at_choice = len(state.actions)
