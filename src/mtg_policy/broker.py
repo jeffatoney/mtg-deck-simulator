@@ -5,11 +5,13 @@ from __future__ import annotations
 from typing import Any
 
 from mtg_kernel.engine import MAIN_PHASES
+from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.models import GameObject, Zone
 from mtg_kernel.phase_b_actions import (
     automatic_ability_execution_supported,
     effect_execution_supported,
 )
+from mtg_kernel.resource_sources import commander_colors_from_state
 from mtg_policy.broker_core import (
     PERMANENT_TYPES,
     ActionBroker as _CoreActionBroker,
@@ -32,6 +34,19 @@ class ActionBroker(_CoreActionBroker):
             else:
                 merged[key] = value
         return merged
+
+    def _ability_choice_variants(self, ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:
+        effect = dict(ability.get("effect", {}))
+        if str(effect.get("kind", "NONE")) in {
+            "ADD_COMMANDER_COLOR",
+            "ADD_COMMANDER_COLOR_AND_MARK",
+        }:
+            try:
+                colors = commander_colors_from_state(self.executor.state, self.player_id)
+            except UnsupportedCapability:
+                return ()
+            return tuple({"mana_color": color} for color in colors)
+        return super()._ability_choice_variants(ability)
 
     def _entry_trigger_choice_variants(
         self, obj: GameObject
@@ -121,10 +136,6 @@ class ActionBroker(_CoreActionBroker):
                     if not effect_execution_supported(dict(ability.get("effect", {}))):
                         continue
                     permission = str(ability.get("cast_permission", "NORMAL"))
-                    # Mirror the executor's zone/timing gates before any target
-                    # enumeration or production probe. These predicates depend
-                    # only on the current public rules state and card face, so
-                    # skipping an impossible mode cannot hide a legal action.
                     if obj.zone is Zone.GRAVEYARD and permission not in {"AFTERMATH", "FLASHBACK"}:
                         continue
                     if permission in {"AFTERMATH", "FLASHBACK"} and obj.zone is not Zone.GRAVEYARD:
@@ -162,9 +173,6 @@ class ActionBroker(_CoreActionBroker):
                     for x_value in x_values:
                         target_schema = dict(schema)
                         if effect.get("target_count_from_x"):
-                            # X is the exact number of targets. Bounding before
-                            # combinations prevents the old powerset explosion of
-                            # impossible X=0 probes while preserving every legal X.
                             target_schema["min"] = x_value
                             target_schema["max"] = x_value
                         target_sets = self._target_sets(self.player_id, target_schema)
@@ -177,12 +185,6 @@ class ActionBroker(_CoreActionBroker):
                             for entry_choices, entry_public in entry_variants:
                                 choices = self._merge_choices(spell_choices, entry_choices)
                                 for target_count, same_count_sets in by_count.items():
-                                    # `_target_sets` already proves each target is
-                                    # individually legal and combinations are unique.
-                                    # Cast timing/payment/additional-cost legality is
-                                    # identical for sets of the same size, so probe one
-                                    # representative rather than deep-copying the game
-                                    # for every combinatorial target permutation.
                                     representative = same_count_sets[0]
                                     probe_arguments = {
                                         "actor": self.player_id,

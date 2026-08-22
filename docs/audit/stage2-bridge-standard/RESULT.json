@@ -1,0 +1,1452 @@
+{
+  "aggregate": {
+    "coverage": {
+      "attack_choice_state": {
+        "legal_action_count": 4,
+        "phase": "COMBAT",
+        "seed": 101,
+        "semantic_action_class_count": 4,
+        "step": "DECLARE_ATTACKERS",
+        "turn": 4
+      },
+      "discard_choice_state": {
+        "candidate_count": 6,
+        "minimum": 1,
+        "purpose": "DISCARD",
+        "seed": 101,
+        "turn": 8
+      },
+      "high_action_main_phase": {
+        "legal_action_count": 12,
+        "phase": "PRECOMBAT_MAIN",
+        "seed": 202,
+        "semantic_action_class_count": 12,
+        "step": "PRECOMBAT_MAIN",
+        "turn": 7
+      },
+      "low_action_opening_state": {
+        "legal_action_count": 4,
+        "phase": "PRECOMBAT_MAIN",
+        "seed": 101,
+        "semantic_action_class_count": 3,
+        "step": "PRECOMBAT_MAIN",
+        "turn": 1
+      },
+      "malcolm_glint_horn_treasure_state": {
+        "legal_action_count": 6,
+        "phase": "COMBAT",
+        "seed": 391730338978874520,
+        "semantic_action_class_count": 6,
+        "step": "COMBAT_DAMAGE",
+        "turn": 5
+      },
+      "many_semantic_legal_action_classes": {
+        "legal_action_count": 11,
+        "phase": "COMBAT",
+        "seed": 101,
+        "semantic_action_class_count": 11,
+        "step": "DECLARE_ATTACKERS",
+        "turn": 7
+      },
+      "multiple_mana_abilities": {
+        "legal_action_count": 3,
+        "phase": "PRECOMBAT_MAIN",
+        "seed": 101,
+        "semantic_action_class_count": 3,
+        "step": "PRECOMBAT_MAIN",
+        "turn": 2
+      },
+      "multiple_playable_lands": {
+        "legal_action_count": 4,
+        "phase": "PRECOMBAT_MAIN",
+        "seed": 101,
+        "semantic_action_class_count": 3,
+        "step": "PRECOMBAT_MAIN",
+        "turn": 1
+      },
+      "protection_choice_state": {
+        "legal_action_count": 2,
+        "phase": "PRECOMBAT_MAIN",
+        "seed": 303,
+        "semantic_action_class_count": 2,
+        "step": "PRECOMBAT_MAIN",
+        "turn": 7
+      },
+      "representative_complete_10_turn_game": {
+        "seed": 101,
+        "terminal_status": "ACTIVE",
+        "turn": 10
+      },
+      "tutor_choice_state": {
+        "candidate_count": 77,
+        "purpose": "TUTOR_THIRD_FROM_TOP",
+        "seed": 202,
+        "turn": 9
+      }
+    },
+    "metrics": {
+      "broker_refresh_count": {
+        "maximum": 220.0,
+        "median": 153.5,
+        "minimum": 125.0,
+        "p95": 220.0
+      },
+      "decision_count": {
+        "maximum": 220.0,
+        "median": 153.5,
+        "minimum": 125.0,
+        "p95": 220.0
+      },
+      "fresh_replay_time": {
+        "maximum": 0.45087265200004367,
+        "median": 0.34332641599985436,
+        "minimum": 0.30574713499999007,
+        "p95": 0.45087265200004367
+      },
+      "games_per_minute": {
+        "maximum": 1.2242843599284,
+        "median": 0.9882075316304886,
+        "minimum": 0.40419443957723433,
+        "p95": 1.2242843599284
+      },
+      "legal_action_count": {
+        "maximum": 770.0,
+        "median": 479.0,
+        "minimum": 397.0,
+        "p95": 770.0
+      },
+      "peak_memory": {
+        "maximum": 65761280.0,
+        "median": 59944960.0,
+        "minimum": 57671680.0,
+        "p95": 65761280.0
+      },
+      "process_peak_rss_bytes": {
+        "maximum": 65761280.0,
+        "median": 59944960.0,
+        "minimum": 57671680.0,
+        "p95": 65761280.0
+      },
+      "replay_validation_time": {
+        "maximum": 0.29056500299998334,
+        "median": 0.19320423900003902,
+        "minimum": 0.16782607100003588,
+        "p95": 0.29056500299998334
+      },
+      "seconds_per_10_turn_game": {
+        "maximum": 148.443407739,
+        "median": 61.82485967949998,
+        "minimum": 49.00822224299998,
+        "p95": 148.443407739
+      },
+      "semantic_action_class_count": {
+        "maximum": 690.0,
+        "median": 431.5,
+        "minimum": 353.0,
+        "p95": 690.0
+      },
+      "state_clone_count": {
+        "maximum": 825.0,
+        "median": 579.5,
+        "minimum": 470.0,
+        "p95": 825.0
+      }
+    },
+    "missing_required_coverage": [],
+    "recommended_owner_review_budget": {
+      "basis": "25 percent headroom over the measured p95 bridge corpus",
+      "maximum_peak_memory_bytes": 82201600,
+      "maximum_seconds_per_10_turn_game": 185.55425967375,
+      "minimum_games_per_minute": 0.3233555516617875,
+      "status": "PROVISIONAL_NOT_FINAL"
+    }
+  },
+  "base_main_sha": "f6ada4d656002a9942b6938c54e8565f5f9d0c7a",
+  "command": "uv run python scripts/benchmark_stage2_standard.py --corpus benchmarks/stage2-bridge-standard/corpus.json --output <result.json>",
+  "corpus": {
+    "base_main_sha": "f6ada4d656002a9942b6938c54e8565f5f9d0c7a",
+    "coverage_thresholds": {
+      "high_action_min_legal_actions": 12,
+      "low_action_max_legal_actions": 4,
+      "many_semantic_classes_minimum": 10
+    },
+    "mode": "STANDARD",
+    "policy_actions": true,
+    "policy_config_id": "anchor_balanced",
+    "repetitions": 2,
+    "required_coverage": [
+      "representative_complete_10_turn_game",
+      "low_action_opening_state",
+      "high_action_main_phase",
+      "multiple_playable_lands",
+      "multiple_mana_abilities",
+      "tutor_choice_state",
+      "attack_choice_state",
+      "discard_choice_state",
+      "protection_choice_state",
+      "malcolm_glint_horn_treasure_state",
+      "many_semantic_legal_action_classes"
+    ],
+    "schema_version": "stage2-bridge-standard-corpus-v1",
+    "seeds": [
+      101,
+      202,
+      303,
+      404,
+      505,
+      606,
+      771,
+      391730338978874520
+    ],
+    "through_turn": 10,
+    "validate_fresh_replay_in_game": false
+  },
+  "environment": {
+    "cpu_count": 4,
+    "github_run_attempt": "1",
+    "github_run_id": "32521764871",
+    "image_os": "ubuntu24",
+    "image_version": "20260816.277.1",
+    "machine": "x86_64",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "python": "3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]",
+    "runner_arch": "X64",
+    "runner_name": "GitHub Actions 1000002310",
+    "runner_os": "Linux",
+    "uv": "uv 0.12.5 (x86_64-unknown-linux-gnu)"
+  },
+  "expected_trial_count": 16,
+  "pilot_or_full_study_executed": false,
+  "schema_version": "stage2-bridge-standard-result-v1",
+  "strategic_context_instantiated": false,
+  "subject_sha": "511e0587a750f7b8b20059c0230c055160d2c135",
+  "trial_count": 16,
+  "trials": [
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 154,
+      "command_count": 529,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 4
+        },
+        "discard_choice_state": {
+          "candidate_count": 6,
+          "minimum": 1,
+          "purpose": "DISCARD",
+          "turn": 8
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 7
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 154,
+      "final_state_hash": "f282b014606ead2931f9819709e0becd9995051b4146e9f28e33a92100c7914c",
+      "fresh_replay_time": 0.3389265529999932,
+      "games_per_minute": 1.1243347137929314,
+      "legal_action_count": 452,
+      "max_legal_action_count": 11,
+      "max_semantic_action_class_count": 11,
+      "peak_memory": 61739008,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 61739008,
+      "repetition": 1,
+      "replay_digest": "2ed4fe752fdd99e388bd11ade3e13f8a1036780605898f3b773525bfdde8ad8f",
+      "replay_validation_time": 0.18518159199999218,
+      "seconds_per_10_turn_game": 53.364891490000005,
+      "seed": 101,
+      "semantic_action_class_count": 412,
+      "state_clone_count": 583,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 189,
+      "command_count": 603,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 4
+        },
+        "high_action_main_phase": {
+          "legal_action_count": 12,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 12,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 7
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 4
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 2,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        },
+        "tutor_choice_state": {
+          "candidate_count": 77,
+          "purpose": "TUTOR_THIRD_FROM_TOP",
+          "turn": 9
+        }
+      },
+      "decision_count": 189,
+      "final_state_hash": "8f982fa896da4117f090cadb6e3bb8c088367492cb5ee8cebe250b232760b531",
+      "fresh_replay_time": 0.3891310639999972,
+      "games_per_minute": 0.635316007642475,
+      "legal_action_count": 719,
+      "max_legal_action_count": 12,
+      "max_semantic_action_class_count": 12,
+      "peak_memory": 60088320,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 60088320,
+      "repetition": 1,
+      "replay_digest": "60ce106bd0f3dacbe7f52eb94ff28a02f4a1f6d04afaa78c2cb3278b323a8041",
+      "replay_validation_time": 0.23237027199999716,
+      "seconds_per_10_turn_game": 94.44119033400003,
+      "seed": 202,
+      "semantic_action_class_count": 666,
+      "state_clone_count": 673,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 193,
+      "command_count": 622,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 4
+        },
+        "high_action_main_phase": {
+          "legal_action_count": 18,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 16,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 9
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 1,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 1,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 6
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 6,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 6,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 5,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 5,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "protection_choice_state": {
+          "legal_action_count": 2,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 2,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 7
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        },
+        "tutor_choice_state": {
+          "candidate_count": 78,
+          "purpose": "TUTOR_THIRD_FROM_TOP",
+          "turn": 10
+        }
+      },
+      "decision_count": 193,
+      "final_state_hash": "3c3f32c218e9f0e27f365c2d96580ea6e0d43fa0c7b9d88e21c94111250dc735",
+      "fresh_replay_time": 0.3787710940000011,
+      "games_per_minute": 0.6518611280597512,
+      "legal_action_count": 755,
+      "max_legal_action_count": 18,
+      "max_semantic_action_class_count": 16,
+      "peak_memory": 60325888,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 60325888,
+      "repetition": 1,
+      "replay_digest": "c37d971551cb0f603221368682f5d445b6c2deda11c0afb8b75af19af5196446",
+      "replay_validation_time": 0.23676359299997785,
+      "seconds_per_10_turn_game": 92.04414470700002,
+      "seed": 303,
+      "semantic_action_class_count": 681,
+      "state_clone_count": 696,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 153,
+      "command_count": 480,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 7
+        },
+        "discard_choice_state": {
+          "candidate_count": 6,
+          "minimum": 2,
+          "purpose": "DISCARD",
+          "turn": 6
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 2,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 2,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 8
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 2,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 5,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 153,
+      "final_state_hash": "02ae812a9bc0f6f931cd740bfc20a8e8d3e44f5f22fa89adeabeae6e1e6c53e3",
+      "fresh_replay_time": 0.30574713499999007,
+      "games_per_minute": 1.2202422770386434,
+      "legal_action_count": 476,
+      "max_legal_action_count": 11,
+      "max_semantic_action_class_count": 11,
+      "peak_memory": 58470400,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 58470400,
+      "repetition": 1,
+      "replay_digest": "7cf07ca8d20fffdfca72fe1f10fd7560245bbadbf460368d5eb3701334d15ca2",
+      "replay_validation_time": 0.16981800799999291,
+      "seconds_per_10_turn_game": 49.17056319799997,
+      "seed": 404,
+      "semantic_action_class_count": 387,
+      "state_clone_count": 526,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 144,
+      "command_count": 448,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 9
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 144,
+      "final_state_hash": "456507862f400c49c77b501a97c39b445cd8aafa768368619bf888d925ef1323",
+      "fresh_replay_time": 0.3322575189999952,
+      "games_per_minute": 1.1205522360541367,
+      "legal_action_count": 429,
+      "max_legal_action_count": 10,
+      "max_semantic_action_class_count": 8,
+      "peak_memory": 59113472,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 59113472,
+      "repetition": 1,
+      "replay_digest": "ddcd0e001d86342fea71edff496a294b888dbfedb21d12af27f3242998b436c7",
+      "replay_validation_time": 0.17989283800000067,
+      "seconds_per_10_turn_game": 53.545027237,
+      "seed": 505,
+      "semantic_action_class_count": 365,
+      "state_clone_count": 503,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 125,
+      "command_count": 418,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 8
+        },
+        "high_action_main_phase": {
+          "legal_action_count": 13,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 12,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 8
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 2,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 2,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 10,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 10,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 4
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 5,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 4,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 125,
+      "final_state_hash": "1e306c26d6d6fc8c9a77dbc5b26ef8707aedcd47ee603187942fd6fdd6f66db9",
+      "fresh_replay_time": 0.3337783929999887,
+      "games_per_minute": 1.1264586919761164,
+      "legal_action_count": 397,
+      "max_legal_action_count": 13,
+      "max_semantic_action_class_count": 12,
+      "peak_memory": 57692160,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 57692160,
+      "repetition": 1,
+      "replay_digest": "0f270fe1d9a541f063043357451210c4a012362fcc116df372ae2e97c1469bb4",
+      "replay_validation_time": 0.1789255450000269,
+      "seconds_per_10_turn_game": 53.26427007699999,
+      "seed": 606,
+      "semantic_action_class_count": 353,
+      "state_clone_count": 470,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 152,
+      "command_count": 526,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 5
+        },
+        "discard_choice_state": {
+          "candidate_count": 9,
+          "minimum": 2,
+          "purpose": "DISCARD",
+          "turn": 9
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 1,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 1,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 6
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 3
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 9,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 8,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "protection_choice_state": {
+          "legal_action_count": 5,
+          "phase": "BEGINNING",
+          "semantic_action_class_count": 5,
+          "step": "DRAW",
+          "turn": 7
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 152,
+      "final_state_hash": "cb2df5d606d569683398fb17f7446d87c02065d2f24b5c4a9e49a1d5b129d857",
+      "fresh_replay_time": 0.35210835099996984,
+      "games_per_minute": 0.8398205329186066,
+      "legal_action_count": 482,
+      "max_legal_action_count": 14,
+      "max_semantic_action_class_count": 14,
+      "peak_memory": 60198912,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 60198912,
+      "repetition": 1,
+      "replay_digest": "100dc7ffa8ce8b9890bf76c0d8dba845f70dbf9831a0bc482b86a23dd1a3549e",
+      "replay_validation_time": 0.20471864399996775,
+      "seconds_per_10_turn_game": 71.44383549600002,
+      "seed": 771,
+      "semantic_action_class_count": 451,
+      "state_clone_count": 576,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 220,
+      "command_count": 733,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 3
+        },
+        "discard_choice_state": {
+          "candidate_count": 9,
+          "minimum": 1,
+          "purpose": "DISCARD",
+          "turn": 6
+        },
+        "high_action_main_phase": {
+          "legal_action_count": 17,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 7,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 6
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "malcolm_glint_horn_treasure_state": {
+          "legal_action_count": 6,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 6,
+          "step": "COMBAT_DAMAGE",
+          "turn": 5
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 10,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 10,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 3
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 220,
+      "final_state_hash": "c7befd46b2593322c77b67c4fa555e032ea4fdea5ccf037c158ee58f92b1b618",
+      "fresh_replay_time": 0.4454629419999492,
+      "games_per_minute": 0.40419443957723433,
+      "legal_action_count": 770,
+      "max_legal_action_count": 24,
+      "max_semantic_action_class_count": 24,
+      "peak_memory": 63897600,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 63897600,
+      "repetition": 1,
+      "replay_digest": "fa1f858b0f4ae3fc47819d9d164b679c8c0802bbeffc3bbf250b870e47c2e417",
+      "replay_validation_time": 0.2901911139999811,
+      "seconds_per_10_turn_game": 148.443407739,
+      "seed": 391730338978874520,
+      "semantic_action_class_count": 690,
+      "state_clone_count": 825,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 154,
+      "command_count": 529,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 4
+        },
+        "discard_choice_state": {
+          "candidate_count": 6,
+          "minimum": 1,
+          "purpose": "DISCARD",
+          "turn": 8
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 7
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 154,
+      "final_state_hash": "f282b014606ead2931f9819709e0becd9995051b4146e9f28e33a92100c7914c",
+      "fresh_replay_time": 0.3344884579998961,
+      "games_per_minute": 1.1416567725686488,
+      "legal_action_count": 452,
+      "max_legal_action_count": 11,
+      "max_semantic_action_class_count": 11,
+      "peak_memory": 59801600,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 59801600,
+      "repetition": 2,
+      "replay_digest": "2ed4fe752fdd99e388bd11ade3e13f8a1036780605898f3b773525bfdde8ad8f",
+      "replay_validation_time": 0.18245804200000748,
+      "seconds_per_10_turn_game": 52.55519998800003,
+      "seed": 101,
+      "semantic_action_class_count": 412,
+      "state_clone_count": 583,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 189,
+      "command_count": 603,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 4
+        },
+        "high_action_main_phase": {
+          "legal_action_count": 12,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 12,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 7
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 4
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 2,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        },
+        "tutor_choice_state": {
+          "candidate_count": 77,
+          "purpose": "TUTOR_THIRD_FROM_TOP",
+          "turn": 9
+        }
+      },
+      "decision_count": 189,
+      "final_state_hash": "8f982fa896da4117f090cadb6e3bb8c088367492cb5ee8cebe250b232760b531",
+      "fresh_replay_time": 0.39757978499994806,
+      "games_per_minute": 0.6365026225777088,
+      "legal_action_count": 719,
+      "max_legal_action_count": 12,
+      "max_semantic_action_class_count": 12,
+      "peak_memory": 61640704,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 61640704,
+      "repetition": 2,
+      "replay_digest": "60ce106bd0f3dacbe7f52eb94ff28a02f4a1f6d04afaa78c2cb3278b323a8041",
+      "replay_validation_time": 0.23715777399991111,
+      "seconds_per_10_turn_game": 94.26512613099999,
+      "seed": 202,
+      "semantic_action_class_count": 666,
+      "state_clone_count": 673,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 193,
+      "command_count": 622,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 4
+        },
+        "high_action_main_phase": {
+          "legal_action_count": 18,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 16,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 9
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 1,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 1,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 6
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 6,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 6,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 5,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 5,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "protection_choice_state": {
+          "legal_action_count": 2,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 2,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 7
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        },
+        "tutor_choice_state": {
+          "candidate_count": 78,
+          "purpose": "TUTOR_THIRD_FROM_TOP",
+          "turn": 10
+        }
+      },
+      "decision_count": 193,
+      "final_state_hash": "3c3f32c218e9f0e27f365c2d96580ea6e0d43fa0c7b9d88e21c94111250dc735",
+      "fresh_replay_time": 0.3866175000000567,
+      "games_per_minute": 0.6551721318785589,
+      "legal_action_count": 755,
+      "max_legal_action_count": 18,
+      "max_semantic_action_class_count": 16,
+      "peak_memory": 60313600,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 60313600,
+      "repetition": 2,
+      "replay_digest": "c37d971551cb0f603221368682f5d445b6c2deda11c0afb8b75af19af5196446",
+      "replay_validation_time": 0.23501689299996542,
+      "seconds_per_10_turn_game": 91.5789867740001,
+      "seed": 303,
+      "semantic_action_class_count": 681,
+      "state_clone_count": 696,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 153,
+      "command_count": 480,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 7
+        },
+        "discard_choice_state": {
+          "candidate_count": 6,
+          "minimum": 2,
+          "purpose": "DISCARD",
+          "turn": 6
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 2,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 2,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 8
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 2,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 5,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 153,
+      "final_state_hash": "02ae812a9bc0f6f931cd740bfc20a8e8d3e44f5f22fa89adeabeae6e1e6c53e3",
+      "fresh_replay_time": 0.32007621500008554,
+      "games_per_minute": 1.2242843599284,
+      "legal_action_count": 476,
+      "max_legal_action_count": 11,
+      "max_semantic_action_class_count": 11,
+      "peak_memory": 59285504,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 59285504,
+      "repetition": 2,
+      "replay_digest": "7cf07ca8d20fffdfca72fe1f10fd7560245bbadbf460368d5eb3701334d15ca2",
+      "replay_validation_time": 0.16782607100003588,
+      "seconds_per_10_turn_game": 49.00822224299998,
+      "seed": 404,
+      "semantic_action_class_count": 387,
+      "state_clone_count": 526,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 144,
+      "command_count": 448,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 9
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 4,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 144,
+      "final_state_hash": "456507862f400c49c77b501a97c39b445cd8aafa768368619bf888d925ef1323",
+      "fresh_replay_time": 0.3293642049998198,
+      "games_per_minute": 1.1305127025364323,
+      "legal_action_count": 429,
+      "max_legal_action_count": 10,
+      "max_semantic_action_class_count": 8,
+      "peak_memory": 58818560,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 58818560,
+      "repetition": 2,
+      "replay_digest": "ddcd0e001d86342fea71edff496a294b888dbfedb21d12af27f3242998b436c7",
+      "replay_validation_time": 0.17712169499986885,
+      "seconds_per_10_turn_game": 53.073264781000034,
+      "seed": 505,
+      "semantic_action_class_count": 365,
+      "state_clone_count": 503,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 125,
+      "command_count": 418,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 8
+        },
+        "high_action_main_phase": {
+          "legal_action_count": 13,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 12,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 8
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 2,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 2,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 10,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 10,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 4
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 5,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 4,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 125,
+      "final_state_hash": "1e306c26d6d6fc8c9a77dbc5b26ef8707aedcd47ee603187942fd6fdd6f66db9",
+      "fresh_replay_time": 0.3449853949998669,
+      "games_per_minute": 1.1291829838375502,
+      "legal_action_count": 397,
+      "max_legal_action_count": 13,
+      "max_semantic_action_class_count": 12,
+      "peak_memory": 57671680,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 57671680,
+      "repetition": 2,
+      "replay_digest": "0f270fe1d9a541f063043357451210c4a012362fcc116df372ae2e97c1469bb4",
+      "replay_validation_time": 0.1777195090000987,
+      "seconds_per_10_turn_game": 53.135763519999955,
+      "seed": 606,
+      "semantic_action_class_count": 353,
+      "state_clone_count": 470,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 152,
+      "command_count": 526,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 5
+        },
+        "discard_choice_state": {
+          "candidate_count": 9,
+          "minimum": 2,
+          "purpose": "DISCARD",
+          "turn": 9
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 1,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 1,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 11,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 11,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 6
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 3
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 9,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 8,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "protection_choice_state": {
+          "legal_action_count": 5,
+          "phase": "BEGINNING",
+          "semantic_action_class_count": 5,
+          "step": "DRAW",
+          "turn": 7
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 152,
+      "final_state_hash": "cb2df5d606d569683398fb17f7446d87c02065d2f24b5c4a9e49a1d5b129d857",
+      "fresh_replay_time": 0.3416674369998418,
+      "games_per_minute": 0.8558628272068405,
+      "legal_action_count": 482,
+      "max_legal_action_count": 14,
+      "max_semantic_action_class_count": 14,
+      "peak_memory": 58527744,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 58527744,
+      "repetition": 2,
+      "replay_digest": "100dc7ffa8ce8b9890bf76c0d8dba845f70dbf9831a0bc482b86a23dd1a3549e",
+      "replay_validation_time": 0.20122688600008587,
+      "seconds_per_10_turn_game": 70.10469212199996,
+      "seed": 771,
+      "semantic_action_class_count": 451,
+      "state_clone_count": 576,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    },
+    {
+      "authorized_pilot_result": false,
+      "broker_refresh_count": 220,
+      "command_count": 733,
+      "controlled_turns_completed": 10,
+      "coverage": {
+        "attack_choice_state": {
+          "legal_action_count": 4,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 4,
+          "step": "DECLARE_ATTACKERS",
+          "turn": 3
+        },
+        "discard_choice_state": {
+          "candidate_count": 9,
+          "minimum": 1,
+          "purpose": "DISCARD",
+          "turn": 6
+        },
+        "high_action_main_phase": {
+          "legal_action_count": 17,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 7,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 6
+        },
+        "low_action_opening_state": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "malcolm_glint_horn_treasure_state": {
+          "legal_action_count": 6,
+          "phase": "COMBAT",
+          "semantic_action_class_count": 6,
+          "step": "COMBAT_DAMAGE",
+          "turn": 5
+        },
+        "many_semantic_legal_action_classes": {
+          "legal_action_count": 10,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 10,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 3
+        },
+        "multiple_mana_abilities": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 2
+        },
+        "multiple_playable_lands": {
+          "legal_action_count": 3,
+          "phase": "PRECOMBAT_MAIN",
+          "semantic_action_class_count": 3,
+          "step": "PRECOMBAT_MAIN",
+          "turn": 1
+        },
+        "representative_complete_10_turn_game": {
+          "terminal_status": "ACTIVE",
+          "turn": 10
+        }
+      },
+      "decision_count": 220,
+      "final_state_hash": "c7befd46b2593322c77b67c4fa555e032ea4fdea5ccf037c158ee58f92b1b618",
+      "fresh_replay_time": 0.45087265200004367,
+      "games_per_minute": 0.40458608263458257,
+      "legal_action_count": 770,
+      "max_legal_action_count": 24,
+      "max_semantic_action_class_count": 24,
+      "peak_memory": 65761280,
+      "peak_memory_measurement": "process_ru_maxrss_high_water_bytes",
+      "pilot_result": false,
+      "process_peak_rss_bytes": 65761280,
+      "repetition": 2,
+      "replay_digest": "fa1f858b0f4ae3fc47819d9d164b679c8c0802bbeffc3bbf250b870e47c2e417",
+      "replay_validation_time": 0.29056500299998334,
+      "seconds_per_10_turn_game": 148.2997131520001,
+      "seed": 391730338978874520,
+      "semantic_action_class_count": 690,
+      "state_clone_count": 825,
+      "strategic_context_instantiated": false,
+      "terminal_status": "ACTIVE"
+    }
+  ],
+  "worker_errors": []
+}

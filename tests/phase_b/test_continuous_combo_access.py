@@ -91,6 +91,15 @@ def test_malcolm_glint_horn_access_respects_attack_window_and_discard_requiremen
     add_card(executor, specs["Island"], Zone.HAND)
     tracker = bind_combo_access_tracker(executor, "P0", load_evaluator_config().combo_packages)
 
+    expired_floating = next(
+        record for record in tracker.observe(executor) if record.package == "malcolm_glint_horn"
+    )
+    assert expired_floating.legally_executable is False
+    assert "INSUFFICIENT_MANA_OR_DISCARD" in expired_floating.blockers
+
+    state.players["P0"].mana_pool.update({symbol: 0 for symbol in ("W", "U", "B", "R", "G", "C")})
+    add_card(executor, specs["Mountain"], Zone.BATTLEFIELD)
+    add_card(executor, specs["Island"], Zone.BATTLEFIELD)
     precombat = next(
         record for record in tracker.observe(executor) if record.package == "malcolm_glint_horn"
     )

@@ -14,6 +14,8 @@ from mtg_kernel.engine import GameExecutor
 from mtg_kernel.hashing import state_hash
 from mtg_kernel.models import Zone
 from mtg_kernel.replay import transcript, validate_replay
+from mtg_kernel.resource_payment import PaymentStep, PaymentWindow
+from mtg_kernel.resource_sources import solve_state_payment
 from mtg_measure.combo_access import ComboAccessTracker
 from mtg_policy.broker import ActionBroker
 from mtg_policy.public_actions import (
@@ -84,19 +86,19 @@ EXPECTED_FIRST_ACCESS = {
         5,
         "COMBAT",
         "COMBAT_DAMAGE",
-        False,
-        ("INSUFFICIENT_MANA_OR_DISCARD",),
+        True,
+        (),
     ),
     "legacy-391": (
         "648d4c4f54b92261fb33e73ee51e6ea632a304845726c68dfd3a8917470afd18",
         6,
         "COMBAT",
         "COMBAT_DAMAGE",
-        False,
-        ("INSUFFICIENT_MANA_OR_DISCARD",),
+        True,
+        (),
     ),
     "legacy-101": (
-        "357b54ef412fbcce95e24a466ddce14bfefb6f96e13cd3d87f75d8c00569c4e1",
+        "8d81dc59d5b6b5588e7e8fa16c76a22bfbf9e7899601c92ddbf7611def4ab7a7",
         10,
         "PRECOMBAT_MAIN",
         "PRECOMBAT_MAIN",
@@ -305,6 +307,22 @@ def _public(
     }
 
 
+def _public_available(
+    executor: GameExecutor, predicate: Callable[[PolicyActionView], bool]
+) -> bool:
+    assert executor.state.turn.priority_holder_id == "P0"
+    _observation, actions = ActionBroker(executor, "P0").refresh()
+    return any(predicate(policy_action_view(action)) for action in actions)
+
+
+def _mana_ability(view: PolicyActionView) -> bool:
+    return view.kind == "ACTIVATE" and bool({"MANA_ABILITY", "ADD_MANA"}.intersection(view.tags))
+
+
+def _glint_cast(view: PolicyActionView) -> bool:
+    return view.kind == "CAST" and view.identity == GLINT
+
+
 def _treasure(color: str) -> Callable[[PolicyActionView], bool]:
     return lambda view: (
         view.kind == "ACTIVATE"
@@ -363,7 +381,12 @@ def _prepare_combat(executor: GameExecutor, steps: list[dict[str, Any]]) -> None
     if _glint_attacking(executor):
         return
     if not _glint_on_field(executor):
-        steps.append(_public(executor, lambda view: view.kind == "CAST" and view.identity == GLINT))
+        mana_activations = 0
+        while not _public_available(executor, _glint_cast):
+            steps.append(_public(executor, _mana_ability))
+            mana_activations += 1
+            assert mana_activations <= 12
+        steps.append(_public(executor, _glint_cast))
         _resolve_stack(executor)
     assert executor.state.turn.phase == "PRECOMBAT_MAIN"
     _close_empty_window(executor)
@@ -412,6 +435,39 @@ def _witness(state: Any, seed: str) -> tuple[GameExecutor, list[dict[str, Any]]]
     return executor, steps
 
 
+def _assert_captured_combat_payment(state: Any) -> None:
+    payment = solve_state_payment(
+        state,
+        "P0",
+        (
+            PaymentStep(
+                "malcolm_glint_horn:activation:1",
+                "{1}{R}",
+                PaymentWindow(0, "captured-combat-damage"),
+                context_tags=("ACTIVATED_ABILITY",),
+            ),
+        ),
+    )
+    assert payment.feasible is True
+    assert sum(item.amount for item in payment.canonical_allocation) == 2
+    untapped_treasures = sum(
+        1
+        for obj in state.objects.values()
+        if not obj.retired
+        and not obj.ceased_to_exist
+        and obj.zone is Zone.BATTLEFIELD
+        and obj.controller == "P0"
+        and str(obj.current_characteristics.get("name", "")) == "Treasure"
+        and (obj.permanent_status or {}).get("tap") == "UNTAPPED"
+    )
+    treasure_used = sum(
+        item.amount
+        for item in payment.canonical_allocation
+        if item.source_semantic_id == "Treasure:treasure-mana"
+    )
+    assert treasure_used <= untapped_treasures
+
+
 def test_first_access_states_have_finite_production_table_win_witnesses(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -421,6 +477,8 @@ def test_first_access_states_have_finite_production_table_win_witnesses(
         ("legacy-101", 101, True),
     ):
         state, seed_text, snapshot = _first_access(monkeypatch, label, seed, legacy)
+        if label in {"repaired-391", "legacy-391"}:
+            _assert_captured_combat_payment(state)
         expected = EXPECTED_FIRST_ACCESS[label]
         assert (
             state_hash(state),
@@ -439,8 +497,16 @@ def test_first_access_states_have_finite_production_table_win_witnesses(
         assert all(
             not player.in_game for pid, player in witness.state.players.items() if pid != "P0"
         )
-        assert steps[0]["identity"] == (GLINT if label == "legacy-101" else "Treasure")
-        if label != "legacy-101":
+        if label == "legacy-101":
+            cast_index = next(
+                index
+                for index, step in enumerate(steps)
+                if step["kind"] == "CAST" and step["identity"] == GLINT
+            )
+            assert cast_index > 0
+            assert all(step["kind"] == "ACTIVATE" for step in steps[:cast_index])
+        else:
+            assert steps[0]["identity"] == "Treasure"
             assert steps[0]["metadata"]["mana_color"] == "R"
         body = transcript(witness.state, seed=seed_text)
         assert state_hash(validate_replay(body)) == state_hash(witness.state)

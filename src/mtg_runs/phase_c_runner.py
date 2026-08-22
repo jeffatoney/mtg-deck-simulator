@@ -1037,6 +1037,7 @@ def run_phase_c_game_execution(
     pair_id: str | None = None,
     paired_standard_game_index: int | None = None,
     policy_config_id: str = "anchor_balanced",
+    opponent_mana_profile: str = "blue_red_available",
     through_turn: int = 10,
     validate_fresh_replay: bool = True,
     policy_actions: bool = False,
@@ -1059,7 +1060,10 @@ def run_phase_c_game_execution(
     environment_initial_state_hash = state_hash(state)
     policy, provider, evaluator_config = _bound_policy(executor, policy_config_id)
     tracker = bind_combo_access_tracker(
-        executor, CONTROLLED_PLAYER, evaluator_config.combo_packages
+        executor,
+        CONTROLLED_PLAYER,
+        evaluator_config.combo_packages,
+        opponent_mana_profile=opponent_mana_profile,
     )
     capture = _GameMeasurementCapture()
 

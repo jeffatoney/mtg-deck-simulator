@@ -1,21 +1,26 @@
 """Continuous, fail-closed combo-access detection for policy and measurement.
 
-The tracker is observation-time infrastructure, not a reporting checkpoint.  It may
+The tracker is observation-time infrastructure, not a reporting checkpoint. It may
 be attached to the shared executor and is sampled before and after every broker
-action.  Turn 5/6/8/10 summaries are derived cumulatively from the earliest legal
+action. Turn 5/6/8/10 summaries are derived cumulatively from the earliest legal
 turn, so an actual Turn 3 or Turn 4 line is never hidden by the first checkpoint.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any
 
-from mtg_kernel.errors import IllegalAction
-from mtg_kernel.mana import parse_mana_cost, pay_mana
 from mtg_kernel.models import GameObject, Zone
+from mtg_kernel.resource_payment import (
+    ManaProduction,
+    PaymentStep,
+    PaymentWindow,
+    ResourcePaymentResult,
+    ResourceSource,
+)
+from mtg_kernel.resource_sources import solve_state_payment
 
 CHECKPOINTS = (5, 6, 8, 10)
 MAIN_PHASES = {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"}
@@ -29,6 +34,7 @@ _PROTECTION_EFFECTS = {
     "AMASS_AND_HEXPROOF",
     "PHASE_OUT",
 }
+_MANA_COLORS = ("W", "U", "B", "R", "G")
 
 
 @dataclass(frozen=True)
@@ -52,8 +58,11 @@ class ComboAccessTracker:
         self,
         player_id: str,
         package_definitions: Mapping[str, Sequence[str]],
+        *,
+        opponent_mana_profile: str = "blue_red_available",
     ) -> None:
         self.player_id = player_id
+        self.opponent_mana_profile = str(opponent_mana_profile)
         self.package_definitions = {
             str(package): tuple(str(card) for card in cards)
             for package, cards in package_definitions.items()
@@ -80,14 +89,44 @@ class ComboAccessTracker:
         return result
 
     @staticmethod
-    def _can_pay_sequence(mana_pool: Mapping[str, int], costs: Sequence[str]) -> bool:
-        pool = deepcopy(dict(mana_pool))
-        try:
-            for cost in costs:
-                pay_mana(pool, parse_mana_cost(cost))
-        except IllegalAction:
-            return False
-        return True
+    def _current_payment_window(executor: Any) -> PaymentWindow:
+        turn = executor.state.turn
+        return PaymentWindow(0, f"current:{turn.phase}:{turn.step}")
+
+    def _solve_payment(
+        self,
+        executor: Any,
+        steps: Sequence[PaymentStep],
+        *,
+        additional_sources: Sequence[ResourceSource] = (),
+    ) -> ResourcePaymentResult:
+        profile = str(getattr(executor, "opponent_mana_profile", self.opponent_mana_profile))
+        return solve_state_payment(
+            executor.state,
+            self.player_id,
+            tuple(steps),
+            additional_sources=tuple(additional_sources),
+            opponent_mana_profile=profile,
+        )
+
+    def _payment_steps_for_costs(
+        self,
+        executor: Any,
+        costs: Sequence[str],
+        *,
+        label_prefix: str,
+        context_tags: tuple[str, ...] = ("SPELL",),
+    ) -> tuple[PaymentStep, ...]:
+        window = self._current_payment_window(executor)
+        return tuple(
+            PaymentStep(
+                f"{label_prefix}:{index}",
+                str(cost),
+                window,
+                context_tags=context_tags,
+            )
+            for index, cost in enumerate(costs)
+        )
 
     def _controlled_creature_exists(self, executor: Any) -> bool:
         return any(
@@ -97,13 +136,15 @@ class ComboAccessTracker:
             for obj in self._active_objects(executor)
         )
 
-    def _usable_protection_after_costs(self, executor: Any, costs: Sequence[str]) -> bool:
-        pool = deepcopy(dict(executor.state.players[self.player_id].mana_pool))
-        try:
-            for cost in costs:
-                pay_mana(pool, parse_mana_cost(cost))
-        except IllegalAction:
-            return False
+    def _usable_protection_after_steps(
+        self,
+        executor: Any,
+        payment_steps: Sequence[PaymentStep],
+    ) -> bool:
+        payment_steps = tuple(payment_steps)
+        window = (
+            payment_steps[-1].window if payment_steps else self._current_payment_window(executor)
+        )
         for obj in self._active_objects(executor):
             if obj.owner != self.player_id or obj.zone is not Zone.HAND:
                 continue
@@ -123,12 +164,24 @@ class ComboAccessTracker:
                             effects.add(str(effect.get("kind", "")))
             if not effects.intersection(_PROTECTION_EFFECTS):
                 continue
-            candidate_pool = deepcopy(pool)
-            try:
-                pay_mana(candidate_pool, parse_mana_cost(mana_cost))
-            except IllegalAction:
-                continue
-            return True
+            name = str(obj.current_characteristics.get("name", "protection"))
+            card_types = {
+                str(value)
+                for face in faces
+                if isinstance(face, Mapping)
+                for value in face.get("card_types", ())
+            }
+            context_tags = tuple(
+                sorted({"SPELL", *(f"{card_type.upper()}_SPELL" for card_type in card_types)})
+            )
+            protection = PaymentStep(
+                f"protection:{name}",
+                mana_cost,
+                window,
+                context_tags=context_tags,
+            )
+            if self._solve_payment(executor, (*payment_steps, protection)).feasible:
+                return True
         return False
 
     def _objects_named(
@@ -167,31 +220,6 @@ class ComboAccessTracker:
             return False
         return since < int(executor.state.turn.number)
 
-    @staticmethod
-    def _mana_total(mana_pool: Mapping[str, int]) -> int:
-        return sum(max(0, int(value)) for value in mana_pool.values())
-
-    def _untapped_treasures(self, executor: Any) -> int:
-        return sum(
-            1
-            for obj in self._active_objects(executor)
-            if obj.zone is Zone.BATTLEFIELD
-            and obj.controller == self.player_id
-            and str(obj.current_characteristics.get("name", "")) == "Treasure"
-            and self._is_untapped(obj)
-        )
-
-    def _available_generic_resources(self, executor: Any) -> int:
-        return self._mana_total(
-            executor.state.players[self.player_id].mana_pool
-        ) + self._untapped_treasures(executor)
-
-    def _has_red_resource(self, executor: Any) -> bool:
-        return (
-            int(executor.state.players[self.player_id].mana_pool.get("R", 0)) > 0
-            or self._untapped_treasures(executor) > 0
-        )
-
     def _main_phase_priority(self, executor: Any) -> bool:
         turn = executor.state.turn
         return bool(
@@ -213,7 +241,7 @@ class ComboAccessTracker:
         pieces: bool,
         sufficient: bool,
         legal: bool,
-        costs: Sequence[str] = (),
+        payment_steps: Sequence[PaymentStep] = (),
         full_table_kill: bool = False,
         conditional: bool = False,
         blockers: Sequence[str] = (),
@@ -225,7 +253,7 @@ class ComboAccessTracker:
             pieces,
             sufficient,
             legal,
-            legal and self._usable_protection_after_costs(executor, costs),
+            legal and self._usable_protection_after_steps(executor, payment_steps),
             full_table_kill,
             conditional,
             tuple(blockers),
@@ -243,10 +271,23 @@ class ComboAccessTracker:
         spell_cost = (
             "{1}{R}" if spell == "Twinflame" else ("{2}{R}" if normal_spell else "{2}{R}{R}")
         )
-        costs = (spell_cost, "{1}{R}{R}")
-        sufficient = pieces and self._can_pay_sequence(
-            executor.state.players[self.player_id].mana_pool, costs
+        window = self._current_payment_window(executor)
+        payment_steps = (
+            PaymentStep(
+                f"{package}:copy-spell",
+                spell_cost,
+                window,
+                context_tags=("INSTANT_OR_SORCERY_SPELL", "SPELL"),
+            ),
+            PaymentStep(
+                f"{package}:dualcaster",
+                "{1}{R}{R}",
+                window,
+                context_tags=("CREATURE_SPELL", "SPELL"),
+            ),
         )
+        payment = self._solve_payment(executor, payment_steps)
+        sufficient = pieces and payment.feasible
         controlled_target = self._controlled_creature_exists(executor)
         timing = self._main_phase_priority(executor)
         blockers: list[str] = []
@@ -267,7 +308,7 @@ class ComboAccessTracker:
             pieces=pieces,
             sufficient=sufficient,
             legal=legal,
-            costs=costs,
+            payment_steps=payment_steps,
             full_table_kill=legal,
             blockers=blockers,
         )
@@ -289,30 +330,60 @@ class ComboAccessTracker:
         }
 
     @staticmethod
-    def _loop_can_kill_with_generated_mana(
-        life: Mapping[str, int],
+    def _treasure_wave_source(
         *,
-        starting_resources: int,
-        activation_cost: int,
-        generated_per_hit: bool,
+        package: str,
+        hit: int,
+        count: int,
+        available_from_window: int,
+    ) -> ResourceSource:
+        return ResourceSource(
+            semantic_id=f"{package}:generated-treasure:{hit}",
+            productions=tuple(ManaProduction(((color, 1),)) for color in _MANA_COLORS),
+            count=count,
+            tap_to_activate=True,
+            sacrifice_to_activate=True,
+            persistent=True,
+            available_from_window=available_from_window,
+        )
+
+    def _malcolm_glint_kill_payment(
+        self,
+        executor: Any,
+        base_steps: Sequence[PaymentStep],
+        life: Mapping[str, int],
         maximum_iterations: int,
-    ) -> bool:
-        remaining = dict(life)
-        resources = starting_resources
-        for _ in range(maximum_iterations):
-            if not remaining:
-                return True
-            if resources < activation_cost:
-                return False
-            resources -= activation_cost
-            damaged = len(remaining)
-            if generated_per_hit:
-                resources += damaged
-            for player_id in tuple(remaining):
-                remaining[player_id] -= 1
-                if remaining[player_id] <= 0:
-                    del remaining[player_id]
-        return not remaining
+    ) -> ResourcePaymentResult | None:
+        required_hits = max(life.values(), default=0)
+        if required_hits == 0:
+            return self._solve_payment(executor, base_steps)
+        if maximum_iterations < required_hits:
+            return None
+        steps = list(base_steps)
+        first_activation = steps[-1]
+        first_ordinal = first_activation.window.ordinal
+        sources: list[ResourceSource] = []
+        for hit in range(1, required_hits):
+            next_ordinal = first_ordinal + hit
+            damaged = sum(int(value) >= hit for value in life.values())
+            if damaged:
+                sources.append(
+                    self._treasure_wave_source(
+                        package="malcolm_glint_horn",
+                        hit=hit,
+                        count=damaged,
+                        available_from_window=next_ordinal,
+                    )
+                )
+            steps.append(
+                PaymentStep(
+                    f"malcolm_glint_horn:activation:{hit + 1}",
+                    "{1}{R}",
+                    PaymentWindow(next_ordinal, f"glint-loop:{hit + 1}"),
+                    context_tags=("ACTIVATED_ABILITY",),
+                )
+            )
+        return self._solve_payment(executor, steps, additional_sources=sources)
 
     def _malcolm_glint_horn(self, executor: Any) -> ComboAccessSnapshot:
         accessible = self._accessible_names(executor)
@@ -324,15 +395,27 @@ class ComboAccessTracker:
         glint = glint_battle[0] if glint_battle else None
         hand_key = executor.zones.zone_key(Zone.HAND, self.player_id)
         hand_count = len(executor.state.zones.get(hand_key, ()))
-        missing_cast_costs: list[str] = []
+        current_window = self._current_payment_window(executor)
+        payment_steps: list[PaymentStep] = []
         if not malcolm_battle and "Malcolm, Keen-Eyed Navigator" in accessible:
-            missing_cast_costs.append("{2}{U}")
+            payment_steps.append(
+                PaymentStep(
+                    "malcolm_glint_horn:cast-malcolm",
+                    "{2}{U}",
+                    current_window,
+                    context_tags=("CREATURE_SPELL", "SPELL"),
+                )
+            )
         if glint is None and "Glint-Horn Buccaneer" in accessible:
-            missing_cast_costs.append("{1}{R}{R}")
-        costs = tuple(missing_cast_costs + ["{1}{R}"])
-        enough_cast_and_activate = pieces and self._can_pay_sequence(
-            executor.state.players[self.player_id].mana_pool, costs
-        )
+            payment_steps.append(
+                PaymentStep(
+                    "malcolm_glint_horn:cast-glint-horn",
+                    "{1}{R}{R}",
+                    current_window,
+                    context_tags=("CREATURE_SPELL", "SPELL"),
+                )
+            )
+
         can_reach_attack = False
         if glint is not None:
             can_reach_attack = bool(
@@ -349,6 +432,29 @@ class ComboAccessTracker:
         elif self._main_phase_priority(executor):
             # Glint-Horn has haste, so a cast in precombat main can attack this turn.
             can_reach_attack = executor.state.turn.phase == "PRECOMBAT_MAIN"
+
+        attacking_now = bool(
+            glint is not None and glint.current_characteristics.get("attacking") is True
+        )
+        activation_window = (
+            current_window
+            if attacking_now
+            else PaymentWindow(
+                1,
+                "future-combat:glint-horn-activation",
+                clear_pool_before=True,
+            )
+        )
+        payment_steps.append(
+            PaymentStep(
+                "malcolm_glint_horn:activation:1",
+                "{1}{R}",
+                activation_window,
+                context_tags=("ACTIVATED_ABILITY",),
+            )
+        )
+        payment = self._solve_payment(executor, payment_steps)
+
         remaining_hand = hand_count - sum(
             1
             for name in ("Malcolm, Keen-Eyed Navigator", "Glint-Horn Buccaneer")
@@ -356,33 +462,43 @@ class ComboAccessTracker:
             and not self._objects_named(executor, name, (Zone.BATTLEFIELD,))
         )
         has_discard = remaining_hand > 0
-        sufficient = enough_cast_and_activate and has_discard
-        legal = bool(
+        sufficient = pieces and payment.feasible and has_discard
+        immediate_access = bool(
             pieces
             and malcolm_battle
             and glint is not None
-            and glint.current_characteristics.get("attacking") is True
-            and self._has_red_resource(executor)
-            and self._available_generic_resources(executor) >= 2
-            and has_discard
+            and attacking_now
+            and sufficient
             and executor.state.turn.priority_holder_id == self.player_id
         )
         # Access before attackers are declared is still a deterministic this-turn line
         # when every missing piece can be cast and Glint-Horn can legally attack.
-        this_turn_access = (
-            pieces and sufficient and can_reach_attack and self._main_phase_priority(executor)
+        this_turn_access = bool(
+            pieces
+            and sufficient
+            and can_reach_attack
+            and self._main_phase_priority(executor)
+            and executor.state.turn.phase == "PRECOMBAT_MAIN"
         )
-        legal = legal or this_turn_access
+        legal = immediate_access or this_turn_access
+
         life = self._living_opponent_life(executor, self.player_id)
         library_key = executor.zones.zone_key(Zone.LIBRARY, self.player_id)
-        max_iterations = len(executor.state.zones.get(library_key, ())) + (1 if has_discard else 0)
-        full_kill = legal and self._loop_can_kill_with_generated_mana(
-            life,
-            starting_resources=self._available_generic_resources(executor),
-            activation_cost=2,
-            generated_per_hit=True,
-            maximum_iterations=max_iterations,
+        maximum_iterations = len(executor.state.zones.get(library_key, ())) + (
+            1 if has_discard else 0
         )
+        kill_payment = (
+            self._malcolm_glint_kill_payment(
+                executor,
+                payment_steps,
+                life,
+                maximum_iterations,
+            )
+            if legal
+            else None
+        )
+        full_kill = bool(legal and kill_payment is not None and kill_payment.feasible)
+
         blockers: list[str] = []
         if not pieces:
             blockers.append("MISSING_COMPONENT")
@@ -398,11 +514,43 @@ class ComboAccessTracker:
             pieces=pieces,
             sufficient=sufficient,
             legal=legal,
-            costs=costs,
+            payment_steps=payment_steps,
             full_table_kill=full_kill,
             conditional=legal and not full_kill,
             blockers=blockers,
         )
+
+    def _lightning_rig_kill_payment(
+        self,
+        executor: Any,
+        life: Mapping[str, int],
+    ) -> ResourcePaymentResult | None:
+        required_hits = max(life.values(), default=0)
+        if required_hits <= 1:
+            return self._solve_payment(executor, ())
+        steps: list[PaymentStep] = []
+        sources: list[ResourceSource] = []
+        for hit in range(1, required_hits):
+            ordinal = hit - 1
+            damaged = sum(int(value) >= hit for value in life.values())
+            if damaged:
+                sources.append(
+                    self._treasure_wave_source(
+                        package="lightning_rig_crab_umbra_malcolm",
+                        hit=hit,
+                        count=damaged,
+                        available_from_window=ordinal,
+                    )
+                )
+            steps.append(
+                PaymentStep(
+                    f"lightning_rig_crab_umbra_malcolm:untap:{hit}",
+                    "{2}{U}",
+                    PaymentWindow(ordinal, f"rig-loop:{hit}"),
+                    context_tags=("ACTIVATED_ABILITY",),
+                )
+            )
+        return self._solve_payment(executor, steps, additional_sources=sources)
 
     def _lightning_rig_crab_umbra_malcolm(self, executor: Any) -> ComboAccessSnapshot:
         accessible = self._accessible_names(executor)
@@ -433,13 +581,8 @@ class ComboAccessTracker:
             and bool(malcolm)
             and executor.state.turn.priority_holder_id == self.player_id
         )
-        full_kill = legal and self._loop_can_kill_with_generated_mana(
-            life,
-            starting_resources=self._available_generic_resources(executor) + 3,
-            activation_cost=3,
-            generated_per_hit=True,
-            maximum_iterations=max(life.values(), default=0),
-        )
+        kill_payment = self._lightning_rig_kill_payment(executor, life) if legal else None
+        full_kill = bool(legal and kill_payment is not None and kill_payment.feasible)
         blockers: list[str] = []
         if not pieces:
             blockers.append("MISSING_COMPONENT")
@@ -479,11 +622,18 @@ class ComboAccessTracker:
         )
         curiosity_in_hand = bool(self._objects_named(executor, "Curiosity", (Zone.HAND,)))
         niv_ready = niv is not None and self._can_use_tap_ability(executor, niv)
-        cast_curiosity = (
+        payment_steps = self._payment_steps_for_costs(
+            executor,
+            ("{U}",),
+            label_prefix="niv_mizzet_curiosity:cast-curiosity",
+            context_tags=("ENCHANTMENT_SPELL", "SPELL"),
+        )
+        curiosity_payment = self._solve_payment(executor, payment_steps)
+        cast_curiosity = bool(
             curiosity_in_hand
             and niv is not None
             and self._main_phase_priority(executor)
-            and self._can_pay_sequence(executor.state.players[self.player_id].mana_pool, ("{U}",))
+            and curiosity_payment.feasible
         )
         sufficient = pieces and niv_ready and (attached or cast_curiosity)
         legal = sufficient and executor.state.turn.priority_holder_id == self.player_id
@@ -508,7 +658,7 @@ class ComboAccessTracker:
             pieces=pieces,
             sufficient=sufficient,
             legal=legal,
-            costs=("{U}",) if cast_curiosity else (),
+            payment_steps=payment_steps if cast_curiosity else (),
             full_table_kill=full_kill,
             conditional=legal and not full_kill,
             blockers=blockers,
@@ -518,10 +668,15 @@ class ComboAccessTracker:
         crawler = self._objects_named(executor, "Psychosis Crawler", (Zone.BATTLEFIELD,))
         hand_crawler = self._objects_named(executor, "Psychosis Crawler", (Zone.HAND,))
         pieces = bool(crawler or hand_crawler)
+        payment_steps = self._payment_steps_for_costs(
+            executor,
+            ("{5}",),
+            label_prefix="psychosis_crawler_draw:cast-crawler",
+            context_tags=("ARTIFACT_SPELL", "CREATURE_SPELL", "SPELL"),
+        )
+        crawler_payment = self._solve_payment(executor, payment_steps)
         can_cast = bool(
-            hand_crawler
-            and self._main_phase_priority(executor)
-            and self._can_pay_sequence(executor.state.players[self.player_id].mana_pool, ("{5}",))
+            hand_crawler and self._main_phase_priority(executor) and crawler_payment.feasible
         )
         active = bool(crawler) or can_cast
         # This package is intentionally conditional: Crawler converts subsequent draws
@@ -539,7 +694,7 @@ class ComboAccessTracker:
             pieces=pieces,
             sufficient=sufficient,
             legal=legal,
-            costs=("{5}",) if can_cast else (),
+            payment_steps=payment_steps if can_cast else (),
             full_table_kill=False,
             conditional=legal,
             blockers=blockers,
@@ -588,7 +743,14 @@ def bind_combo_access_tracker(
     executor: Any,
     player_id: str,
     package_definitions: Mapping[str, Sequence[str]],
+    *,
+    opponent_mana_profile: str = "blue_red_available",
 ) -> ComboAccessTracker:
-    tracker = ComboAccessTracker(player_id, package_definitions)
+    tracker = ComboAccessTracker(
+        player_id,
+        package_definitions,
+        opponent_mana_profile=opponent_mana_profile,
+    )
+    executor.opponent_mana_profile = str(opponent_mana_profile)
     executor.combo_access_tracker = tracker
     return tracker

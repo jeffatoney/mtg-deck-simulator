@@ -193,9 +193,8 @@ class ActionBroker:
             return ({"scry_to_bottom": False}, {"scry_to_bottom": True})
         return ({},)
 
-    @staticmethod
-    def _ability_choice_variants(ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:
-        return ActionBroker._effect_choice_variants(dict(ability.get("effect", {})))
+    def _ability_choice_variants(self, ability: dict[str, Any]) -> tuple[dict[str, Any], ...]:
+        return self._effect_choice_variants(dict(ability.get("effect", {})))
 
     def _public_card_semantics(self, obj: GameObject) -> dict[str, Any]:
         """Return the same visible card facts used by strategic card selection."""

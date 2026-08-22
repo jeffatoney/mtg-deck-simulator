@@ -1,0 +1,68 @@
+name: Stage 2 Bridge STANDARD Benchmark
+
+on:
+  pull_request:
+    paths:
+      - "benchmarks/stage2-bridge-standard/**"
+      - "scripts/benchmark_stage2_standard.py"
+      - "src/mtg_kernel/resource_payment.py"
+      - "src/mtg_kernel/resource_sources.py"
+      - "src/mtg_measure/combo_access.py"
+      - ".github/workflows/stage2-bridge-standard.yml"
+  push:
+    branches:
+      - hardening/shared-resource-accounting
+    paths:
+      - "benchmarks/stage2-bridge-standard/**"
+      - "scripts/benchmark_stage2_standard.py"
+      - "src/mtg_kernel/resource_payment.py"
+      - "src/mtg_kernel/resource_sources.py"
+      - "src/mtg_measure/combo_access.py"
+      - ".github/workflows/stage2-bridge-standard.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+
+      - name: Run frozen non-pilot STANDARD benchmark
+        id: benchmark
+        continue-on-error: true
+        run: |
+          mkdir -p "${RUNNER_TEMP}/stage2-bridge-standard"
+          uv run python scripts/benchmark_stage2_standard.py \
+            --corpus benchmarks/stage2-bridge-standard/corpus.json \
+            --output "${RUNNER_TEMP}/stage2-bridge-standard/result.json"
+
+      - name: Upload benchmark result
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage2-bridge-standard-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/stage2-bridge-standard/result.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce benchmark coverage and execution
+        if: steps.benchmark.outcome != 'success'
+        run: exit 1
