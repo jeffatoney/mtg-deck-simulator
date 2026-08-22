@@ -81,7 +81,7 @@ def _resolve_counter_unless_pay(
             raise IllegalAction("counter payment was selected but cannot be paid legally")
     else:
         # The injected Phase C provider controls the actor, not an arbitrary target
-        # controller.  Never invent an unmodeled opponent's resolution choice.
+        # controller. Never invent an unmodeled opponent's resolution choice.
         if payer != action.actor_id:
             raise UnsupportedCapability(
                 "counter-unless-pay requires an explicit decision from an unmodeled opponent"
@@ -134,6 +134,7 @@ def _resolve_counter_unless_pay(
         outcome=outcome,
         amount=amount,
         payment=payment,
+        counter_destination=destination.value,
         target_object_id=target.object_id,
     )
     self.state.choices.append(
@@ -142,7 +143,7 @@ def _resolve_counter_unless_pay(
             payer,
             "COUNTER_UNLESS_PAY",
             {
-                "schema_version": "counter-payment-choice-v3",
+                "schema_version": "counter-payment-choice-v4",
                 "choice_kind": "COUNTER_PAYMENT",
                 "effect_kind": effect_kind,
                 "decision_owner": payer,
@@ -151,12 +152,22 @@ def _resolve_counter_unless_pay(
                 "target_card_types": list(target_public.card_types),
                 "target_effect_kinds": list(target_public.effect_kinds),
                 "amount": amount,
+                "actual_required_payment": amount,
+                "counter_destination": destination.value,
                 "legal_modeled_alternatives": list(legal_outcomes),
                 "pay_legally_available": payment_result.feasible,
                 "resource_payment": asdict(payment_result),
                 "outcome": outcome,
                 "pay": outcome == "PAY",
                 "payment": payment,
+                "target_evaluation": diagnostics.get("target_evaluation"),
+                "mana_weight_microunits": diagnostics.get("mana_weight_microunits"),
+                "mana_cost_valuation_microunits": diagnostics.get(
+                    "mana_cost_valuation_microunits"
+                ),
+                "decline_incremental_value_microunits": diagnostics.get(
+                    "decline_incremental_value_microunits"
+                ),
                 "reason_code": str(
                     diagnostics.get("reason_code", f"SELECTED_COUNTER_PAYMENT_{outcome}")
                 ),
