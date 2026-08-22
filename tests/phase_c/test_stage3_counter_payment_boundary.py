@@ -419,7 +419,11 @@ def test_authorized_policy_characterizes_frozen_evaluator_dispositions_and_tie_d
 
     cases = (
         (CounterPaymentTarget("Synthetic Draw", 1, ("Instant",), ("DRAW",)), 13, "DECLINE"),
-        (CounterPaymentTarget("Synthetic Interaction", 1, ("Instant",), ("COUNTER",)), 9, "DECLINE"),
+        (
+            CounterPaymentTarget("Synthetic Interaction", 1, ("Instant",), ("COUNTER",)),
+            9,
+            "DECLINE",
+        ),
         (CounterPaymentTarget("Synthetic Tutor", 1, ("Instant",), ("TRANSMUTE",)), 19, "PAY"),
         (
             CounterPaymentTarget(
