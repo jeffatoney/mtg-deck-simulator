@@ -14,6 +14,11 @@ from typing import Any, Mapping, Protocol, Sequence
 from mtg_kernel.errors import IllegalAction, ReplayError
 from mtg_kernel.resource_payment import ResourcePaymentResult
 
+_COUNTER_DESTINATIONS = {
+    "COUNTER_UNLESS_PAY": "GRAVEYARD",
+    "COUNTER_UNLESS_PAY_EXILE": "EXILE",
+}
+
 
 @dataclass(frozen=True)
 class PublicCard:
@@ -186,9 +191,10 @@ class CounterPaymentSelection:
 class StrategicChoiceProvider(Protocol):
     """Existing required observation-only policy interface.
 
-    Counter-payment selection is intentionally not a required member until a
-    production policy criterion is owner-authorized.  Rules capability-check the
-    optional ``CounterPaymentChoiceProvider`` extension at resolution time.
+    Counter-payment selection remains an explicit capability boundary because the
+    rules engine must fail closed for providers that do not implement a controlled
+    payer policy. The production provider now implements the owner-authorized Stage 3
+    baseline through ``CounterPaymentChoiceProvider``.
     """
 
     def choose_cards(self, request: CardSelectionRequest) -> CardSelection: ...
@@ -207,7 +213,7 @@ class StrategicChoiceProvider(Protocol):
 
 
 class CounterPaymentChoiceProvider(Protocol):
-    """Optional semantic extension for an authorized counter-payment policy."""
+    """Semantic extension for the owner-authorized counter-payment policy."""
 
     def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection: ...
 
@@ -376,6 +382,13 @@ class RecordedStrategicChoiceProvider:
             raise ReplayError("recorded counter-payment target differs in replay")
         if int(selected.get("amount", -1)) != request.payment_amount:
             raise ReplayError("recorded counter-payment amount differs in replay")
+        if int(selected.get("actual_required_payment", -1)) != request.payment_amount:
+            raise ReplayError("recorded actual counter-payment amount differs in replay")
+        expected_destination = _COUNTER_DESTINATIONS.get(request.effect_kind)
+        if expected_destination is None:
+            raise ReplayError("counter-payment replay has no declared counter destination")
+        if str(selected.get("counter_destination", "")) != expected_destination:
+            raise ReplayError("recorded counter-payment destination differs in replay")
         outcome = str(selected.get("outcome", ""))
         if outcome not in request.legal_outcomes:
             raise ReplayError("recorded counter-payment outcome is not legal in replay")
