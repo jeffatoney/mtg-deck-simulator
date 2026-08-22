@@ -9,10 +9,13 @@ from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.strategic_choices import (
     CardSelection,
     CardSelectionRequest,
+    CounterPaymentRequest,
+    CounterPaymentSelection,
     FactOrFictionRequest,
     FactOrFictionSelection,
     OptionalTriggerRequest,
     OptionalTriggerSelection,
+    PublicCard,
     SpellCopyTargetRequest,
     SpellCopyTargetSelection,
     TutorChoiceRequest,
@@ -27,6 +30,9 @@ if TYPE_CHECKING:
 
 DUALCASTER_LOOP_ADJUDICATOR = "VISIBLE_LIFE_AND_BLOCKER_RESERVE_V1"
 MAX_DUALCASTER_LOOP_TOKENS = 512
+COUNTER_PAYMENT_STRATEGY = "CONTEXTUAL_TARGET_VALUE_VS_PAYMENT_MANA_V1"
+COUNTER_PAYMENT_EVALUATOR_ID = "contextual_combo_v1"
+COUNTER_PAYMENT_MANA_WEIGHT = 8.0
 _SUPPORTED_DUALCASTER_LOOP_MODES = frozenset({"FAIL_CLOSED_UNTIL_DETERMINISTIC_LOOP_ADJUDICATOR"})
 _SUPPORTED_OPTIONAL_TRIGGERS = frozenset({("curiosity:damage", "DRAW")})
 
@@ -348,6 +354,58 @@ class PolicyStrategicChoiceProvider:
             self.evaluator_id,
             self.evaluator_sha256,
             diagnostics,
+        )
+
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection:
+        """Select PAY only when contextual target value strictly beats the new mana cost."""
+
+        if self.evaluator_id != COUNTER_PAYMENT_EVALUATOR_ID:
+            raise UnsupportedCapability(
+                "Stage 3 counter-payment baseline requires contextual_combo_v1"
+            )
+        mana_weight = float(self.evaluator.config.weights.get("mana", float("nan")))
+        if mana_weight != COUNTER_PAYMENT_MANA_WEIGHT:
+            raise UnsupportedCapability(
+                "Stage 3 counter-payment baseline requires the frozen mana weight of 8"
+            )
+
+        target = PublicCard(
+            "counter-payment-target",
+            request.target.identity,
+            request.target.mana_value,
+            request.target.card_types,
+            request.target.effect_kinds,
+        )
+        target_evaluation = self.evaluator.evaluate_pile((target,), request.observation)
+        payment_mana_value = request.payment_amount * mana_weight
+
+        if "PAY" not in request.legal_outcomes:
+            outcome = "DECLINE"
+            reason_code = "DECLINE_PAYMENT_NOT_FEASIBLE"
+        elif target_evaluation.score > payment_mana_value:
+            outcome = "PAY"
+            reason_code = "PAY_TARGET_VALUE_GREATER_THAN_PAYMENT_MANA_COST"
+        else:
+            outcome = "DECLINE"
+            reason_code = "DECLINE_TARGET_VALUE_NOT_GREATER_THAN_PAYMENT_MANA_COST"
+
+        return CounterPaymentSelection(
+            outcome,
+            self.evaluator_id,
+            self.evaluator_sha256,
+            {
+                "policy_config_id": self.bundle.policy_config_id,
+                "strategy": COUNTER_PAYMENT_STRATEGY,
+                "reason_code": reason_code,
+                "target_evaluation": target_evaluation.to_dict(),
+                "actual_required_payment": request.payment_amount,
+                "mana_weight_microunits": score_to_microunits(mana_weight),
+                "mana_cost_valuation_microunits": score_to_microunits(payment_mana_value),
+                "decline_incremental_value_microunits": 0,
+                "decline_value_model": "STAGE3_APPROXIMATION_ZERO",
+                "successor_model": "COMPARE_COMPLETE_OUTCOME_VALUES",
+                "successor_status": "NOT_IMPLEMENTED_STAGE3",
+            },
         )
 
     def choose_optional_trigger(self, request: OptionalTriggerRequest) -> OptionalTriggerSelection:
