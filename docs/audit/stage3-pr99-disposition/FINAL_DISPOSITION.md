@@ -110,6 +110,8 @@ CI run `32595603688` verified that head and produced the certification candidate
 - Frozen manifest integrity: PASS.
 - Phase C no-game dry run: `READY_FOR_OWNER_REVIEW` with `execution_allowed = false`, `full_study_execution_allowed = false`, and `game_results_created = 0`.
 
+Run-status provenance: CI run `32595603688` has an overall workflow conclusion of `failure` because, after producing and validating the Phase A and Phase B PASS candidates from source head `f8eb5343c3d89d956b8fe994184c6599c817c815`, it reached the pre-promotion durable-certification gate while the committed Phase A record still described the older certified content. The resulting stale-certification failure was the expected condition that triggered promotion; it does not indicate failure of the verifier results or of the CI-produced candidate records. The candidate artifacts were generated on 2026-08-22.
+
 The two exact CI-produced certification candidate files were promoted atomically, without manual transcription, in commit:
 
 `e8db5fd0f3f068b8b01c898373a2bcd973d16bda`
@@ -121,7 +123,15 @@ Exact durable certification provenance:
 | Phase A | `f8eb5343c3d89d956b8fe994184c6599c817c815` | `ed3954e921157cfc84291ace5a9d690f3c5bd33412f9b4fe87fbb27bc7b9beec` | `143c54564caf13e0de7d68168d9dcc5b3e15f149` |
 | Phase B | `f8eb5343c3d89d956b8fe994184c6599c817c815` | `6604d17b7afce4f132c42f7c542d1802803ddce08b7375c4f1b7c8fbabc9e3fa` | `a522016c09bf613dfb2737ab17da5c11b8dae0c8` |
 
+These SHA-256 values are durable verification anchors for the exact promoted bytes and remain usable after the CI artifact-retention window expires.
+
 The durable records are current post-PR #101 Stage 3 certifications. They are not the obsolete certification files contained on frozen PR #99.
+
+## Known certification-provenance follow-up
+
+Stage 3 does not change `scripts/_certification_provenance.py`. Independent review identified a governance hardening issue for later work: the helper does not perform the recorded-artifact byte comparison when a current-run candidate is present, and an expired recorded artifact can make that comparison unavailable without itself appending an error. The durable SHA-256 anchors above mitigate later auditability for this Stage 3 promotion, but they do not replace the need for a future fail-closed correction to that helper. This is recorded as a follow-up defect, not treated as evidence that the Stage 3 candidate bytes differ.
+
+Windows path length is also a known measurement hazard for this repository's long golden-transcript paths. Digest verification should prefer repository-object or in-memory archive reads over Windows filesystem extraction when path length could exceed the platform limit; a missing-on-disk path must not by itself be treated as a missing Git object.
 
 ## Guardrail outcomes
 
