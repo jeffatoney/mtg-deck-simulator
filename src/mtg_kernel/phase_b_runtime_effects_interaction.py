@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+import re
 from typing import Any
 
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
@@ -14,7 +15,11 @@ from mtg_kernel.phase_b_runtime_helpers import (
 )
 from mtg_kernel.resource_execution import execute_resource_payment_during_resolution
 from mtg_kernel.resource_payment import PaymentStep, PaymentWindow
-from mtg_kernel.resource_sources import solve_state_payment
+from mtg_kernel.resource_sources import (
+    DEFAULT_OPPONENT_MANA_PROFILE,
+    solve_state_payment,
+    validate_opponent_mana_profile,
+)
 from mtg_kernel.strategic_choices import (
     CounterPaymentRequest,
     CounterPaymentTarget,
@@ -28,6 +33,76 @@ def _counter_payment_step(amount: int) -> PaymentStep:
         mana_cost=f"{{{amount}}}",
         window=PaymentWindow(0, "counter-payment-resolution"),
         context_tags=("COUNTER_PAYMENT",),
+    )
+
+
+def _counter_payment_opponent_mana_profile(executor: Any) -> str:
+    return validate_opponent_mana_profile(
+        getattr(executor, "opponent_mana_profile", DEFAULT_OPPONENT_MANA_PROFILE)
+    )
+
+
+def _collect_effect_kinds(effect: object, kinds: set[str]) -> None:
+    if not isinstance(effect, dict):
+        return
+    kind = str(effect.get("kind", "")).strip()
+    if kind:
+        kinds.add(kind)
+    for child in effect.get("effects", ()):
+        if not isinstance(child, dict):
+            continue
+        child_kind = str(child.get("kind", "")).strip()
+        if child_kind:
+            kinds.add(child_kind)
+
+
+def _stack_spell_mana_value(target: GameObject) -> int:
+    printed = int(target.current_characteristics.get("mana_value", 0))
+    if target.zone is not Zone.STACK:
+        return printed
+    mana_cost = str(target.current_characteristics.get("mana_cost", ""))
+    x_symbols = len(re.findall(r"\{X\}", mana_cost))
+    if x_symbols == 0:
+        return printed
+    x_value = int(target.current_characteristics.get("x_value", 0))
+    return printed + x_symbols * x_value
+
+
+def _stack_spell_effect_kinds(target: GameObject) -> tuple[str, ...]:
+    abilities = target.current_characteristics.get("abilities", ())
+    spell_modes = {
+        str(ability.get("mode", "default"))
+        for ability in abilities
+        if isinstance(ability, dict) and ability.get("kind") == "SPELL"
+    }
+    raw_modes = target.current_characteristics.get("modes")
+    selected_modes: set[str] | None = None
+    if target.zone is Zone.STACK and len(spell_modes) > 1:
+        if not isinstance(raw_modes, (list, tuple)) or not raw_modes:
+            raise IllegalAction("modal stack spell is missing its selected mode")
+        selected_modes = {str(mode) for mode in raw_modes}
+        if not selected_modes <= spell_modes:
+            raise IllegalAction("modal stack spell has an unavailable selected mode")
+    kinds: set[str] = set()
+    for ability in abilities:
+        if not isinstance(ability, dict):
+            continue
+        if selected_modes is not None and ability.get("kind") == "SPELL":
+            mode = str(ability.get("mode", "default"))
+            if mode not in selected_modes:
+                continue
+        _collect_effect_kinds(ability.get("effect", {}), kinds)
+    return tuple(sorted(kinds))
+
+
+def _counter_payment_target(target: GameObject) -> CounterPaymentTarget:
+    return CounterPaymentTarget(
+        identity=str(target.current_characteristics.get("name", "")),
+        mana_value=_stack_spell_mana_value(target),
+        card_types=tuple(
+            str(value) for value in target.current_characteristics.get("card_types", ())
+        ),
+        effect_kinds=_stack_spell_effect_kinds(target),
     )
 
 
@@ -52,16 +127,15 @@ def _resolve_counter_unless_pay(
         raise IllegalAction("counter payment amount cannot be negative")
     effect_kind = str(effect.get("kind", "COUNTER_UNLESS_PAY"))
     step = _counter_payment_step(amount)
-    payment_result = solve_state_payment(self.state, payer, (step,))
-    legal_outcomes = ("PAY", "DECLINE") if payment_result.feasible else ("DECLINE",)
-    target_public = CounterPaymentTarget(
-        identity=str(target.current_characteristics.get("name", "")),
-        mana_value=int(target.current_characteristics.get("mana_value", 0)),
-        card_types=tuple(
-            str(value) for value in target.current_characteristics.get("card_types", ())
-        ),
-        effect_kinds=self._strategic_effect_kinds(target),
+    opponent_mana_profile = _counter_payment_opponent_mana_profile(self)
+    payment_result = solve_state_payment(
+        self.state,
+        payer,
+        (step,),
+        opponent_mana_profile=opponent_mana_profile,
     )
+    legal_outcomes = ("PAY", "DECLINE") if payment_result.feasible else ("DECLINE",)
+    target_public = _counter_payment_target(target)
 
     raw_decision = choices.get("counter_payment")
     evaluator_id = "explicit-rules-choice"
@@ -124,6 +198,7 @@ def _resolve_counter_unless_pay(
             payer,
             step,
             payment_result,
+            opponent_mana_profile=opponent_mana_profile,
         )
 
     decision_event = self._event(

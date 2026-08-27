@@ -20,7 +20,7 @@ import json
 from typing import Any, Mapping
 
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
-from mtg_kernel.mana import parse_mana_cost, pay_mana
+from mtg_kernel.mana import COLORS, parse_mana_cost, pay_mana
 from mtg_kernel.models import GameObject
 from mtg_kernel.phase_b_marked_mana import MARKED_COMMANDER_MANA_KIND, _consume_markers
 from mtg_kernel.resource_payment import (
@@ -28,6 +28,7 @@ from mtg_kernel.resource_payment import (
     PaymentAllocation,
     PaymentStep,
     ResourcePaymentResult,
+    _reqs,
 )
 from mtg_kernel.resource_sources import (
     _effect_productions,
@@ -208,6 +209,8 @@ def _activate_mana_ability_during_resolution(
     executor: Any,
     player_id: str,
     variant: _ExecutionVariant,
+    *,
+    mana_payment: Mapping[str, int] | None = None,
 ) -> tuple[dict[str, int], set[str]]:
     """Execute one selected mana ability without creating a priority window.
 
@@ -230,6 +233,7 @@ def _activate_mana_ability_during_resolution(
             variant.ability_id,
             choices=dict(variant.choices),
             _record=False,
+            mana_payment=mana_payment,
         )
     finally:
         executor.state.turn.priority_holder_id = previous_holder
@@ -273,6 +277,7 @@ class _BindingContext:
     player_id: str
     opponent_mana_profile: str
     by_label: dict[str, tuple[PaymentAllocation, ...]]
+    available_mana: Counter[tuple[str, str]]
     executed: dict[str, set[str]]
     visiting: set[str]
 
@@ -283,6 +288,53 @@ def _coverage(remaining: Counter[str], production: ManaProduction) -> int:
 
 def _excess(remaining: Counter[str], production: ManaProduction) -> int:
     return sum(amount for _, amount in production.mana) - _coverage(remaining, production)
+
+
+def _allocation_units(
+    allocations: tuple[PaymentAllocation, ...],
+) -> Counter[tuple[str, str, str]]:
+    units: Counter[tuple[str, str, str]] = Counter()
+    for item in allocations:
+        units[(item.requirement, item.source_semantic_id, item.color)] += int(item.amount)
+    return units
+
+
+def _take_exact_allocation_payment(
+    context: _BindingContext,
+    unpaid: Counter[tuple[str, str, str]],
+    mana_cost: str,
+) -> dict[str, int]:
+    """Bind each actual cost requirement to one solver-selected mana unit."""
+
+    pool = context.executor.state.players[context.player_id].mana_pool
+    payment: Counter[str] = Counter()
+    for requirement in _reqs(mana_cost):
+        selected: tuple[str, str, str] | None = None
+        for key, amount in unpaid.items():
+            allocated_requirement, source_semantic_id, color = key
+            if (
+                amount > 0
+                and allocated_requirement == requirement.name
+                and color in requirement.options
+                and context.available_mana[(source_semantic_id, color)] > 0
+                and int(pool.get(color, 0)) > payment[color]
+            ):
+                selected = key
+                break
+        if selected is None:
+            raise IllegalAction(
+                "canonical resource allocation cannot bind an actual mana-cost requirement"
+            )
+        _, source_semantic_id, color = selected
+        unpaid[selected] -= 1
+        context.available_mana[(source_semantic_id, color)] -= 1
+        payment[color] += 1
+    return {color: amount for color, amount in payment.items() if amount}
+
+
+def _record_production(context: _BindingContext, variant: _ExecutionVariant) -> None:
+    for color, amount in variant.production.mana:
+        context.available_mana[(variant.source_semantic_id, color)] += int(amount)
 
 
 def _activate_semantic_source(
@@ -300,8 +352,21 @@ def _activate_semantic_source(
 
     child_label = f"{label}:source:{source_semantic_id}"
     child_allocations = context.by_label.get(child_label, ())
-    child_markers = _execute_allocation_label(context, child_label) if child_allocations else set()
-    expected_activation_payment = sum(int(item.amount) for item in child_allocations)
+    child_markers: set[str] = set()
+    other_ids = sorted(
+        {
+            item.source_semantic_id
+            for item in child_allocations
+            if not item.source_semantic_id.startswith("floating:")
+            and item.source_semantic_id != source_semantic_id
+        }
+    )
+    for other_id in other_ids:
+        child_markers.update(
+            _activate_semantic_source(context, child_label, other_id, child_allocations)
+        )
+    unpaid_child = _allocation_units(child_allocations)
+    expected_activation_payment = sum(unpaid_child.values())
     remaining_activation_payment = expected_activation_payment
     aggregate_activation_payment: Counter[str] = Counter()
     produced_markers: set[str] = set()
@@ -338,18 +403,26 @@ def _activate_semantic_source(
                 "canonical resource allocation cannot bind to a current mana-source execution"
             )
         *_, variant = min(candidates)
+        cost_units = _cost_units(variant.production.activation_cost)
+        exact_payment = _take_exact_allocation_payment(
+            context,
+            unpaid_child,
+            variant.production.activation_cost,
+        )
         payment, new_markers = _activate_mana_ability_during_resolution(
             context.executor,
             context.player_id,
             variant,
+            mana_payment=exact_payment,
         )
+        _record_production(context, variant)
         _add_payment(aggregate_activation_payment, payment)
         produced_markers.update(new_markers)
-        remaining_activation_payment -= _cost_units(variant.production.activation_cost)
+        remaining_activation_payment -= cost_units
         for color, amount in variant.production.mana:
             remaining[color] = max(0, remaining[color] - int(amount))
 
-    if remaining_activation_payment != 0:
+    if remaining_activation_payment != 0 or sum(unpaid_child.values()) != 0:
         raise IllegalAction("canonical resource allocation activation-cost binding is incomplete")
     if sum(aggregate_activation_payment.values()) != expected_activation_payment:
         raise IllegalAction(
@@ -386,17 +459,6 @@ def _execute_allocation_label(context: _BindingContext, label: str) -> set[str]:
     context.visiting.remove(label)
     context.executed[label] = set(produced_markers)
     return produced_markers
-
-
-def _exact_step_color_cost(
-    allocations: tuple[PaymentAllocation, ...],
-    label: str,
-) -> dict[str, int]:
-    colors: Counter[str] = Counter()
-    for item in allocations:
-        if item.step_label == label:
-            colors[item.color] += int(item.amount)
-    return dict(colors)
 
 
 def execute_resource_payment_during_resolution(
@@ -436,16 +498,27 @@ def execute_resource_payment_during_resolution(
         player_id=player_id,
         opponent_mana_profile=opponent_mana_profile,
         by_label={key: tuple(value) for key, value in by_label.items()},
+        available_mana=Counter(
+            {
+                (f"floating:{color}", color): int(amount)
+                for color, amount in executor.state.players[player_id].mana_pool.items()
+                if color in COLORS and int(amount) > 0
+            }
+        ),
         executed={},
         visiting=set(),
     )
     selected_markers = _execute_allocation_label(context, step.label)
 
     # Validate that the now-produced pool can pay the original rules cost, then
-    # spend the exact colors selected by the shared solver's semantic allocation.
+    # bind and spend each exact requirement/source/color allocation selected by
+    # the shared solver.
     verification_pool = dict(executor.state.players[player_id].mana_pool)
     pay_mana(verification_pool, parse_mana_cost(step.mana_cost))
-    exact_color_cost = _exact_step_color_cost(current_result.canonical_allocation, step.label)
+    unpaid_step = _allocation_units(context.by_label.get(step.label, ()))
+    exact_color_cost = _take_exact_allocation_payment(context, unpaid_step, step.mana_cost)
+    if sum(unpaid_step.values()) != 0:
+        raise IllegalAction("canonical resource allocation payment binding is incomplete")
     payment = pay_mana(executor.state.players[player_id].mana_pool, exact_color_cost)
     _consume_marked_payment(executor, player_id, payment, selected_markers)
     return payment

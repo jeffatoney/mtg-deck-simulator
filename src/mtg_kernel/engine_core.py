@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
 from typing import Any
 
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.identity import IdentityService
-from mtg_kernel.mana import add_mana, combine_costs, multiply_cost, parse_mana_cost, pay_mana
+from mtg_kernel.mana import (
+    add_mana,
+    combine_costs,
+    multiply_cost,
+    parse_mana_cost,
+    pay_exact_mana,
+    pay_mana,
+)
 from mtg_kernel.models import (
     Action,
     Choice,
@@ -20,11 +28,17 @@ from mtg_kernel.models import (
     TargetRef,
     Zone,
 )
+from mtg_kernel.resource_sources import (
+    DEFAULT_OPPONENT_MANA_PROFILE,
+    validate_opponent_mana_profile,
+)
 from mtg_kernel.serialization import state_to_data
 from mtg_kernel.zones import ZoneService
 
 PERMANENT_TYPES = {"Artifact", "Creature", "Enchantment"}
 MAIN_PHASES = {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"}
+_REPLAY_EXECUTION_CONTEXT_KEY = "execution_context"
+_OPPONENT_MANA_PROFILE_KEY = "opponent_mana_profile"
 
 
 class GameExecutor:
@@ -42,9 +56,39 @@ class GameExecutor:
         self.seed = seed
         self.replaying = replaying
         self.probing = probing
+        self._opponent_mana_profile = DEFAULT_OPPONENT_MANA_PROFILE
         self.identity = IdentityService(state, seed)
         self.zones = ZoneService(state, self.identity)
         self._resolution_depth = 0
+
+    @property
+    def opponent_mana_profile(self) -> str:
+        return self._opponent_mana_profile
+
+    @opponent_mana_profile.setter
+    def opponent_mana_profile(self, value: str) -> None:
+        profile = validate_opponent_mana_profile(value)
+        if profile != self._opponent_mana_profile and self.state.replay_commands:
+            raise IllegalAction("opponent mana profile cannot change after replay recording begins")
+        self._opponent_mana_profile = profile
+        self._sync_replay_execution_context()
+
+    def _sync_replay_execution_context(self) -> None:
+        initial = self.state.replay_initial_state
+        if initial is None:
+            return
+        raw_context = initial.get(_REPLAY_EXECUTION_CONTEXT_KEY)
+        if raw_context is not None and not isinstance(raw_context, dict):
+            raise IllegalAction("replay execution context is malformed")
+        context = dict(raw_context or {})
+        if self.opponent_mana_profile == DEFAULT_OPPONENT_MANA_PROFILE:
+            context.pop(_OPPONENT_MANA_PROFILE_KEY, None)
+        else:
+            context[_OPPONENT_MANA_PROFILE_KEY] = self.opponent_mana_profile
+        if context:
+            initial[_REPLAY_EXECUTION_CONTEXT_KEY] = context
+        else:
+            initial.pop(_REPLAY_EXECUTION_CONTEXT_KEY, None)
 
     def _event(self, kind: str, action: Action | None = None, **payload: Any) -> Event:
         event = Event(
@@ -87,6 +131,7 @@ class GameExecutor:
         before.replay_commands = list(replay_commands)
         if not self.replaying and self.state.replay_initial_state is None:
             self.state.replay_initial_state = state_to_data(self.state)
+            self._sync_replay_execution_context()
         return before
 
     def _rollback(self, before: GameState | None) -> None:
@@ -422,6 +467,7 @@ class GameExecutor:
         choices: dict[str, Any] | None = None,
         *,
         _record: bool = True,
+        mana_payment: Mapping[str, int] | None = None,
     ) -> GameObject | None:
         self._ensure_active()
         before = self._begin_atomic()
@@ -447,7 +493,14 @@ class GameExecutor:
             self._validate_targets(actor, targets, schema)
             cost = dict(selected.get("cost", {}))
             mana_cost = parse_mana_cost(str(cost.get("mana", "")))
-            payment = pay_mana(self.state.players[actor].mana_pool, mana_cost)
+            if mana_payment is None:
+                payment = pay_mana(self.state.players[actor].mana_pool, mana_cost)
+            else:
+                payment = pay_exact_mana(
+                    self.state.players[actor].mana_pool,
+                    mana_cost,
+                    mana_payment,
+                )
             if cost.get("tap"):
                 status = source.permanent_status
                 if status is None or status.get("tap") != "UNTAPPED":

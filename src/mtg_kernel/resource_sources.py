@@ -23,10 +23,19 @@ from mtg_kernel.resource_payment import (
 )
 
 _MANA_COLORS = ("W", "U", "B", "R", "G", "C")
+DEFAULT_OPPONENT_MANA_PROFILE = "blue_red_available"
 _OPPONENT_MANA_PROFILE_COLORS: dict[str, tuple[str, ...]] = {
-    "blue_red_available": ("U", "R"),
+    DEFAULT_OPPONENT_MANA_PROFILE: ("U", "R"),
     "no_known_colors": (),
 }
+
+
+def validate_opponent_mana_profile(value: object) -> str:
+    """Return one supported replay-safe opponent mana profile."""
+
+    if not isinstance(value, str) or value not in _OPPONENT_MANA_PROFILE_COLORS:
+        raise UnsupportedCapability(f"unsupported opponent mana profile: {value}")
+    return value
 
 
 @dataclass(frozen=True)
@@ -157,10 +166,7 @@ def _effect_productions(
             commander_colors_from_state(state, player_id), activation_cost=activation_cost
         )
     if kind == "ADD_OPPONENT_PROFILE_COLOR":
-        if opponent_mana_profile not in _OPPONENT_MANA_PROFILE_COLORS:
-            raise UnsupportedCapability(
-                f"unsupported opponent mana profile: {opponent_mana_profile}"
-            )
+        opponent_mana_profile = validate_opponent_mana_profile(opponent_mana_profile)
         colors = _OPPONENT_MANA_PROFILE_COLORS[opponent_mana_profile]
         if not colors:
             return ()
@@ -261,14 +267,13 @@ def resource_inventory_from_state(
     state: GameState,
     player_id: str,
     *,
-    opponent_mana_profile: str = "blue_red_available",
+    opponent_mana_profile: str = DEFAULT_OPPONENT_MANA_PROFILE,
 ) -> ResourceInventory:
     """Extract current usable resources without reading hidden-zone contents."""
 
     if player_id not in state.players:
         raise IllegalAction("resource preview player does not exist")
-    if opponent_mana_profile not in _OPPONENT_MANA_PROFILE_COLORS:
-        raise UnsupportedCapability(f"unsupported opponent mana profile: {opponent_mana_profile}")
+    opponent_mana_profile = validate_opponent_mana_profile(opponent_mana_profile)
     sources: list[ResourceSource] = []
     for obj in _active_controlled_permanents(state, player_id):
         treasure = _treasure_source(obj)
@@ -304,7 +309,7 @@ def solve_state_payment(
     steps: Sequence[PaymentStep],
     *,
     additional_sources: Sequence[ResourceSource] = (),
-    opponent_mana_profile: str = "blue_red_available",
+    opponent_mana_profile: str = DEFAULT_OPPONENT_MANA_PROFILE,
 ) -> ResourcePaymentResult:
     """Adapt current state into the single authoritative payment solver."""
 
