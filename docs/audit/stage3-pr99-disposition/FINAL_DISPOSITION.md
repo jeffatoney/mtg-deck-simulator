@@ -1,6 +1,8 @@
 # Stage 3 final PR #99 disposition supplement
 
-Status: TECHNICAL_DISPOSITION_COMPLETE_PENDING_FINAL_HEAD_VALIDATION
+Status: TECHNICAL_DISPOSITION_COMPLETE_FINAL_HEAD_VALIDATED
+
+Independent final readiness audit classification: `READY_WITH_NONBLOCKING_FOLLOWUPS`. This is a technical classification; it does not declare the pull request merged or automatically merge-ready.
 
 This document supplements, and does not rewrite, `INVENTORY.json`.
 
@@ -97,35 +99,49 @@ Fresh replay validates the recorded semantic outcome without invoking live polic
 
 ## Source-behavior verification and certification promotion
 
-The implementation source-behavior head is:
+The current Stage 3 source/test candidate is:
 
-`f8eb5343c3d89d956b8fe994184c6599c817c815`
+`3da7f577e9bd24aa4c587412b54cf42b911db5f4`
 
-CI run `32595603688` verified that head and produced the certification candidates that were later promoted. Recorded verification included:
+Its certified repository tree is:
 
-- Full test suite: 476 passed.
+`a71d9bc0db35fe4d85d1274ee6ebea52d1c44a1a`
+
+Source-head CI run `33101238756` verified that candidate and produced both certification candidates. Recorded verification included:
+
+- Full Tests step: PASS.
 - Phase A production verifier: 33 pass, 0 fail, 0 skip, 0 xfail.
 - Phase B verifier: 239 pass, 0 fail, 0 skip, 0 xfail.
-- Exact-deck Turn-10 smoke: PASS with fresh replay equality.
-- Frozen manifest integrity: PASS.
-- Phase C no-game dry run: `READY_FOR_OWNER_REVIEW` with `execution_allowed = false`, `full_study_execution_allowed = false`, and `game_results_created = 0`.
+- Phase A certification candidate validation: PASS.
+- Phase B certification candidate validation: PASS.
+- Phase C no-game dry run: PASS.
 
-Run-status provenance: CI run `32595603688` has an overall workflow conclusion of `failure` because, after producing and validating the Phase A and Phase B PASS candidates from source head `f8eb5343c3d89d956b8fe994184c6599c817c815`, it reached the pre-promotion durable-certification gate while the committed Phase A record still described the older certified content. The resulting stale-certification failure was the expected condition that triggered promotion; it does not indicate failure of the verifier results or of the CI-produced candidate records. The candidate artifacts were generated on 2026-08-22.
+Run-status provenance: source-head CI run `33101238756` has an overall workflow conclusion of `failure` only because, after verifying source/test candidate `3da7f577e9bd24aa4c587412b54cf42b911db5f4` and producing and validating both PASS certification candidates, it reached the durable-certification gate while the previously committed Phase A certification still described older covered content. That expected stale-certification result triggered promotion; it does not indicate failure of the source/test verification or of either CI-produced candidate.
 
-The two exact CI-produced certification candidate files were promoted atomically, without manual transcription, in commit:
+The two exact CI-produced certification candidate files were promoted byte-for-byte, without local regeneration or manual transcription, in commit:
 
-`e8db5fd0f3f068b8b01c898373a2bcd973d16bda`
+`048e3565560a7d6d3bc60e46fc60f5df7a36a9fd`
 
-Exact durable certification provenance:
+Both durable records intentionally remain bound through `certified_content_commit` to source/test candidate `3da7f577e9bd24aa4c587412b54cf42b911db5f4`; they do not certify the certification-promotion commit itself.
 
-| Certification | Certified source head | SHA-256 of exact candidate/committed bytes | Git blob |
-| --- | --- | --- | --- |
-| Phase A | `f8eb5343c3d89d956b8fe994184c6599c817c815` | `ed3954e921157cfc84291ace5a9d690f3c5bd33412f9b4fe87fbb27bc7b9beec` | `143c54564caf13e0de7d68168d9dcc5b3e15f149` |
-| Phase B | `f8eb5343c3d89d956b8fe994184c6599c817c815` | `6604d17b7afce4f132c42f7c542d1802803ddce08b7375c4f1b7c8fbabc9e3fa` | `a522016c09bf613dfb2737ab17da5c11b8dae0c8` |
+Current exact durable certification provenance:
+
+| Certification | Certified source/test candidate | Certified repository tree | Source-head CI run | Promotion commit | SHA-256 of exact candidate/promoted bytes | Bytes | Git blob at promotion head |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Phase A | `3da7f577e9bd24aa4c587412b54cf42b911db5f4` | `a71d9bc0db35fe4d85d1274ee6ebea52d1c44a1a` | `33101238756` | `048e3565560a7d6d3bc60e46fc60f5df7a36a9fd` | `a76210e59b00a7867d2e134b3443c7c0c8aad10e99a755f3a85d5c91205fb92a` | 5138 | `3bee221321245790b3cca6f99a028d15f43d7174` |
+| Phase B | `3da7f577e9bd24aa4c587412b54cf42b911db5f4` | `a71d9bc0db35fe4d85d1274ee6ebea52d1c44a1a` | `33101238756` | `048e3565560a7d6d3bc60e46fc60f5df7a36a9fd` | `0075d6c2ea27914c8678745b28fe964dee3623ad43d8a1b23668ba6d690957bd` | 6563 | `c7fc141e2805a403f6beee45a5c9c09ba942d62f` |
+
+The certification-promotion head `048e3565560a7d6d3bc60e46fc60f5df7a36a9fd` then completed final-head validation:
+
+- Stage 3 PR99 Prototype Preservation, run `33120962811`: PASS.
+- Stage 2 Bridge STANDARD Benchmark, run `33120962810`: PASS.
+- Main CI, run `33120962881`: PASS, including the full Tests step and current durable Phase A and Phase B certification checks.
+
+An earlier Stage 3 source and certification chain remains relevant historical context: source head `f8eb5343c3d89d956b8fe994184c6599c817c815`, CI run `32595603688`, and promotion commit `e8db5fd0f3f068b8b01c898373a2bcd973d16bda`. That promotion was a valid intermediate Stage 3 state but is superseded by the current `3da7f577` / `048e356` chain above.
 
 These SHA-256 values are durable verification anchors for the exact promoted bytes and remain usable after the CI artifact-retention window expires.
 
-The durable records are current post-PR #101 Stage 3 certifications. They are not the obsolete certification files contained on frozen PR #99.
+The durable records are the current post-PR #101 Stage 3 certifications. They are not the obsolete certification files contained on frozen PR #99.
 
 ## Known certification-provenance follow-up
 
@@ -153,4 +169,6 @@ At this disposition point:
 
 This supplement is the final Stage 3 disposition layer. It does not itself declare the pull request merge-ready merely by existing.
 
-Technical Stage 3 closeout requires CI and Stage 3 prototype preservation to pass on the actual post-supplement PR head. Those final-head run identifiers belong in the PR #104 conversation after they complete, not in this file. The final audit must also confirm that `INVENTORY.json` remains byte-identical to its first-substantive snapshot and that no prohibited or historical pilot paths were introduced by this supplement.
+Technical Stage 3 closeout validation completed on certification-promotion head `048e3565560a7d6d3bc60e46fc60f5df7a36a9fd` through runs `33120962811`, `33120962810`, and `33120962881`. The final audit classified PR #104 `READY_WITH_NONBLOCKING_FOLLOWUPS` and confirmed that `INVENTORY.json` remains historical evidence rather than a mutable closeout record.
+
+This documentation-only provenance refresh does not itself make the pull request merge-ready. Its resulting exact head must complete CI before any review-thread or Ready-for-Review mutation.
