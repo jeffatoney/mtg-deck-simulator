@@ -846,6 +846,57 @@ def test_brotherhoods_end_counter_payment_scores_only_selected_mode(
     assert state_hash(replayed) == state_hash(state)
 
 
+def test_muddle_counter_target_excludes_hand_only_transmute_from_preserved_value() -> None:
+    capturing = _CapturingProductionProvider(_production_provider(), [])
+    seed = "stage3-cr6-muddle-stack-ability-relevance"
+    state, executor = new_game(PLAYERS, seed)
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    state.turn.phase = "PRECOMBAT_MAIN"
+    _zero_pool(state)
+    state.players["P0"].mana_pool["U"] = 7
+    for _ in range(3):
+        add_card(executor, specs["Island"], Zone.BATTLEFIELD, owner="P0")
+    opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P0")
+    muddle = add_card(executor, specs["Muddle the Mixture"], Zone.HAND, owner="P0")
+    syncopate = add_card(executor, specs["Syncopate"], Zone.HAND, owner="P0")
+    state.replay_initial_state = state_to_data(state)
+    executor.bind_strategic_choice_provider(capturing)
+    opt_spell = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
+    muddle_spell = executor.cast(
+        "P0",
+        muddle.object_id,
+        targets=(TargetRef(opt_spell.object_id),),
+    )
+    executor.cast(
+        "P0",
+        syncopate.object_id,
+        targets=(TargetRef(muddle_spell.object_id),),
+        x_value=3,
+    )
+
+    _resolve_one_stack_object(executor)
+
+    request = capturing.requests[0]
+    assert request.target.identity == "Muddle the Mixture"
+    assert request.target.effect_kinds == ("COUNTER_IF",)
+    selected = _counter_choice(state).selected
+    assert selected["target_effect_kinds"] == ["COUNTER_IF"]
+    assert selected["target_evaluation"]["score_microunits"] == 9 * MICRO
+    assert selected["mana_cost_valuation_microunits"] == 24 * MICRO
+    assert selected["actual_required_payment"] == 3
+    assert selected["counter_destination"] == "EXILE"
+    assert selected["outcome"] == "DECLINE"
+    assert selected["reason_code"] == "DECLINE_TARGET_VALUE_NOT_GREATER_THAN_PAYMENT_MANA_COST"
+    assert state.objects[muddle_spell.object_id].retired
+
+    fresh = _production_provider().choose_counter_payment(request)
+    assert fresh.outcome == "DECLINE"
+    assert fresh.diagnostics["target_evaluation"]["score_microunits"] == 9 * MICRO
+    assert fresh.diagnostics["mana_cost_valuation_microunits"] == 24 * MICRO
+    replayed = validate_replay(transcript(state, seed=executor.seed))
+    assert state_hash(replayed) == state_hash(state)
+
+
 def test_nonmodal_curiosity_counter_target_retains_head_effect_kinds() -> None:
     provider = _CounterProvider("PAY", [])
     seed = "stage3-review-curiosity-nonmodal"

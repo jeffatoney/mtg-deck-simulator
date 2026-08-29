@@ -6,8 +6,10 @@ from dataclasses import asdict
 import re
 from typing import Any
 
+from mtg_kernel.engine_core import PERMANENT_TYPES
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
+from mtg_kernel.phase_b_actions_common import uses_hand_activation_path
 from mtg_kernel.phase_b_runtime_helpers import (
     _counter_to,
     _mark_eot_original,
@@ -70,6 +72,9 @@ def _stack_spell_mana_value(target: GameObject) -> int:
 
 def _stack_spell_effect_kinds(target: GameObject) -> tuple[str, ...]:
     abilities = target.current_characteristics.get("abilities", ())
+    resolves_as_permanent = bool(
+        PERMANENT_TYPES.intersection(target.current_characteristics.get("card_types", ()))
+    )
     spell_modes = {
         str(ability.get("mode", "default"))
         for ability in abilities
@@ -87,10 +92,16 @@ def _stack_spell_effect_kinds(target: GameObject) -> tuple[str, ...]:
     for ability in abilities:
         if not isinstance(ability, dict):
             continue
-        if selected_modes is not None and ability.get("kind") == "SPELL":
-            mode = str(ability.get("mode", "default"))
-            if mode not in selected_modes:
-                continue
+        ability_kind = str(ability.get("kind", ""))
+        if ability_kind == "SPELL":
+            if selected_modes is not None:
+                mode = str(ability.get("mode", "default"))
+                if mode not in selected_modes:
+                    continue
+        # Only permanent spells preserve non-spell abilities on resolution, and
+        # exact-deck hand activations are not usable on the resulting permanent.
+        elif not resolves_as_permanent or uses_hand_activation_path(ability):
+            continue
         _collect_effect_kinds(ability.get("effect", {}), kinds)
     return tuple(sorted(kinds))
 
