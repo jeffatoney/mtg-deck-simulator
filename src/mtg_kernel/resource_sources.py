@@ -13,6 +13,11 @@ from typing import Any
 
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.models import GameObject, GameState, Zone
+from mtg_kernel.phase_b_marked_mana import (
+    marked_floating_mana_inventory,
+    marked_floating_semantic_id,
+    unmarked_floating_semantic_id,
+)
 from mtg_kernel.resource_payment import (
     FloatingMana,
     ManaProduction,
@@ -23,10 +28,19 @@ from mtg_kernel.resource_payment import (
 )
 
 _MANA_COLORS = ("W", "U", "B", "R", "G", "C")
+DEFAULT_OPPONENT_MANA_PROFILE = "blue_red_available"
 _OPPONENT_MANA_PROFILE_COLORS: dict[str, tuple[str, ...]] = {
-    "blue_red_available": ("U", "R"),
+    DEFAULT_OPPONENT_MANA_PROFILE: ("U", "R"),
     "no_known_colors": (),
 }
+
+
+def validate_opponent_mana_profile(value: object) -> str:
+    """Return one supported replay-safe opponent mana profile."""
+
+    if not isinstance(value, str) or value not in _OPPONENT_MANA_PROFILE_COLORS:
+        raise UnsupportedCapability(f"unsupported opponent mana profile: {value}")
+    return value
 
 
 @dataclass(frozen=True)
@@ -157,10 +171,7 @@ def _effect_productions(
             commander_colors_from_state(state, player_id), activation_cost=activation_cost
         )
     if kind == "ADD_OPPONENT_PROFILE_COLOR":
-        if opponent_mana_profile not in _OPPONENT_MANA_PROFILE_COLORS:
-            raise UnsupportedCapability(
-                f"unsupported opponent mana profile: {opponent_mana_profile}"
-            )
+        opponent_mana_profile = validate_opponent_mana_profile(opponent_mana_profile)
         colors = _OPPONENT_MANA_PROFILE_COLORS[opponent_mana_profile]
         if not colors:
             return ()
@@ -257,18 +268,48 @@ def _permanent_mana_source(
     )
 
 
+def _floating_mana_from_state(state: GameState, player_id: str) -> tuple[FloatingMana, ...]:
+    marked_amounts = {
+        record.color: record.amount for record in marked_floating_mana_inventory(state, player_id)
+    }
+    floating: list[FloatingMana] = []
+    pool = state.players[player_id].mana_pool
+    for color in _MANA_COLORS:
+        total = int(pool.get(color, 0))
+        if total <= 0:
+            continue
+        marked_amount = int(marked_amounts.get(color, 0))
+        unmarked_amount = total - marked_amount
+        if unmarked_amount > 0:
+            floating.append(
+                FloatingMana(
+                    color,
+                    unmarked_amount,
+                    semantic_id=unmarked_floating_semantic_id(color),
+                )
+            )
+        if marked_amount > 0:
+            floating.append(
+                FloatingMana(
+                    color,
+                    marked_amount,
+                    semantic_id=marked_floating_semantic_id(color),
+                )
+            )
+    return tuple(floating)
+
+
 def resource_inventory_from_state(
     state: GameState,
     player_id: str,
     *,
-    opponent_mana_profile: str = "blue_red_available",
+    opponent_mana_profile: str = DEFAULT_OPPONENT_MANA_PROFILE,
 ) -> ResourceInventory:
     """Extract current usable resources without reading hidden-zone contents."""
 
     if player_id not in state.players:
         raise IllegalAction("resource preview player does not exist")
-    if opponent_mana_profile not in _OPPONENT_MANA_PROFILE_COLORS:
-        raise UnsupportedCapability(f"unsupported opponent mana profile: {opponent_mana_profile}")
+    opponent_mana_profile = validate_opponent_mana_profile(opponent_mana_profile)
     sources: list[ResourceSource] = []
     for obj in _active_controlled_permanents(state, player_id):
         treasure = _treasure_source(obj)
@@ -283,14 +324,9 @@ def resource_inventory_from_state(
         )
         if source is not None:
             sources.append(source)
-    floating = tuple(
-        FloatingMana(color, int(amount), semantic_id=f"floating:{color}")
-        for color, amount in state.players[player_id].mana_pool.items()
-        if color in _MANA_COLORS and int(amount) > 0
-    )
     return ResourceInventory(
         sources=tuple(sources),
-        floating_mana=floating,
+        floating_mana=_floating_mana_from_state(state, player_id),
         assumptions=(
             "current battlefield tap/controller/zone state is authoritative",
             "no unrepresented future draw, land drop, untap, or opponent cooperation",
@@ -304,7 +340,7 @@ def solve_state_payment(
     steps: Sequence[PaymentStep],
     *,
     additional_sources: Sequence[ResourceSource] = (),
-    opponent_mana_profile: str = "blue_red_available",
+    opponent_mana_profile: str = DEFAULT_OPPONENT_MANA_PROFILE,
 ) -> ResourcePaymentResult:
     """Adapt current state into the single authoritative payment solver."""
 

@@ -1,0 +1,84 @@
+name: Stage 3 PR99 Prototype Preservation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'docs/audit/stage3-pr99-disposition/**'
+      - '.github/workflows/stage3-prototype-preservation.yml'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  preservation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      STAGE3_BASE: 8b69b0aa3c3896c26f9c0823fd102dfa9a87f41f
+      PROTOTYPE_BASE: 150671a8e7a78e5fa14b6b3aca2308f6af647df3
+      PROTOTYPE_HEAD: 4c9a404fc9308ecc281711b4b9b48eef6dfd441b
+      STAGE3_HEAD: ${{ github.event.pull_request.head.sha }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.STAGE3_HEAD }}
+
+      - name: Verify Stage 3 exact base ancestry
+        run: |
+          test "$(git merge-base "${STAGE3_HEAD}" "${STAGE3_BASE}")" = "${STAGE3_BASE}"
+
+      - name: Verify frozen PR 99 metadata
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/99" > "${RUNNER_TEMP}/pr99.json"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          value = json.loads((Path(os.environ["RUNNER_TEMP"]) / "pr99.json").read_text())
+          assert value["state"] == "open"
+          assert value["draft"] is True
+          assert value["merged"] is False
+          assert value["base"]["sha"] == os.environ["PROTOTYPE_BASE"]
+          assert value["head"]["sha"] == os.environ["PROTOTYPE_HEAD"]
+          assert value["commits"] == 34
+          assert value["changed_files"] == 37
+          PY
+
+      - name: Compute canonical PR 99 patch digest
+        run: |
+          git fetch --no-tags origin "${PROTOTYPE_BASE}" "${PROTOTYPE_HEAD}"
+          test "$(git rev-list --count "${PROTOTYPE_BASE}..${PROTOTYPE_HEAD}")" = "34"
+          test "$(git diff --name-only "${PROTOTYPE_BASE}" "${PROTOTYPE_HEAD}" | wc -l)" = "37"
+          PATCH_FILE="${RUNNER_TEMP}/pr99-full-index.patch"
+          git -c core.quotepath=false diff \
+            --binary \
+            --full-index \
+            --no-ext-diff \
+            --no-color \
+            "${PROTOTYPE_BASE}" "${PROTOTYPE_HEAD}" > "${PATCH_FILE}"
+          PATCH_SHA256="$(sha256sum "${PATCH_FILE}" | awk '{print $1}')"
+          PATCH_BYTES="$(wc -c < "${PATCH_FILE}")"
+          echo "CANONICAL_PATCH_COMMAND=git -c core.quotepath=false diff --binary --full-index --no-ext-diff --no-color ${PROTOTYPE_BASE} ${PROTOTYPE_HEAD}"
+          echo "PATCH_SHA256=${PATCH_SHA256}"
+          echo "PATCH_BYTES=${PATCH_BYTES}"
+          echo "GIT_VERSION=$(git --version)"
+          printf '{\n  "schema_version": "stage3-pr99-patch-digest-v1",\n  "prototype_base_sha": "%s",\n  "prototype_head_sha": "%s",\n  "patch_sha256": "%s",\n  "patch_bytes": %s,\n  "git_version": "%s"\n}\n' \
+            "${PROTOTYPE_BASE}" \
+            "${PROTOTYPE_HEAD}" \
+            "${PATCH_SHA256}" \
+            "${PATCH_BYTES}" \
+            "$(git --version)" > "${RUNNER_TEMP}/PRESERVATION_MEASUREMENT.json"
+
+      - name: Upload preservation measurement
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage3-pr99-preservation-${{ env.PROTOTYPE_HEAD }}
+          path: ${{ runner.temp }}/PRESERVATION_MEASUREMENT.json
+          if-no-files-found: error
+          retention-days: 30

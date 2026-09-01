@@ -2,16 +2,198 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict, dataclass
+import re
 from typing import Any
 
-from mtg_kernel.errors import IllegalAction
-from mtg_kernel.mana import pay_mana
+from mtg_kernel.engine_core import PERMANENT_TYPES
+from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
+from mtg_kernel.phase_b_actions_common import uses_hand_activation_path
 from mtg_kernel.phase_b_runtime_helpers import (
     _counter_to,
     _mark_eot_original,
     _spell_satisfies,
 )
+from mtg_kernel.resource_execution import execute_resource_payment_during_resolution
+from mtg_kernel.resource_payment import PaymentStep, PaymentWindow
+from mtg_kernel.resource_sources import (
+    DEFAULT_OPPONENT_MANA_PROFILE,
+    solve_state_payment,
+    validate_opponent_mana_profile,
+)
+from mtg_kernel.strategic_choices import (
+    CounterPaymentRequest,
+    CounterPaymentTarget,
+    require_provider,
+)
+
+
+def _counter_payment_step(amount: int) -> PaymentStep:
+    return PaymentStep(
+        label="counter-payment",
+        mana_cost=f"{{{amount}}}",
+        window=PaymentWindow(0, "counter-payment-resolution"),
+        context_tags=("COUNTER_PAYMENT",),
+    )
+
+
+def _counter_payment_opponent_mana_profile(executor: Any) -> str:
+    return validate_opponent_mana_profile(
+        getattr(executor, "opponent_mana_profile", DEFAULT_OPPONENT_MANA_PROFILE)
+    )
+
+
+def _recorded_cast_choices(target: GameObject) -> dict[str, Any]:
+    raw = target.current_characteristics.get("cast_choices", {})
+    return dict(raw) if isinstance(raw, dict) else {}
+
+
+def _normalized_resolution_choices(target: GameObject) -> dict[str, Any]:
+    choices = _recorded_cast_choices(target)
+    kicked = target.current_characteristics.get("kicked", False)
+    if not isinstance(kicked, bool):
+        raise IllegalAction("normalized kicked characteristic must be boolean")
+    choices["kicked"] = kicked
+    return choices
+
+
+@dataclass(frozen=True)
+class _ConditionalResolutionComponent:
+    effect_kind: str
+    cast_choice: str
+    equals: object
+
+
+_CONDITIONAL_RESOLUTION_COMPONENTS = {
+    "BOUNCE_AND_KICKER_DRAW": (_ConditionalResolutionComponent("DRAW", "kicked", True),),
+}
+
+
+def _conditional_resolution_component_is_active(
+    component: _ConditionalResolutionComponent,
+    cast_choices: dict[str, Any],
+) -> bool:
+    return cast_choices.get(component.cast_choice) == component.equals
+
+
+def _conditional_resolution_effect_kinds(
+    effect: object,
+    cast_choices: dict[str, Any],
+    *,
+    active: bool,
+) -> tuple[str, ...]:
+    if not isinstance(effect, dict):
+        return ()
+    effect_kind = str(effect.get("kind", "")).strip()
+    return tuple(
+        component.effect_kind
+        for component in _CONDITIONAL_RESOLUTION_COMPONENTS.get(effect_kind, ())
+        if _conditional_resolution_component_is_active(component, cast_choices) is active
+    )
+
+
+def _collect_effect_semantics(
+    effect: object,
+    cast_choices: dict[str, Any],
+    kinds: set[str],
+    inactive_kinds: set[str],
+) -> None:
+    """Derive public resolution semantics from effect kinds and cast choices.
+
+    Conditional-component metadata is code-level rules semantics keyed by the
+    card-independent effect kind. It is never copied into object characteristics.
+    """
+
+    if not isinstance(effect, dict):
+        return
+    kind = str(effect.get("kind", "")).strip()
+    if kind:
+        kinds.add(kind)
+    inactive_kinds.update(_conditional_resolution_effect_kinds(effect, cast_choices, active=False))
+    for child in effect.get("effects", ()):
+        _collect_effect_semantics(child, cast_choices, kinds, inactive_kinds)
+
+
+@dataclass(frozen=True)
+class _StackSpellEffectSemantics:
+    effect_kinds: tuple[str, ...]
+    inactive_effect_kinds: tuple[str, ...]
+
+
+def _stack_spell_mana_value(target: GameObject) -> int:
+    printed = int(target.current_characteristics.get("mana_value", 0))
+    if target.zone is not Zone.STACK:
+        return printed
+    mana_cost = str(target.current_characteristics.get("mana_cost", ""))
+    x_symbols = len(re.findall(r"\{X\}", mana_cost))
+    if x_symbols == 0:
+        return printed
+    x_value = int(target.current_characteristics.get("x_value", 0))
+    return printed + x_symbols * x_value
+
+
+def _stack_spell_effect_semantics(target: GameObject) -> _StackSpellEffectSemantics:
+    abilities = target.current_characteristics.get("abilities", ())
+    resolves_as_permanent = bool(
+        PERMANENT_TYPES.intersection(target.current_characteristics.get("card_types", ()))
+    )
+    spell_modes = {
+        str(ability.get("mode", "default"))
+        for ability in abilities
+        if isinstance(ability, dict) and ability.get("kind") == "SPELL"
+    }
+    raw_modes = target.current_characteristics.get("modes")
+    selected_modes: set[str] | None = None
+    if target.zone is Zone.STACK and len(spell_modes) > 1:
+        if not isinstance(raw_modes, (list, tuple)) or not raw_modes:
+            raise IllegalAction("modal stack spell is missing its selected mode")
+        selected_modes = {str(mode) for mode in raw_modes}
+        if not selected_modes <= spell_modes:
+            raise IllegalAction("modal stack spell has an unavailable selected mode")
+    kinds: set[str] = set()
+    inactive_kinds: set[str] = set()
+    cast_choices = _normalized_resolution_choices(target)
+    for ability in abilities:
+        if not isinstance(ability, dict):
+            continue
+        ability_kind = str(ability.get("kind", ""))
+        if ability_kind == "SPELL":
+            if selected_modes is not None:
+                mode = str(ability.get("mode", "default"))
+                if mode not in selected_modes:
+                    continue
+        # Only permanent spells preserve non-spell abilities on resolution, and
+        # exact-deck hand activations are not usable on the resulting permanent.
+        elif not resolves_as_permanent or uses_hand_activation_path(ability):
+            continue
+        _collect_effect_semantics(
+            ability.get("effect", {}),
+            cast_choices,
+            kinds,
+            inactive_kinds,
+        )
+    return _StackSpellEffectSemantics(
+        tuple(sorted(kinds)),
+        tuple(sorted(inactive_kinds)),
+    )
+
+
+def _stack_spell_effect_kinds(target: GameObject) -> tuple[str, ...]:
+    return _stack_spell_effect_semantics(target).effect_kinds
+
+
+def _counter_payment_target(target: GameObject) -> CounterPaymentTarget:
+    semantics = _stack_spell_effect_semantics(target)
+    return CounterPaymentTarget(
+        identity=str(target.current_characteristics.get("name", "")),
+        mana_value=_stack_spell_mana_value(target),
+        card_types=tuple(
+            str(value) for value in target.current_characteristics.get("card_types", ())
+        ),
+        effect_kinds=semantics.effect_kinds,
+        inactive_effect_kinds=semantics.inactive_effect_kinds,
+    )
 
 
 def _resolve_counter_unless_pay(
@@ -30,30 +212,96 @@ def _resolve_counter_unless_pay(
     if payer is None or payer not in self.state.players:
         raise IllegalAction("counter-unless-pay target has no available controller")
 
-    raw_decision = choices.get("counter_payment")
-    if not isinstance(raw_decision, dict):
-        raise IllegalAction("counter-unless-pay requires an explicit controller payment decision")
-    if raw_decision.get("player_id") != payer:
-        raise IllegalAction("counter payment decision must be anchored to the target controller")
-    pay = raw_decision.get("pay")
-    if not isinstance(pay, bool):
-        raise IllegalAction("counter payment decision must record a boolean pay value")
-
     amount = action.x_value if effect.get("amount_from_x") else int(effect.get("amount", 0))
     if amount < 0:
         raise IllegalAction("counter payment amount cannot be negative")
+    effect_kind = str(effect.get("kind", "COUNTER_UNLESS_PAY"))
+    step = _counter_payment_step(amount)
+    opponent_mana_profile = _counter_payment_opponent_mana_profile(self)
+    payment_result = solve_state_payment(
+        self.state,
+        payer,
+        (step,),
+        opponent_mana_profile=opponent_mana_profile,
+    )
+    legal_outcomes = ("PAY", "DECLINE") if payment_result.feasible else ("DECLINE",)
+    target_public = _counter_payment_target(target)
+
+    evaluator_id = "explicit-rules-choice"
+    evaluator_sha256 = "0" * 64
+    diagnostics: dict[str, Any] = {}
+    decision_source = "EXPLICIT_ACTION_CHOICE"
+    if "counter_payment" in choices:
+        raw_decision = choices["counter_payment"]
+        if not isinstance(raw_decision, dict):
+            raise IllegalAction("counter payment decision must be a mapping")
+        if raw_decision.get("player_id") != payer:
+            raise IllegalAction(
+                "counter payment decision must be anchored to the target controller"
+            )
+        pay = raw_decision.get("pay")
+        if not isinstance(pay, bool):
+            raise IllegalAction("counter payment decision must record a boolean pay value")
+        outcome = "PAY" if pay else "DECLINE"
+        if outcome not in legal_outcomes:
+            raise IllegalAction("counter payment was selected but cannot be paid legally")
+    else:
+        # The injected Phase C provider controls the actor, not an arbitrary target
+        # controller. Never invent an unmodeled opponent's resolution choice.
+        if payer != action.actor_id:
+            raise UnsupportedCapability(
+                "counter-unless-pay requires an explicit decision from an unmodeled opponent"
+            )
+        provider = require_provider(
+            getattr(self, "strategic_choice_provider", None),
+            "counter-unless-pay payment",
+        )
+        chooser = getattr(provider, "choose_counter_payment", None)
+        if not callable(chooser):
+            raise UnsupportedCapability(
+                "the strategic provider has no authorized counter-payment selection policy"
+            )
+        request = CounterPaymentRequest(
+            request_id=self.identity.new_id("strategic-request"),
+            actor_id=payer,
+            effect_kind=effect_kind,
+            turn_number=int(self.state.turn.number),
+            observation=self._strategic_observation(payer),
+            target=target_public,
+            payment_amount=amount,
+            legal_outcomes=legal_outcomes,
+            payment_result=payment_result,
+        )
+        selection = chooser(request)
+        outcome = selection.outcome
+        if outcome not in legal_outcomes:
+            raise IllegalAction(
+                "strategic provider selected an unavailable counter-payment outcome"
+            )
+        evaluator_id = selection.evaluator_id
+        evaluator_sha256 = selection.evaluator_sha256
+        diagnostics = dict(selection.diagnostics)
+        decision_source = "STRATEGIC_PROVIDER"
 
     payment: dict[str, int] = {}
-    if pay:
-        payment = pay_mana(self.state.players[payer].mana_pool, {"GENERIC": amount})
+    if outcome == "PAY":
+        payment = execute_resource_payment_during_resolution(
+            self,
+            payer,
+            step,
+            payment_result,
+            opponent_mana_profile=opponent_mana_profile,
+        )
 
     decision_event = self._event(
         "COUNTER_PAYMENT_DECISION",
         action,
         payer=payer,
-        pay=pay,
+        pay=outcome == "PAY",
+        outcome=outcome,
         amount=amount,
         payment=payment,
+        counter_destination=destination.value,
         target_object_id=target.object_id,
     )
     self.state.choices.append(
@@ -62,15 +310,43 @@ def _resolve_counter_unless_pay(
             payer,
             "COUNTER_UNLESS_PAY",
             {
-                "pay": pay,
+                "schema_version": "counter-payment-choice-v4",
+                "choice_kind": "COUNTER_PAYMENT",
+                "effect_kind": effect_kind,
+                "decision_owner": payer,
+                "target_identity": target_public.identity,
+                "target_mana_value": target_public.mana_value,
+                "target_card_types": list(target_public.card_types),
+                "target_effect_kinds": list(target_public.effect_kinds),
+                "target_inactive_effect_kinds": list(target_public.inactive_effect_kinds),
                 "amount": amount,
+                "actual_required_payment": amount,
+                "counter_destination": destination.value,
+                "legal_modeled_alternatives": list(legal_outcomes),
+                "pay_legally_available": payment_result.feasible,
+                "resource_payment": asdict(payment_result),
+                "outcome": outcome,
+                "pay": outcome == "PAY",
                 "payment": payment,
-                "target_object_id": target.object_id,
+                "target_evaluation": diagnostics.get("target_evaluation"),
+                "mana_weight_microunits": diagnostics.get("mana_weight_microunits"),
+                "mana_cost_valuation_microunits": diagnostics.get("mana_cost_valuation_microunits"),
+                "decline_incremental_value_microunits": diagnostics.get(
+                    "decline_incremental_value_microunits"
+                ),
+                "reason_code": str(
+                    diagnostics.get("reason_code", f"SELECTED_COUNTER_PAYMENT_{outcome}")
+                ),
+                "evaluator_id": evaluator_id,
+                "evaluator_sha256": evaluator_sha256,
+                "diagnostics": diagnostics,
+                "decision_source": decision_source,
+                "chosen_at": "RESOLUTION",
             },
             decision_event.event_id,
         )
     )
-    if not pay:
+    if outcome == "DECLINE":
         _counter_to(self, target, action, destination)
 
 

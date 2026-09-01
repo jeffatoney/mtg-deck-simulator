@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from mtg_cards.full_deck import load_full_deck_specs
-from mtg_kernel.errors import IllegalAction
+from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.hashing import state_hash
 from mtg_kernel.models import TargetRef, Zone
@@ -79,7 +79,7 @@ def test_spell_pierce_requires_qualifying_target_and_explicit_controller_decisio
     executor.cast("P0", pierce.object_id, targets=(TargetRef(target_spell.object_id),))
     executor.pass_priority("P0")
     before = state_hash(state)
-    with pytest.raises(IllegalAction, match="explicit controller payment decision"):
+    with pytest.raises(UnsupportedCapability, match="unmodeled opponent"):
         executor.pass_priority("P1")
     assert state_hash(state) == before
     assert len(state.stack) == 2
@@ -128,12 +128,17 @@ def test_spell_pierce_controller_payment_preserves_target_and_records_mana() -> 
     assert state.players["P1"].mana_pool["C"] == 0
     decision = next(choice for choice in state.choices if choice.kind == "COUNTER_UNLESS_PAY")
     assert decision.player_id == "P1"
-    assert decision.selected == {
-        "pay": True,
-        "amount": 2,
-        "payment": {"C": 2},
-        "target_object_id": target_spell.object_id,
-    }
+    assert decision.selected["schema_version"] == "counter-payment-choice-v4"
+    assert decision.selected["decision_source"] == "EXPLICIT_ACTION_CHOICE"
+    assert decision.selected["decision_owner"] == "P1"
+    assert decision.selected["target_identity"] == "Opt"
+    assert decision.selected["counter_destination"] == "GRAVEYARD"
+    assert decision.selected["outcome"] == "PAY"
+    assert decision.selected["pay"] is True
+    assert decision.selected["amount"] == 2
+    assert decision.selected["actual_required_payment"] == 2
+    assert decision.selected["payment"] == {"C": 2}
+    assert "target_object_id" not in decision.selected
 
     pass_all(executor)
     assert not state.stack
@@ -160,6 +165,8 @@ def test_syncopate_uses_x_for_payment_and_exiles_when_declined() -> None:
     assert len(active_named(state, "Opt", Zone.EXILE)) == 1
     decision = next(choice for choice in state.choices if choice.kind == "COUNTER_UNLESS_PAY")
     assert decision.selected["amount"] == 3
+    assert decision.selected["actual_required_payment"] == 3
+    assert decision.selected["counter_destination"] == "EXILE"
     assert decision.selected["pay"] is False
 
     state, executor, specs = game_with_exact_mana("runtime-twenty-one-syncopate-atomic")
@@ -175,7 +182,7 @@ def test_syncopate_uses_x_for_payment_and_exiles_when_declined() -> None:
     )
     executor.pass_priority("P0")
     before = state_hash(state)
-    with pytest.raises(IllegalAction, match="insufficient mana"):
+    with pytest.raises(IllegalAction, match="cannot be paid legally"):
         executor.pass_priority("P1")
     assert state_hash(state) == before
     assert state.players["P1"].mana_pool["C"] == 2
