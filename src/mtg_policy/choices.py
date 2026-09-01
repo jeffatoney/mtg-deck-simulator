@@ -375,6 +375,7 @@ class PolicyStrategicChoiceProvider:
             request.target.mana_value,
             request.target.card_types,
             request.target.effect_kinds,
+            request.target.inactive_effect_kinds,
         )
         target_evaluation = self.evaluator.evaluate_pile((target,), request.observation)
         payment_mana_value = request.payment_amount * mana_weight

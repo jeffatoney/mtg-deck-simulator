@@ -27,6 +27,7 @@ class PublicCard:
     mana_value: int
     card_types: tuple[str, ...]
     effect_kinds: tuple[str, ...]
+    inactive_effect_kinds: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -152,6 +153,7 @@ class CounterPaymentTarget:
     mana_value: int
     card_types: tuple[str, ...]
     effect_kinds: tuple[str, ...]
+    inactive_effect_kinds: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

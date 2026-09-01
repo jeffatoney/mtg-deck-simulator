@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections import Counter
 from copy import deepcopy
+from dataclasses import asdict
+import json
 from unittest.mock import patch
 
 import pytest
@@ -28,6 +30,9 @@ from mtg_kernel.models import (
 from mtg_kernel.phase_b_marked_mana import (
     MARKED_COMMANDER_MANA_KIND,
     PATH_SHARED_TYPE_TRIGGER,
+    marked_floating_mana_inventory,
+    marked_floating_semantic_id,
+    unmarked_floating_semantic_id,
 )
 from mtg_kernel.resource_payment import (
     PaymentStep,
@@ -619,3 +624,212 @@ def test_marked_child_mana_is_consumed_once_and_not_propagated(
     assert not any(
         record.get("kind") == MARKED_COMMANDER_MANA_KIND for record in state.continuous_effects
     )
+
+
+def _append_marker(
+    state: GameState,
+    color: str,
+    event_id: str,
+    *,
+    amount: int = 1,
+) -> None:
+    state.continuous_effects.append(
+        {
+            "kind": MARKED_COMMANDER_MANA_KIND,
+            "player_id": PLAYER,
+            "source_object_id": "synthetic-marked-source",
+            "color": color,
+            "amount": amount,
+            "produced_event_id": event_id,
+            "trigger_ability": {
+                "kind": "TRIGGERED",
+                "trigger": PATH_SHARED_TYPE_TRIGGER,
+                "effect": {"kind": "SCRY", "count": 1},
+            },
+        }
+    )
+
+
+def _marker_ids(state: GameState) -> tuple[str, ...]:
+    return tuple(
+        str(record.get("produced_event_id"))
+        for record in state.continuous_effects
+        if record.get("kind") == MARKED_COMMANDER_MANA_KIND
+    )
+
+
+def _public_payment_payload(result: ResourcePaymentResult) -> str:
+    return json.dumps(asdict(result), sort_keys=True, separators=(",", ":"))
+
+
+def test_mixed_marked_and_unmarked_floating_generic_cost_spends_unmarked() -> None:
+    state = _minimal_state(floating={"U": 2})
+    _append_marker(state, "U", "marker-u-1")
+
+    result, payment = _round_trip(state, "{1}")
+
+    assert payment == {"U": 1}
+    assert result.feasible is True
+    assert {
+        (item.source_semantic_id, item.color, item.amount) for item in result.canonical_allocation
+    } == {(unmarked_floating_semantic_id("U"), "U", 1)}
+    assert "produced_event_id" not in _public_payment_payload(result)
+    assert state.players[PLAYER].mana_pool["U"] == 1
+    assert _marker_ids(state) == ("marker-u-1",)
+
+
+def test_canonical_marked_floating_selection_consumes_exact_marker_id() -> None:
+    state = _minimal_state(floating={"U": 1})
+    _append_marker(state, "U", "marker-u-only")
+
+    result, payment = _round_trip(state, "{1}")
+
+    assert payment == {"U": 1}
+    assert {(item.source_semantic_id, item.color) for item in result.canonical_allocation} == {
+        (marked_floating_semantic_id("U"), "U")
+    }
+    assert state.players[PLAYER].mana_pool["U"] == 0
+    assert _marker_ids(state) == ()
+
+
+def test_cost_requiring_both_marked_and_unmarked_units_clears_the_ledger() -> None:
+    state = _minimal_state(floating={"U": 2})
+    _append_marker(state, "U", "marker-u-1")
+
+    result, payment = _round_trip(state, "{2}")
+
+    assert payment == {"U": 2}
+    assert {item.source_semantic_id for item in result.canonical_allocation} == {
+        unmarked_floating_semantic_id("U"),
+        marked_floating_semantic_id("U"),
+    }
+    assert state.players[PLAYER].mana_pool["U"] == 0
+    assert _marker_ids(state) == ()
+
+
+def test_marked_floating_mana_funds_activation_cost_exactly_once() -> None:
+    filter_source = _mana_source(
+        "colored-filter",
+        "Colored Filter",
+        {"kind": "ADD_MANA", "mana": {"U": 1, "R": 1}},
+        activation_cost="{1}",
+    )
+    state = _minimal_state(filter_source, floating={"U": 1})
+    _append_marker(state, "U", "marker-activation")
+
+    result, payment = _round_trip(state, "{U}{R}")
+
+    child = [
+        allocation
+        for allocation in result.canonical_allocation
+        if allocation.step_label.endswith(":source:Colored Filter:mana-source")
+    ]
+    assert payment == {"U": 1, "R": 1}
+    assert len(child) == 1
+    assert child[0].source_semantic_id == marked_floating_semantic_id("U")
+    assert _marker_ids(state) == ()
+
+
+def test_marker_count_exceeding_the_pool_fails_closed() -> None:
+    state = _minimal_state(floating={"U": 1})
+    _append_marker(state, "U", "marker-a")
+    _append_marker(state, "U", "marker-b")
+
+    with pytest.raises(IllegalAction, match="marked mana ledger exceeds the available mana pool"):
+        marked_floating_mana_inventory(state, PLAYER)
+    with pytest.raises(IllegalAction, match="marked mana ledger exceeds the available mana pool"):
+        solve_state_payment(state, PLAYER, (_payment_step("{1}"),))
+
+
+def test_ordinary_floating_mana_is_unchanged_when_no_markers_exist() -> None:
+    state = _minimal_state(floating={"U": 1})
+
+    result, payment = _round_trip(state, "{U}")
+
+    assert payment == {"U": 1}
+    assert result.canonical_allocation[0].source_semantic_id == unmarked_floating_semantic_id("U")
+    assert marked_floating_mana_inventory(state, PLAYER) == ()
+
+
+def test_public_resource_payment_result_omits_marker_event_and_object_ids() -> None:
+    state = _minimal_state(floating={"U": 2})
+    _append_marker(state, "U", "marker-hidden")
+
+    result = solve_state_payment(state, PLAYER, (_payment_step("{1}"),))
+    payload = _public_payment_payload(result)
+
+    assert result.feasible
+    assert unmarked_floating_semantic_id("U") in payload
+    assert "produced_event_id" not in payload
+    assert "marker-hidden" not in payload
+    assert "synthetic-marked-source" not in payload
+
+
+@pytest.mark.parametrize("malformed", [False, None, [], "PAY", 0])
+def test_present_malformed_counter_payment_choice_fails_closed(malformed: object) -> None:
+    calls: list[CounterPaymentRequest] = []
+
+    class _SpyProvider:
+        def choose_counter_payment(
+            self,
+            request: CounterPaymentRequest,
+        ) -> CounterPaymentSelection:
+            calls.append(request)
+            return CounterPaymentSelection(
+                "PAY",
+                "synthetic-kernel-provider",
+                "1" * 64,
+                {"reason_code": "SHOULD_NOT_RUN"},
+            )
+
+    target_source = _mana_source(
+        "unused-source",
+        "Unused Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1}},
+    )
+    state = _minimal_state(target_source, floating={"C": 1})
+    executor = GameExecutor(state, "kernel-malformed-counter-choice")
+    target_card = add_card(
+        executor,
+        _synthetic_instant("Synthetic Target", {"kind": "NONE"}),
+        Zone.HAND,
+        owner=PLAYER,
+    )
+    counter_card = add_card(
+        executor,
+        _synthetic_instant(
+            "Synthetic Counter",
+            {"kind": "COUNTER_UNLESS_PAY", "amount": 1},
+            target_kind="SPELL",
+        ),
+        Zone.HAND,
+        owner=PLAYER,
+    )
+    state.replay_initial_state = state_to_data(state)
+    executor.bind_strategic_choice_provider(_SpyProvider())
+    target = executor.cast(PLAYER, target_card.object_id)
+    executor.cast(
+        PLAYER,
+        counter_card.object_id,
+        targets=(TargetRef(target.object_id),),
+        choices={"counter_payment": malformed},
+    )
+    in_game = [player_id for player_id in state.players if state.players[player_id].in_game]
+    for _ in in_game[:-1]:
+        holder = state.turn.priority_holder_id
+        assert holder is not None
+        executor.pass_priority(holder)
+    before = state_hash(state)
+    choice_count = len(state.choices)
+    pool_before = dict(state.players[PLAYER].mana_pool)
+
+    with pytest.raises(IllegalAction, match="counter payment decision must be a mapping"):
+        holder = state.turn.priority_holder_id
+        assert holder is not None
+        executor.pass_priority(holder)
+
+    assert calls == []
+    assert state_hash(state) == before
+    assert len(state.choices) == choice_count
+    assert dict(state.players[PLAYER].mana_pool) == pool_before
+    assert not target.retired

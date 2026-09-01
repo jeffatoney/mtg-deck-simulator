@@ -13,6 +13,11 @@ from typing import Any
 
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.models import GameObject, GameState, Zone
+from mtg_kernel.phase_b_marked_mana import (
+    marked_floating_mana_inventory,
+    marked_floating_semantic_id,
+    unmarked_floating_semantic_id,
+)
 from mtg_kernel.resource_payment import (
     FloatingMana,
     ManaProduction,
@@ -263,6 +268,37 @@ def _permanent_mana_source(
     )
 
 
+def _floating_mana_from_state(state: GameState, player_id: str) -> tuple[FloatingMana, ...]:
+    marked_amounts = {
+        record.color: record.amount for record in marked_floating_mana_inventory(state, player_id)
+    }
+    floating: list[FloatingMana] = []
+    pool = state.players[player_id].mana_pool
+    for color in _MANA_COLORS:
+        total = int(pool.get(color, 0))
+        if total <= 0:
+            continue
+        marked_amount = int(marked_amounts.get(color, 0))
+        unmarked_amount = total - marked_amount
+        if unmarked_amount > 0:
+            floating.append(
+                FloatingMana(
+                    color,
+                    unmarked_amount,
+                    semantic_id=unmarked_floating_semantic_id(color),
+                )
+            )
+        if marked_amount > 0:
+            floating.append(
+                FloatingMana(
+                    color,
+                    marked_amount,
+                    semantic_id=marked_floating_semantic_id(color),
+                )
+            )
+    return tuple(floating)
+
+
 def resource_inventory_from_state(
     state: GameState,
     player_id: str,
@@ -288,14 +324,9 @@ def resource_inventory_from_state(
         )
         if source is not None:
             sources.append(source)
-    floating = tuple(
-        FloatingMana(color, int(amount), semantic_id=f"floating:{color}")
-        for color, amount in state.players[player_id].mana_pool.items()
-        if color in _MANA_COLORS and int(amount) > 0
-    )
     return ResourceInventory(
         sources=tuple(sources),
-        floating_mana=floating,
+        floating_mana=_floating_mana_from_state(state, player_id),
         assumptions=(
             "current battlefield tap/controller/zone state is authoritative",
             "no unrepresented future draw, land drop, untap, or opponent cooperation",

@@ -278,6 +278,21 @@ class ContextualEvaluator:
                 raise ValueError(f"unclassified strategic effect kind: {kind}")
             for feature in features:
                 counts[feature] += 1
+        inactive: Counter[str] = Counter()
+        for kind in card.inactive_effect_kinds:
+            features = self.config.effect_features.get(kind)
+            if features is None:
+                raise ValueError(f"unclassified inactive strategic effect kind: {kind}")
+            for feature in features:
+                inactive[feature] += 1
+        for feature, amount in inactive.items():
+            if counts[feature] < amount:
+                raise ValueError(
+                    "inactive strategic effect features exceed the target's declared effects"
+                )
+            counts[feature] -= amount
+            if counts[feature] == 0:
+                del counts[feature]
         return counts
 
     def evaluate_pile(

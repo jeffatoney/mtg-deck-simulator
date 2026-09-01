@@ -7,6 +7,10 @@ from typing import Any
 from mtg_kernel.errors import IllegalAction
 from mtg_kernel.mana import add_mana
 from mtg_kernel.models import Action, GameObject
+from mtg_kernel.phase_b_runtime_effects_interaction import (
+    _conditional_resolution_effect_kinds,
+    _normalized_resolution_choices,
+)
 from mtg_kernel.phase_b_runtime_helpers import (
     _destroy,
     _permanents,
@@ -111,8 +115,14 @@ def apply_effect_common(
     if kind == "BOUNCE_AND_KICKER_DRAW":
         if len(targets) != 1:
             raise IllegalAction("kicker bounce requires one target")
+        if source is None:
+            raise IllegalAction("kicker bounce requires its resolving stack source")
         _return_to_hand(self, targets[0], action, kind)
-        if bool(choices.get("kicked", False)):
+        if "DRAW" in _conditional_resolution_effect_kinds(
+            effect,
+            _normalized_resolution_choices(source),
+            active=True,
+        ):
             self.draw_card(action.actor_id, action=action)
         return True
 

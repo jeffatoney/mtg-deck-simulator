@@ -6,7 +6,8 @@ boundaries. They do not import the PR #99 resolution-mana planner or any V2 poli
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
+import json
 
 import pytest
 
@@ -16,6 +17,11 @@ from mtg_kernel.errors import IllegalAction, ReplayError, UnsupportedCapability
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.hashing import state_hash
 from mtg_kernel.models import TargetRef, Zone
+from mtg_kernel.phase_b_marked_mana import (
+    MARKED_COMMANDER_MANA_KIND,
+    marked_floating_semantic_id,
+    unmarked_floating_semantic_id,
+)
 from mtg_kernel.replay import transcript, validate_replay
 from mtg_kernel.serialization import state_to_data
 from mtg_kernel.strategic_choices import (
@@ -966,3 +972,285 @@ def test_counter_payment_target_mana_value_includes_chosen_x_on_the_stack() -> N
     assert fresh.diagnostics["target_evaluation"] == selected["target_evaluation"]
     replayed = validate_replay(transcript(state, seed=executor.seed))
     assert state_hash(replayed) == state_hash(state)
+
+
+def _cast_pierce_at_into_the_roil(
+    *,
+    kicked: object,
+    provider: object,
+) -> tuple[object, object, object]:
+    seed = f"stage3-cr7-into-the-roil-kicked-{kicked!r}"
+    state, executor = new_game(PLAYERS, seed)
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    state.turn.phase = "PRECOMBAT_MAIN"
+    _zero_pool(state)
+    state.players["P0"].mana_pool["U"] = 5 if kicked else 3
+    add_card(executor, specs["Island"], Zone.BATTLEFIELD, owner="P0")
+    add_card(executor, specs["Island"], Zone.BATTLEFIELD, owner="P0")
+    bounce_target = add_card(executor, specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
+    roil = add_card(executor, specs["Into the Roil"], Zone.HAND, owner="P0")
+    pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
+    state.replay_initial_state = state_to_data(state)
+    executor.bind_strategic_choice_provider(provider)
+    target = executor.cast(
+        "P0",
+        roil.object_id,
+        targets=(TargetRef(bounce_target.object_id),),
+        choices={"kicked": kicked},
+    )
+    executor.cast("P0", pierce.object_id, targets=(TargetRef(target.object_id),))
+    assert sum(state.players["P0"].mana_pool.values()) == 0
+    assert "resolution_effects" not in json.dumps(target.current_characteristics)
+    return state, executor, target
+
+
+def test_unkicked_into_the_roil_excludes_inactive_kicker_draw() -> None:
+    capturing = _CapturingProductionProvider(_production_provider(), [])
+    state, executor, target = _cast_pierce_at_into_the_roil(kicked=False, provider=capturing)
+    _resolve_one_stack_object(executor)
+
+    request = capturing.requests[0]
+    assert request.target.identity == "Into the Roil"
+    assert target.current_characteristics.get("kicked", False) is False
+    assert target.current_characteristics["cast_choices"]["kicked"] is False
+    assert request.target.effect_kinds == ("BOUNCE_AND_KICKER_DRAW",)
+    assert request.target.inactive_effect_kinds == ("DRAW",)
+    selected = _counter_choice(state).selected
+    assert selected["target_effect_kinds"] == ["BOUNCE_AND_KICKER_DRAW"]
+    assert selected["target_inactive_effect_kinds"] == ["DRAW"]
+    assert selected["target_evaluation"]["score_microunits"] == 9 * MICRO
+    assert selected["target_evaluation"]["features"]["interaction"] == 1
+    assert "card_draw" not in selected["target_evaluation"]["features"]
+    assert selected["actual_required_payment"] == 2
+    assert selected["mana_weight_microunits"] == 8 * MICRO
+    assert selected["mana_cost_valuation_microunits"] == 16 * MICRO
+    assert selected["outcome"] == "DECLINE"
+    assert selected["reason_code"] == "DECLINE_TARGET_VALUE_NOT_GREATER_THAN_PAYMENT_MANA_COST"
+    assert state.objects[target.object_id].retired
+    fresh = _production_provider().choose_counter_payment(request)
+    assert fresh.outcome == "DECLINE"
+    assert fresh.diagnostics["target_evaluation"]["score_microunits"] == 9 * MICRO
+    replayed = validate_replay(transcript(state, seed=executor.seed))
+    assert state_hash(replayed) == state_hash(state)
+
+
+@pytest.mark.parametrize("raw_kicked", [True, "yes"], ids=("boolean", "truthy-string"))
+def test_kicked_into_the_roil_preserves_bounce_and_draw(raw_kicked: object) -> None:
+    capturing = _CapturingProductionProvider(_production_provider(), [])
+    state, executor, target = _cast_pierce_at_into_the_roil(
+        kicked=raw_kicked,
+        provider=capturing,
+    )
+    _resolve_one_stack_object(executor)
+
+    request = capturing.requests[0]
+    assert request.target.identity == "Into the Roil"
+    assert target.current_characteristics["kicked"] is True
+    assert target.current_characteristics["cast_choices"]["kicked"] == raw_kicked
+    assert request.target.effect_kinds == ("BOUNCE_AND_KICKER_DRAW",)
+    assert request.target.inactive_effect_kinds == ()
+    selected = _counter_choice(state).selected
+    assert selected["target_effect_kinds"] == ["BOUNCE_AND_KICKER_DRAW"]
+    assert selected["target_inactive_effect_kinds"] == []
+    assert selected["target_evaluation"]["score_microunits"] == 21 * MICRO
+    assert selected["target_evaluation"]["features"]["interaction"] == 1
+    assert selected["target_evaluation"]["features"]["card_draw"] == 1
+    assert selected["actual_required_payment"] == 2
+    assert selected["mana_cost_valuation_microunits"] == 16 * MICRO
+    assert selected["outcome"] == "PAY"
+    assert selected["reason_code"] == "PAY_TARGET_VALUE_GREATER_THAN_PAYMENT_MANA_COST"
+    assert target.object_id in state.stack
+    fresh = _production_provider().choose_counter_payment(request)
+    assert fresh.outcome == "PAY"
+    assert fresh.diagnostics["target_evaluation"]["score_microunits"] == 21 * MICRO
+    replayed = validate_replay(transcript(state, seed=executor.seed))
+    assert state_hash(replayed) == state_hash(state)
+
+
+def test_crab_umbra_counter_target_retains_aura_and_battlefield_capabilities() -> None:
+    provider = _CounterProvider("PAY", [])
+    seed = "stage3-review-crab-umbra-nonmodal"
+    state, executor = new_game(PLAYERS, seed)
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    state.turn.phase = "PRECOMBAT_MAIN"
+    _zero_pool(state)
+    state.players["P0"].mana_pool["U"] = 2
+    add_card(executor, specs["Island"], Zone.BATTLEFIELD, owner="P0")
+    add_card(executor, specs["Island"], Zone.BATTLEFIELD, owner="P0")
+    creature = add_card(executor, specs["Dualcaster Mage"], Zone.BATTLEFIELD, owner="P0")
+    aura = add_card(executor, specs["Crab Umbra"], Zone.HAND, owner="P0")
+    pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
+    state.replay_initial_state = state_to_data(state)
+    executor.bind_strategic_choice_provider(provider)
+    target = executor.cast("P0", aura.object_id, targets=(TargetRef(creature.object_id),))
+    executor.cast("P0", pierce.object_id, targets=(TargetRef(target.object_id),))
+
+    _resolve_one_stack_object(executor)
+
+    request = provider.requests[0]
+    assert request.target.identity == "Crab Umbra"
+    assert request.target.effect_kinds == ("ATTACH_AURA", "UMBRA_ARMOR", "UNTAP_ATTACHED")
+    assert _counter_choice(state).selected["outcome"] == "PAY"
+    assert target.object_id in state.stack
+    replayed = validate_replay(transcript(state, seed=executor.seed))
+    assert state_hash(replayed) == state_hash(state)
+
+
+def test_mixed_path_marked_and_unmarked_floating_mana_executes_canonical_provenance() -> None:
+    capturing = _CapturingProductionProvider(_production_provider(), [])
+    seed = "stage3-cr8-marked-unmarked-floating"
+    state, executor = new_game(PLAYERS, seed)
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    state.turn.phase = "PRECOMBAT_MAIN"
+    _zero_pool(state)
+    state.players["P0"].mana_pool["U"] = 2
+    for name in ("Malcolm, Keen-Eyed Navigator", "Breeches, Brazen Plunderer"):
+        add_card(executor, specs[name], Zone.COMMAND, owner="P0", commander=True)
+    path = add_card(executor, specs["Path of Ancestry"], Zone.BATTLEFIELD, owner="P0")
+    island = add_card(executor, specs["Island"], Zone.BATTLEFIELD, owner="P0")
+    opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P0")
+    pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
+    state.replay_initial_state = state_to_data(state)
+    executor.bind_strategic_choice_provider(capturing)
+    target = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
+    executor.cast("P0", pierce.object_id, targets=(TargetRef(target.object_id),))
+    assert sum(state.players["P0"].mana_pool.values()) == 0
+    executor.activate("P0", path.object_id, "path:mana", choices={"mana_color": "U"})
+    executor.activate("P0", island.object_id, "island:u")
+    assert state.players["P0"].mana_pool["U"] == 2
+    assert (
+        sum(
+            1
+            for record in state.continuous_effects
+            if record.get("kind") == MARKED_COMMANDER_MANA_KIND
+        )
+        == 1
+    )
+
+    _resolve_one_stack_object(executor)
+
+    request = capturing.requests[0]
+    assert request.payment_result.feasible is True
+    allocated = {
+        (item.source_semantic_id, item.color, item.amount)
+        for item in request.payment_result.canonical_allocation
+        if item.step_label == "counter-payment"
+    }
+    assert allocated == {
+        (unmarked_floating_semantic_id("U"), "U", 1),
+        (marked_floating_semantic_id("U"), "U", 1),
+    }
+    payload = json.dumps(asdict(request.payment_result), sort_keys=True)
+    assert "produced_event_id" not in payload
+    selected = _counter_choice(state).selected
+    assert selected["outcome"] == "PAY"
+    assert selected["payment"] == {"U": 2}
+    assert sum(state.players["P0"].mana_pool.values()) == 0
+    assert not any(
+        record.get("kind") == MARKED_COMMANDER_MANA_KIND for record in state.continuous_effects
+    )
+    fresh = _production_provider().choose_counter_payment(request)
+    assert fresh.outcome == "PAY"
+    replayed = validate_replay(transcript(state, seed=executor.seed))
+    assert state_hash(replayed) == state_hash(state)
+
+
+@pytest.mark.parametrize("malformed", [False, None, [], "PAY", 0])
+def test_malformed_explicit_counter_payment_choice_fails_closed(malformed: object) -> None:
+    spy = _CapturingProductionProvider(_production_provider(), [])
+    seed = f"stage3-cr9-malformed-{malformed!r}"
+    state, executor = new_game(PLAYERS, seed)
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    state.turn.phase = "PRECOMBAT_MAIN"
+    _zero_pool(state)
+    state.players["P0"].mana_pool["U"] = 2
+    for _ in range(2):
+        add_card(executor, specs["Island"], Zone.BATTLEFIELD, owner="P0")
+    opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P0")
+    pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
+    state.replay_initial_state = state_to_data(state)
+    executor.bind_strategic_choice_provider(spy)
+    target = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
+    executor.cast(
+        "P0",
+        pierce.object_id,
+        targets=(TargetRef(target.object_id),),
+        choices={"counter_payment": malformed},
+    )
+    in_game = [player_id for player_id in PLAYERS if state.players[player_id].in_game]
+    for _ in in_game[:-1]:
+        holder = executor.state.turn.priority_holder_id
+        assert holder is not None
+        executor.pass_priority(holder)
+    before = state_hash(state)
+    choice_count = len(state.choices)
+    pool_before = dict(state.players["P0"].mana_pool)
+
+    with pytest.raises(IllegalAction, match="counter payment decision must be a mapping"):
+        holder = executor.state.turn.priority_holder_id
+        assert holder is not None
+        executor.pass_priority(holder)
+
+    assert spy.requests == []
+    assert state_hash(state) == before
+    assert len(state.choices) == choice_count
+    assert dict(state.players["P0"].mana_pool) == pool_before
+    assert not target.retired
+
+
+def test_malformed_explicit_opponent_counter_payment_is_malformed_input() -> None:
+    seed = "stage3-cr9-malformed-opponent"
+    state, executor = new_game(PLAYERS, seed)
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    state.turn.phase = "PRECOMBAT_MAIN"
+    for player in ("P0", "P1"):
+        state.players[player].mana_pool.update({symbol: 0 for symbol in MANA_SYMBOLS})
+        state.players[player].mana_pool["U"] = 2
+    opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P1")
+    pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
+    state.turn.priority_holder_id = "P1"
+    target = executor.cast("P1", opt.object_id, choices={"scry_to_bottom": False})
+    state.turn.priority_holder_id = "P0"
+    executor.cast(
+        "P0",
+        pierce.object_id,
+        targets=(TargetRef(target.object_id),),
+        choices={"counter_payment": False},
+    )
+
+    with pytest.raises(IllegalAction, match="counter payment decision must be a mapping"):
+        _resolve_one_stack_object(executor)
+
+
+def test_absent_counter_payment_key_still_uses_the_bound_provider() -> None:
+    provider = _CounterProvider("DECLINE", [])
+    state, executor, target = _setup_self_counter(provider=provider, islands=2)
+    _resolve_one_stack_object(executor)
+
+    assert len(provider.requests) == 1
+    assert _counter_choice(state).selected["outcome"] == "DECLINE"
+    assert state.objects[target.object_id].retired
+
+
+def test_valid_explicit_pay_and_decline_dictionaries_remain_supported() -> None:
+    paid_state, paid_executor, paid_target = _setup_self_counter(
+        provider=None,
+        islands=2,
+        explicit_payment=True,
+    )
+    _resolve_one_stack_object(paid_executor)
+    paid = _counter_choice(paid_state).selected
+    assert paid["decision_source"] == "EXPLICIT_ACTION_CHOICE"
+    assert paid["outcome"] == "PAY"
+    assert paid_target.object_id in paid_state.stack
+
+    declined_state, declined_executor, declined_target = _setup_self_counter(
+        provider=None,
+        islands=2,
+        explicit_payment=False,
+    )
+    _resolve_one_stack_object(declined_executor)
+    declined = _counter_choice(declined_state).selected
+    assert declined["decision_source"] == "EXPLICIT_ACTION_CHOICE"
+    assert declined["outcome"] == "DECLINE"
+    assert declined_state.objects[declined_target.object_id].retired

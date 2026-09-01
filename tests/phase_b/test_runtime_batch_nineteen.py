@@ -42,9 +42,14 @@ def active_objects(state, *, name: str, zone: Zone, owner: str):
 
 
 def test_into_the_roil_executes_normal_and_kicked_paths() -> None:
-    for kicked, blue_mana, expected_total in ((False, 2, 2), (True, 4, 4)):
+    for raw_kicked, expected_kicked, blue_mana, expected_total in (
+        (False, False, 2, 2),
+        (True, True, 4, 4),
+        ("yes", True, 4, 4),
+        ([], False, 2, 2),
+    ):
         state, executor, specs = game_with_exact_mana(
-            f"runtime-nineteen-into-roil-{kicked}", blue_mana
+            f"runtime-nineteen-into-roil-{raw_kicked!r}", blue_mana
         )
         target = add_card(executor, specs["Sol Ring"], Zone.BATTLEFIELD, owner="P1")
         draw_card = add_card(executor, specs["Island"], Zone.LIBRARY, owner="P0")
@@ -54,11 +59,13 @@ def test_into_the_roil_executes_normal_and_kicked_paths() -> None:
             "P0",
             into_the_roil.object_id,
             targets=(TargetRef(target.object_id),),
-            choices={"kicked": kicked},
+            choices={"kicked": raw_kicked},
         )
         action = executor._created_action(spell)
-        assert action.payments["cost"]["U"] == (2 if kicked else 1)
-        assert action.payments["cost"]["GENERIC"] == (2 if kicked else 1)
+        assert spell.current_characteristics.get("kicked", False) is expected_kicked
+        assert spell.current_characteristics["cast_choices"]["kicked"] == raw_kicked
+        assert action.payments["cost"]["U"] == (2 if expected_kicked else 1)
+        assert action.payments["cost"]["GENERIC"] == (2 if expected_kicked else 1)
         assert sum(action.payments["mana"].values()) == expected_total
         assert state.players["P0"].mana_pool["U"] == 0
 
@@ -66,7 +73,7 @@ def test_into_the_roil_executes_normal_and_kicked_paths() -> None:
 
         assert target.retired
         assert active_objects(state, name="Sol Ring", zone=Zone.HAND, owner="P1")
-        if kicked:
+        if expected_kicked:
             assert draw_card.retired
             assert active_objects(state, name="Island", zone=Zone.HAND, owner="P0")
         else:

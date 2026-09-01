@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 import re
 from typing import Any
 
@@ -44,18 +44,81 @@ def _counter_payment_opponent_mana_profile(executor: Any) -> str:
     )
 
 
-def _collect_effect_kinds(effect: object, kinds: set[str]) -> None:
+def _recorded_cast_choices(target: GameObject) -> dict[str, Any]:
+    raw = target.current_characteristics.get("cast_choices", {})
+    return dict(raw) if isinstance(raw, dict) else {}
+
+
+def _normalized_resolution_choices(target: GameObject) -> dict[str, Any]:
+    choices = _recorded_cast_choices(target)
+    kicked = target.current_characteristics.get("kicked", False)
+    if not isinstance(kicked, bool):
+        raise IllegalAction("normalized kicked characteristic must be boolean")
+    choices["kicked"] = kicked
+    return choices
+
+
+@dataclass(frozen=True)
+class _ConditionalResolutionComponent:
+    effect_kind: str
+    cast_choice: str
+    equals: object
+
+
+_CONDITIONAL_RESOLUTION_COMPONENTS = {
+    "BOUNCE_AND_KICKER_DRAW": (_ConditionalResolutionComponent("DRAW", "kicked", True),),
+}
+
+
+def _conditional_resolution_component_is_active(
+    component: _ConditionalResolutionComponent,
+    cast_choices: dict[str, Any],
+) -> bool:
+    return cast_choices.get(component.cast_choice) == component.equals
+
+
+def _conditional_resolution_effect_kinds(
+    effect: object,
+    cast_choices: dict[str, Any],
+    *,
+    active: bool,
+) -> tuple[str, ...]:
+    if not isinstance(effect, dict):
+        return ()
+    effect_kind = str(effect.get("kind", "")).strip()
+    return tuple(
+        component.effect_kind
+        for component in _CONDITIONAL_RESOLUTION_COMPONENTS.get(effect_kind, ())
+        if _conditional_resolution_component_is_active(component, cast_choices) is active
+    )
+
+
+def _collect_effect_semantics(
+    effect: object,
+    cast_choices: dict[str, Any],
+    kinds: set[str],
+    inactive_kinds: set[str],
+) -> None:
+    """Derive public resolution semantics from effect kinds and cast choices.
+
+    Conditional-component metadata is code-level rules semantics keyed by the
+    card-independent effect kind. It is never copied into object characteristics.
+    """
+
     if not isinstance(effect, dict):
         return
     kind = str(effect.get("kind", "")).strip()
     if kind:
         kinds.add(kind)
+    inactive_kinds.update(_conditional_resolution_effect_kinds(effect, cast_choices, active=False))
     for child in effect.get("effects", ()):
-        if not isinstance(child, dict):
-            continue
-        child_kind = str(child.get("kind", "")).strip()
-        if child_kind:
-            kinds.add(child_kind)
+        _collect_effect_semantics(child, cast_choices, kinds, inactive_kinds)
+
+
+@dataclass(frozen=True)
+class _StackSpellEffectSemantics:
+    effect_kinds: tuple[str, ...]
+    inactive_effect_kinds: tuple[str, ...]
 
 
 def _stack_spell_mana_value(target: GameObject) -> int:
@@ -70,7 +133,7 @@ def _stack_spell_mana_value(target: GameObject) -> int:
     return printed + x_symbols * x_value
 
 
-def _stack_spell_effect_kinds(target: GameObject) -> tuple[str, ...]:
+def _stack_spell_effect_semantics(target: GameObject) -> _StackSpellEffectSemantics:
     abilities = target.current_characteristics.get("abilities", ())
     resolves_as_permanent = bool(
         PERMANENT_TYPES.intersection(target.current_characteristics.get("card_types", ()))
@@ -89,6 +152,8 @@ def _stack_spell_effect_kinds(target: GameObject) -> tuple[str, ...]:
         if not selected_modes <= spell_modes:
             raise IllegalAction("modal stack spell has an unavailable selected mode")
     kinds: set[str] = set()
+    inactive_kinds: set[str] = set()
+    cast_choices = _normalized_resolution_choices(target)
     for ability in abilities:
         if not isinstance(ability, dict):
             continue
@@ -102,18 +167,32 @@ def _stack_spell_effect_kinds(target: GameObject) -> tuple[str, ...]:
         # exact-deck hand activations are not usable on the resulting permanent.
         elif not resolves_as_permanent or uses_hand_activation_path(ability):
             continue
-        _collect_effect_kinds(ability.get("effect", {}), kinds)
-    return tuple(sorted(kinds))
+        _collect_effect_semantics(
+            ability.get("effect", {}),
+            cast_choices,
+            kinds,
+            inactive_kinds,
+        )
+    return _StackSpellEffectSemantics(
+        tuple(sorted(kinds)),
+        tuple(sorted(inactive_kinds)),
+    )
+
+
+def _stack_spell_effect_kinds(target: GameObject) -> tuple[str, ...]:
+    return _stack_spell_effect_semantics(target).effect_kinds
 
 
 def _counter_payment_target(target: GameObject) -> CounterPaymentTarget:
+    semantics = _stack_spell_effect_semantics(target)
     return CounterPaymentTarget(
         identity=str(target.current_characteristics.get("name", "")),
         mana_value=_stack_spell_mana_value(target),
         card_types=tuple(
             str(value) for value in target.current_characteristics.get("card_types", ())
         ),
-        effect_kinds=_stack_spell_effect_kinds(target),
+        effect_kinds=semantics.effect_kinds,
+        inactive_effect_kinds=semantics.inactive_effect_kinds,
     )
 
 
@@ -148,12 +227,14 @@ def _resolve_counter_unless_pay(
     legal_outcomes = ("PAY", "DECLINE") if payment_result.feasible else ("DECLINE",)
     target_public = _counter_payment_target(target)
 
-    raw_decision = choices.get("counter_payment")
     evaluator_id = "explicit-rules-choice"
     evaluator_sha256 = "0" * 64
     diagnostics: dict[str, Any] = {}
     decision_source = "EXPLICIT_ACTION_CHOICE"
-    if isinstance(raw_decision, dict):
+    if "counter_payment" in choices:
+        raw_decision = choices["counter_payment"]
+        if not isinstance(raw_decision, dict):
+            raise IllegalAction("counter payment decision must be a mapping")
         if raw_decision.get("player_id") != payer:
             raise IllegalAction(
                 "counter payment decision must be anchored to the target controller"
@@ -237,6 +318,7 @@ def _resolve_counter_unless_pay(
                 "target_mana_value": target_public.mana_value,
                 "target_card_types": list(target_public.card_types),
                 "target_effect_kinds": list(target_public.effect_kinds),
+                "target_inactive_effect_kinds": list(target_public.inactive_effect_kinds),
                 "amount": amount,
                 "actual_required_payment": amount,
                 "counter_destination": destination.value,
