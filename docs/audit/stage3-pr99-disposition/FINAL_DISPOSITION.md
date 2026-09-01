@@ -1,8 +1,8 @@
 # Stage 3 final PR #99 disposition supplement
 
-Status: TECHNICAL_DISPOSITION_COMPLETE_PROVENANCE_REFRESH_PENDING_EXACT_HEAD_VALIDATION
+Status: TECHNICAL_DISPOSITION_COMPLETE_FINAL_REVIEW_PENDING
 
-Independent final readiness audit classification: `READY_WITH_NONBLOCKING_FOLLOWUPS`. This is a technical classification; it does not declare the pull request merged or automatically merge-ready.
+Independent final local V3 audit classification: `READY_TO_COMMIT`. This is a technical classification of the correction candidate; it does not declare PR #104 Ready for Review, merge-ready, or merged.
 
 This document supplements, and does not rewrite, `INVENTORY.json`.
 
@@ -97,88 +97,171 @@ Representative recorded fields include:
 
 Fresh replay validates the recorded semantic outcome without invoking live policy. Fresh live policy recomputation from the same public semantic request is separately characterized to reproduce the selection.
 
-## Source-behavior verification and certification promotion
+## Authoritative source/test candidate and CR6–CR9 correction outcome
 
-The current authoritative Stage 3 CR6 source/test candidate is:
+The current authoritative Stage 3 source/test candidate is:
 
-`6a25a766ba13a8c0fa17b0a7abce61c7a77eef3b`
+- Commit: `3fdb10c8c8d9ccfccfe534a59e86aaa3ec5627ba`.
+- Tree: `f74b629bac7c17bdad83d68e71e19da9753eec8a`.
+- Parent: `76c30a666d12791daab73f46955c3e1ad2503f81`.
+- Subject: `Fix Stage 3 counter-payment review findings`.
+- Commit scope: exactly 12 changed paths, 885 insertions, and 55 deletions.
+- Preserved V3 patch: `/home/jeffa/stage3-pr104-cr7-cr9-working-v3.patch`, SHA-256 `eae81653c878329b7274ed7d57cc6d49bfd8a422d8022699e456096636935c67`, 53740 bytes.
 
-Its certified repository tree is:
+### CR6 — stack spell effect relevance
 
-`a59c324bb9e55c22ea5b21bc7a0e23001bec8bc7`
-
-CR6 corrected the P1 stack-spell effect-relevance defect discovered after the previous documentation head. Protected-spell contextual valuation now retains selected spell effects, excludes unselected spell modes and non-spell hand-activation capabilities, and retains legitimate post-resolution abilities of permanent spells. The runtime and valuation paths share the same hand-activation classification and use the kernel `PERMANENT_TYPES` authority.
+CR6 corrected the P1 stack-spell effect-relevance defect. Protected-spell contextual valuation retains selected spell effects, excludes unselected spell modes and hand-only/non-spell capabilities such as Muddle the Mixture's Transmute, and retains legitimate post-resolution abilities of permanent spells. The runtime and valuation paths share the same hand-activation classification and use the kernel `PERMANENT_TYPES` authority. CR6 remained sensitive in the later independent audits.
 
 Muddle the Mixture is the exact regression. Before CR6, its protected-spell effect kinds incorrectly included `COUNTER_IF` and `TRANSMUTE`, producing contextual value 27 and selecting `PAY` against Syncopate {3}, whose payment value was 24. After CR6, only `COUNTER_IF` contributes, contextual value is 9, and the correct result is `DECLINE`. The owner-authorized criterion did not change: `PAY` iff contextual target value is strictly greater than actual required payment times mana weight 8; ties remain `DECLINE`, and the evaluator remains `contextual_combo_v1`.
 
-CR6 source commit `6a25a766ba13a8c0fa17b0a7abce61c7a77eef3b` changed exactly:
+### CR7 — conditional resolution components
 
-- `src/mtg_kernel/phase_b_actions_common.py`
-- `src/mtg_kernel/phase_b_runtime_effects_interaction.py`
-- `tests/kernel/test_stack_spell_effect_relevance.py`
-- `tests/phase_c/test_stage3_counter_payment_boundary.py`
+Un-kicked Into the Roil retains its printed composite `BOUNCE_AND_KICKER_DRAW` effect kind while the normalized resolution model marks the `DRAW` component inactive. Its un-kicked target value is 9, so a tax of {2}, valued at 16, produces `DECLINE`. When kicked, its target value is 21 and the result is `PAY` when payment is legally feasible.
 
-The preserved CR6 working patch is `/home/jeffa/stage3-pr104-cr6-working.patch`, SHA-256 `cba49f5e8d5e5075db7f371dbe0e6ef581819c6c5c8e9663d044ccdf75a93f19`, 10682 bytes.
+CR7 did not change evaluator weights or configuration. Runtime resolution and protected-spell valuation consume the same normalized kicked rules fact. The normalized authority is the existing `current_characteristics["kicked"]` boolean. Truthy raw cast inputs accepted by the existing cast API normalize consistently instead of producing contradictory payment, resolution, or valuation results.
 
-Source-head CI run `33240921215` (displayed CI #1301) verified that candidate and produced both certification candidates. Recorded technical validation included:
+### CR8 — already-floating marked mana provenance
 
-- Format, lint, and mypy: PASS.
-- Turn-10 production/fresh replay smoke: PASS.
-- Phase A production verifier: 33 pass, 0 fail, 0 skip, 0 xfail.
-- Phase A certification candidate validation: PASS.
-- Full pytest: 524 passed.
-- Manifest: PASS.
-- Phase B verifier: 239 pass, 0 fail, 0 skip, 0 xfail.
-- Phase B golden transcripts: 12/12 PASS.
-- Phase B certification candidate validation: PASS.
-- Phase C no-game dry run: PASS.
-- Pilot lock: PASS.
+Public semantic resource classes distinguish ordinary and marked floating mana, including forms such as `floating:U` and `floating:U:marked`. Marker event IDs remain rules-private. The shared PR #101 solver remains the sole feasibility and canonical-allocation authority; execution binds exact marked provenance only after selection. No marker event ID crosses into policy evidence.
 
-Run-status provenance: source-head CI #1301 has an overall workflow conclusion of `failure` only because, after the substantive technical gates passed, the previously tracked durable Phase A certification expectedly reported `missing=[]`, `extra=[]`, and `changed=['src/mtg_kernel']`. Durable Phase B current was skipped after that Phase A current step failed. This was the expected source-head certification-renewal boundary, not a source, test, verifier, or candidate failure.
+Canonical mixed, marked, activation-cost, and malformed-ledger invariants pass. CR8 adds no duplicate solver and does not expose execution identity through the policy boundary.
 
-Source-head auxiliary validation also passed:
+### CR9 — malformed explicit counter-payment choice
 
-- Stage 2 Bridge STANDARD Benchmark, run `33240921218` (displayed run #86): PASS.
-- Stage 3 PR99 Prototype Preservation, run `33240921231` (displayed run #40): PASS.
+CR9 distinguishes absence of `counter_payment` from malformed presence. A malformed present value fails closed before provider fallback, the provider is not called, and mutation rolls back atomically. An absent key still invokes the policy/provider path. Valid explicit `PAY` and `DECLINE` choices remain supported.
 
-The two exact CI-produced certification candidate files were promoted byte-for-byte, without local regeneration or manual transcription, in commit:
+CR6–CR9 correct the bounded Stage 3 implementation and evidence boundary. They do not establish or claim any new general strategic optimality.
 
-`946b223e66f66824f0a469b12f0baa76b8d5d581`
+## Independent final local V3 audit
 
-Both durable records intentionally remain bound through `certified_content_commit` to source/test candidate `6a25a766ba13a8c0fa17b0a7abce61c7a77eef3b`; they do not certify the certification-promotion commit itself.
+The final independent local V3 audit was performed after the earlier V1 and V2 blockers. Its final classification was `READY_TO_COMMIT`.
 
-Current exact durable certification provenance:
+- Start: `2026-08-31 23:46:12 PDT`.
+- Finish: `2026-09-01 01:06:10 PDT`.
+- Duration: 1 hour 19 minutes 58 seconds.
+- Independent full `tests/phase_c`: 150 passed, 0 failed, 4787.63 seconds (`1:19:47`).
+- Independent `tests/kernel`: 49 passed.
+- Independent `tests/phase_b`: 239 passed.
+- Phase A golden transcripts: 5 PASS.
+- Phase B golden transcripts: 12 PASS.
+- Ruff formatting, lint, mypy, clean-engine boundary, and authority gates: PASS.
+- Witness expected and actual: `4c8cdf227e7f2ad924eccc6ef1ec903e447887915546a0512cd11e04af4d7845`.
+- Governed policy, pilot, and configuration bytes remained unchanged.
+- The pilot remained locked.
 
-| Certification | Certified source/test candidate | Certified repository tree | Source-head CI run | Promotion commit | SHA-256 of exact candidate/promoted bytes | Bytes | Git blob at promotion head | Covered-content SHA-256 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Phase A | `6a25a766ba13a8c0fa17b0a7abce61c7a77eef3b` | `a59c324bb9e55c22ea5b21bc7a0e23001bec8bc7` | `33240921215` | `946b223e66f66824f0a469b12f0baa76b8d5d581` | `8eaf37c9dc6df83f773a9b15980f042a78620f4b85a9f877bc289d882549cf1c` | 5138 | `c28ed6f1fe444afe994aedd453aea01271ab09a4` | `sha256:3e24a9f8debf9f823a2e6240dfe230c08841d99be88f3eb578b1bf69a2f8dbc2` |
-| Phase B | `6a25a766ba13a8c0fa17b0a7abce61c7a77eef3b` | `a59c324bb9e55c22ea5b21bc7a0e23001bec8bc7` | `33240921215` | `946b223e66f66824f0a469b12f0baa76b8d5d581` | `a7c6ef0cb19038634eaa2cd3a1e1168011960ffb73d084298c8d9c6c0d039692` | 6563 | `2ea57726f393266b19c79d8ef10db149849ffada` | `sha256:d4c5517e220a289e3bb74e01780b576cc0b126d00fc6fc749184b64e65c2bf38` |
+This was an independent local code audit, not a GitHub-native audit.
 
-Compared with the immediately prior durable records, the only Phase A covered-path digest change is `src/mtg_kernel`, now `sha256:19f874eec2eda7ef17837c55fa268bafafdb06316830d65ab8312d8a82761ae0`. The only Phase B covered-path digest changes are that same `src/mtg_kernel` digest and `tests/phase_c`, now `sha256:ea90fa45cf0daa7538280600b21a47af6d3e6fcb79de3eb90d56e24fca48dd4d`. `tests/kernel` remains intentionally outside both certification `covered_paths`.
+## Source-head CI #1304
 
-Both candidates record `github_run_id = 33240921215`, `verification_environment = GITHUB_ACTIONS`, `clean_tree_before_run = true`, `legacy_evidence_used = false`, and `pilot_lock = PASS`.
+GitHub Actions run `33492826686` (displayed CI #1304) ran on exact source head `3fdb10c8c8d9ccfccfe534a59e86aaa3ec5627ba`, tree `f74b629bac7c17bdad83d68e71e19da9753eec8a`. It started at `2026-09-01T09:33:18Z` and completed at `2026-09-01T10:45:09Z`, a duration of 1 hour 11 minutes 51 seconds.
 
-The certification-promotion head `946b223e66f66824f0a469b12f0baa76b8d5d581` then completed final-head validation:
+The overall workflow conclusion was `FAILURE`, but every substantive technical gate passed:
 
-- Main CI run `33263922366` (displayed CI #1302): SUCCESS. It ran from 2026-08-29 09:47:32 PT through 11:37:20 PT, an actual duration of 1 hour 49 minutes 48 seconds. All normal steps passed, including full Tests, both verifiers, both candidate validations, Phase C no-game dry run, and both durable-current certification checks.
-- Stage 2 Bridge STANDARD Benchmark, run `33263922371` (displayed run #87): PASS.
-- Stage 3 PR99 Prototype Preservation, run `33263922435` (displayed run #41): PASS.
+- Frozen identity lock.
+- Repository evidence integrity.
+- Phase A authority.
+- Phase B evaluator/learning boundary.
+- Public policy information boundary.
+- STANDARD noninterference.
+- Clean-engine boundary.
+- Legacy isolation.
+- Formatting.
+- Lint.
+- Mypy.
+- Phase C production/replay smoke.
+- Phase A verifier.
+- Phase A candidate build and validation.
+- Full Tests.
+- Manifest integrity.
+- Phase B verifier.
+- Phase B candidate build and validation.
+- Phase C no-game dry run.
 
-The immediately preceding pre-CR6 chain remains legitimate but superseded historical provenance: source/test commit `3da7f577e9bd24aa4c587412b54cf42b911db5f4`, source-head CI run `33101238756`, certification promotion `048e3565560a7d6d3bc60e46fc60f5df7a36a9fd`, and documentation refresh `ef4864d02503737bfa65f72d9c383f211fa56800`. That chain was valid when recorded, but CR6 subsequently identified and corrected the stack-spell effect-relevance defect, so none of those commits or runs is the current authoritative chain.
+The only failing step was `Durable Phase A certification is current`, because the prior durable certification was expectedly stale after the source/test changes. Durable Phase B currentness was skipped after that failure. Both new candidates were nevertheless built, validated, and uploaded successfully.
 
-The still-earlier Stage 3 source and certification chain also remains historical context: source head `f8eb5343c3d89d956b8fe994184c6599c817c815`, CI run `32595603688`, and promotion commit `e8db5fd0f3f068b8b01c898373a2bcd973d16bda`. It is not current.
+Source-head auxiliary workflows also passed:
+
+- Stage 2 Bridge STANDARD Benchmark #89: `SUCCESS`.
+- Stage 3 PR99 Prototype Preservation #43: `SUCCESS`.
+
+## Exact certification candidates
+
+The Phase A candidate was:
+
+- Artifact: `phase-a-certification-candidate-3fdb10c8c8d9ccfccfe534a59e86aaa3ec5627ba`.
+- Artifact ID: `9796896951`.
+- Exact promoted `CERTIFICATION.json` SHA-256: `b67769c81c5e23cee6114db1f4efbe6d97fab0a739242897bfc5e82d63e23e78`.
+- Bytes: 5138.
+- Certified content commit: `3fdb10c8c8d9ccfccfe534a59e86aaa3ec5627ba`.
+- Certified repository tree: `f74b629bac7c17bdad83d68e71e19da9753eec8a`.
+- Counts: 33 pass, 0 fail, 0 skip, 0 xfail.
+- `clean_tree_before_run = true`, `legacy_evidence_used = false`, and `pilot_lock = PASS`.
+
+The Phase B candidate was:
+
+- Artifact: `phase-b-certification-candidate-3fdb10c8c8d9ccfccfe534a59e86aaa3ec5627ba`.
+- Artifact ID: `9796895996`.
+- Exact promoted `CERTIFICATION.json` SHA-256: `1431ed414e4e3889a8bed809f922ae776548709fa7dd12ba495b12a25083ea8e`.
+- Bytes: 6563.
+- Certified content commit: `3fdb10c8c8d9ccfccfe534a59e86aaa3ec5627ba`.
+- Certified repository tree: `f74b629bac7c17bdad83d68e71e19da9753eec8a`.
+- Counts: 239 pass, 0 fail, 0 skip, 0 xfail.
+- Golden transcripts: 12 PASS.
+- `clean_tree_before_run = true`, `legacy_evidence_used = false`, and `pilot_lock = PASS`.
+
+Both candidates record `github_run_id = 33492826686`, `verification_environment = GITHUB_ACTIONS`, `status = PASS`, and the exact source/test candidate and tree above.
+
+## Certification promotion
+
+The two exact CI-produced candidates were promoted byte-for-byte, without local regeneration or manual transcription, in:
+
+- Commit: `654054adbe4eedd0383309b92beebb38977187e8`.
+- Tree: `85c877e55d7f61ab366510dfbd5e1db376cb4b5f`.
+- Parent: `3fdb10c8c8d9ccfccfe534a59e86aaa3ec5627ba`.
+- Subject: `Renew Stage 3 Phase A and B certifications`.
+- Changed paths: `docs/audit/phase-a-certification/CERTIFICATION.json` and `docs/audit/phase-b-certification/CERTIFICATION.json`.
+- Aggregate diff: 2 files changed, 19 insertions, and 19 deletions.
+
+The certifications intentionally certify source/test candidate `3fdb10c8c8d9ccfccfe534a59e86aaa3ec5627ba`, not the later promotion commit.
+
+## Promotion-head validation
+
+Promotion-head GitHub Actions run `33530919978` (displayed CI #1305) ran on head `654054adbe4eedd0383309b92beebb38977187e8`, tree `85c877e55d7f61ab366510dfbd5e1db376cb4b5f`. It started at `2026-09-01T16:17:36Z` and completed at `2026-09-01T18:01:32Z`, a duration of 1 hour 43 minutes 56 seconds.
+
+The workflow conclusion was `SUCCESS`. All Stage 3-relevant steps passed, including:
+
+- Full Tests.
+- Phase A verifier.
+- Phase B verifier.
+- Phase A candidate validation.
+- Phase B candidate validation.
+- Phase C no-game dry run.
+- Durable Phase A certification is current.
+- Durable Phase B certification is current.
+
+Auxiliary exact-head workflows also passed:
+
+- Stage 2 Bridge STANDARD Benchmark #90: `SUCCESS`.
+- Stage 3 PR99 Prototype Preservation #44: `SUCCESS`.
+
+The prior CR6-only source/certification chain remains legitimate historical provenance but is superseded as the current authority by the CR7–CR9 correction source candidate, CI #1304 candidates, promotion commit, and CI #1305 validation recorded above.
 
 These SHA-256 values are durable verification anchors for the exact promoted bytes and remain usable after the CI artifact-retention window expires.
 
-Certification candidate artifact bytes, durable SHA-256 anchors, and Git repository object identity are distinct provenance layers. The Git blob IDs identify the exact promoted repository objects; they do not replace the SHA-256 anchors or imply that artifact retention is permanent.
+Certification candidate artifact bytes, durable SHA-256 anchors, and Git repository object identity are distinct provenance layers. Repository object identity does not replace the SHA-256 anchors or imply that artifact retention is permanent.
 
-The durable records are the current post-PR #101 Stage 3 certifications. They are not the obsolete certification files contained on frozen PR #99. This documentation refresh records already validated provenance; its own resulting commit is not CI-validated until exact-head CI completes.
+The durable records are the current post-PR #101 Stage 3 certifications. They are not the obsolete certification files contained on frozen PR #99. This documentation refresh records already validated implementation and certification provenance; its own resulting commit still requires exact-head CI.
 
-## Known certification-provenance follow-up
+## Nonblocking followups
 
 Stage 3 does not change `scripts/_certification_provenance.py`. Independent review identified a governance hardening issue for later work: the helper does not perform the recorded-artifact byte comparison when a current-run candidate is present, and an expired recorded artifact can make that comparison unavailable without itself appending an error. The durable SHA-256 anchors above mitigate later auditability for this Stage 3 promotion, but they do not replace the need for a future fail-closed correction to that helper. This is recorded as a follow-up defect, not treated as evidence that the Stage 3 candidate bytes differ.
 
 Windows path length is also a known measurement hazard for this repository's long golden-transcript paths. Digest verification should prefer repository-object or in-memory archive reads over Windows filesystem extraction when path length could exceed the platform limit; a missing-on-disk path must not by itself be treated as a missing Git object.
+
+- `NB-V3-1`: The conditional-resolution registry is currently code-level and has one entry. Adding another conditional-effect class will require extending that registry.
+- `NB-V3-2`: The class-level conditional-resolution invariant currently binds to the real `BOUNCE_AND_KICKER_DRAW` registry key because synthetic unregistered effect kinds cannot exercise the registry.
+
+The kicked-input truthiness issue is not a remaining followup; it was corrected and independently audited in V3.
 
 ## Guardrail outcomes
 
@@ -190,16 +273,20 @@ At this disposition point:
 - Strategic Context was not implemented.
 - REQUIREMENTS_AWARE behavior was not implemented.
 - PR #99 V2 exploratory scoring, projection, arms, and configs were not imported.
+- No replacement exploratory policy was implemented.
 - Existing unrelated STANDARD priority-action ranking, weights, and tie-breaks were not changed.
 - No duplicate resource feasibility solver or full-executor feasibility planner was added.
 - No duplicate semantic-action identity/normalizer layer was added.
 - No pilot, replacement pilot, exploratory study, or full study was executed.
+- Pilot authorization remains locked and pending explicit owner approval.
+- The full study remains separately locked.
 - PR #99 branch-local Phase A/B certification files were never copied forward.
+- Merge remains a separate owner/human action.
 
 ## Closeout condition
 
-This supplement is the final Stage 3 disposition layer. It does not itself declare the pull request merge-ready merely by existing.
+This supplement is the final Stage 3 disposition layer. Technical implementation and certification are complete. It does not declare PR #104 Ready for Review or merge-ready merely by existing.
 
-The CR6 source/test candidate `6a25a766ba13a8c0fa17b0a7abce61c7a77eef3b` is technically validated, its exact CI-produced Phase A and Phase B certifications are promoted in `946b223e66f66824f0a469b12f0baa76b8d5d581`, and promotion-head CI #1302 is fully green. This documentation-only commit is the remaining provenance refresh.
+The CR6–CR9 source/test candidate `3fdb10c8c8d9ccfccfe534a59e86aaa3ec5627ba` is technically validated. Its exact CI-produced Phase A and Phase B certifications are promoted in `654054adbe4eedd0383309b92beebb38977187e8`, and promotion-head CI #1305 succeeded.
 
-The independent technical audit classification remains `READY_WITH_NONBLOCKING_FOLLOWUPS`, but this documentation refresh does not itself make PR #104 ready for GitHub review or merge. Its resulting exact head must complete CI before CR6 thread resolution or any Ready-for-Review mutation. A fresh live review-thread and current-head audit must follow that CI. Merge still requires separate explicit human authorization.
+This documentation-only commit must complete exact-head CI, after which a fresh final reviewer pass is still required. The status remains `TECHNICAL_DISPOSITION_COMPLETE_FINAL_REVIEW_PENDING` even if the documentation commit's CI later passes, until that fresh reviewer gate is complete. Review threads CR6–CR9 must remain unresolved until the final review gate. No Ready-for-Review transition or merge is authorized; merge still requires separate explicit human authorization.
