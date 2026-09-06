@@ -56,12 +56,18 @@ jobs:
           test "$(git rev-list --count "${PROTOTYPE_BASE}..${PROTOTYPE_HEAD}")" = "34"
           test "$(git diff --name-only "${PROTOTYPE_BASE}" "${PROTOTYPE_HEAD}" | wc -l)" = "37"
           PATCH_FILE="${RUNNER_TEMP}/pr99-full-index.patch"
+          DURABLE_PATCH="docs/audit/stage3-pr99-disposition/evidence/PR99_PROTOTYPE_FULL_INDEX.patch"
           git -c core.quotepath=false diff \
             --binary \
             --full-index \
             --no-ext-diff \
             --no-color \
             "${PROTOTYPE_BASE}" "${PROTOTYPE_HEAD}" > "${PATCH_FILE}"
+          test -f "${DURABLE_PATCH}"
+          test "$(sha256sum "${DURABLE_PATCH}" | awk '{print $1}')" = \
+            "31dbf0dad6c8bc497ea8dcb2bd40694d28e9b90cd6b25cf1b24a4cb5aae88b16"
+          test "$(wc -c < "${DURABLE_PATCH}")" = "297677"
+          cmp -s "${PATCH_FILE}" "${DURABLE_PATCH}"
           PATCH_SHA256="$(sha256sum "${PATCH_FILE}" | awk '{print $1}')"
           PATCH_BYTES="$(wc -c < "${PATCH_FILE}")"
           echo "CANONICAL_PATCH_COMMAND=git -c core.quotepath=false diff --binary --full-index --no-ext-diff --no-color ${PROTOTYPE_BASE} ${PROTOTYPE_HEAD}"

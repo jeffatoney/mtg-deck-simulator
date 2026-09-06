@@ -19,6 +19,12 @@ This document supplements, and does not rewrite, `INVENTORY.json`.
 - Canonical PR #99 patch SHA-256: `31dbf0dad6c8bc497ea8dcb2bd40694d28e9b90cd6b25cf1b24a4cb5aae88b16`.
 - PR #99 remains open, draft, unmerged, and unmodified.
 
+## Durable prototype bytes correction
+
+Final Codex review found that the prior digest-and-manifest-only preservation claim was insufficient under the repository evidence policy. The exact 297,677-byte canonical PR #99 patch is now committed at `docs/audit/stage3-pr99-disposition/evidence/PR99_PROTOTYPE_FULL_INDEX.patch`; its SHA-256 `31dbf0dad6c8bc497ea8dcb2bd40694d28e9b90cd6b25cf1b24a4cb5aae88b16` and size match the original preservation measurement. `docs/audit/EVIDENCE_INDEX.json` indexes the actual patch bytes.
+
+The Stage 3 preservation workflow continues to verify live frozen PR #99 metadata and now reconstructs the canonical patch and byte-compares it with the committed durable artifact. The historical GitHub Actions measurement remains corroborating ephemeral evidence, not the sole preservation source. This correction changes no production, policy, test, certification, pilot, or study behavior. A new exact-head CI run and final reviewer pass remain required; final review is not complete.
+
 ## Final component dispositions
 
 | Component | Original classification / status in `INVENTORY.json` | Final extraction status | Current destination / implementation | Evidence and tests | Certification effect | Owner decision |

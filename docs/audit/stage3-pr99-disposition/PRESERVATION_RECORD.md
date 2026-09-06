@@ -14,7 +14,7 @@ PR #99, **Phase C: directed exploratory V2 redesign**, is preserved as prototype
 
 PR #99 will remain open, draft, unmerged, and unmodified. Stage 3 does not merge, rebase, update, force-push, or wholesale cherry-pick the prototype branch.
 
-## Canonical patch digest
+## Canonical patch preservation
 
 The preservation measurement ran on GitHub Actions Ubuntu 24.04 using Git `2.55.0`.
 
@@ -24,15 +24,27 @@ Canonical command:
 git -c core.quotepath=false diff --binary --full-index --no-ext-diff --no-color 150671a8e7a78e5fa14b6b3aca2308f6af647df3 4c9a404fc9308ecc281711b4b9b48eef6dfd441b
 ```
 
-Measured patch:
+Canonical patch identity:
 
 - SHA-256: `31dbf0dad6c8bc497ea8dcb2bd40694d28e9b90cd6b25cf1b24a4cb5aae88b16`
 - Bytes: 297,677
+
+### Durable repository evidence
+
+- Path: `docs/audit/stage3-pr99-disposition/evidence/PR99_PROTOTYPE_FULL_INDEX.patch`
+- SHA-256: `31dbf0dad6c8bc497ea8dcb2bd40694d28e9b90cd6b25cf1b24a4cb5aae88b16`
+- Bytes: 297,677
+- Evidence index: `docs/audit/EVIDENCE_INDEX.json`
+
+The committed patch is the durable preservation source. The preservation workflow reconstructs the live frozen prototype with the canonical command and requires byte-for-byte equality with this repository artifact.
+
+### Corroborating GitHub Actions measurement
+
 - Workflow run: `32554710434`
 - Job: `96986959097`
 - Measurement artifact: `9471079396`
 
-The same workflow independently verified the prototype base/head SHAs, 34-commit count, 37-file count, and open/draft/unmerged PR state before emitting the digest.
+The GitHub Actions artifact is historical corroborating, ephemeral measurement evidence with limited retention; it is not the sole durable preservation source. The same workflow independently verified the prototype base/head SHAs, 34-commit count, 37-file count, and open/draft/unmerged PR state before emitting the digest.
 
 ## Complete changed-file manifest
 
