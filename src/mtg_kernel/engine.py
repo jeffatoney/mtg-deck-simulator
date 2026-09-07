@@ -21,6 +21,7 @@ from mtg_kernel.models import (
     Zone,
 )
 from mtg_kernel.observation import ObservationService
+from mtg_kernel.resource_sources import DEFAULT_OPPONENT_MANA_PROFILE
 from mtg_kernel.strategic_choices import (
     OptionalTriggerRequest,
     PublicCard,
@@ -40,9 +41,16 @@ class HardenedGameExecutor(_CoreGameExecutor):
         *,
         replaying: bool = False,
         probing: bool = False,
+        opponent_mana_profile: str = DEFAULT_OPPONENT_MANA_PROFILE,
         strategic_choice_provider: StrategicChoiceProvider | None = None,
     ) -> None:
-        super().__init__(state, seed, replaying=replaying, probing=probing)
+        super().__init__(
+            state,
+            seed,
+            replaying=replaying,
+            probing=probing,
+            opponent_mana_profile=opponent_mana_profile,
+        )
         self.strategic_choice_provider = strategic_choice_provider
 
     def bind_strategic_choice_provider(
@@ -540,13 +548,21 @@ def _guarded_core_initializer(
     *,
     replaying: bool = False,
     probing: bool = False,
+    opponent_mana_profile: str = DEFAULT_OPPONENT_MANA_PROFILE,
 ) -> None:
     if type(self) is _CoreGameExecutor:
         raise UnsupportedCapability(
             "internal executor core cannot be instantiated directly; "
             "use mtg_kernel.engine.GameExecutor"
         )
-    _CORE_INITIALIZER(self, state, seed, replaying=replaying, probing=probing)
+    _CORE_INITIALIZER(
+        self,
+        state,
+        seed,
+        replaying=replaying,
+        probing=probing,
+        opponent_mana_profile=opponent_mana_profile,
+    )
 
 
 setattr(_CoreGameExecutor, "__init__", _guarded_core_initializer)

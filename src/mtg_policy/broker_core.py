@@ -160,6 +160,7 @@ class ActionBroker:
             self.executor.seed,
             replaying=True,
             probing=True,
+            opponent_mana_profile=self.executor.opponent_mana_profile,
             strategic_choice_provider=self.executor.strategic_choice_provider,
         )
         try:

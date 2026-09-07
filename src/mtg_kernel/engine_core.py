@@ -51,12 +51,13 @@ class GameExecutor:
         *,
         replaying: bool = False,
         probing: bool = False,
+        opponent_mana_profile: str = DEFAULT_OPPONENT_MANA_PROFILE,
     ) -> None:
         self.state = state
         self.seed = seed
         self.replaying = replaying
         self.probing = probing
-        self._opponent_mana_profile = DEFAULT_OPPONENT_MANA_PROFILE
+        self._opponent_mana_profile = validate_opponent_mana_profile(opponent_mana_profile)
         self.identity = IdentityService(state, seed)
         self.zones = ZoneService(state, self.identity)
         self._resolution_depth = 0
