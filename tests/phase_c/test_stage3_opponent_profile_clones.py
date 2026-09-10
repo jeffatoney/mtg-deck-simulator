@@ -223,3 +223,54 @@ def test_constructor_profile_does_not_weaken_replay_history_setter_guard() -> No
         match="opponent mana profile cannot change after replay recording begins",
     ):
         clone.opponent_mana_profile = "blue_red_available"
+
+
+def test_constructor_nondefault_profile_synchronizes_existing_replay_and_replays() -> None:
+    seed = "stage3-profile-clone-constructor-replay-sync"
+    state, _setup = new_game(PLAYERS, seed)
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    state.turn.phase = "PRECOMBAT_MAIN"
+    state.turn.step = "PRECOMBAT_MAIN"
+    for symbol in ("W", "U", "B", "R", "G", "C"):
+        state.players["P0"].mana_pool[symbol] = 0
+    state.players["P0"].mana_pool["U"] = 2
+    add_card(_setup, specs["Exotic Orchard"], Zone.BATTLEFIELD, owner="P0")
+    add_card(_setup, specs["Fellwar Stone"], Zone.BATTLEFIELD, owner="P0")
+    creature = add_card(_setup, specs["Dualcaster Mage"], Zone.BATTLEFIELD, owner="P0")
+    curiosity = add_card(_setup, specs["Curiosity"], Zone.HAND, owner="P0")
+    spell_pierce = add_card(_setup, specs["Spell Pierce"], Zone.HAND, owner="P0")
+    snapshot = state_to_data(state)
+    assert "execution_context" not in snapshot
+    state.replay_initial_state = snapshot
+
+    executor = GameExecutor(
+        state,
+        seed,
+        opponent_mana_profile="no_known_colors",
+    )
+    provider = _CapturingCounterProvider(_production_provider(), [])
+    executor.bind_strategic_choice_provider(provider)
+    target = executor.cast(
+        "P0",
+        curiosity.object_id,
+        targets=(TargetRef(creature.object_id),),
+    )
+    executor.cast(
+        "P0",
+        spell_pierce.object_id,
+        targets=(TargetRef(target.object_id),),
+    )
+    assert sum(state.players["P0"].mana_pool.values()) == 0
+    _resolve_top(executor)
+
+    assert executor.opponent_mana_profile == "no_known_colors"
+    assert len(provider.requests) == 1
+    assert provider.requests[0].payment_result.feasible is False
+    assert _counter_outcome(state) == "DECLINE"
+    assert target.object_id not in state.stack
+    body = transcript(state, seed=executor.seed)
+    assert body["initial_state"]["execution_context"] == {
+        "opponent_mana_profile": "no_known_colors"
+    }
+    replayed = validate_replay(body)
+    assert state_hash(replayed) == state_hash(state)

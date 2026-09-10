@@ -58,6 +58,7 @@ class GameExecutor:
         self.replaying = replaying
         self.probing = probing
         self._opponent_mana_profile = validate_opponent_mana_profile(opponent_mana_profile)
+        self._synchronize_constructor_replay_execution_context()
         self.identity = IdentityService(state, seed)
         self.zones = ZoneService(state, self.identity)
         self._resolution_depth = 0
@@ -72,6 +73,24 @@ class GameExecutor:
         if profile != self._opponent_mana_profile and self.state.replay_commands:
             raise IllegalAction("opponent mana profile cannot change after replay recording begins")
         self._opponent_mana_profile = profile
+        self._sync_replay_execution_context()
+
+    def _recorded_replay_opponent_mana_profile(self, initial: dict[str, Any]) -> str:
+        raw_context = initial.get(_REPLAY_EXECUTION_CONTEXT_KEY)
+        if raw_context is not None and not isinstance(raw_context, dict):
+            raise IllegalAction("replay execution context is malformed")
+        context = dict(raw_context or {})
+        if _OPPONENT_MANA_PROFILE_KEY not in context:
+            return DEFAULT_OPPONENT_MANA_PROFILE
+        return validate_opponent_mana_profile(context[_OPPONENT_MANA_PROFILE_KEY])
+
+    def _synchronize_constructor_replay_execution_context(self) -> None:
+        initial = self.state.replay_initial_state
+        if initial is None:
+            return
+        recorded = self._recorded_replay_opponent_mana_profile(initial)
+        if self.state.replay_commands and recorded != self._opponent_mana_profile:
+            raise IllegalAction("opponent mana profile cannot change after replay recording begins")
         self._sync_replay_execution_context()
 
     def _sync_replay_execution_context(self) -> None:
