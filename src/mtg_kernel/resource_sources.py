@@ -177,12 +177,9 @@ def _effect_productions(
             return ()
         return _choice_productions(colors, activation_cost=activation_cost)
     if kind == "ADD_CHOSEN_MANA_AND_DAMAGE_SELF":
-        damage = int(effect.get("damage", 1))
-        if state.players[player_id].life <= damage:
-            # This known activation is currently illegal because it would cause a
-            # state-based loss. Omit only this production mode; other independent
-            # mana abilities on the same permanent remain available.
-            return ()
+        # Damage from this mana ability is an effect, not a life-payment cost.
+        # The ability remains legally activatable even if the eventual damage
+        # would cause a later state-based loss.
         return _choice_productions(effect.get("choices", ()), activation_cost=activation_cost)
     if kind == "ADD_BLUE_OR_FIXED_CHOSEN":
         fixed = str(obj.current_characteristics.get("chosen_color", ""))

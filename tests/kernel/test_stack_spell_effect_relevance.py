@@ -5,6 +5,8 @@ import pytest
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.models import CardSpec, GameObject, ObjectKind, Zone
 from mtg_kernel.phase_b_runtime_effects_interaction import (
+    _CONDITIONAL_RESOLUTION_COMPONENTS,
+    _require_single_conditional_resolution_component,
     _stack_spell_effect_kinds,
     _stack_spell_effect_semantics,
 )
@@ -145,3 +147,9 @@ def test_kicker_resolution_semantics_use_normalized_production_cast_fact(
     assert sum(action.payments["mana"].values()) == int(expected_kicked)
     assert semantics.effect_kinds == ("BOUNCE_AND_KICKER_DRAW",)
     assert semantics.inactive_effect_kinds == (() if expected_kicked else ("DRAW",))
+
+
+def test_conditional_resolution_registry_is_bounded_to_one_component() -> None:
+    _require_single_conditional_resolution_component()
+    assert list(_CONDITIONAL_RESOLUTION_COMPONENTS) == ["BOUNCE_AND_KICKER_DRAW"]
+    assert len(_CONDITIONAL_RESOLUTION_COMPONENTS["BOUNCE_AND_KICKER_DRAW"]) == 1

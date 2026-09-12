@@ -70,6 +70,29 @@ _CONDITIONAL_RESOLUTION_COMPONENTS = {
 }
 
 
+def _require_single_conditional_resolution_component() -> None:
+    """Keep the Stage 3 inactive-feature subtraction soundness bound executable.
+
+    Valuation currently subtracts inactive effects by feature rather than
+    component identity. That is sound only while this registry has one entry.
+    """
+
+    if len(_CONDITIONAL_RESOLUTION_COMPONENTS) != 1:
+        raise UnsupportedCapability(
+            "conditional-resolution registry is bounded to one effect kind until "
+            "inactive-component valuation accounts by component identity"
+        )
+    components = next(iter(_CONDITIONAL_RESOLUTION_COMPONENTS.values()))
+    if len(components) != 1:
+        raise UnsupportedCapability(
+            "conditional-resolution registry is bounded to one component until "
+            "inactive-component valuation accounts by component identity"
+        )
+
+
+_require_single_conditional_resolution_component()
+
+
 def _conditional_resolution_component_is_active(
     component: _ConditionalResolutionComponent,
     cast_choices: dict[str, Any],

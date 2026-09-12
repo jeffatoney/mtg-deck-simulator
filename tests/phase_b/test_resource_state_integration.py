@@ -157,7 +157,7 @@ def test_opponent_profile_mana_respects_no_known_colors_sensitivity() -> None:
     assert hidden.colored_pip_deficits == (("U", 1),)
 
 
-def test_shivan_reef_keeps_safe_colorless_mode_at_one_life() -> None:
+def test_shivan_reef_colored_mode_remains_legal_at_one_life() -> None:
     reef = _permanent(
         "reef-object",
         "Shivan Reef",
@@ -186,8 +186,8 @@ def test_shivan_reef_keeps_safe_colorless_mode_at_one_life() -> None:
         (PaymentStep("blue", "{U}", PaymentWindow(0, "current")),),
     )
     assert colorless.feasible is True
-    assert blue.feasible is False
-    assert blue.colored_pip_deficits == (("U", 1),)
+    assert blue.feasible is True
+    assert blue.colored_pip_deficits == ()
 
 
 def test_state_payment_uses_floating_red_and_one_treasure_once() -> None:

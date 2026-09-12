@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import pytest
 
+from mtg_cards.full_deck import load_full_deck_specs
 from mtg_kernel.errors import IllegalAction
+from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.mana import COLORS, parse_mana_cost, pay_exact_mana
+from mtg_kernel.models import TargetRef, Zone
 
 
 @pytest.mark.parametrize(
@@ -58,6 +61,16 @@ def test_exact_payment_consumes_only_requested_units_from_a_surplus_pool() -> No
     assert pool == {**{color: 0 for color in COLORS}, "U": 1, "R": 1}
 
 
+def test_exact_payment_consumes_the_selected_unit_when_multiple_are_legal() -> None:
+    pool = {color: 0 for color in COLORS}
+    pool.update({"U": 1, "R": 1})
+
+    assert pay_exact_mana(pool, parse_mana_cost("{1}"), {"R": 1}) == {"R": 1}
+    assert pool["U"] == 1
+    assert pool["R"] == 0
+    assert pool["C"] == 0
+
+
 @pytest.mark.parametrize(
     ("proposed", "message"),
     [
@@ -76,3 +89,26 @@ def test_malformed_exact_payment_fails_without_mutating_pool(
         pay_exact_mana(pool, parse_mana_cost("{U}"), proposed)
 
     assert pool == before
+
+
+def test_activate_exact_generic_payment_consumes_selected_units() -> None:
+    state, executor = new_game(("P0", "P1"), "exact-generic-activate")
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    for symbol in COLORS:
+        state.players["P0"].mana_pool[symbol] = 0
+    state.players["P0"].mana_pool["U"] = 2
+    state.players["P0"].mana_pool["R"] = 1
+    field = add_card(executor, specs["Demolition Field"], Zone.BATTLEFIELD, owner="P0")
+    target = add_card(executor, specs["Thriving Isle"], Zone.BATTLEFIELD, owner="P1")
+
+    executor.activate(
+        "P0",
+        field.object_id,
+        "demolition-field:destroy",
+        targets=(TargetRef(target.object_id),),
+        choices={"library_search": {"P1": "FAIL_TO_FIND", "P0": "FAIL_TO_FIND"}},
+        mana_payment={"U": 1, "R": 1},
+    )
+
+    assert state.players["P0"].mana_pool["U"] == 1
+    assert state.players["P0"].mana_pool["R"] == 0
