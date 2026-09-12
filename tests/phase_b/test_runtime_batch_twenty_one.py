@@ -76,6 +76,7 @@ def test_spell_pierce_requires_qualifying_target_and_explicit_controller_decisio
     state.players["P0"].mana_pool["U"] = 1
     target_spell = cast_opt_from_p1(state, executor, specs)
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
+    executor.bind_strategic_choice_provider(object(), controlled_player_id="P0")
     executor.cast("P0", pierce.object_id, targets=(TargetRef(target_spell.object_id),))
     executor.pass_priority("P0")
     before = state_hash(state)

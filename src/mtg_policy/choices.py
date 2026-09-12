@@ -432,9 +432,11 @@ def bind_policy_strategic_choices(
     executor: GameExecutor,
     bundle: PolicyBundle,
     evaluator: ContextualEvaluator,
+    *,
+    controlled_player_id: str,
 ) -> PolicyStrategicChoiceProvider:
     """Attach one frozen policy/evaluator snapshot to the shared executor."""
 
     provider = PolicyStrategicChoiceProvider(bundle, evaluator)
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id=controlled_player_id)
     return provider

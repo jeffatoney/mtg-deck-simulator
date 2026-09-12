@@ -93,7 +93,8 @@ def test_invert_invent_executes_both_faces_and_type_tutor() -> None:
                 "TUTOR_INSTANT": ("Opt",),
                 "TUTOR_SORCERY": ("Twinflame",),
             }
-        )
+        ),
+        controlled_player_id="P0",
     )
 
     executor.cast("P0", invent.object_id, face=1)
@@ -122,7 +123,7 @@ def test_long_term_plans_places_selected_card_third_from_top() -> None:
     )
     spell = add_card(executor, specs["Long-Term Plans"], Zone.HAND)
     executor.bind_strategic_choice_provider(
-        NamedSelectionProvider({"TUTOR_THIRD_FROM_TOP": ("Opt",)})
+        NamedSelectionProvider({"TUTOR_THIRD_FROM_TOP": ("Opt",)}), controlled_player_id="P0"
     )
 
     executor.cast("P0", spell.object_id)

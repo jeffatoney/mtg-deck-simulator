@@ -71,7 +71,7 @@ def apply_phase_b_effect(
     if kind == "DEMOLITION_FIELD":
         from mtg_kernel.phase_b_runtime_effects_demolition import apply_demolition_field
 
-        apply_demolition_field(executor, action, targets)
+        apply_demolition_field(executor, action, targets, choices)
         return True
     if kind != "RECORD_UNKNOWN_BREECHES_EXILES":
         from mtg_kernel.phase_b_actions_core import apply_phase_b_effect as apply_core

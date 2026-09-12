@@ -43,7 +43,7 @@ def pass_all(executor) -> None:
 def test_fetch_lands_sacrifice_then_find_basic_land_tapped(land_name: str, ability_id: str) -> None:
     seed = f"fetch-{land_name}"
     state, executor = new_game(("P0", "P1"), seed)
-    executor.bind_strategic_choice_provider(FirstBasicProvider())
+    executor.bind_strategic_choice_provider(FirstBasicProvider(), controlled_player_id="P0")
     specs = {spec.name: spec for spec in load_full_deck_specs().values()}
     source = add_card(executor, specs[land_name], Zone.BATTLEFIELD)
     add_card(executor, specs["Mountain"], Zone.LIBRARY)

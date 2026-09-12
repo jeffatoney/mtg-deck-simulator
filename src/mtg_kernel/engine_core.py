@@ -105,10 +105,21 @@ class GameExecutor:
             context.pop(_OPPONENT_MANA_PROFILE_KEY, None)
         else:
             context[_OPPONENT_MANA_PROFILE_KEY] = self.opponent_mana_profile
+        current = raw_context if isinstance(raw_context, dict) else None
         if context:
+            if current == context:
+                return
+            if self.probing:
+                initial = dict(initial)
+                self.state.replay_initial_state = initial
             initial[_REPLAY_EXECUTION_CONTEXT_KEY] = context
-        else:
-            initial.pop(_REPLAY_EXECUTION_CONTEXT_KEY, None)
+            return
+        if current is None and _REPLAY_EXECUTION_CONTEXT_KEY not in initial:
+            return
+        if self.probing:
+            initial = dict(initial)
+            self.state.replay_initial_state = initial
+        initial.pop(_REPLAY_EXECUTION_CONTEXT_KEY, None)
 
     def _event(self, kind: str, action: Action | None = None, **payload: Any) -> Event:
         event = Event(

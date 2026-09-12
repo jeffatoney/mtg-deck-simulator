@@ -95,7 +95,7 @@ def test_faithless_looting_selects_discards_after_drawing_and_supports_flashback
         add_card(executor, specs["Sol Ring"], Zone.LIBRARY)
         looting = add_card(executor, specs["Faithless Looting"], zone)
         executor.bind_strategic_choice_provider(
-            NamedSelectionProvider({"DISCARD": ("Mountain", "Island")})
+            NamedSelectionProvider({"DISCARD": ("Mountain", "Island")}), controlled_player_id="P0"
         )
 
         executor.cast(
@@ -144,7 +144,8 @@ def test_frantic_search_draws_discards_then_untaps_three_selected_lands() -> Non
                 "DISCARD": ("Mountain", "Island"),
                 "UNTAP_LANDS": ("Command Tower", "Island", "Mountain"),
             }
-        )
+        ),
+        controlled_player_id="P0",
     )
 
     executor.cast("P0", search.object_id)
@@ -170,7 +171,7 @@ def test_resolution_time_card_selection_rejects_illegal_handles_atomically() -> 
     add_card(executor, specs["Opt"], Zone.LIBRARY)
     add_card(executor, specs["Sol Ring"], Zone.LIBRARY)
     looting = add_card(executor, specs["Faithless Looting"], Zone.HAND)
-    executor.bind_strategic_choice_provider(IllegalSelectionProvider())
+    executor.bind_strategic_choice_provider(IllegalSelectionProvider(), controlled_player_id="P0")
 
     spell = executor.cast("P0", looting.object_id, mode="normal")
     before_library = tuple(state.zones[executor.zones.zone_key(Zone.LIBRARY, "P0")])

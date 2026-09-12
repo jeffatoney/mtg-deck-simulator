@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Protocol, Sequence
 
-from mtg_kernel.errors import IllegalAction, ReplayError
+from mtg_kernel.errors import IllegalAction, ReplayError, UnsupportedCapability
 from mtg_kernel.resource_payment import ResourcePaymentResult
 
 _COUNTER_DESTINATIONS = {
@@ -398,9 +398,50 @@ class RecordedStrategicChoiceProvider:
         return CounterPaymentSelection(outcome, evaluator_id, evaluator_sha, diagnostics)
 
 
+@dataclass(frozen=True)
+class StrategicChoiceBinding:
+    """Explicit authorization for which player a provider may decide for.
+
+    Decision ownership comes from the rules (payer, searching player, trigger
+    controller, and so on). Provider authority comes only from this binding.
+    Call sites must not infer authority from the spell caster, active player,
+    priority holder, or another unrelated proxy.
+    """
+
+    provider: StrategicChoiceProvider
+    controlled_player_id: str
+
+    def __post_init__(self) -> None:
+        if not str(self.controlled_player_id).strip():
+            raise ValueError("strategic choice binding requires a controlled player id")
+
+
 def require_provider(
     provider: StrategicChoiceProvider | None, purpose: str
 ) -> StrategicChoiceProvider:
     if provider is None:
         raise IllegalAction(f"{purpose} requires an injected strategic choice provider")
     return provider
+
+
+def require_authorized_provider(
+    provider: StrategicChoiceProvider | None,
+    purpose: str,
+    *,
+    decision_owner_id: str,
+    binding: StrategicChoiceBinding | None,
+) -> StrategicChoiceProvider:
+    """Return the provider only when it is explicitly authorized for the owner.
+
+    A live binding is the sole source of provider authority. Replay may omit the
+    binding and consume a recorded provider because the transcript already
+    recorded the authorized decision owner. Missing authority fails closed.
+    """
+
+    if binding is not None and binding.controlled_player_id != decision_owner_id:
+        raise UnsupportedCapability(
+            f"{purpose} requires an explicit decision from an unmodeled opponent"
+        )
+    if binding is not None:
+        return binding.provider
+    return require_provider(provider, purpose)

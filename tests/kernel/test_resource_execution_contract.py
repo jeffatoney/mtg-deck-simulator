@@ -258,7 +258,7 @@ def _nondefault_profile_replay() -> tuple[GameState, GameExecutor]:
     )
     state.replay_initial_state = state_to_data(state)
     executor.opponent_mana_profile = "no_known_colors"
-    executor.bind_strategic_choice_provider(_DeclineCounterProvider())
+    executor.bind_strategic_choice_provider(_DeclineCounterProvider(), controlled_player_id="P0")
     target = executor.cast(PLAYER, target_card.object_id)
     executor.cast(
         PLAYER,
@@ -806,7 +806,7 @@ def test_present_malformed_counter_payment_choice_fails_closed(malformed: object
         owner=PLAYER,
     )
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(_SpyProvider())
+    executor.bind_strategic_choice_provider(_SpyProvider(), controlled_player_id="P0")
     target = executor.cast(PLAYER, target_card.object_id)
     executor.cast(
         PLAYER,

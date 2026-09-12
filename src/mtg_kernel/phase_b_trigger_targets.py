@@ -10,7 +10,11 @@ from mtg_kernel.phase_b_runtime_support import (
     _choose_trigger_targets as _runtime_choose_trigger_targets,
     _ensure_player_target_objects,
 )
-from mtg_kernel.strategic_choices import CardSelectionRequest, PublicCard, require_provider
+from mtg_kernel.strategic_choices import (
+    CardSelectionRequest,
+    PublicCard,
+    require_authorized_provider,
+)
 
 
 def _public_target(self: Any, request_id: str, candidate: GameObject) -> PublicCard:
@@ -72,11 +76,17 @@ def _choose_trigger_targets(
         )
 
     raw_provider = getattr(self, "strategic_choice_provider", None)
-    if raw_provider is None:
+    binding = getattr(self, "strategic_choice_binding", None)
+    if raw_provider is None and binding is None:
         # Preserve the kernel's longstanding fail-closed contract for callers that
         # intentionally exercise a targeted trigger without a policy provider.
         raise IllegalAction("explicit trigger target choice is required")
-    provider = require_provider(raw_provider, "mandatory trigger target selection")
+    provider = require_authorized_provider(
+        raw_provider,
+        "mandatory trigger target selection",
+        decision_owner_id=actor,
+        binding=binding,
+    )
     request_id = self.identity.new_id("strategic-request")
     public_candidates = tuple(
         _public_target(self, request_id, candidate) for candidate in candidates

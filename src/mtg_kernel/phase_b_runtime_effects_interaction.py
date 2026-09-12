@@ -25,7 +25,7 @@ from mtg_kernel.resource_sources import (
 from mtg_kernel.strategic_choices import (
     CounterPaymentRequest,
     CounterPaymentTarget,
-    require_provider,
+    require_authorized_provider,
 )
 
 
@@ -246,15 +246,14 @@ def _resolve_counter_unless_pay(
         if outcome not in legal_outcomes:
             raise IllegalAction("counter payment was selected but cannot be paid legally")
     else:
-        # The injected Phase C provider controls the actor, not an arbitrary target
-        # controller. Never invent an unmodeled opponent's resolution choice.
-        if payer != action.actor_id:
-            raise UnsupportedCapability(
-                "counter-unless-pay requires an explicit decision from an unmodeled opponent"
-            )
-        provider = require_provider(
+        # Implicit policy use is authorized only for the bound controlled player.
+        # The payer is the target spell's current controller, not the counter's
+        # caster, the active player, or another inferred proxy.
+        provider = require_authorized_provider(
             getattr(self, "strategic_choice_provider", None),
             "counter-unless-pay payment",
+            decision_owner_id=payer,
+            binding=getattr(self, "strategic_choice_binding", None),
         )
         chooser = getattr(provider, "choose_counter_payment", None)
         if not callable(chooser):

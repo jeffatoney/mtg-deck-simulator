@@ -238,7 +238,9 @@ def _bound_policy(executor: GameExecutor, policy_config_id: str) -> tuple[Standa
     ):
         raise ValueError("Phase C technical runner requires the exact frozen evaluator snapshot")
     evaluator = ContextualEvaluator(evaluator_config)
-    provider = bind_policy_strategic_choices(executor, bundle, evaluator)
+    provider = bind_policy_strategic_choices(
+        executor, bundle, evaluator, controlled_player_id=CONTROLLED_PLAYER
+    )
     return StandardPolicy(bundle, opponent_interaction_modeled=False), provider, evaluator_config
 
 

@@ -12,7 +12,7 @@ from mtg_kernel.engine import GameExecutor
 from mtg_kernel.errors import IllegalAction, UnsupportedCapability
 from mtg_kernel.hashing import state_hash
 from mtg_kernel.land_actions import play_land
-from mtg_kernel.models import GameObject, TargetRef, Zone
+from mtg_kernel.models import GameObject, GameState, TargetRef, Zone
 from mtg_kernel.observation import ObservationService
 from mtg_kernel.phase_b_actions import (
     activate_hand_ability,
@@ -41,6 +41,23 @@ class _InternalAction:
     operation: str
     arguments: dict[str, Any]
     public: ObservedAction
+
+
+def disposable_probe_state(live: GameState) -> GameState:
+    """Copy rules state and give the probe independent replay/transcript bytes."""
+
+    replay_initial = live.replay_initial_state
+    replay_commands = live.replay_commands
+    live.replay_initial_state = None
+    live.replay_commands = []
+    try:
+        state = deepcopy(live)
+    finally:
+        live.replay_initial_state = replay_initial
+        live.replay_commands = replay_commands
+    state.replay_initial_state = deepcopy(replay_initial) if replay_initial is not None else None
+    state.replay_commands = [dict(command) for command in replay_commands]
+    return state
 
 
 class ActionBroker:
@@ -143,25 +160,16 @@ class ActionBroker:
         # Broker probes need mutable rules state, not a recursive copy of the
         # append-only replay transcript. Detaching it here applies the same
         # rollback-history optimization used by GameExecutor._begin_atomic.
-        live = self.executor.state
-        replay_initial = live.replay_initial_state
-        replay_commands = live.replay_commands
-        live.replay_initial_state = None
-        live.replay_commands = []
-        try:
-            state = deepcopy(live)
-        finally:
-            live.replay_initial_state = replay_initial
-            live.replay_commands = replay_commands
-        state.replay_initial_state = replay_initial
-        state.replay_commands = list(replay_commands)
+        # The probe must receive independent replay/transcript dictionaries so
+        # constructor synchronization cannot write through to the live state.
+        state = disposable_probe_state(self.executor.state)
         probe = GameExecutor(
             state,
             self.executor.seed,
             replaying=True,
             probing=True,
             opponent_mana_profile=self.executor.opponent_mana_profile,
-            strategic_choice_provider=self.executor.strategic_choice_provider,
+            strategic_choice_binding=getattr(self.executor, "strategic_choice_binding", None),
         )
         try:
             self._invoke(probe, operation, arguments, record=False)

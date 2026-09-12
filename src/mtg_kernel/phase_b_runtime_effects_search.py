@@ -9,7 +9,11 @@ from mtg_kernel.errors import IllegalAction
 from mtg_kernel.models import Action, Choice, GameObject, ObjectKind, Zone
 from mtg_kernel.observation import ObservationService
 from mtg_kernel.phase_b_runtime_effects_selection import _active_zone_objects, _select_cards
-from mtg_kernel.strategic_choices import PublicCard, TutorChoiceRequest, require_provider
+from mtg_kernel.strategic_choices import (
+    PublicCard,
+    TutorChoiceRequest,
+    require_authorized_provider,
+)
 
 
 def _deck_position(executor: Any, obj: GameObject) -> int:
@@ -50,9 +54,11 @@ def _fetch_basic(executor: Any, action: Action) -> None:
         sorted({str(obj.current_characteristics.get("name", "")) for obj in eligible})
     )
     request_id = executor.identity.new_id("strategic-request")
-    provider = require_provider(
+    provider = require_authorized_provider(
         getattr(executor, "strategic_choice_provider", None),
         "basic-land search resolution",
+        decision_owner_id=action.actor_id,
+        binding=getattr(executor, "strategic_choice_binding", None),
     )
     selection = provider.choose_tutor(
         TutorChoiceRequest(

@@ -26,7 +26,8 @@ def funded_game(seed: str):
         PolicyStrategicChoiceProvider(
             load_policy_matrix()[0],
             ContextualEvaluator(load_evaluator_config()),
-        )
+        ),
+        controlled_player_id="P0",
     )
     specs = {spec.name: spec for spec in load_full_deck_specs().values()}
     return state, executor, specs

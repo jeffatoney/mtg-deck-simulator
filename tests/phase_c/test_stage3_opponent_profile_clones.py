@@ -74,7 +74,7 @@ def _counter_fixture(
     state.replay_initial_state = state_to_data(state)
     executor.opponent_mana_profile = opponent_mana_profile
     provider = _CapturingCounterProvider(_production_provider(), [])
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     target = executor.cast(
         "P0",
         curiosity.object_id,
@@ -249,7 +249,7 @@ def test_constructor_nondefault_profile_synchronizes_existing_replay_and_replays
         opponent_mana_profile="no_known_colors",
     )
     provider = _CapturingCounterProvider(_production_provider(), [])
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     target = executor.cast(
         "P0",
         curiosity.object_id,

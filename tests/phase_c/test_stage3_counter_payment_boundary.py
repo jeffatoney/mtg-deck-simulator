@@ -94,7 +94,7 @@ def _setup_self_counter(
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
     if provider is not None:
-        executor.bind_strategic_choice_provider(provider)
+        executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     target = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
     counter_choices = (
         {}
@@ -127,7 +127,7 @@ def _setup_syncopate_self_counter(
     opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P0")
     syncopate = add_card(executor, specs["Syncopate"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     target = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
     executor.cast(
         "P0",
@@ -366,6 +366,7 @@ def test_unmodeled_opponent_payment_without_explicit_choice_fails_closed() -> No
         state.players[player].mana_pool["U"] = 2
     opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P1")
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
+    executor.bind_strategic_choice_provider(_CounterProvider("PAY", []), controlled_player_id="P0")
     state.turn.priority_holder_id = "P1"
     target = executor.cast("P1", opt.object_id, choices={"scry_to_bottom": False})
     state.turn.priority_holder_id = "P0"
@@ -593,7 +594,7 @@ def _setup_pierce_against_stack_spell(
     target_card = add_card(executor, specs[target_name], Zone.HAND, owner="P0")
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     if opponent_mana_profile is not None:
         executor.opponent_mana_profile = opponent_mana_profile
     target = executor.cast("P0", target_card.object_id, **dict(target_kwargs or {}))
@@ -662,7 +663,7 @@ def test_signet_mountain_floating_u_honors_child_allocation_for_pay_three() -> N
     opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P0")
     syncopate = add_card(executor, specs["Syncopate"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     target = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
     executor.cast("P0", syncopate.object_id, targets=(TargetRef(target.object_id),), x_value=3)
     assert state.players["P0"].mana_pool["U"] == 1
@@ -715,7 +716,7 @@ def test_two_signets_and_floating_u_bind_chained_identical_sources_for_pay_four(
     opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P0")
     syncopate = add_card(executor, specs["Syncopate"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     target = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
     executor.cast("P0", syncopate.object_id, targets=(TargetRef(target.object_id),), x_value=4)
     assert state.players["P0"].mana_pool["U"] == 2
@@ -772,7 +773,7 @@ def test_path_marker_funding_signet_is_not_propagated_to_parent_payment(
     opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P0")
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     target = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
     executor.cast("P0", pierce.object_id, targets=(TargetRef(target.object_id),))
 
@@ -866,7 +867,7 @@ def test_muddle_counter_target_excludes_hand_only_transmute_from_preserved_value
     muddle = add_card(executor, specs["Muddle the Mixture"], Zone.HAND, owner="P0")
     syncopate = add_card(executor, specs["Syncopate"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(capturing)
+    executor.bind_strategic_choice_provider(capturing, controlled_player_id="P0")
     opt_spell = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
     muddle_spell = executor.cast(
         "P0",
@@ -917,7 +918,7 @@ def test_nonmodal_curiosity_counter_target_retains_head_effect_kinds() -> None:
     curiosity = add_card(executor, specs["Curiosity"], Zone.HAND, owner="P0")
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     target = executor.cast(
         "P0",
         curiosity.object_id,
@@ -950,7 +951,7 @@ def test_counter_payment_target_mana_value_includes_chosen_x_on_the_stack() -> N
     syncopate = add_card(executor, specs["Syncopate"], Zone.HAND, owner="P0")
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(capturing)
+    executor.bind_strategic_choice_provider(capturing, controlled_player_id="P0")
     first = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
     target = executor.cast(
         "P0",
@@ -991,7 +992,7 @@ def _cast_pierce_at_into_the_roil(
     roil = add_card(executor, specs["Into the Roil"], Zone.HAND, owner="P0")
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     target = executor.cast(
         "P0",
         roil.object_id,
@@ -1081,7 +1082,7 @@ def test_crab_umbra_counter_target_retains_aura_and_battlefield_capabilities() -
     aura = add_card(executor, specs["Crab Umbra"], Zone.HAND, owner="P0")
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id="P0")
     target = executor.cast("P0", aura.object_id, targets=(TargetRef(creature.object_id),))
     executor.cast("P0", pierce.object_id, targets=(TargetRef(target.object_id),))
 
@@ -1111,7 +1112,7 @@ def test_mixed_path_marked_and_unmarked_floating_mana_executes_canonical_provena
     opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P0")
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(capturing)
+    executor.bind_strategic_choice_provider(capturing, controlled_player_id="P0")
     target = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
     executor.cast("P0", pierce.object_id, targets=(TargetRef(target.object_id),))
     assert sum(state.players["P0"].mana_pool.values()) == 0
@@ -1169,7 +1170,7 @@ def test_malformed_explicit_counter_payment_choice_fails_closed(malformed: objec
     opt = add_card(executor, specs["Opt"], Zone.HAND, owner="P0")
     pierce = add_card(executor, specs["Spell Pierce"], Zone.HAND, owner="P0")
     state.replay_initial_state = state_to_data(state)
-    executor.bind_strategic_choice_provider(spy)
+    executor.bind_strategic_choice_provider(spy, controlled_player_id="P0")
     target = executor.cast("P0", opt.object_id, choices={"scry_to_bottom": False})
     executor.cast(
         "P0",
