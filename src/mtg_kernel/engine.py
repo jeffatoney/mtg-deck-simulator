@@ -28,7 +28,7 @@ from mtg_kernel.strategic_choices import (
     SpellCopyTargetRequest,
     StrategicChoiceBinding,
     StrategicChoiceProvider,
-    require_authorized_provider,
+    require_executor_authorized_provider,
 )
 
 
@@ -248,11 +248,10 @@ class HardenedGameExecutor(_CoreGameExecutor):
             )
             for candidate in candidates
         )
-        provider = require_authorized_provider(
-            self.strategic_choice_provider,
+        provider = require_executor_authorized_provider(
+            self,
             "spell-copy target selection",
             decision_owner_id=action.actor_id,
-            binding=self.strategic_choice_binding,
         )
         selection = provider.choose_spell_copy_targets(
             SpellCopyTargetRequest(
@@ -313,11 +312,10 @@ class HardenedGameExecutor(_CoreGameExecutor):
                 "chosen_at": "RESOLUTION",
             }
         else:
-            provider = require_authorized_provider(
-                self.strategic_choice_provider,
+            provider = require_executor_authorized_provider(
+                self,
                 "optional triggered-effect selection",
                 decision_owner_id=actor,
-                binding=self.strategic_choice_binding,
             )
             selection = provider.choose_optional_trigger(
                 OptionalTriggerRequest(

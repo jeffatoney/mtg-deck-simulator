@@ -17,7 +17,8 @@ from mtg_kernel.strategic_choices import (
     PublicCard,
     TutorChoiceRequest,
     TutorChoiceSelection,
-    require_authorized_provider,
+    explicit_action_choice_is_authorized,
+    require_executor_authorized_provider,
 )
 
 
@@ -41,7 +42,12 @@ def _search_basic_for_player(
         sorted({str(obj.current_characteristics.get("name", "")) for obj in eligible})
     )
     request_id = executor.identity.new_id("strategic-request")
-    explicit_identity = _explicit_library_search_identity(choices, player_id)
+    explicit_identity = None
+    if explicit_action_choice_is_authorized(
+        decision_owner_id=player_id,
+        action_actor_id=action.actor_id,
+    ):
+        explicit_identity = _explicit_library_search_identity(choices, player_id)
     if explicit_identity is not None:
         if explicit_identity != "FAIL_TO_FIND" and explicit_identity not in eligible_identities:
             raise IllegalAction(
@@ -54,11 +60,10 @@ def _search_basic_for_player(
             {"decision_source": "EXPLICIT_ACTION_CHOICE", "player_id": player_id},
         )
     else:
-        provider = require_authorized_provider(
-            getattr(executor, "strategic_choice_provider", None),
+        provider = require_executor_authorized_provider(
+            executor,
             "Demolition Field basic-land search resolution",
             decision_owner_id=player_id,
-            binding=getattr(executor, "strategic_choice_binding", None),
         )
         selection = provider.choose_tutor(
             TutorChoiceRequest(

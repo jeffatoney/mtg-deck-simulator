@@ -10,7 +10,7 @@ from mtg_kernel.phase_b_runtime_helpers import _untap
 from mtg_kernel.strategic_choices import (
     CardSelectionRequest,
     PublicCard,
-    require_authorized_provider,
+    require_executor_authorized_provider,
 )
 
 
@@ -56,11 +56,10 @@ def _select_cards(
         )
         for candidate in candidates
     )
-    provider = require_authorized_provider(
-        getattr(executor, "strategic_choice_provider", None),
+    provider = require_executor_authorized_provider(
+        executor,
         f"{purpose.lower().replace('_', ' ')} selection",
         decision_owner_id=action.actor_id,
-        binding=getattr(executor, "strategic_choice_binding", None),
     )
     selection = provider.choose_cards(
         CardSelectionRequest(

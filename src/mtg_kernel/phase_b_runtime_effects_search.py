@@ -12,7 +12,7 @@ from mtg_kernel.phase_b_runtime_effects_selection import _active_zone_objects, _
 from mtg_kernel.strategic_choices import (
     PublicCard,
     TutorChoiceRequest,
-    require_authorized_provider,
+    require_executor_authorized_provider,
 )
 
 
@@ -54,11 +54,10 @@ def _fetch_basic(executor: Any, action: Action) -> None:
         sorted({str(obj.current_characteristics.get("name", "")) for obj in eligible})
     )
     request_id = executor.identity.new_id("strategic-request")
-    provider = require_authorized_provider(
-        getattr(executor, "strategic_choice_provider", None),
+    provider = require_executor_authorized_provider(
+        executor,
         "basic-land search resolution",
         decision_owner_id=action.actor_id,
-        binding=getattr(executor, "strategic_choice_binding", None),
     )
     selection = provider.choose_tutor(
         TutorChoiceRequest(

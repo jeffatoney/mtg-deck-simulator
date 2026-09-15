@@ -13,7 +13,7 @@ from mtg_kernel.phase_b_runtime_support import (
 from mtg_kernel.strategic_choices import (
     CardSelectionRequest,
     PublicCard,
-    require_authorized_provider,
+    require_executor_authorized_provider,
 )
 
 
@@ -81,11 +81,10 @@ def _choose_trigger_targets(
         # Preserve the kernel's longstanding fail-closed contract for callers that
         # intentionally exercise a targeted trigger without a policy provider.
         raise IllegalAction("explicit trigger target choice is required")
-    provider = require_authorized_provider(
-        raw_provider,
+    provider = require_executor_authorized_provider(
+        self,
         "mandatory trigger target selection",
         decision_owner_id=actor,
-        binding=binding,
     )
     request_id = self.identity.new_id("strategic-request")
     public_candidates = tuple(

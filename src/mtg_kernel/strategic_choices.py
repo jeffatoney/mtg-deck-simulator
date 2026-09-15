@@ -416,6 +416,32 @@ class StrategicChoiceBinding:
             raise ValueError("strategic choice binding requires a controlled player id")
 
 
+CHOICE_SOURCE_LIVE_PROVIDER = "LIVE_PROVIDER"
+CHOICE_SOURCE_EXPLICIT_ACTION_CHOICE = "EXPLICIT_ACTION_CHOICE"
+CHOICE_SOURCE_RECORDED_REPLAY_CHOICE = "RECORDED_REPLAY_CHOICE"
+
+
+def is_recorded_replay_provider(provider: object | None) -> bool:
+    """True only for the kernel recorded-replay provider, not arbitrary live spies."""
+
+    return type(provider) is RecordedStrategicChoiceProvider
+
+
+def explicit_action_choice_is_authorized(
+    *,
+    decision_owner_id: str,
+    action_actor_id: str,
+) -> bool:
+    """True when the action submitter is the rules owner of this decision.
+
+    Caster identity, active player, priority, and target controller are not
+    substitutes. The action actor may supply an explicit payload only for a
+    decision that player actually owns.
+    """
+
+    return action_actor_id == decision_owner_id
+
+
 def require_provider(
     provider: StrategicChoiceProvider | None, purpose: str
 ) -> StrategicChoiceProvider:
@@ -430,18 +456,42 @@ def require_authorized_provider(
     *,
     decision_owner_id: str,
     binding: StrategicChoiceBinding | None,
+    replaying: bool = False,
 ) -> StrategicChoiceProvider:
-    """Return the provider only when it is explicitly authorized for the owner.
+    """Return the provider only when the source is authorized for the owner.
 
-    A live binding is the sole source of provider authority. Replay may omit the
-    binding and consume a recorded provider because the transcript already
-    recorded the authorized decision owner. Missing authority fails closed.
+    Live execution requires an explicit binding for ``decision_owner_id``.
+    Missing live authority fails closed; a provider object is not authority.
+    Replay without a live binding may use only ``RecordedStrategicChoiceProvider``.
+    Probes keep a live binding and are authorized by that binding, not by replay
+    mode alone.
     """
 
-    if binding is not None and binding.controlled_player_id != decision_owner_id:
-        raise UnsupportedCapability(
-            f"{purpose} requires an explicit decision from an unmodeled opponent"
-        )
     if binding is not None:
+        if binding.controlled_player_id != decision_owner_id:
+            raise UnsupportedCapability(
+                f"{purpose} requires an explicit decision from an unmodeled opponent"
+            )
         return binding.provider
-    return require_provider(provider, purpose)
+    if replaying and is_recorded_replay_provider(provider):
+        return require_provider(provider, purpose)
+    raise UnsupportedCapability(
+        f"{purpose} requires an explicit decision from an unmodeled opponent"
+    )
+
+
+def require_executor_authorized_provider(
+    executor: Any,
+    purpose: str,
+    *,
+    decision_owner_id: str,
+) -> StrategicChoiceProvider:
+    """Authorize a provider from executor binding, replay mode, and owner."""
+
+    return require_authorized_provider(
+        getattr(executor, "strategic_choice_provider", None),
+        purpose,
+        decision_owner_id=decision_owner_id,
+        binding=getattr(executor, "strategic_choice_binding", None),
+        replaying=bool(getattr(executor, "replaying", False)),
+    )

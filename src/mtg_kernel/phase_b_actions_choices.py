@@ -18,7 +18,7 @@ from mtg_kernel.strategic_choices import (
     FactOrFictionSplit,
     PublicCard,
     TutorChoiceRequest,
-    require_authorized_provider,
+    require_executor_authorized_provider,
 )
 
 if TYPE_CHECKING:
@@ -73,11 +73,10 @@ def _search_to_hand(
         sorted({str(obj.current_characteristics.get("name", "")) for obj in eligible})
     )
     request_id = executor.identity.new_id("strategic-request")
-    provider = require_authorized_provider(
-        getattr(executor, "strategic_choice_provider", None),
+    provider = require_executor_authorized_provider(
+        executor,
         f"{str(effect.get('kind', 'library search'))} resolution",
         decision_owner_id=action.actor_id,
-        binding=getattr(executor, "strategic_choice_binding", None),
     )
     selection = provider.choose_tutor(
         TutorChoiceRequest(
@@ -236,11 +235,10 @@ def _fact_or_fiction(executor: GameExecutor, action: Action, effect: dict[str, A
     )
     # Fact or Fiction uses one combined owner contract: the caster is the
     # authorized player for the policy-modeled opponent split plus pile choice.
-    provider = require_authorized_provider(
-        getattr(executor, "strategic_choice_provider", None),
+    provider = require_executor_authorized_provider(
+        executor,
         "Fact or Fiction split and pile selection",
         decision_owner_id=action.actor_id,
-        binding=getattr(executor, "strategic_choice_binding", None),
     )
     selection = provider.choose_fact_or_fiction(
         FactOrFictionRequest(

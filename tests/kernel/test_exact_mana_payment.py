@@ -106,7 +106,7 @@ def test_activate_exact_generic_payment_consumes_selected_units() -> None:
         field.object_id,
         "demolition-field:destroy",
         targets=(TargetRef(target.object_id),),
-        choices={"library_search": {"P1": "FAIL_TO_FIND", "P0": "FAIL_TO_FIND"}},
+        choices={"library_search": {"P0": "FAIL_TO_FIND"}},
         mana_payment={"U": 1, "R": 1},
     )
 

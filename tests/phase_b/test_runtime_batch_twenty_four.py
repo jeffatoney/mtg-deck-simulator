@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from mtg_cards.full_deck import load_full_deck_specs
-from mtg_kernel.errors import IllegalAction
+from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.models import Zone
 from mtg_kernel.strategic_choices import CardSelection, CardSelectionRequest
@@ -129,7 +129,7 @@ def test_chart_a_course_missing_discard_provider_fails_closed_atomically() -> No
     before_hand = tuple(state.zones[hand_key])
     executor.pass_priority("P0")
 
-    with pytest.raises(IllegalAction, match="discard selection requires an injected"):
+    with pytest.raises(UnsupportedCapability, match="unmodeled opponent"):
         executor.pass_priority("P1")
 
     assert tuple(state.zones[library_key]) == before_library

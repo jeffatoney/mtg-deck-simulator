@@ -16,7 +16,8 @@ from mtg_kernel.strategic_choices import (
     CardSelection,
     CardSelectionRequest,
     PublicCard,
-    require_authorized_provider,
+    explicit_action_choice_is_authorized,
+    require_executor_authorized_provider,
 )
 
 PRISMARI_MODE_ORDER = (
@@ -204,7 +205,12 @@ def _select_discards(
         )
         for candidate in candidates
     )
-    explicit_names = _explicit_prismari_discard_names(choices, player_id)
+    explicit_names = None
+    if explicit_action_choice_is_authorized(
+        decision_owner_id=player_id,
+        action_actor_id=action.actor_id,
+    ):
+        explicit_names = _explicit_prismari_discard_names(choices, player_id)
     if explicit_names is not None:
         selected_cards = _cards_matching_explicit_names(candidates, explicit_names, required)
         selection = CardSelection(
@@ -214,11 +220,10 @@ def _select_discards(
             {"decision_source": "EXPLICIT_ACTION_CHOICE", "player_id": player_id},
         )
     else:
-        provider = require_authorized_provider(
-            getattr(executor, "strategic_choice_provider", None),
+        provider = require_executor_authorized_provider(
+            executor,
             "Prismari Command discard selection",
             decision_owner_id=player_id,
-            binding=getattr(executor, "strategic_choice_binding", None),
         )
         selection = provider.choose_cards(
             CardSelectionRequest(

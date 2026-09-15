@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from mtg_cards.full_deck import load_full_deck_specs
-from mtg_kernel.errors import IllegalAction, UnsupportedCapability
+from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.models import TargetRef, Zone
 from mtg_kernel.strategic_choices import TutorChoiceRequest, TutorChoiceSelection
@@ -62,8 +62,8 @@ def test_demolition_field_destroys_target_and_resolves_both_basic_searches() -> 
     add_card(executor, specs["Island"], Zone.LIBRARY, owner="P1")
     add_card(executor, specs["Mountain"], Zone.LIBRARY, owner="P0")
     executor.bind_strategic_choice_provider(
-        BasicLandProvider({"P0": "Mountain"}),
-        controlled_player_id="P0",
+        BasicLandProvider({"P1": "Island"}),
+        controlled_player_id="P1",
     )
 
     ability = executor.activate(
@@ -71,7 +71,7 @@ def test_demolition_field_destroys_target_and_resolves_both_basic_searches() -> 
         field.object_id,
         "demolition-field:destroy",
         targets=(TargetRef(target.object_id),),
-        choices={"library_search": {"P1": "Island"}},
+        choices={"library_search": {"P0": "Mountain"}},
     )
 
     assert ability is not None
@@ -108,8 +108,8 @@ def test_demolition_field_allows_each_player_to_fail_to_find() -> None:
     add_card(executor, specs["Island"], Zone.LIBRARY, owner="P1")
     add_card(executor, specs["Mountain"], Zone.LIBRARY, owner="P0")
     executor.bind_strategic_choice_provider(
-        BasicLandProvider({"P0": "FAIL_TO_FIND"}),
-        controlled_player_id="P0",
+        BasicLandProvider({"P1": "FAIL_TO_FIND"}),
+        controlled_player_id="P1",
     )
 
     executor.activate(
@@ -117,7 +117,7 @@ def test_demolition_field_allows_each_player_to_fail_to_find() -> None:
         field.object_id,
         "demolition-field:destroy",
         targets=(TargetRef(target.object_id),),
-        choices={"library_search": {"P1": "FAIL_TO_FIND"}},
+        choices={"library_search": {"P0": "FAIL_TO_FIND"}},
     )
     pass_all(executor)
 
@@ -149,10 +149,7 @@ def test_demolition_field_missing_provider_fails_closed_atomically() -> None:
     assert field.retired
     executor.pass_priority("P0")
 
-    with pytest.raises(
-        IllegalAction,
-        match="Demolition Field basic-land search resolution requires an injected",
-    ):
+    with pytest.raises(UnsupportedCapability, match="unmodeled opponent"):
         executor.pass_priority("P1")
 
     assert active_named(state, "Thriving Isle", Zone.BATTLEFIELD, "P1")

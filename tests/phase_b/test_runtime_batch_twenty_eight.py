@@ -169,7 +169,7 @@ def test_prismari_command_executes_target_player_draw_discard_and_treasure() -> 
     command = add_card(executor, specs["Prismari Command"], Zone.HAND, owner="P0")
     executor.bind_strategic_choice_provider(
         NamedSelectionProvider({"PRISMARI_DISCARD": ("Mountain", "Island")}),
-        controlled_player_id="P0",
+        controlled_player_id="P1",
     )
 
     executor.cast(
@@ -181,7 +181,6 @@ def test_prismari_command_executes_target_player_draw_discard_and_treasure() -> 
                 "DRAW_DISCARD": {"player_id": "P1"},
                 "CREATE_TREASURE": {"player_id": "P1"},
             },
-            "prismari_discard": {"P1": ["Mountain", "Island"]},
         },
     )
     pass_all(executor)

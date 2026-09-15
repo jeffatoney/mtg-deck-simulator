@@ -1199,7 +1199,7 @@ def test_malformed_explicit_counter_payment_choice_fails_closed(malformed: objec
     assert not target.retired
 
 
-def test_malformed_explicit_opponent_counter_payment_is_malformed_input() -> None:
+def test_malformed_explicit_opponent_counter_payment_is_not_opponent_authority() -> None:
     seed = "stage3-cr9-malformed-opponent"
     state, executor = new_game(PLAYERS, seed)
     specs = {spec.name: spec for spec in load_full_deck_specs().values()}
@@ -1219,7 +1219,7 @@ def test_malformed_explicit_opponent_counter_payment_is_malformed_input() -> Non
         choices={"counter_payment": False},
     )
 
-    with pytest.raises(IllegalAction, match="counter payment decision must be a mapping"):
+    with pytest.raises(UnsupportedCapability, match="unmodeled opponent"):
         _resolve_one_stack_object(executor)
 
 

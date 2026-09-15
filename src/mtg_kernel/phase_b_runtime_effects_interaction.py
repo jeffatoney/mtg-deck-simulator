@@ -25,7 +25,8 @@ from mtg_kernel.resource_sources import (
 from mtg_kernel.strategic_choices import (
     CounterPaymentRequest,
     CounterPaymentTarget,
-    require_authorized_provider,
+    explicit_action_choice_is_authorized,
+    require_executor_authorized_provider,
 )
 
 
@@ -254,7 +255,10 @@ def _resolve_counter_unless_pay(
     evaluator_sha256 = "0" * 64
     diagnostics: dict[str, Any] = {}
     decision_source = "EXPLICIT_ACTION_CHOICE"
-    if "counter_payment" in choices:
+    if "counter_payment" in choices and explicit_action_choice_is_authorized(
+        decision_owner_id=payer,
+        action_actor_id=action.actor_id,
+    ):
         raw_decision = choices["counter_payment"]
         if not isinstance(raw_decision, dict):
             raise IllegalAction("counter payment decision must be a mapping")
@@ -272,11 +276,10 @@ def _resolve_counter_unless_pay(
         # Implicit policy use is authorized only for the bound controlled player.
         # The payer is the target spell's current controller, not the counter's
         # caster, the active player, or another inferred proxy.
-        provider = require_authorized_provider(
-            getattr(self, "strategic_choice_provider", None),
+        provider = require_executor_authorized_provider(
+            self,
             "counter-unless-pay payment",
             decision_owner_id=payer,
-            binding=getattr(self, "strategic_choice_binding", None),
         )
         chooser = getattr(provider, "choose_counter_payment", None)
         if not callable(chooser):
