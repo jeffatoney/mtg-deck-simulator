@@ -1,8 +1,8 @@
 # Stage 3 final PR #99 disposition supplement
 
-Status: TECHNICAL_IMPLEMENTATION_AND_CERTIFICATION_COMPLETE_FINAL_REVIEW_PENDING
+Status: TECHNICAL_IMPLEMENTATION_AND_CERTIFICATION_COMPLETE_FINAL_CODEX_REVIEW_PENDING
 
-Consolidated implementation and certification are technically complete. Promotion-head exact CI and auxiliary workflows are green. This does not declare PR #104 Ready for Review, merge-ready, or merged. Final independent exact-head review and a fresh Codex review remain required before closing review threads or a Ready-for-Review transition.
+Technical implementation is complete. Final Phase A and Phase B certifications are current. Promotion-head exact CI and auxiliary workflows are green. This documentation refresh records the final ROOT-A authority-boundary completion. This does not declare PR #104 Ready for Review, merge-ready, or merged. A fresh Codex review of the resulting exact final docs head remains required before closing review threads or a Ready-for-Review transition.
 
 This document supplements, and does not rewrite, `INVENTORY.json`.
 
@@ -262,9 +262,9 @@ Certification candidate artifact bytes, durable SHA-256 anchors, and Git reposit
 
 The CR6–CR9 durable records were the current post-PR #101 Stage 3 certifications until the consolidated repair renewed both Phase A and Phase B from later CI-produced candidates. They are not the obsolete certification files contained on frozen PR #99.
 
-## Current consolidated-repair authority
+## Historical consolidated-repair authority
 
-The current Stage 3 source, certification, and validation authority is the consolidated repair recorded here. Historical CR6–CR9 and earlier Stage 3 candidates remain provenance only.
+The following consolidated-repair chain was the current Stage 3 source, certification, and validation authority through R7 documentation head `686961ee06d7db7a679442a339e754a637589698` and CI #1312–#1314. It remains legitimate historical provenance. It is superseded as CURRENT authority by the final ROOT-A authority completion recorded below. Historical CR6–CR9 and earlier Stage 3 candidates also remain provenance only. Do not treat this section as though the earlier consolidated repair never happened.
 
 ### Independent consolidated audit
 
@@ -369,7 +369,7 @@ The two exact CI-produced candidates were promoted byte-for-byte, without local 
 
 The certifications intentionally certify source/test candidate `30914ee584490ebacd0611721e33409f62cdb416`, not the later promotion commit.
 
-These SHA-256 values are the current durable verification anchors for the exact promoted bytes and remain usable after the CI artifact-retention window expires.
+Those SHA-256 values remain durable verification anchors for the historical consolidated-repair promoted bytes. They are not the current durable certifications.
 
 ### Promotion-head exact CI #1313
 
@@ -382,7 +382,162 @@ Auxiliary exact-head workflows also passed:
 - Stage 2 Bridge STANDARD Benchmark #98, run `34744608100`: `SUCCESS`.
 - Stage 3 PR99 Prototype Preservation #52, run `34744608080`: `SUCCESS`.
 
-The current durable records are the post-consolidated-repair Stage 3 certifications. They are not the obsolete certification files contained on frozen PR #99, and they supersede the historical CR6–CR9 durable records. This documentation refresh records already validated implementation and certification provenance; its own resulting commit still requires exact-head CI.
+The post-consolidated-repair durable records superseded the historical CR6–CR9 durable records. They are not the obsolete certification files contained on frozen PR #99. They were themselves superseded as CURRENT authority after the ROOT-A source repair changed covered `src/mtg_kernel` paths.
+
+### R7 documentation head and CI #1314
+
+The R7 documentation-only refresh that recorded the consolidated-repair chain was:
+
+- Commit: `686961ee06d7db7a679442a339e754a637589698`.
+- Tree: `047472150ff17e6c29d202f178626e4b5e825673`.
+- Parent: `e4e0cbf4e075149d83582dafa9d8225476c3fdba`.
+- Subject: `Refresh Stage 3 consolidated repair disposition`.
+
+Exact-head GitHub Actions run `34768828544` (displayed CI #1314) ran on that docs head and concluded `SUCCESS`. Auxiliary exact-head workflows also passed:
+
+- Stage 2 Bridge STANDARD Benchmark, run `34768828459`: `SUCCESS`.
+- Stage 3 PR99 Prototype Preservation, run `34768828531`: `SUCCESS`.
+
+A fresh Codex review was then requested against exact head `686961ee06d7db7a679442a339e754a637589698`. That review reopened ROOT-A as recorded below.
+
+## Final ROOT-A authority completion
+
+The current Stage 3 source, certification, and validation authority is the ROOT-A authority-boundary completion recorded here. The CR1–CR9 history, the consolidated audit pinned to `f84ff8a101e59be1742d4ffaf115f9f9e8cd8971`, repair commits `342155019e7c404c6e006e0272e5296ea17c5c9f` and `30914ee584490ebacd0611721e33409f62cdb416`, certification promotion `e4e0cbf4e075149d83582dafa9d8225476c3fdba`, R7 docs head `686961ee06d7db7a679442a339e754a637589698`, and CI #1312–#1314 remain legitimate historical provenance.
+
+### Fresh Codex review on `686961ee`
+
+Codex reviewed exact head `686961ee06d7db7a679442a339e754a637589698` and opened two new P1 findings. They were not two unrelated architecture defects. They were two remaining manifestations of ROOT-A: strategic/rules decision ownership had not yet been enforced across every choice-ingress source. The earlier repair secured provider call sites but did not fully unify live provider choices, explicit action-choice payloads, and recorded replay decisions.
+
+P1-A, thread `PRRT_kwDOTe7Y0c6iDKCl`, comment DB id `4003713670`, title “Require owner authorization for explicit opponent choices”:
+
+- Explicit action-choice branches in Prismari Command and Demolition Field could consume a choice for another player from the controlled action actor’s `choices` payload.
+- That bypassed the strategic-provider authorization layer and allowed the controlled caster to inject an opponent’s hidden-hand discard or library-search decision.
+- This was a new manifestation of the same ROOT-A authority class.
+
+P1-B, thread `PRRT_kwDOTe7Y0c6iDKCp`, comment DB id `4003713676`, title “Reject unbound strategic providers outside replay”:
+
+- `require_authorized_provider(...)` correctly checked an existing binding, but when `binding is None` it fell through to a bare provider.
+- Missing live authority therefore did not truly fail closed.
+- Codex independently confirmed the earlier Claude REV-1 residual hole.
+
+Implementation correction for both findings landed in the source/test repair below. Those GitHub threads remain open pending a fresh exact-head Codex review. Thread resolution is not claimed here.
+
+### Final ROOT-A authority contract
+
+Every player-owned strategic/rules decision has an explicit decision owner. Before consuming an answer, the engine must establish that the choice source is authorized for that decision owner.
+
+The final contract distinguishes three choice sources:
+
+- `LIVE_PROVIDER`: requires an explicit `StrategicChoiceBinding` for `decision_owner_id`. Missing live binding fails closed. Existence of a provider object alone is not authority.
+- `EXPLICIT_ACTION_CHOICE`: the action/input actor may provide the explicit value only when that actor is the actual rules decision owner. A controlled caster may not inject another player’s hidden-hand or library choice merely through the caster’s action payload.
+- `RECORDED_REPLAY_CHOICE`: replay is an explicit exception to ordinary live binding. Only the kernel `RecordedStrategicChoiceProvider` may use the binding-free replay route. Recorded replay continues to validate decision-owner identity against the transcript.
+
+Not every explicit choice must use a provider. Caster-owned mechanical choices remain valid where actor and decision owner legitimately coincide.
+
+### Source/test repair
+
+The ROOT-A class completion, not two isolated Codex-comment patches, was:
+
+- Commit: `b63bd6e7bcba8e57921264d13e1286f64d7e5115`.
+- Tree: `bcda20a28fcd3837419240e61a94ca205ed5a845`.
+- Parent: `686961ee06d7db7a679442a339e754a637589698`.
+- Subject: `Complete Stage 3 strategic choice authority boundary`.
+
+Important implementation outcomes:
+
+- Shared executor-aware provider authorization.
+- Missing live provider binding fails closed.
+- Replay exception explicitly gated to the recorded replay provider.
+- Explicit action-choice authorization requires the action actor to own the decision.
+- Prismari opponent discard injection closed.
+- Demolition Field opponent search injection closed.
+- Counter-payment explicit-choice path aligned with the same contract.
+- Provider call sites moved to the shared executor authorization path.
+- Third-player ownership remains based on decision owner, not binary actor/opponent assumptions.
+- Class-level authority regressions added.
+
+### Source-head CI #1315
+
+GitHub Actions run `34924054591` (displayed CI #1315) ran on exact source head `b63bd6e7bcba8e57921264d13e1286f64d7e5115`, tree `bcda20a28fcd3837419240e61a94ca205ed5a845`.
+
+Every substantive technical gate passed:
+
+- Frozen identity lock.
+- Repository evidence integrity.
+- Phase A authority classification.
+- Phase B evaluator/learning boundary.
+- Public policy information boundary.
+- Public policy noninterference.
+- Clean-engine boundary.
+- Legacy-package exclusion.
+- Format, lint, and type check.
+- Phase C exact-deck Turn-10 production policy and replay smoke.
+- Phase A production verifier.
+- Phase A candidate build and validation.
+- Full tests.
+- Manifest integrity.
+- Phase B verifier.
+- Phase B candidate build and validation.
+- Phase C no-game dry run.
+
+The only expected source-head failure was `Durable Phase A certification is current`, because the prior durable certification was stale after covered `src/mtg_kernel` changes. Durable Phase B currentness was the expected downstream skip. That was the certification-renewal gate, not a source/test failure.
+
+Source-head auxiliary workflows also passed:
+
+- Stage 2 Bridge STANDARD Benchmark #100, run `34924054467`: `SUCCESS`.
+- Stage 3 PR99 Prototype Preservation #54, run `34924054683`: `SUCCESS`.
+
+### Exact ROOT-A certification candidates
+
+The Phase A candidate was:
+
+- Artifact: `phase-a-certification-candidate-b63bd6e7bcba8e57921264d13e1286f64d7e5115`.
+- Artifact ID: `10382123949`.
+- Exact promoted `CERTIFICATION.json` SHA-256: `366000b41884d66226e5596ed6163ea1551214091aea18af6922e5e1dd0bda43`.
+- Bytes: 5138.
+- Certified content commit: `b63bd6e7bcba8e57921264d13e1286f64d7e5115`.
+- Certified repository tree: `bcda20a28fcd3837419240e61a94ca205ed5a845`.
+- Counts: 33 pass, 0 fail, 0 skip, 0 xfail.
+- `github_run_id = 34924054591`, `status = PASS`, `clean_tree_before_run = true`, `legacy_evidence_used = false`, and `pilot_lock = PASS`.
+
+The Phase B candidate was:
+
+- Artifact: `phase-b-certification-candidate-b63bd6e7bcba8e57921264d13e1286f64d7e5115`.
+- Artifact ID: `10382456676`.
+- Exact promoted `CERTIFICATION.json` SHA-256: `a6c66eb69a47a042cd392d0b02cc7002d0f29663ae0c8f7c585b39c9972f00de`.
+- Bytes: 6563.
+- Certified content commit: `b63bd6e7bcba8e57921264d13e1286f64d7e5115`.
+- Certified repository tree: `bcda20a28fcd3837419240e61a94ca205ed5a845`.
+- Counts: 241 pass, 0 fail, 0 skip, 0 xfail.
+- Golden transcripts: 12.
+- `github_run_id = 34924054591`, `status = PASS`, `clean_tree_before_run = true`, `legacy_evidence_used = false`, and `pilot_lock = PASS`.
+
+### Certification promotion
+
+The two exact CI-produced candidates were promoted byte-for-byte, without local regeneration or manual transcription, in:
+
+- Commit: `9c4167add36caba74b1eac34a27c83c99c2f6736`.
+- Tree: `7355bb5dc755a7c2f3a87a9cf654ee6e42d9b35d`.
+- Parent: `b63bd6e7bcba8e57921264d13e1286f64d7e5115`.
+- Subject: `Renew Stage 3 authority boundary certifications`.
+- Changed paths: `docs/audit/phase-a-certification/CERTIFICATION.json` and `docs/audit/phase-b-certification/CERTIFICATION.json`.
+
+No source or test files changed in this promotion commit. The certifications intentionally certify source/test candidate `b63bd6e7bcba8e57921264d13e1286f64d7e5115`, not the later promotion commit.
+
+These SHA-256 values are the current durable verification anchors for the exact promoted bytes and remain usable after the CI artifact-retention window expires.
+
+### Promotion-head exact CI #1316
+
+Promotion-head GitHub Actions run `34942615509` (displayed CI #1316) ran on exact head `9c4167add36caba74b1eac34a27c83c99c2f6736`. The workflow conclusion was `SUCCESS`.
+
+Every substantive step passed, including Phase A authority classification, Phase A production verifier, Phase B verifier, full tests, Phase C smoke and no-game dry run, Durable Phase A certification current, Durable Phase B certification current, policy boundaries, evidence and identity checks, format, lint, and typing.
+
+Auxiliary exact-head workflows also passed:
+
+- Stage 2 Bridge STANDARD Benchmark #101, run `34942615508`: `SUCCESS`.
+- Stage 3 PR99 Prototype Preservation #55, run `34942615533`: `SUCCESS`.
+
+The current durable records are the post-ROOT-A Stage 3 certifications. They are not the obsolete certification files contained on frozen PR #99, and they supersede both the historical CR6–CR9 and consolidated-repair durable records. This documentation refresh records already validated implementation and certification provenance; its own resulting commit still requires exact-head CI.
 
 ## Nonblocking followups
 
@@ -399,26 +554,31 @@ The kicked-input truthiness issue is not a remaining followup; it was corrected 
 
 At this disposition point:
 
-- PR #99 remains exactly at head `4c9a404fc9308ecc281711b4b9b48eef6dfd441b`, base `150671a8e7a78e5fa14b6b3aca2308f6af647df3`, 34 commits, 37 files, open, draft, and unmerged.
-- Canonical PR #99 patch SHA-256 remains `31dbf0dad6c8bc497ea8dcb2bd40694d28e9b90cd6b25cf1b24a4cb5aae88b16`.
+- PR #99 remains frozen exactly at head `4c9a404fc9308ecc281711b4b9b48eef6dfd441b`, base `150671a8e7a78e5fa14b6b3aca2308f6af647df3`, 34 commits, 37 files, open, draft, and unmerged.
+- Canonical PR #99 patch preservation remains exact: SHA-256 `31dbf0dad6c8bc497ea8dcb2bd40694d28e9b90cd6b25cf1b24a4cb5aae88b16`, 297677 bytes.
 - Historical pilot artifacts were not changed.
 - Strategic Context was not implemented.
 - REQUIREMENTS_AWARE behavior was not implemented.
 - PR #99 V2 exploratory scoring, projection, arms, and configs were not imported.
 - No replacement exploratory policy was implemented.
-- Existing unrelated STANDARD priority-action ranking, weights, and tie-breaks were not changed.
-- No duplicate resource feasibility solver or full-executor feasibility planner was added.
+- No duplicate strategic-choice system was added.
 - No duplicate semantic-action identity/normalizer layer was added.
+- No duplicate resource feasibility solver or full-executor feasibility planner was added.
+- Existing unrelated STANDARD priority-action ranking, weights, and tie-breaks were not changed.
+- Evaluator weights were not changed.
 - No pilot, replacement pilot, exploratory study, or full study was executed.
 - Pilot authorization remains locked and pending explicit owner approval.
 - The full study remains separately locked.
 - PR #99 branch-local Phase A/B certification files were never copied forward.
-- Merge remains a separate owner/human action.
+- Merge remains a separate owner-gated action.
+- Stage 4 has not begun.
 
 ## Closeout condition
 
-This supplement is the final Stage 3 disposition layer. Consolidated implementation and certification are technically complete. Promotion-head exact CI #1313 and auxiliary workflows are green. It does not declare PR #104 Ready for Review or merge-ready merely because CI is green. Stage 4 has not begun. The pilot is not authorized.
+This supplement is the final Stage 3 disposition layer. Technical implementation is complete. Final certifications are current. Promotion-head exact CI #1316 and auxiliary workflows are green. This documentation refresh records the completed ROOT-A authority contract. It does not declare PR #104 Ready for Review, merge-ready, or merged. Stage 4 has not begun. The pilot is not authorized.
 
-The current source/test authority is `30914ee584490ebacd0611721e33409f62cdb416`. Its exact CI-produced Phase A and Phase B certifications are promoted in `e4e0cbf4e075149d83582dafa9d8225476c3fdba`, and promotion-head CI #1313 succeeded. The historical CR6–CR9 candidate remains provenance only.
+The current source/test authority is `b63bd6e7bcba8e57921264d13e1286f64d7e5115`. Its exact CI-produced Phase A and Phase B certifications are promoted in `9c4167add36caba74b1eac34a27c83c99c2f6736`, and promotion-head CI #1316 succeeded. The CR1–CR9 history, consolidated repair through `30914ee` / `e4e0cbf` / R7 docs head `686961ee`, and CI #1312–#1314 remain provenance only.
 
-This documentation-only commit must complete exact-head CI. After that, a fresh independent exact-head review against the consolidated audit, and then a fresh Codex review of that exact head, remain required. The status remains `TECHNICAL_IMPLEMENTATION_AND_CERTIFICATION_COMPLETE_FINAL_REVIEW_PENDING` even if the documentation commit's CI later passes, until those review gates are complete. Review threads must remain unresolved until that final review gate. No Ready-for-Review transition or merge is authorized; merge still requires separate explicit owner authorization.
+The two fresh Codex P1 threads (`PRRT_kwDOTe7Y0c6iDKCl` and `PRRT_kwDOTe7Y0c6iDKCp`) are repaired in code and remain open pending a fresh Codex review of the resulting exact final docs head. Implementation correction landed; thread resolution is pending that review. Do not treat those threads as resolved in this document.
+
+This documentation-only commit must complete exact-head CI. After that, a fresh Codex review of that exact docs head remains required. The status is `TECHNICAL_IMPLEMENTATION_AND_CERTIFICATION_COMPLETE_FINAL_CODEX_REVIEW_PENDING` even if this documentation commit's CI later passes, until that Codex review returns with no new blocking finding. Review threads must remain unresolved until that final review gate. No Ready-for-Review transition or merge is authorized here; merge still requires separate explicit owner authorization.
