@@ -284,6 +284,7 @@ class _BindingContext:
     opponent_mana_profile: str
     by_label: dict[str, tuple[PaymentAllocation, ...]]
     available_mana: Counter[tuple[str, str]]
+    reserved_mana: Counter[tuple[str, str]]
     remaining_marked_event_ids: dict[str, list[str]]
     executed: dict[str, set[str]]
     visiting: set[str]
@@ -345,6 +346,8 @@ def _take_exact_allocation_payment(
         _, source_semantic_id, color = selected
         unpaid[selected] -= 1
         context.available_mana[(source_semantic_id, color)] -= 1
+        if context.reserved_mana[(source_semantic_id, color)] > 0:
+            context.reserved_mana[(source_semantic_id, color)] -= 1
         payment[color] += 1
         if is_marked_floating_semantic_id(source_semantic_id):
             spent_marked.append(_bind_marked_floating_event_id(context, color))
@@ -354,6 +357,36 @@ def _take_exact_allocation_payment(
 def _record_production(context: _BindingContext, variant: _ExecutionVariant) -> None:
     for color, amount in variant.production.mana:
         context.available_mana[(variant.source_semantic_id, color)] += int(amount)
+
+
+def _uncommitted_available(context: _BindingContext, source_semantic_id: str, color: str) -> int:
+    return (
+        context.available_mana[(source_semantic_id, color)]
+        - context.reserved_mana[(source_semantic_id, color)]
+    )
+
+
+def _reserve_existing_provenance(
+    context: _BindingContext,
+    source_semantic_id: str,
+    remaining: Counter[str],
+) -> None:
+    """Cover remaining demand with already-produced uncommitted provenance.
+
+    Produced units assigned to an earlier allocation stay reserved until
+    ``_take_exact_allocation_payment`` spends them. Later labels may only reuse
+    surplus production; they must not steal reserved units or reactivate a
+    source merely because its semantic ID appears again.
+    """
+
+    for color in tuple(remaining):
+        covered = min(remaining[color], _uncommitted_available(context, source_semantic_id, color))
+        if covered <= 0:
+            continue
+        remaining[color] -= covered
+        context.reserved_mana[(source_semantic_id, color)] += covered
+        if remaining[color] == 0:
+            del remaining[color]
 
 
 def _activate_semantic_source(
@@ -366,6 +399,7 @@ def _activate_semantic_source(
     for allocation in allocations:
         if allocation.step_label == label and allocation.source_semantic_id == source_semantic_id:
             remaining[allocation.color] += int(allocation.amount)
+    _reserve_existing_provenance(context, source_semantic_id, remaining)
     if not remaining:
         return set()
 
@@ -437,11 +471,10 @@ def _activate_semantic_source(
             mana_payment=exact_payment,
         )
         _record_production(context, variant)
+        _reserve_existing_provenance(context, source_semantic_id, remaining)
         _add_payment(aggregate_activation_payment, payment)
         produced_markers.update(new_markers)
         remaining_activation_payment -= cost_units
-        for color, amount in variant.production.mana:
-            remaining[color] = max(0, remaining[color] - int(amount))
 
     if remaining_activation_payment != 0 or sum(unpaid_child.values()) != 0:
         raise IllegalAction("canonical resource allocation activation-cost binding is incomplete")
@@ -532,6 +565,7 @@ def execute_resource_payment_during_resolution(
         opponent_mana_profile=opponent_mana_profile,
         by_label={key: tuple(value) for key, value in by_label.items()},
         available_mana=available_mana,
+        reserved_mana=Counter(),
         remaining_marked_event_ids=remaining_marked_event_ids,
         executed={},
         visiting=set(),

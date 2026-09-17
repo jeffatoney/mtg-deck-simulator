@@ -12,9 +12,10 @@ import pytest
 
 import mtg_kernel.replay as replay_module
 import mtg_kernel.resource_execution as resource_execution
+from mtg_cards.full_deck import load_full_deck_specs
 from mtg_kernel.engine import GameExecutor
 from mtg_kernel.errors import IllegalAction, ReplayError, UnsupportedCapability
-from mtg_kernel.factory import add_card
+from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.hashing import state_hash
 from mtg_kernel.models import (
     CardInstance,
@@ -35,6 +36,7 @@ from mtg_kernel.phase_b_marked_mana import (
     unmarked_floating_semantic_id,
 )
 from mtg_kernel.resource_payment import (
+    PaymentAllocation,
     PaymentStep,
     PaymentWindow,
     ResourcePaymentResult,
@@ -441,6 +443,301 @@ def test_chained_source_uses_solver_generic_activation_requirement() -> None:
         child[0].color,
         child[0].requirement,
     ) == ("Red Source:mana-source", "R", "GENERIC:0")
+
+
+def _activation_names(state: GameState) -> list[str]:
+    names: list[str] = []
+    for action in state.actions:
+        if action.kind != "ACTIVATE" or action.source_object_id is None:
+            continue
+        names.append(str(state.objects[action.source_object_id].current_characteristics["name"]))
+    return names
+
+
+def test_multi_mana_production_is_reused_across_parent_and_child_allocations() -> None:
+    multi = _mana_source(
+        "multi-source",
+        "Multi Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1, "R": 1}},
+    )
+    costed = _mana_source(
+        "costed-source",
+        "Costed Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1, "R": 1}},
+        activation_cost="{1}",
+    )
+    state = _minimal_state(multi, costed)
+
+    result, payment = _round_trip(state, "{3}")
+
+    child = [
+        allocation
+        for allocation in result.canonical_allocation
+        if allocation.step_label.endswith(":source:Costed Source:mana-source")
+    ]
+    parent_multi = [
+        allocation
+        for allocation in result.canonical_allocation
+        if allocation.step_label == "contract-payment"
+        and allocation.source_semantic_id == "Multi Source:mana-source"
+    ]
+    assert result.feasible
+    assert payment == {"U": 2, "R": 1}
+    assert len(parent_multi) == 1
+    assert len(child) == 1
+    assert child[0].source_semantic_id == "Multi Source:mana-source"
+    assert child[0].color != parent_multi[0].color
+    assert _activation_names(state) == ["Multi Source", "Costed Source"]
+    assert multi.permanent_status is not None
+    assert costed.permanent_status is not None
+    assert multi.permanent_status["tap"] == "TAPPED"
+    assert costed.permanent_status["tap"] == "TAPPED"
+
+
+def test_izzet_boilerworks_and_signet_execute_canonical_three_mana_split() -> None:
+    state, executor = new_game(("P0", "P1", "P2", "P3"), "kernel-boilerworks-signet-three")
+    specs = {spec.name: spec for spec in load_full_deck_specs().values()}
+    state.turn.phase = "PRECOMBAT_MAIN"
+    for player in state.players.values():
+        player.mana_pool.update({color: 0 for color in COLORS})
+    boilerworks = add_card(executor, specs["Izzet Boilerworks"], Zone.BATTLEFIELD, owner=PLAYER)
+    signet = add_card(executor, specs["Izzet Signet"], Zone.BATTLEFIELD, owner=PLAYER)
+    step = _payment_step("{3}")
+    result = solve_state_payment(state, PLAYER, (step,))
+    assert result.feasible
+    parent = [
+        (
+            allocation.source_semantic_id,
+            allocation.color,
+            allocation.requirement,
+            allocation.amount,
+        )
+        for allocation in result.canonical_allocation
+        if allocation.step_label == step.label
+    ]
+    child = [
+        (
+            allocation.source_semantic_id,
+            allocation.color,
+            allocation.requirement,
+            allocation.amount,
+        )
+        for allocation in result.canonical_allocation
+        if allocation.step_label == f"{step.label}:source:Izzet Signet:mana-source"
+    ]
+    assert parent == [
+        ("Izzet Boilerworks:mana-source", "R", "GENERIC:0", 1),
+        ("Izzet Signet:mana-source", "R", "GENERIC:1", 1),
+        ("Izzet Signet:mana-source", "U", "GENERIC:2", 1),
+    ]
+    assert child == [("Izzet Boilerworks:mana-source", "U", "GENERIC:0", 1)]
+
+    executor._resolution_depth = 1
+    payment = resource_execution.execute_resource_payment_during_resolution(
+        executor,
+        PLAYER,
+        step,
+        result,
+    )
+    _assert_execution_matches_allocation(state, result, step, payment)
+    assert payment == {"R": 2, "U": 1}
+    assert _activation_names(state) == ["Izzet Boilerworks", "Izzet Signet"]
+    assert boilerworks.permanent_status is not None
+    assert signet.permanent_status is not None
+    assert boilerworks.permanent_status["tap"] == "TAPPED"
+    assert signet.permanent_status["tap"] == "TAPPED"
+
+
+def test_reserved_parent_provenance_does_not_block_second_identical_instance() -> None:
+    first = _mana_source(
+        "tiny-a",
+        "Tiny Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1}},
+    )
+    second = _mana_source(
+        "tiny-b",
+        "Tiny Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1}},
+    )
+    costed = _mana_source(
+        "costed-source",
+        "Costed Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1, "R": 1}},
+        activation_cost="{1}",
+    )
+    state = _minimal_state(first, second, costed)
+
+    result, payment = _round_trip(state, "{U}{U}{R}")
+
+    child = [
+        allocation
+        for allocation in result.canonical_allocation
+        if allocation.step_label.endswith(":source:Costed Source:mana-source")
+    ]
+    parent_tiny = [
+        allocation
+        for allocation in result.canonical_allocation
+        if allocation.step_label == "contract-payment"
+        and allocation.source_semantic_id == "Tiny Source:mana-source"
+    ]
+    assert payment == {"U": 2, "R": 1}
+    assert len(parent_tiny) == 1
+    assert len(child) == 1
+    assert child[0].source_semantic_id == "Tiny Source:mana-source"
+    assert _activation_names(state).count("Tiny Source") == 2
+    assert _activation_names(state).count("Costed Source") == 1
+    assert first.permanent_status is not None
+    assert second.permanent_status is not None
+    assert first.permanent_status["tap"] == "TAPPED"
+    assert second.permanent_status["tap"] == "TAPPED"
+
+
+def test_already_produced_provenance_is_preferred_over_a_new_activation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    multi = _mana_source(
+        "multi-source",
+        "Multi Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1, "R": 1}},
+    )
+    costed = _mana_source(
+        "costed-source",
+        "Costed Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1, "R": 1}},
+        activation_cost="{1}",
+    )
+    state = _minimal_state(multi, costed)
+    activations: list[str] = []
+    original = resource_execution._activate_mana_ability_during_resolution
+
+    def record_activation(
+        executor: object,
+        player_id: str,
+        variant: object,
+        *,
+        mana_payment: object = None,
+    ) -> object:
+        activations.append(str(getattr(variant, "source_semantic_id")))
+        return original(executor, player_id, variant, mana_payment=mana_payment)
+
+    monkeypatch.setattr(
+        resource_execution,
+        "_activate_mana_ability_during_resolution",
+        record_activation,
+    )
+    _round_trip(state, "{3}")
+    assert activations == ["Multi Source:mana-source", "Costed Source:mana-source"]
+
+
+def test_uncommitted_provenance_covers_allocation_without_reactivating_tapped_source() -> None:
+    tiny = _mana_source(
+        "tiny-source",
+        "Tiny Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1}},
+    )
+    assert tiny.permanent_status is not None
+    tiny.permanent_status["tap"] = "TAPPED"
+    state = _minimal_state(tiny)
+    state.players[PLAYER].mana_pool["U"] = 1
+    executor = GameExecutor(state, "kernel-resource-contract", probing=True)
+    allocations = (PaymentAllocation("contract-payment", "Tiny Source:mana-source", "U", "U:0"),)
+    context = resource_execution._BindingContext(
+        executor=executor,
+        player_id=PLAYER,
+        opponent_mana_profile="blue_red_available",
+        by_label={"contract-payment": allocations},
+        available_mana=Counter({("Tiny Source:mana-source", "U"): 1}),
+        reserved_mana=Counter(),
+        remaining_marked_event_ids={},
+        executed={},
+        visiting=set(),
+    )
+
+    markers = resource_execution._activate_semantic_source(
+        context,
+        "contract-payment",
+        "Tiny Source:mana-source",
+        allocations,
+    )
+
+    assert markers == set()
+    assert _activation_names(state) == []
+    assert context.available_mana[("Tiny Source:mana-source", "U")] == 1
+    assert context.reserved_mana[("Tiny Source:mana-source", "U")] == 1
+    assert tiny.permanent_status["tap"] == "TAPPED"
+
+
+def test_exhausted_source_fails_closed_when_uncommitted_provenance_cannot_cover_deficit() -> None:
+    tiny = _mana_source(
+        "tiny-source",
+        "Tiny Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1}},
+    )
+    assert tiny.permanent_status is not None
+    tiny.permanent_status["tap"] = "TAPPED"
+    state = _minimal_state(tiny)
+    state.players[PLAYER].mana_pool["U"] = 1
+    executor = GameExecutor(state, "kernel-resource-contract", probing=True)
+    allocations = (
+        PaymentAllocation("contract-payment", "Tiny Source:mana-source", "U", "U:0"),
+        PaymentAllocation("contract-payment", "Tiny Source:mana-source", "U", "U:1"),
+    )
+    context = resource_execution._BindingContext(
+        executor=executor,
+        player_id=PLAYER,
+        opponent_mana_profile="blue_red_available",
+        by_label={"contract-payment": allocations},
+        available_mana=Counter({("Tiny Source:mana-source", "U"): 1}),
+        reserved_mana=Counter(),
+        remaining_marked_event_ids={},
+        executed={},
+        visiting=set(),
+    )
+
+    with pytest.raises(
+        IllegalAction,
+        match="canonical resource allocation cannot bind to a current mana-source execution",
+    ):
+        resource_execution._activate_semantic_source(
+            context,
+            "contract-payment",
+            "Tiny Source:mana-source",
+            allocations,
+        )
+
+    assert _activation_names(state) == []
+    assert state.players[PLAYER].mana_pool["U"] == 1
+    assert context.available_mana[("Tiny Source:mana-source", "U")] == 1
+
+
+def test_floating_and_produced_provenance_round_trip_for_split_payment() -> None:
+    multi = _mana_source(
+        "multi-source",
+        "Multi Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1, "R": 1}},
+    )
+    costed = _mana_source(
+        "costed-source",
+        "Costed Source",
+        {"kind": "ADD_MANA", "mana": {"U": 1, "R": 1}},
+        activation_cost="{1}",
+    )
+    state = _minimal_state(multi, costed, floating={"G": 1})
+
+    result, payment = _round_trip(state, "{U}{U}{R}")
+
+    assert payment == {"U": 2, "R": 1}
+    assert any(
+        allocation.source_semantic_id.startswith("floating:")
+        for allocation in result.canonical_allocation
+    )
+    assert any(
+        not allocation.source_semantic_id.startswith("floating:")
+        for allocation in result.canonical_allocation
+    )
+    assert _activation_names(state).count("Multi Source") == 1
+    assert _activation_names(state).count("Costed Source") == 1
+    assert len(_activation_names(state)) == 2
 
 
 @pytest.mark.parametrize(
