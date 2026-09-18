@@ -11,7 +11,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Protocol, Sequence
 
-from mtg_kernel.errors import IllegalAction, ReplayError
+from mtg_kernel.errors import IllegalAction, ReplayError, UnsupportedCapability
+from mtg_kernel.resource_payment import ResourcePaymentResult
+
+_COUNTER_DESTINATIONS = {
+    "COUNTER_UNLESS_PAY": "GRAVEYARD",
+    "COUNTER_UNLESS_PAY_EXILE": "EXILE",
+}
 
 
 @dataclass(frozen=True)
@@ -21,6 +27,7 @@ class PublicCard:
     mana_value: int
     card_types: tuple[str, ...]
     effect_kinds: tuple[str, ...]
+    inactive_effect_kinds: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -133,8 +140,64 @@ class OptionalTriggerSelection:
     diagnostics: Mapping[str, Any]
 
 
+@dataclass(frozen=True)
+class CounterPaymentTarget:
+    """Public target semantics for a counter-unless-pay decision.
+
+    This intentionally has no request-scoped handle or execution capability. The
+    resolving rules object already identifies the target internally; policy only
+    needs the target's public semantic facts when comparing legal outcomes.
+    """
+
+    identity: str
+    mana_value: int
+    card_types: tuple[str, ...]
+    effect_kinds: tuple[str, ...]
+    inactive_effect_kinds: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class CounterPaymentRequest:
+    """Observation-safe semantic choice exposed during counter resolution."""
+
+    request_id: str
+    actor_id: str
+    effect_kind: str
+    turn_number: int
+    observation: Mapping[str, Any]
+    target: CounterPaymentTarget
+    payment_amount: int
+    legal_outcomes: tuple[str, ...]
+    payment_result: ResourcePaymentResult
+
+    def __post_init__(self) -> None:
+        if self.payment_amount < 0:
+            raise ValueError("counter payment amount cannot be negative")
+        expected = ("PAY", "DECLINE") if self.payment_result.feasible else ("DECLINE",)
+        if self.legal_outcomes != expected:
+            raise ValueError("counter payment outcomes do not match rules feasibility")
+
+
+@dataclass(frozen=True)
+class CounterPaymentSelection:
+    outcome: str
+    evaluator_id: str
+    evaluator_sha256: str
+    diagnostics: Mapping[str, Any]
+
+    def __post_init__(self) -> None:
+        if self.outcome not in {"PAY", "DECLINE"}:
+            raise ValueError("counter payment selection is invalid")
+
+
 class StrategicChoiceProvider(Protocol):
-    """Observation-only policy interface called at rules-defined choice times."""
+    """Existing required observation-only policy interface.
+
+    Counter-payment selection remains an explicit capability boundary because the
+    rules engine must fail closed for providers that do not implement a controlled
+    payer policy. The production provider now implements the owner-authorized Stage 3
+    baseline through ``CounterPaymentChoiceProvider``.
+    """
 
     def choose_cards(self, request: CardSelectionRequest) -> CardSelection: ...
 
@@ -149,6 +212,12 @@ class StrategicChoiceProvider(Protocol):
     def choose_optional_trigger(
         self, request: OptionalTriggerRequest
     ) -> OptionalTriggerSelection: ...
+
+
+class CounterPaymentChoiceProvider(Protocol):
+    """Semantic extension for the owner-authorized counter-payment policy."""
+
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection: ...
 
 
 class RecordedStrategicChoiceProvider:
@@ -183,6 +252,13 @@ class RecordedStrategicChoiceProvider:
             dict(choice)
             for choice in choices
             if str(choice.get("kind")) == "OPTIONAL_TRIGGER"
+            and isinstance(choice.get("selected"), Mapping)
+            and str(choice["selected"].get("decision_source", "")) == "STRATEGIC_PROVIDER"
+        ]
+        self._counter_payments = [
+            dict(choice)
+            for choice in choices
+            if str(choice.get("kind")) == "COUNTER_UNLESS_PAY"
             and isinstance(choice.get("selected"), Mapping)
             and str(choice["selected"].get("decision_source", "")) == "STRATEGIC_PROVIDER"
         ]
@@ -293,6 +369,78 @@ class RecordedStrategicChoiceProvider:
         evaluator_id, evaluator_sha, diagnostics = self._metadata(selected)
         return OptionalTriggerSelection(take, evaluator_id, evaluator_sha, diagnostics)
 
+    def choose_counter_payment(self, request: CounterPaymentRequest) -> CounterPaymentSelection:
+        if not self._counter_payments:
+            raise ReplayError("replay transcript omits a recorded counter-payment choice")
+        recorded = self._counter_payments.pop(0)
+        selected = recorded.get("selected")
+        if not isinstance(selected, Mapping):
+            raise ReplayError("recorded counter-payment choice is malformed")
+        if str(selected.get("decision_owner", "")) != request.actor_id:
+            raise ReplayError("recorded counter-payment actor differs in replay")
+        if str(selected.get("effect_kind", "")) != request.effect_kind:
+            raise ReplayError("recorded counter-payment effect differs in replay")
+        if str(selected.get("target_identity", "")) != request.target.identity:
+            raise ReplayError("recorded counter-payment target differs in replay")
+        if int(selected.get("amount", -1)) != request.payment_amount:
+            raise ReplayError("recorded counter-payment amount differs in replay")
+        if int(selected.get("actual_required_payment", -1)) != request.payment_amount:
+            raise ReplayError("recorded actual counter-payment amount differs in replay")
+        expected_destination = _COUNTER_DESTINATIONS.get(request.effect_kind)
+        if expected_destination is None:
+            raise ReplayError("counter-payment replay has no declared counter destination")
+        if str(selected.get("counter_destination", "")) != expected_destination:
+            raise ReplayError("recorded counter-payment destination differs in replay")
+        outcome = str(selected.get("outcome", ""))
+        if outcome not in request.legal_outcomes:
+            raise ReplayError("recorded counter-payment outcome is not legal in replay")
+        evaluator_id, evaluator_sha, diagnostics = self._metadata(selected)
+        return CounterPaymentSelection(outcome, evaluator_id, evaluator_sha, diagnostics)
+
+
+@dataclass(frozen=True)
+class StrategicChoiceBinding:
+    """Explicit authorization for which player a provider may decide for.
+
+    Decision ownership comes from the rules (payer, searching player, trigger
+    controller, and so on). Provider authority comes only from this binding.
+    Call sites must not infer authority from the spell caster, active player,
+    priority holder, or another unrelated proxy.
+    """
+
+    provider: StrategicChoiceProvider
+    controlled_player_id: str
+
+    def __post_init__(self) -> None:
+        if not str(self.controlled_player_id).strip():
+            raise ValueError("strategic choice binding requires a controlled player id")
+
+
+CHOICE_SOURCE_LIVE_PROVIDER = "LIVE_PROVIDER"
+CHOICE_SOURCE_EXPLICIT_ACTION_CHOICE = "EXPLICIT_ACTION_CHOICE"
+CHOICE_SOURCE_RECORDED_REPLAY_CHOICE = "RECORDED_REPLAY_CHOICE"
+
+
+def is_recorded_replay_provider(provider: object | None) -> bool:
+    """True only for the kernel recorded-replay provider, not arbitrary live spies."""
+
+    return type(provider) is RecordedStrategicChoiceProvider
+
+
+def explicit_action_choice_is_authorized(
+    *,
+    decision_owner_id: str,
+    action_actor_id: str,
+) -> bool:
+    """True when the action submitter is the rules owner of this decision.
+
+    Caster identity, active player, priority, and target controller are not
+    substitutes. The action actor may supply an explicit payload only for a
+    decision that player actually owns.
+    """
+
+    return action_actor_id == decision_owner_id
+
 
 def require_provider(
     provider: StrategicChoiceProvider | None, purpose: str
@@ -300,3 +448,50 @@ def require_provider(
     if provider is None:
         raise IllegalAction(f"{purpose} requires an injected strategic choice provider")
     return provider
+
+
+def require_authorized_provider(
+    provider: StrategicChoiceProvider | None,
+    purpose: str,
+    *,
+    decision_owner_id: str,
+    binding: StrategicChoiceBinding | None,
+    replaying: bool = False,
+) -> StrategicChoiceProvider:
+    """Return the provider only when the source is authorized for the owner.
+
+    Live execution requires an explicit binding for ``decision_owner_id``.
+    Missing live authority fails closed; a provider object is not authority.
+    Replay without a live binding may use only ``RecordedStrategicChoiceProvider``.
+    Probes keep a live binding and are authorized by that binding, not by replay
+    mode alone.
+    """
+
+    if binding is not None:
+        if binding.controlled_player_id != decision_owner_id:
+            raise UnsupportedCapability(
+                f"{purpose} requires an explicit decision from an unmodeled opponent"
+            )
+        return binding.provider
+    if replaying and is_recorded_replay_provider(provider):
+        return require_provider(provider, purpose)
+    raise UnsupportedCapability(
+        f"{purpose} requires an explicit decision from an unmodeled opponent"
+    )
+
+
+def require_executor_authorized_provider(
+    executor: Any,
+    purpose: str,
+    *,
+    decision_owner_id: str,
+) -> StrategicChoiceProvider:
+    """Authorize a provider from executor binding, replay mode, and owner."""
+
+    return require_authorized_provider(
+        getattr(executor, "strategic_choice_provider", None),
+        purpose,
+        decision_owner_id=decision_owner_id,
+        binding=getattr(executor, "strategic_choice_binding", None),
+        replaying=bool(getattr(executor, "replaying", False)),
+    )

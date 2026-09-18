@@ -38,7 +38,8 @@ def funded_game(seed: str = "phase-b-actions"):
         PolicyStrategicChoiceProvider(
             load_policy_matrix()[0],
             ContextualEvaluator(load_evaluator_config()),
-        )
+        ),
+        controlled_player_id="P0",
     )
     return state, executor, specs_by_name()
 

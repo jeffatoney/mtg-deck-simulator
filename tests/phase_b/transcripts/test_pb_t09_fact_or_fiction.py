@@ -23,7 +23,7 @@ def test_pb_t09_fact_or_fiction_evidence() -> None:
     state.turn.number = 3
     state.turn.phase = "PRECOMBAT_MAIN"
     bound_provider = _provider()
-    executor.bind_strategic_choice_provider(bound_provider)
+    executor.bind_strategic_choice_provider(bound_provider, controlled_player_id="P0")
     for _ in range(3):
         move_named(executor, library, "Island", Zone.BATTLEFIELD)
         library = [obj for obj in library if not obj.retired]

@@ -3,14 +3,77 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from mtg_kernel.errors import IllegalAction
+from mtg_kernel.mana import COLORS
 from mtg_kernel.models import GameObject
 from mtg_kernel.phase_b_runtime_support import _subtypes, _types
 
 MARKED_COMMANDER_MANA_KIND = "MARKED_COMMANDER_MANA"
 PATH_SHARED_TYPE_TRIGGER = "MARKED_MANA_SPENT_ON_SHARED_CREATURE_TYPE"
+_MARKED_FLOATING_SUFFIX = "marked"
+
+
+def unmarked_floating_semantic_id(color: str) -> str:
+    return f"floating:{color}"
+
+
+def marked_floating_semantic_id(color: str) -> str:
+    return f"floating:{color}:{_MARKED_FLOATING_SUFFIX}"
+
+
+def is_marked_floating_semantic_id(semantic_id: str) -> bool:
+    prefix, separator, rest = semantic_id.partition(":")
+    if prefix != "floating" or not separator:
+        return False
+    color, marked_separator, marked = rest.partition(":")
+    return bool(color) and marked_separator == ":" and marked == _MARKED_FLOATING_SUFFIX
+
+
+@dataclass(frozen=True)
+class MarkedFloatingMana:
+    color: str
+    amount: int
+    produced_event_ids: tuple[str, ...]
+
+
+def marked_floating_mana_inventory(state: Any, player_id: str) -> tuple[MarkedFloatingMana, ...]:
+    """Return the read-only marked-floating inventory for one player's pool.
+
+    Event IDs stay rules-private. Public resource classes use only the color and
+    marked/unmarked semantic identity derived from these counts.
+    """
+
+    if player_id not in state.players:
+        raise IllegalAction("marked mana inventory player does not exist")
+    pool = state.players[player_id].mana_pool
+    ids_by_color: dict[str, list[str]] = {color: [] for color in COLORS}
+    for record in state.continuous_effects:
+        if record.get("kind") != MARKED_COMMANDER_MANA_KIND:
+            continue
+        if record.get("player_id") != player_id:
+            continue
+        color = str(record.get("color", ""))
+        try:
+            amount = int(record.get("amount", 1))
+        except (TypeError, ValueError) as exc:
+            raise IllegalAction("marked mana ledger record is malformed") from exc
+        event_id = str(record.get("produced_event_id", ""))
+        if color not in COLORS or amount <= 0 or not event_id:
+            raise IllegalAction("marked mana ledger record is malformed")
+        ids_by_color[color].extend(event_id for _ in range(amount))
+    inventory: list[MarkedFloatingMana] = []
+    for color in COLORS:
+        event_ids = tuple(sorted(ids_by_color[color]))
+        if not event_ids:
+            continue
+        pool_amount = int(pool.get(color, 0))
+        if len(event_ids) > pool_amount:
+            raise IllegalAction("marked mana ledger exceeds the available mana pool")
+        inventory.append(MarkedFloatingMana(color, len(event_ids), event_ids))
+    return tuple(inventory)
 
 
 def commander_color_identity(executor: Any, player_id: str) -> set[str]:

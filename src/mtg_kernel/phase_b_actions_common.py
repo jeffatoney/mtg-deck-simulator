@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from mtg_kernel.engine_core import GameExecutor
 
 MAIN_PHASES = {"PRECOMBAT_MAIN", "POSTCOMBAT_MAIN"}
+_HAND_ACTIVATION_RESTRICTIONS = frozenset({"", "INSTANT", "SORCERY_SPEED"})
 
 # Broker-visible actions are limited to effect primitives that the production
 # executor can resolve without fallback.  This registry is deliberately smaller
@@ -133,6 +134,18 @@ def _require_priority(executor: GameExecutor, actor: str) -> None:
         raise IllegalAction("the acting player does not have priority")
 
 
+def uses_hand_activation_path(ability: dict[str, Any]) -> bool:
+    """Return whether an exact-deck ability uses the hand-activation executor."""
+
+    cost = dict(ability.get("cost", {}))
+    return bool(
+        ability.get("kind") == "ACTIVATED"
+        and not ability.get("mana_ability")
+        and int(cost.get("discard", 0)) == 1
+        and str(ability.get("restriction", "")) in _HAND_ACTIVATION_RESTRICTIONS
+    )
+
+
 def activate_hand_ability(
     executor: GameExecutor,
     actor: str,
@@ -156,16 +169,19 @@ def activate_hand_ability(
             raise IllegalAction("a player may activate only a card they own in hand")
         _require_priority(executor, actor)
         selected = _ability_by_id(source, ability_id, "ACTIVATED")
-        if selected.get("mana_ability"):
-            raise IllegalAction("a hand-zone activated ability cannot be a mana ability")
+        cost = dict(selected.get("cost", {}))
+        if not uses_hand_activation_path(selected):
+            if selected.get("mana_ability"):
+                raise IllegalAction("a hand-zone activated ability cannot be a mana ability")
+            if int(cost.get("discard", 0)) != 1:
+                raise IllegalAction("hand activation must discard its own source exactly once")
+            raise IllegalAction("unsupported hand-zone activation restriction")
         restriction = str(selected.get("restriction", ""))
         if restriction == "SORCERY_SPEED":
             if executor.state.turn.active_player_id != actor:
                 raise IllegalAction("transmute requires the active player")
             if executor.state.turn.phase not in MAIN_PHASES or executor.state.stack:
                 raise IllegalAction("transmute requires sorcery timing")
-        elif restriction not in {"", "INSTANT"}:
-            raise IllegalAction("unsupported hand-zone activation restriction")
 
         schema = dict(
             selected.get(
@@ -174,9 +190,6 @@ def activate_hand_ability(
             )
         )
         executor._validate_targets(actor, targets, schema)
-        cost = dict(selected.get("cost", {}))
-        if int(cost.get("discard", 0)) != 1:
-            raise IllegalAction("hand activation must discard its own source exactly once")
         mana_cost = parse_mana_cost(str(cost.get("mana", "")))
         payment = pay_mana(executor.state.players[actor].mana_pool, mana_cost)
 

@@ -283,6 +283,35 @@ def test_tapped_resource_unavailable_until_explicit_untap_transition() -> None:
     assert solve_resource_payment((tapped,), (pay("{R}", window=UNTAP_LATER),)).feasible is True
 
 
+def _costed_filter_source() -> ResourceSource:
+    return ResourceSource(
+        semantic_id="costed-filter",
+        productions=(
+            ManaProduction((("U", 2),), activation_cost="{U/R}"),
+            ManaProduction((("R", 2),), activation_cost="{U/R}"),
+            ManaProduction((("U", 1), ("R", 1)), activation_cost="{U/R}"),
+        ),
+        tap_to_activate=True,
+        persistent=True,
+    )
+
+
+def test_costed_multimode_source_explores_every_helpful_production() -> None:
+    source = _costed_filter_source()
+    floating_u = (FloatingMana("U", 1, semantic_id="floating:U"),)
+    floating_r = (FloatingMana("R", 1, semantic_id="floating:R"),)
+    cases = (
+        (floating_u, "{U}{U}"),
+        (floating_r, "{U}{U}"),
+        (floating_u, "{U}{R}"),
+        (floating_u, "{R}{R}"),
+        (floating_u, "{2}"),
+    )
+    for floating, cost in cases:
+        result = solve_resource_payment((source,), (pay(cost),), floating_mana=floating)
+        assert result.feasible is True, cost
+
+
 def test_enters_tapped_source_not_immediately_available_without_untap() -> None:
     entered_tapped = fixed("swiftwater-cliffs", "R", enters_tapped=True)
     now = solve_resource_payment((entered_tapped,), (pay("{R}", window=NOW),))

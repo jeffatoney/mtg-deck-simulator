@@ -21,12 +21,14 @@ from mtg_kernel.models import (
     Zone,
 )
 from mtg_kernel.observation import ObservationService
+from mtg_kernel.resource_sources import DEFAULT_OPPONENT_MANA_PROFILE
 from mtg_kernel.strategic_choices import (
     OptionalTriggerRequest,
     PublicCard,
     SpellCopyTargetRequest,
+    StrategicChoiceBinding,
     StrategicChoiceProvider,
-    require_provider,
+    require_executor_authorized_provider,
 )
 
 
@@ -40,17 +42,54 @@ class HardenedGameExecutor(_CoreGameExecutor):
         *,
         replaying: bool = False,
         probing: bool = False,
+        opponent_mana_profile: str = DEFAULT_OPPONENT_MANA_PROFILE,
         strategic_choice_provider: StrategicChoiceProvider | None = None,
+        controlled_player_id: str | None = None,
+        strategic_choice_binding: StrategicChoiceBinding | None = None,
     ) -> None:
-        super().__init__(state, seed, replaying=replaying, probing=probing)
+        super().__init__(
+            state,
+            seed,
+            replaying=replaying,
+            probing=probing,
+            opponent_mana_profile=opponent_mana_profile,
+        )
+        self.strategic_choice_binding: StrategicChoiceBinding | None = None
         self.strategic_choice_provider = strategic_choice_provider
+        if strategic_choice_binding is not None:
+            if (
+                strategic_choice_provider is not None
+                and strategic_choice_provider is not strategic_choice_binding.provider
+            ):
+                raise ValueError("conflicting strategic choice provider binding")
+            if (
+                controlled_player_id is not None
+                and controlled_player_id != strategic_choice_binding.controlled_player_id
+            ):
+                raise ValueError("conflicting controlled player binding")
+            self.strategic_choice_binding = strategic_choice_binding
+            self.strategic_choice_provider = strategic_choice_binding.provider
+        elif strategic_choice_provider is not None and controlled_player_id is not None:
+            self.bind_strategic_choice_provider(
+                strategic_choice_provider,
+                controlled_player_id=controlled_player_id,
+            )
+
+    @property
+    def controlled_player_id(self) -> str | None:
+        if self.strategic_choice_binding is None:
+            return None
+        return self.strategic_choice_binding.controlled_player_id
 
     def bind_strategic_choice_provider(
         self,
         provider: StrategicChoiceProvider,
+        *,
+        controlled_player_id: str,
     ) -> StrategicChoiceProvider:
-        """Bind one declared strategic provider to this executor instance."""
+        """Bind one declared provider to exactly one controlled player."""
 
+        self.strategic_choice_binding = StrategicChoiceBinding(provider, controlled_player_id)
         self.strategic_choice_provider = provider
         return provider
 
@@ -209,9 +248,10 @@ class HardenedGameExecutor(_CoreGameExecutor):
             )
             for candidate in candidates
         )
-        provider = require_provider(
-            self.strategic_choice_provider,
+        provider = require_executor_authorized_provider(
+            self,
             "spell-copy target selection",
+            decision_owner_id=action.actor_id,
         )
         selection = provider.choose_spell_copy_targets(
             SpellCopyTargetRequest(
@@ -272,9 +312,10 @@ class HardenedGameExecutor(_CoreGameExecutor):
                 "chosen_at": "RESOLUTION",
             }
         else:
-            provider = require_provider(
-                self.strategic_choice_provider,
+            provider = require_executor_authorized_provider(
+                self,
                 "optional triggered-effect selection",
+                decision_owner_id=actor,
             )
             selection = provider.choose_optional_trigger(
                 OptionalTriggerRequest(
@@ -540,13 +581,21 @@ def _guarded_core_initializer(
     *,
     replaying: bool = False,
     probing: bool = False,
+    opponent_mana_profile: str = DEFAULT_OPPONENT_MANA_PROFILE,
 ) -> None:
     if type(self) is _CoreGameExecutor:
         raise UnsupportedCapability(
             "internal executor core cannot be instantiated directly; "
             "use mtg_kernel.engine.GameExecutor"
         )
-    _CORE_INITIALIZER(self, state, seed, replaying=replaying, probing=probing)
+    _CORE_INITIALIZER(
+        self,
+        state,
+        seed,
+        replaying=replaying,
+        probing=probing,
+        opponent_mana_profile=opponent_mana_profile,
+    )
 
 
 setattr(_CoreGameExecutor, "__init__", _guarded_core_initializer)

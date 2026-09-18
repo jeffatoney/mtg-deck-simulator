@@ -102,11 +102,13 @@ def bind_policy_strategic_choices(
     executor: GameExecutor,
     bundle: PolicyBundle,
     evaluator: ContextualEvaluator,
+    *,
+    controlled_player_id: str,
 ) -> PolicyStrategicChoiceProvider:
     """Bind the frozen policy plus trigger-target extension to one executor."""
 
     provider = PolicyStrategicChoiceProvider(bundle, evaluator)
-    executor.bind_strategic_choice_provider(provider)
+    executor.bind_strategic_choice_provider(provider, controlled_player_id=controlled_player_id)
     return provider
 
 

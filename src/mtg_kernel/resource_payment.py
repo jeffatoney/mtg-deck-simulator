@@ -355,39 +355,55 @@ def _pay(
     for i, source in enumerate(sources):
         if not _available(source, state.caps[i], win):
             continue
+        # Invariant: `seen` keys a remaining-payment problem
+        # (resource state, remaining requirements, step label, tags, window).
+        # That is sufficient only when successor states already distinguish
+        # production choices. Costed multi-mode sources share one consumed
+        # state and activation-cost problem, so activation is solved once per
+        # activation cost and each helpful production then branches from those
+        # paid states via `_produce`.
+        helpful_by_cost: dict[str, list[ManaProduction]] = {}
         for prod in source.productions:
             if not _helpful(prod, reqs, tags):
                 continue
-            consumed = _consume(state, i, source)
-            act_cost = prod.activation_cost or source.activation_cost
+            helpful_by_cost.setdefault(prod.activation_cost or source.activation_cost, []).append(
+                prod
+            )
+        if not helpful_by_cost:
+            continue
+        consumed = _consume(state, i, source)
+        for act_cost, prods in helpful_by_cost.items():
             act_reqs = _reqs(act_cost)
             act_label = f"{label}:source:{source.semantic_id}"
-            paths: Iterable[tuple[_State, tuple[PaymentAllocation, ...]]]
+            paths: tuple[tuple[_State, tuple[PaymentAllocation, ...]], ...]
             paths = (
-                _pay(
-                    consumed,
-                    act_reqs,
-                    label=act_label,
-                    tags=("ACTIVATED_ABILITY", "MANA_ABILITY"),
-                    win=win,
-                    sources=sources,
-                    seen=seen,
+                tuple(
+                    _pay(
+                        consumed,
+                        act_reqs,
+                        label=act_label,
+                        tags=("ACTIVATED_ABILITY", "MANA_ABILITY"),
+                        win=win,
+                        sources=sources,
+                        seen=seen,
+                    )
                 )
                 if act_reqs
                 else ((consumed, ()),)
             )
-            for paid, act_alloc in paths:
-                produced = _produce(paid, source, prod)
-                for end, tail in _pay(
-                    produced,
-                    reqs,
-                    label=label,
-                    tags=tags,
-                    win=win,
-                    sources=sources,
-                    seen=seen,
-                ):
-                    yield end, (*act_alloc, *tail)
+            for prod in prods:
+                for paid, act_alloc in paths:
+                    produced = _produce(paid, source, prod)
+                    for end, tail in _pay(
+                        produced,
+                        reqs,
+                        label=label,
+                        tags=tags,
+                        win=win,
+                        sources=sources,
+                        seen=seen,
+                    ):
+                        yield end, (*act_alloc, *tail)
 
 
 def _canon(

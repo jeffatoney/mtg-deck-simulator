@@ -7,7 +7,9 @@ from tests.phase_b.transcripts.support import LoopWitnessProvider, move_named, p
 def test_pb_t05_dualcaster_twinflame_evidence() -> None:
     state, executor, created = build_exact_game("golden-t05", ("P0", "P1"))
     library = list(created["library"])
-    executor.bind_strategic_choice_provider(LoopWitnessProvider(provider(), 2))
+    executor.bind_strategic_choice_provider(
+        LoopWitnessProvider(provider(), 2), controlled_player_id="P0"
+    )
     state.turn.phase = "PRECOMBAT_MAIN"
     dualcaster = move_named(executor, library, "Dualcaster Mage", Zone.HAND)
     library = [obj for obj in library if not obj.retired]

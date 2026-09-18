@@ -138,7 +138,9 @@ def test_exact_deck_transmute_selects_singleton_at_resolution() -> None:
     state, executor, created = build_exact_game("corrective-transmute", PLAYERS)
     all_library = list(created["library"])
     dizzy = move_named(executor, all_library, "Dizzy Spell", Zone.HAND)
-    executor.bind_strategic_choice_provider(TutorOverrideProvider(provider(), "Sol Ring"))
+    executor.bind_strategic_choice_provider(
+        TutorOverrideProvider(provider(), "Sol Ring"), controlled_player_id="P0"
+    )
     state.turn.phase = "PRECOMBAT_MAIN"
     state.players["P0"].mana_pool.update({s: 0 for s in state.players["P0"].mana_pool})
     state.players["P0"].mana_pool["U"] = 2
@@ -177,7 +179,7 @@ def test_exact_deck_fact_or_fiction_keeps_twinflame_over_excess_lands() -> None:
     library = list(created["library"])
     state.turn.number = 3
     state.turn.phase = "PRECOMBAT_MAIN"
-    executor.bind_strategic_choice_provider(provider())
+    executor.bind_strategic_choice_provider(provider(), controlled_player_id="P0")
     for _ in range(3):
         move_named(executor, library, "Island", Zone.BATTLEFIELD)
         library = [o for o in library if not o.retired]
@@ -216,7 +218,9 @@ def test_exact_deck_fact_or_fiction_keeps_twinflame_over_excess_lands() -> None:
 def test_actual_dualcaster_twinflame_line_is_bounded_by_policy_choice() -> None:
     state, executor, created = build_exact_game("corrective-dualcaster", ("P0", "P1"))
     library = list(created["library"])
-    executor.bind_strategic_choice_provider(LoopWitnessProvider(provider(), 2))
+    executor.bind_strategic_choice_provider(
+        LoopWitnessProvider(provider(), 2), controlled_player_id="P0"
+    )
     state.turn.phase = "PRECOMBAT_MAIN"
     dualcaster = move_named(executor, library, "Dualcaster Mage", Zone.HAND)
     library = [o for o in library if not o.retired]

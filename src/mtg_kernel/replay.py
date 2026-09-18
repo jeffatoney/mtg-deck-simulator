@@ -7,13 +7,19 @@ import json
 from dataclasses import asdict
 from typing import Any
 
-from mtg_kernel.errors import ReplayError
+from mtg_kernel.errors import ReplayError, UnsupportedCapability
 from mtg_kernel.hashing import state_hash
 from mtg_kernel.models import GameState
+from mtg_kernel.resource_sources import (
+    DEFAULT_OPPONENT_MANA_PROFILE,
+    validate_opponent_mana_profile,
+)
 from mtg_kernel.serialization import state_from_data
 from mtg_kernel.strategic_choices import RecordedStrategicChoiceProvider
 
 TRANSCRIPT_SCHEMA = "phase-a-replay-v2"
+_REPLAY_EXECUTION_CONTEXT_KEY = "execution_context"
+_OPPONENT_MANA_PROFILE_KEY = "opponent_mana_profile"
 
 
 def _json_default(value: Any) -> Any:
@@ -44,6 +50,18 @@ def _digest(body: dict[str, Any]) -> str:
         allow_nan=False,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def _replay_opponent_mana_profile(initial: dict[str, Any]) -> str:
+    if _REPLAY_EXECUTION_CONTEXT_KEY not in initial:
+        return DEFAULT_OPPONENT_MANA_PROFILE
+    context = initial[_REPLAY_EXECUTION_CONTEXT_KEY]
+    if not isinstance(context, dict) or set(context) != {_OPPONENT_MANA_PROFILE_KEY}:
+        raise ReplayError("transcript execution context is malformed")
+    try:
+        return validate_opponent_mana_profile(context[_OPPONENT_MANA_PROFILE_KEY])
+    except UnsupportedCapability as exc:
+        raise ReplayError(str(exc)) from exc
 
 
 def transcript(state: GameState, *, seed: str = "phase-a") -> dict[str, Any]:
@@ -78,6 +96,7 @@ def validate_replay(expected: dict[str, Any]) -> GameState:
     commands = expected.get("commands")
     if not isinstance(initial, dict) or not isinstance(commands, list):
         raise ReplayError("transcript omits initial state or ordered commands")
+    opponent_mana_profile = _replay_opponent_mana_profile(initial)
     try:
         state = state_from_data(initial)
         from mtg_kernel.engine import GameExecutor
@@ -91,6 +110,7 @@ def validate_replay(expected: dict[str, Any]) -> GameState:
             replaying=True,
             strategic_choice_provider=RecordedStrategicChoiceProvider(recorded_choices),
         )
+        executor.opponent_mana_profile = opponent_mana_profile
         for command in commands:
             if not isinstance(command, dict):
                 raise ReplayError("replay command is malformed")

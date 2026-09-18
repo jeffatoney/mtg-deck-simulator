@@ -13,7 +13,20 @@ from mtg_kernel.phase_b_runtime_effects_search import (
     _observation,
 )
 from mtg_kernel.phase_b_runtime_helpers import _destroy
-from mtg_kernel.strategic_choices import PublicCard, TutorChoiceRequest, require_provider
+from mtg_kernel.strategic_choices import (
+    PublicCard,
+    TutorChoiceRequest,
+    TutorChoiceSelection,
+    explicit_action_choice_is_authorized,
+    require_executor_authorized_provider,
+)
+
+
+def _explicit_library_search_identity(choices: dict[str, Any], player_id: str) -> str | None:
+    raw = choices.get("library_search")
+    if not isinstance(raw, dict) or player_id not in raw:
+        return None
+    return str(raw[player_id])
 
 
 def _search_basic_for_player(
@@ -22,38 +35,59 @@ def _search_basic_for_player(
     player_id: str,
     *,
     search_role: str,
+    choices: dict[str, Any],
 ) -> None:
     eligible = _basic_lands(executor, player_id)
     eligible_identities = tuple(
         sorted({str(obj.current_characteristics.get("name", "")) for obj in eligible})
     )
     request_id = executor.identity.new_id("strategic-request")
-    provider = require_provider(
-        getattr(executor, "strategic_choice_provider", None),
-        "Demolition Field basic-land search resolution",
-    )
-    selection = provider.choose_tutor(
-        TutorChoiceRequest(
-            request_id=request_id,
-            actor_id=player_id,
-            ability_id=str(action.metadata.get("ability_id", "")),
-            turn_number=executor.state.turn.number,
-            observation=_observation(executor, player_id),
-            eligible_identities=eligible_identities,
-            eligible_cards=tuple(
-                PublicCard(
-                    handle=_choice_handle(request_id, obj.object_id),
-                    identity=str(obj.current_characteristics.get("name", "")),
-                    mana_value=int(obj.current_characteristics.get("mana_value", 0)),
-                    card_types=tuple(
-                        str(value) for value in obj.current_characteristics.get("card_types", ())
-                    ),
-                    effect_kinds=(),
-                )
-                for obj in eligible
-            ),
+    explicit_identity = None
+    if explicit_action_choice_is_authorized(
+        decision_owner_id=player_id,
+        action_actor_id=action.actor_id,
+    ):
+        explicit_identity = _explicit_library_search_identity(choices, player_id)
+    if explicit_identity is not None:
+        if explicit_identity != "FAIL_TO_FIND" and explicit_identity not in eligible_identities:
+            raise IllegalAction(
+                "explicit Demolition Field search selected an ineligible basic land"
+            )
+        selection = TutorChoiceSelection(
+            explicit_identity,
+            "explicit-rules-choice",
+            "0" * 64,
+            {"decision_source": "EXPLICIT_ACTION_CHOICE", "player_id": player_id},
         )
-    )
+    else:
+        provider = require_executor_authorized_provider(
+            executor,
+            "Demolition Field basic-land search resolution",
+            decision_owner_id=player_id,
+        )
+        selection = provider.choose_tutor(
+            TutorChoiceRequest(
+                request_id=request_id,
+                actor_id=player_id,
+                ability_id=str(action.metadata.get("ability_id", "")),
+                turn_number=executor.state.turn.number,
+                observation=_observation(executor, player_id),
+                eligible_identities=eligible_identities,
+                eligible_cards=tuple(
+                    PublicCard(
+                        handle=_choice_handle(request_id, obj.object_id),
+                        identity=str(obj.current_characteristics.get("name", "")),
+                        mana_value=int(obj.current_characteristics.get("mana_value", 0)),
+                        card_types=tuple(
+                            str(value)
+                            for value in obj.current_characteristics.get("card_types", ())
+                        ),
+                        effect_kinds=(),
+                    )
+                    for obj in eligible
+                ),
+            )
+        )
     selected_name = selection.selected_identity
     if selected_name != "FAIL_TO_FIND" and selected_name not in eligible_identities:
         raise IllegalAction("strategic tutor provider selected an ineligible basic land")
@@ -120,6 +154,7 @@ def apply_demolition_field(
     executor: Any,
     action: Action,
     targets: list[GameObject],
+    choices: dict[str, Any] | None = None,
 ) -> None:
     """Destroy the target and resolve both optional basic-land searches in order."""
 
@@ -129,6 +164,7 @@ def apply_demolition_field(
     target_controller = target.controller or target.owner
     if target_controller is None:
         raise IllegalAction("Demolition Field target has no controller or owner")
+    resolved_choices = dict(choices or action.metadata.get("choices") or {})
 
     _destroy(executor, target, action, "DEMOLITION_FIELD")
     _search_basic_for_player(
@@ -136,10 +172,12 @@ def apply_demolition_field(
         action,
         target_controller,
         search_role="DESTROYED_LAND_CONTROLLER",
+        choices=resolved_choices,
     )
     _search_basic_for_player(
         executor,
         action,
         action.actor_id,
         search_role="ABILITY_CONTROLLER",
+        choices=resolved_choices,
     )

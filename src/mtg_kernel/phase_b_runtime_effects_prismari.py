@@ -13,9 +13,11 @@ from mtg_kernel.phase_b_runtime_support import (
     _types,
 )
 from mtg_kernel.strategic_choices import (
+    CardSelection,
     CardSelectionRequest,
     PublicCard,
-    require_provider,
+    explicit_action_choice_is_authorized,
+    require_executor_authorized_provider,
 )
 
 PRISMARI_MODE_ORDER = (
@@ -125,6 +127,46 @@ def _target_permanent(
     return cast(GameObject, obj)
 
 
+def _explicit_prismari_discard_names(
+    choices: dict[str, Any], player_id: str
+) -> tuple[str, ...] | None:
+    raw = choices.get("prismari_discard")
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        if player_id not in raw:
+            return None
+        raw = raw[player_id]
+    if not isinstance(raw, (list, tuple)):
+        raise IllegalAction("Prismari Command discard choice must be a sequence of names")
+    return tuple(str(name) for name in raw)
+
+
+def _cards_matching_explicit_names(
+    candidates: list[GameObject],
+    names: tuple[str, ...],
+    required: int,
+) -> list[GameObject]:
+    if len(names) != required:
+        raise IllegalAction("explicit Prismari discard count does not match the required discard")
+    remaining = list(candidates)
+    selected: list[GameObject] = []
+    for name in names:
+        match = next(
+            (
+                card
+                for card in remaining
+                if str(card.current_characteristics.get("name", "")) == name
+            ),
+            None,
+        )
+        if match is None:
+            raise IllegalAction("explicit Prismari discard selected an unavailable card")
+        remaining.remove(match)
+        selected.append(match)
+    return selected
+
+
 def _hand_objects(executor: Any, player_id: str) -> list[GameObject]:
     key = executor.zones.zone_key(Zone.HAND, player_id)
     return [
@@ -141,6 +183,7 @@ def _select_discards(
     player_id: str,
     candidates: list[GameObject],
     count: int,
+    choices: dict[str, Any],
 ) -> list[GameObject]:
     required = min(count, len(candidates))
     if required == 0:
@@ -162,23 +205,39 @@ def _select_discards(
         )
         for candidate in candidates
     )
-    provider = require_provider(
-        getattr(executor, "strategic_choice_provider", None),
-        "Prismari Command discard selection",
-    )
-    selection = provider.choose_cards(
-        CardSelectionRequest(
-            request_id=request_id,
-            actor_id=player_id,
-            ability_id=str(action.metadata.get("ability_id", "")),
-            purpose="PRISMARI_DISCARD",
-            turn_number=executor.state.turn.number,
-            observation=executor._strategic_observation(player_id),
-            candidates=public_cards,
-            minimum=required,
-            maximum=required,
+    explicit_names = None
+    if explicit_action_choice_is_authorized(
+        decision_owner_id=player_id,
+        action_actor_id=action.actor_id,
+    ):
+        explicit_names = _explicit_prismari_discard_names(choices, player_id)
+    if explicit_names is not None:
+        selected_cards = _cards_matching_explicit_names(candidates, explicit_names, required)
+        selection = CardSelection(
+            tuple(handles[card.object_id] for card in selected_cards),
+            "explicit-rules-choice",
+            "0" * 64,
+            {"decision_source": "EXPLICIT_ACTION_CHOICE", "player_id": player_id},
         )
-    )
+    else:
+        provider = require_executor_authorized_provider(
+            executor,
+            "Prismari Command discard selection",
+            decision_owner_id=player_id,
+        )
+        selection = provider.choose_cards(
+            CardSelectionRequest(
+                request_id=request_id,
+                actor_id=player_id,
+                ability_id=str(action.metadata.get("ability_id", "")),
+                purpose="PRISMARI_DISCARD",
+                turn_number=executor.state.turn.number,
+                observation=executor._strategic_observation(player_id),
+                candidates=public_cards,
+                minimum=required,
+                maximum=required,
+            )
+        )
     selected_handles = tuple(selection.selected_handles)
     legal_handles = set(handles.values())
     if len(selected_handles) != len(set(selected_handles)):
@@ -221,6 +280,7 @@ def _draw_then_discard(
     executor: Any,
     action: Action,
     player_id: str,
+    choices: dict[str, Any],
 ) -> None:
     for _ in range(2):
         executor.draw_card(player_id, action=action)
@@ -230,6 +290,7 @@ def _draw_then_discard(
         player_id,
         _hand_objects(executor, player_id),
         2,
+        choices,
     )
     for card in selected:
         event = executor._event(
@@ -283,7 +344,7 @@ def apply_prismari_command(
                     combat=False,
                 )
         elif mode == "DRAW_DISCARD":
-            _draw_then_discard(executor, action, _target_player(executor, action, target))
+            _draw_then_discard(executor, action, _target_player(executor, action, target), choices)
         elif mode == "CREATE_TREASURE":
             executor.create_treasure(_target_player(executor, action, target), action)
         elif mode == "DESTROY_ARTIFACT":

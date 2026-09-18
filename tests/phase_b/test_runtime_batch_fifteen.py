@@ -107,7 +107,8 @@ def test_look_select_rest_bottom_executes_exact_deck_cards(
                 "LOOK_SELECT": (selected_name,),
                 "ORDER_LIBRARY_BOTTOM": bottom_order,
             }
-        )
+        ),
+        controlled_player_id="P0",
     )
 
     executor.cast("P0", spell.object_id)
@@ -137,7 +138,7 @@ def test_look_select_rejects_illegal_provider_output_atomically() -> None:
     for name in ("Mountain", "Island", "Opt", "Sol Ring", "Twinflame"):
         add_card(executor, specs[name], Zone.LIBRARY)
     impulse = add_card(executor, specs["Impulse"], Zone.HAND)
-    executor.bind_strategic_choice_provider(IllegalSelectionProvider())
+    executor.bind_strategic_choice_provider(IllegalSelectionProvider(), controlled_player_id="P0")
 
     spell = executor.cast("P0", impulse.object_id)
     library_key = executor.zones.zone_key(Zone.LIBRARY, "P0")

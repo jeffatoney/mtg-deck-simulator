@@ -63,7 +63,7 @@ def _apply_effect(
                 )
         return
     if kind == "DEMOLITION_FIELD":
-        apply_demolition_field(self, action, targets)
+        apply_demolition_field(self, action, targets, choices)
         return
     if kind == "AMASS_AND_HEXPROOF":
         apply_amass_and_hexproof(self, action, effect, targets, choices)

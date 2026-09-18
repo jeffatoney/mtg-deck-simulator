@@ -81,7 +81,10 @@ def tutor_actions(zone: Zone):
     add_card(executor, specs["Dizzy Spell"], Zone.HAND)
     add_card(executor, specs["Sol Ring"], zone)
     bind_policy_strategic_choices(
-        executor, load_policy_matrix()[0], ContextualEvaluator(load_evaluator_config())
+        executor,
+        load_policy_matrix()[0],
+        ContextualEvaluator(load_evaluator_config()),
+        controlled_player_id="P0",
     )
     broker = ActionBroker(executor, "P0")
     observation, actions = broker.refresh()

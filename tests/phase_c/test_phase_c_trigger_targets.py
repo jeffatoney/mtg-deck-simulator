@@ -18,7 +18,7 @@ def _anchor_policy(executor):
         value for value in load_policy_matrix() if value.policy_config_id == "anchor_balanced"
     )
     evaluator = ContextualEvaluator(load_evaluator_config())
-    return bind_policy_strategic_choices(executor, bundle, evaluator)
+    return bind_policy_strategic_choices(executor, bundle, evaluator, controlled_player_id="P0")
 
 
 def test_niv_draw_trigger_records_explicit_opponent_target_choice() -> None:

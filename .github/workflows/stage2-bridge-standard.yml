@@ -7,6 +7,9 @@ on:
       - "scripts/benchmark_stage2_standard.py"
       - "src/mtg_kernel/resource_payment.py"
       - "src/mtg_kernel/resource_sources.py"
+      - "src/mtg_kernel/resource_execution.py"
+      - "src/mtg_kernel/phase_b_runtime_effects_interaction.py"
+      - "src/mtg_kernel/strategic_choices.py"
       - "src/mtg_measure/combo_access.py"
       - ".github/workflows/stage2-bridge-standard.yml"
   push:
@@ -17,6 +20,9 @@ on:
       - "scripts/benchmark_stage2_standard.py"
       - "src/mtg_kernel/resource_payment.py"
       - "src/mtg_kernel/resource_sources.py"
+      - "src/mtg_kernel/resource_execution.py"
+      - "src/mtg_kernel/phase_b_runtime_effects_interaction.py"
+      - "src/mtg_kernel/strategic_choices.py"
       - "src/mtg_measure/combo_access.py"
       - ".github/workflows/stage2-bridge-standard.yml"
   workflow_dispatch:

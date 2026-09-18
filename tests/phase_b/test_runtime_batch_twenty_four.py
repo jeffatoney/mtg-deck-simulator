@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from mtg_cards.full_deck import load_full_deck_specs
-from mtg_kernel.errors import IllegalAction
+from mtg_kernel.errors import UnsupportedCapability
 from mtg_kernel.factory import add_card, new_game
 from mtg_kernel.models import Zone
 from mtg_kernel.strategic_choices import CardSelection, CardSelectionRequest
@@ -71,7 +71,9 @@ def test_chart_a_course_draws_two_then_discards_when_controller_did_not_attack()
     add_card(executor, specs["Mountain"], Zone.LIBRARY)
     discard = add_card(executor, specs["Opt"], Zone.HAND)
     chart = add_card(executor, specs["Chart a Course"], Zone.HAND)
-    executor.bind_strategic_choice_provider(NamedSelectionProvider({"DISCARD": ("Opt",)}))
+    executor.bind_strategic_choice_provider(
+        NamedSelectionProvider({"DISCARD": ("Opt",)}), controlled_player_id="P0"
+    )
 
     executor.cast("P0", chart.object_id)
     pass_all(executor)
@@ -95,7 +97,9 @@ def test_chart_a_course_draws_two_without_discard_after_attack_marker() -> None:
     add_card(executor, specs["Island"], Zone.LIBRARY)
     add_card(executor, specs["Mountain"], Zone.LIBRARY)
     chart = add_card(executor, specs["Chart a Course"], Zone.HAND)
-    executor.bind_strategic_choice_provider(NamedSelectionProvider({"DISCARD": ()}))
+    executor.bind_strategic_choice_provider(
+        NamedSelectionProvider({"DISCARD": ()}), controlled_player_id="P0"
+    )
 
     executor.cast("P0", chart.object_id)
     pass_all(executor)
@@ -125,7 +129,7 @@ def test_chart_a_course_missing_discard_provider_fails_closed_atomically() -> No
     before_hand = tuple(state.zones[hand_key])
     executor.pass_priority("P0")
 
-    with pytest.raises(IllegalAction, match="discard selection requires an injected"):
+    with pytest.raises(UnsupportedCapability, match="unmodeled opponent"):
         executor.pass_priority("P1")
 
     assert tuple(state.zones[library_key]) == before_library

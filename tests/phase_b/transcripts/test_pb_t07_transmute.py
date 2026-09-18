@@ -50,7 +50,7 @@ def _prepare_transmute(seed: str, selected_identity: str):
     dizzy = move_named(executor, library, "Dizzy Spell", Zone.HAND)
     base = provider()
     recording = RecordingTutorProvider(base, selected_identity)
-    executor.bind_strategic_choice_provider(recording)
+    executor.bind_strategic_choice_provider(recording, controlled_player_id="P0")
     state.turn.phase = "PRECOMBAT_MAIN"
     state.players["P0"].mana_pool.update({symbol: 0 for symbol in state.players["P0"].mana_pool})
     state.players["P0"].mana_pool["U"] = 2

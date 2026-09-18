@@ -111,6 +111,41 @@ def pay_mana(pool: dict[str, int], cost: Mapping[str, int]) -> dict[str, int]:
     return {symbol: amount for symbol, amount in payment.items() if amount}
 
 
+def pay_exact_mana(
+    pool: dict[str, int],
+    cost: Mapping[str, int],
+    proposed_payment: Mapping[str, int],
+) -> dict[str, int]:
+    """Consume exactly the proposed units iff they legally satisfy ``cost``."""
+
+    unexpected = set(proposed_payment) - set(COLORS)
+    if unexpected:
+        raise IllegalAction(
+            f"exact mana payment contains unsupported colors: "
+            f"{sorted(str(value) for value in unexpected)}"
+        )
+    try:
+        exact = {
+            color: int(proposed_payment.get(color, 0))
+            for color in COLORS
+            if int(proposed_payment.get(color, 0)) != 0
+        }
+    except (TypeError, ValueError) as exc:
+        raise IllegalAction("exact mana payment contains a non-integer amount") from exc
+    if any(amount < 0 for amount in exact.values()):
+        raise IllegalAction("exact mana payment contains a negative amount")
+
+    isolated = {color: exact.get(color, 0) for color in COLORS}
+    try:
+        validated = pay_mana(isolated, cost)
+    except IllegalAction as exc:
+        raise IllegalAction("exact mana payment is not legal for mana cost") from exc
+    if validated != exact or any(isolated.values()):
+        raise IllegalAction("exact mana payment does not match mana cost")
+
+    return pay_mana(pool, exact)
+
+
 def add_mana(pool: dict[str, int], mana: Mapping[str, int]) -> None:
     for symbol, amount in mana.items():
         if symbol not in COLORS or int(amount) < 0:

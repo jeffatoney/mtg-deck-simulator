@@ -51,7 +51,7 @@ def provider() -> PolicyStrategicChoiceProvider:
 def test_canonical_policy_executes_finite_visible_lethal_reserve() -> None:
     state, executor, created = build_exact_game("canonical-dualcaster", PLAYERS)
     library = list(created["library"])
-    executor.bind_strategic_choice_provider(provider())
+    executor.bind_strategic_choice_provider(provider(), controlled_player_id="P0")
     state.turn.phase = "PRECOMBAT_MAIN"
     state.players["P1"].life = 4
     dualcaster = move_named(executor, library, "Dualcaster Mage", Zone.HAND)

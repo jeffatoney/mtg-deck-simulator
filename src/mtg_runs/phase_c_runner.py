@@ -238,7 +238,9 @@ def _bound_policy(executor: GameExecutor, policy_config_id: str) -> tuple[Standa
     ):
         raise ValueError("Phase C technical runner requires the exact frozen evaluator snapshot")
     evaluator = ContextualEvaluator(evaluator_config)
-    provider = bind_policy_strategic_choices(executor, bundle, evaluator)
+    provider = bind_policy_strategic_choices(
+        executor, bundle, evaluator, controlled_player_id=CONTROLLED_PLAYER
+    )
     return StandardPolicy(bundle, opponent_interaction_modeled=False), provider, evaluator_config
 
 
@@ -532,10 +534,17 @@ class _OneLayerExplorer:
         def expand(parent: SearchPosition, selected: Any, belief_seed: int) -> SearchPosition:
             del parent, belief_seed  # future random outcomes are intentionally unavailable
             clone_state = deepcopy(executor.state)
-            clone = GameExecutor(clone_state, executor.seed)
+            clone = GameExecutor(
+                clone_state,
+                executor.seed,
+                opponent_mana_profile=executor.opponent_mana_profile,
+            )
             _policy, _provider, evaluator_config = _bound_policy(clone, self.policy_config_id)
             tracker = bind_combo_access_tracker(
-                clone, CONTROLLED_PLAYER, evaluator_config.combo_packages
+                clone,
+                CONTROLLED_PLAYER,
+                evaluator_config.combo_packages,
+                opponent_mana_profile=clone.opponent_mana_profile,
             )
             clone_broker = ActionBroker(clone, CONTROLLED_PLAYER)
             clone_observation, clone_actions = clone_broker.refresh()
