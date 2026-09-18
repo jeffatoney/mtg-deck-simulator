@@ -2,7 +2,7 @@
 
 Status: TECHNICAL_IMPLEMENTATION_AND_CERTIFICATION_COMPLETE_FINAL_CODEX_REVIEW_PENDING
 
-Technical implementation is complete. Final Phase A and Phase B certifications are current. Promotion-head exact CI and auxiliary workflows are green. This documentation refresh records the final ROOT-A authority-boundary completion. This does not declare PR #104 Ready for Review, merge-ready, or merged. A fresh Codex review of the resulting exact final docs head remains required before closing review threads or a Ready-for-Review transition.
+Technical implementation is complete. Final Phase A and Phase B certifications are current. Promotion-head exact CI and auxiliary workflows are green. This documentation refresh records the final resource-execution provenance repair that followed the ROOT-A authority-boundary completion. This does not declare PR #104 Ready for Review, merge-ready, or merged. A fresh Codex review of the resulting exact final docs head remains required before closing review threads or a Ready-for-Review transition.
 
 This document supplements, and does not rewrite, `INVENTORY.json`.
 
@@ -77,9 +77,10 @@ Stage 3 instead added `src/mtg_kernel/resource_execution.py` as a rules-private 
 1. Accept a `ResourcePaymentResult` already produced by the authoritative shared solver.
 2. Immediately rerun that same shared solver before execution to reject stale semantic allocations.
 3. Bind canonical semantic source allocations to current rules execution objects only after the selected outcome requires payment.
-4. Execute actual mana abilities during resolution without creating a new priority opportunity.
-5. Spend the exact allocation chosen by the shared solver.
-6. Fail closed if current execution state cannot bind the canonical semantic allocation.
+4. Consume or reserve provenance that a source has already produced before activating that source again, and activate additional sources only for a remaining deficit.
+5. Execute actual mana abilities during resolution without creating a new priority opportunity.
+6. Spend the exact allocation chosen by the shared solver.
+7. Fail closed if current execution state cannot bind the canonical semantic allocation.
 
 This is execution of an already-proven allocation, not a second feasibility solver, planner, or resource valuation model.
 
@@ -400,9 +401,9 @@ Exact-head GitHub Actions run `34768828544` (displayed CI #1314) ran on that doc
 
 A fresh Codex review was then requested against exact head `686961ee06d7db7a679442a339e754a637589698`. That review reopened ROOT-A as recorded below.
 
-## Final ROOT-A authority completion
+## Historical ROOT-A authority completion
 
-The current Stage 3 source, certification, and validation authority is the ROOT-A authority-boundary completion recorded here. The CR1–CR9 history, the consolidated audit pinned to `f84ff8a101e59be1742d4ffaf115f9f9e8cd8971`, repair commits `342155019e7c404c6e006e0272e5296ea17c5c9f` and `30914ee584490ebacd0611721e33409f62cdb416`, certification promotion `e4e0cbf4e075149d83582dafa9d8225476c3fdba`, R7 docs head `686961ee06d7db7a679442a339e754a637589698`, and CI #1312–#1314 remain legitimate historical provenance.
+The ROOT-A authority-boundary completion recorded here was the current Stage 3 source, certification, and validation authority through docs head `69a6e812d269ce24e341b7f660797497e1cd0ac0` and CI #1315–#1317. It remains legitimate historical provenance. It is superseded as CURRENT authority by the final resource-execution provenance repair recorded below, because `src/mtg_kernel/resource_execution.py` changed afterwards. The CR1–CR9 history, the consolidated audit pinned to `f84ff8a101e59be1742d4ffaf115f9f9e8cd8971`, repair commits `342155019e7c404c6e006e0272e5296ea17c5c9f` and `30914ee584490ebacd0611721e33409f62cdb416`, certification promotion `e4e0cbf4e075149d83582dafa9d8225476c3fdba`, R7 docs head `686961ee06d7db7a679442a339e754a637589698`, and CI #1312–#1314 also remain legitimate historical provenance. Do not treat this section as though the ROOT-A repair never happened.
 
 ### Fresh Codex review on `686961ee`
 
@@ -537,11 +538,214 @@ Auxiliary exact-head workflows also passed:
 - Stage 2 Bridge STANDARD Benchmark #101, run `34942615508`: `SUCCESS`.
 - Stage 3 PR99 Prototype Preservation #55, run `34942615533`: `SUCCESS`.
 
-The current durable records are the post-ROOT-A Stage 3 certifications. They are not the obsolete certification files contained on frozen PR #99, and they supersede both the historical CR6–CR9 and consolidated-repair durable records. This documentation refresh records already validated implementation and certification provenance; its own resulting commit still requires exact-head CI.
+The post-ROOT-A durable records superseded both the historical CR6–CR9 and consolidated-repair durable records. They are not the obsolete certification files contained on frozen PR #99. They were themselves superseded as CURRENT authority after the resource-execution provenance repair changed covered `src/mtg_kernel` paths.
+
+### ROOT-A documentation head and CI #1317
+
+The documentation-only refresh that recorded the ROOT-A authority completion was:
+
+- Commit: `69a6e812d269ce24e341b7f660797497e1cd0ac0`.
+- Parent: `9c4167add36caba74b1eac34a27c83c99c2f6736`.
+- Subject: `Refresh Stage 3 final authority disposition`.
+
+Exact-head GitHub Actions run `34999298134` (displayed CI #1317) ran on that docs head and concluded `SUCCESS`. Auxiliary exact-head workflows also passed:
+
+- Stage 2 Bridge STANDARD Benchmark #102, run `34999298158`: `SUCCESS`.
+- Stage 3 PR99 Prototype Preservation #56, run `34999298138`: `SUCCESS`.
+
+A fresh Codex review was then requested against exact head `69a6e812d269ce24e341b7f660797497e1cd0ac0`. That review opened the resource-execution provenance P1 recorded below.
+
+## Final resource-execution provenance repair
+
+The current Stage 3 source, certification, and validation authority is the resource-execution provenance repair recorded here. Everything above — the CR1–CR9 history, the consolidated audit and repairs, the ROOT-A authority completion, and their certification promotions — remains legitimate historical provenance only.
+
+### Fresh Codex review on `69a6e81`
+
+Codex reviewed exact docs head `69a6e812d269ce24e341b7f660797497e1cd0ac0` and opened one new blocking P1.
+
+- Thread: `PRRT_kwDOTe7Y0c6ivv7d`.
+- Comment DB id: `4021459534`.
+- Title: “Reuse already-produced mana across allocation levels”.
+- Classification: resource execution and provenance. This is not a ROOT-A authority finding. ROOT-A remains a separate completed repair class.
+
+The finding was that a solver-approved canonical allocation may use one multi-mana source at more than one allocation level: one produced unit funds the final payment and another produced unit funds a different source's activation cost. Execution recorded the first source's production in `context.available_mana`, but recursive child execution could attempt to activate that same source again before consuming the already-produced provenance.
+
+The exact-deck witness is Izzet Boilerworks plus Izzet Signet paying `{3}`. The shared solver returned a feasible canonical allocation:
+
+- Parent payment: Izzet Boilerworks `R` to `GENERIC:0`; Izzet Signet `R` to `GENERIC:1`; Izzet Signet `U` to `GENERIC:2`.
+- Child activation-cost allocation for Izzet Signet: Izzet Boilerworks `U` to `GENERIC:0`.
+
+The old execution tapped Boilerworks, recorded its `U` and `R` production, recursed into the Signet activation cost, saw Boilerworks as the child funding source, attempted to activate and tap Boilerworks a second time, and failed with `IllegalAction`. That violated the core contract: a still-valid solver-approved canonical allocation must execute exactly.
+
+### Resource-provenance execution invariant
+
+Once a mana-source activation has produced mana and that production is recorded in the binding context, any later canonical allocation unit that references that same produced provenance must consume or reserve the already-produced mana before attempting another activation of that semantic source. Another source activation is permitted only for an actual remaining deficit, and only where a legal source instance remains available.
+
+The execution order is:
+
+```text
+PRODUCE
+-> RECORD AVAILABLE PROVENANCE
+-> RESERVE / CONSUME EXISTING PROVENANCE
+-> ACTIVATE ADDITIONAL SOURCES ONLY FOR UNSATISFIED DEFICIT
+```
+
+Explicitly:
+
+- The shared solver remains the sole feasibility and canonical-allocation authority.
+- No second resource solver was added.
+- No executor-side replanning was added.
+- Exact activation-cost allocation remains binding.
+- Marked and unmarked provenance remain distinct and preserved, and marker event IDs remain rules-private.
+- Multiple physical instances sharing one semantic source identity still execute.
+- Source capacity remains enforced. An exhausted source is not reactivated, and an allocation deficit that no legal instance can cover fails closed instead of creating mana.
+
+### Source/test repair
+
+- Commit: `28779896db7b1bcaea08d23cd3cfc3cb92c6a66f`.
+- Tree: `1bba721f738cf5d133eee3376f31c8997ef01e51`.
+- Parent: `69a6e812d269ce24e341b7f660797497e1cd0ac0`.
+- Subject: `Fix canonical multi-level mana provenance execution`.
+- Changed paths: `src/mtg_kernel/resource_execution.py` and `tests/kernel/test_resource_execution_contract.py`.
+
+Important implementation outcomes:
+
+- `_BindingContext` gained reserved provenance accounting alongside recorded available provenance.
+- Already-produced provenance is distinguished from uncommitted surplus, so a later allocation level may only cover from production that no earlier remaining demand has claimed.
+- Matching produced units are reserved before child recursion rather than after it.
+- `_take_exact_allocation_payment(...)` consumes the exact reserved provenance and releases the reservation as it spends.
+- Source activation occurs only for the remaining deficit.
+- Production is recorded and immediately made available to later allocation levels.
+- `src/mtg_kernel/resource_payment.py` and `src/mtg_kernel/resource_sources.py` were not changed.
+- The canonical solver result for the Boilerworks plus Signet witness was identical before and after the repair.
+
+### Regression and mutation evidence
+
+The exact Codex witness now executes. Izzet Boilerworks plus Izzet Signet paying `{3}` succeeds with payment `{"R": 2, "U": 1}`, exactly one Boilerworks activation, and exactly one Signet activation.
+
+The regression matrix covers the defect class rather than one card pair:
+
+- the exact Boilerworks plus Signet split;
+- a synthetic multi-mana parent/child split with no card-specific assumption;
+- already-produced provenance preferred over a new activation;
+- deficit behavior, where existing provenance is consumed first and only the shortfall activates another instance;
+- source capacity, which passes when existing production covers the later allocation and fails closed when additional production is required and no legal instance remains;
+- identical semantic source instances backed by two physical objects;
+- exact activation-cost color selection, including hybrid;
+- floating mana mixed with produced source provenance;
+- marked and unmarked floating provenance controls.
+
+Mutation sensitivity used disposable scratch copies of the kernel package. The primary working tree was never mutated, and each scratch file was restored byte-identically between mutations. All four defect classes are pinned by semantic assertion or rules failures rather than import or syntax errors:
+
+- `M1`, restore recursion-first child activation: the exact Boilerworks plus Signet witness and the synthetic split fail with the second-activation `IllegalAction`.
+- `M2`, ignore source provenance and spend any matching color: exact-requirement binding and the marked-mana ledger regressions fail.
+- `M3`, never reactivate a semantic ID once it has been seen: the identical-instance and reserved-parent regressions fail.
+- `M4`, overconsume already-produced provenance: exact-allocation payment accounting fails.
+
+### Local verification of the source repair
+
+Source head `28779896db7b1bcaea08d23cd3cfc3cb92c6a66f` was verified locally before certification renewal:
+
+- Targeted resource-payment tests across kernel, Phase B, and Phase C: 127 passed in 1.62 seconds.
+- `tests/kernel`: 80 passed.
+- `tests/phase_b`: 241 passed.
+- `tests/phase_c`: 180 passed in 7009.53 seconds (`1:56:49`).
+- Format, lint, and mypy: PASS.
+- Governance checkers: PASS, except the durable Phase A and Phase B certification checkers, which reported the expected staleness before renewal.
+
+Behavioral delta: solver-feasible canonical payments that reuse already-produced source provenance across allocation levels now execute successfully, including Izzet Boilerworks plus Izzet Signet paying `{3}`. Solver feasibility, canonical allocation, STANDARD ranking, the authorized counter-payment criterion, evaluator scores, replay semantics, and unrelated mana payments were unchanged.
+
+### Source-head CI #1318
+
+GitHub Actions run `35270873953` (displayed CI #1318) ran on exact source head `28779896db7b1bcaea08d23cd3cfc3cb92c6a66f`, tree `1bba721f738cf5d133eee3376f31c8997ef01e51`.
+
+Every substantive technical gate passed:
+
+- Frozen identity lock integrity.
+- Repository evidence integrity.
+- Phase A authority classification.
+- Phase B evaluator and learning boundary.
+- Public policy information boundary.
+- Public policy noninterference.
+- Clean-engine and support-package boundary.
+- Legacy-package exclusion.
+- Format, lint, and type check.
+- Phase C exact-deck Turn-10 production policy and replay smoke.
+- Phase A production verifier.
+- Phase A candidate build and validation.
+- Full tests.
+- Manifest integrity.
+- Phase B verifier.
+- Phase B candidate build and validation.
+- Phase C no-game dry run.
+
+The overall workflow conclusion was `FAILURE`, and the only failing step was `Durable Phase A certification is current`, because the prior durable certification was stale after covered `src/mtg_kernel` changes. `Durable Phase B certification is current` was the expected downstream skip. This was expected certification staleness at the renewal gate, not a technical failure.
+
+Source-head auxiliary workflows also passed:
+
+- Stage 2 Bridge STANDARD Benchmark #103, run `35270873964`: `SUCCESS`.
+- Stage 3 PR99 Prototype Preservation #57, run `35270873957`: `SUCCESS`.
+
+### Exact resource-provenance certification candidates
+
+The Phase A candidate was:
+
+- Artifact: `phase-a-certification-candidate-28779896db7b1bcaea08d23cd3cfc3cb92c6a66f`.
+- Artifact ID: `10522047766`.
+- Exact promoted `CERTIFICATION.json` SHA-256: `608e1bb677b58b83abb9df2c203d9a5ee6666d1167736946394414cbfe38ae1e`.
+- Bytes: 5138.
+- Certified content commit: `28779896db7b1bcaea08d23cd3cfc3cb92c6a66f`.
+- Certified repository tree: `1bba721f738cf5d133eee3376f31c8997ef01e51`.
+- Counts: 33 pass, 0 fail, 0 skip, 0 xfail.
+- `github_run_id = 35270873953`, `status = PASS`, `clean_tree_before_run = true`, `legacy_evidence_used = false`, and `pilot_lock = PASS`.
+
+The Phase B candidate was:
+
+- Artifact: `phase-b-certification-candidate-28779896db7b1bcaea08d23cd3cfc3cb92c6a66f`.
+- Artifact ID: `10522147688`.
+- Exact promoted `CERTIFICATION.json` SHA-256: `296cd7164b41b60b634d98ca3f91255ae98f7c45e3af35a2d198b49bfe8c2d62`.
+- Bytes: 6563.
+- Certified content commit: `28779896db7b1bcaea08d23cd3cfc3cb92c6a66f`.
+- Certified repository tree: `1bba721f738cf5d133eee3376f31c8997ef01e51`.
+- Counts: 241 pass, 0 fail, 0 skip, 0 xfail.
+- Golden transcripts: 12.
+- `github_run_id = 35270873953`, `status = PASS`, `clean_tree_before_run = true`, `legacy_evidence_used = false`, and `pilot_lock = PASS`.
+
+### Certification promotion
+
+The two exact CI-produced candidates were promoted byte-for-byte, without local regeneration or manual transcription, in:
+
+- Commit: `426ff4e6aaa64a9af178cb5bbaf674fbabfda7e9`.
+- Tree: `cf667d147d4b5726df048daf2d6a00a3a54a1fa4`.
+- Parent: `28779896db7b1bcaea08d23cd3cfc3cb92c6a66f`.
+- Subject: `Renew Stage 3 resource provenance certifications`.
+- Changed paths: `docs/audit/phase-a-certification/CERTIFICATION.json` and `docs/audit/phase-b-certification/CERTIFICATION.json`.
+
+No source or test files changed in this promotion commit. The certifications intentionally certify source/test candidate `28779896db7b1bcaea08d23cd3cfc3cb92c6a66f`, not the later promotion commit.
+
+These SHA-256 values are the current durable verification anchors for the exact promoted bytes and remain usable after the CI artifact-retention window expires.
+
+### Promotion-head exact CI #1319
+
+Promotion-head GitHub Actions run `35291820662` (displayed CI #1319) ran on exact head `426ff4e6aaa64a9af178cb5bbaf674fbabfda7e9`. The workflow conclusion was `SUCCESS`.
+
+Every substantive step passed, including frozen identity lock integrity, repository evidence integrity, Phase A authority classification, Phase B evaluator and learning boundary, public policy information boundary, public policy noninterference, clean-engine and support-package boundary, legacy-package exclusion, format, lint, type check, Phase C exact-deck Turn-10 policy and replay smoke, Phase A production verifier, Phase A candidate build and validation, full tests, manifest integrity, Phase B verifier, Phase B candidate build and validation, Phase C no-game dry run, `Durable Phase A certification is current`, and `Durable Phase B certification is current`.
+
+Auxiliary exact-head workflows also passed:
+
+- Stage 2 Bridge STANDARD Benchmark #104, run `35291820663`: `SUCCESS`.
+- Stage 3 PR99 Prototype Preservation #58, run `35291820661`: `SUCCESS`.
+
+### Current Stage 3 authority
+
+- Current source/test authority: `28779896db7b1bcaea08d23cd3cfc3cb92c6a66f`.
+- Current certification promotion: `426ff4e6aaa64a9af178cb5bbaf674fbabfda7e9`.
+
+The earlier ROOT-A source repair `b63bd6e7bcba8e57921264d13e1286f64d7e5115` and its certification promotion `9c4167add36caba74b1eac34a27c83c99c2f6736` remain valid historical provenance. They are no longer the current source or certification authority, because `src/mtg_kernel/resource_execution.py` changed afterwards. This documentation refresh records already validated implementation and certification provenance; its own resulting commit still requires exact-head CI.
 
 ## Nonblocking followups
 
-Stage 3 does not change `scripts/_certification_provenance.py`. Independent review identified a governance hardening issue for later work: the helper does not perform the recorded-artifact byte comparison when a current-run candidate is present, and an expired recorded artifact can make that comparison unavailable without itself appending an error. The durable SHA-256 anchors above mitigate later auditability for this Stage 3 promotion, but they do not replace the need for a future fail-closed correction to that helper. This is recorded as a follow-up defect, not treated as evidence that the Stage 3 candidate bytes differ.
+Stage 3 does not change `scripts/_certification_provenance.py`. Independent review identified a governance hardening issue for later work, tracked as open issue #105, “Harden certification provenance against silent comparison bypass”: the helper does not perform the recorded-artifact byte comparison when a current-run candidate is present, and an expired recorded artifact can make that comparison unavailable without itself appending an error. The durable SHA-256 anchors above mitigate later auditability for this Stage 3 promotion, but they do not replace the need for a future fail-closed correction to that helper. This is recorded as a follow-up defect, not treated as evidence that the Stage 3 candidate bytes differ.
 
 Windows path length is also a known measurement hazard for this repository's long golden-transcript paths. Digest verification should prefer repository-object or in-memory archive reads over Windows filesystem extraction when path length could exceed the platform limit; a missing-on-disk path must not by itself be treated as a missing Git object.
 
@@ -564,8 +768,11 @@ At this disposition point:
 - No duplicate strategic-choice system was added.
 - No duplicate semantic-action identity/normalizer layer was added.
 - No duplicate resource feasibility solver or full-executor feasibility planner was added.
+- No duplicate payment planner and no executor-side payment replanning were added.
+- Canonical allocation exactness was not bypassed.
 - Existing unrelated STANDARD priority-action ranking, weights, and tie-breaks were not changed.
 - Evaluator weights were not changed.
+- The authorized counter-payment PAY versus DECLINE criterion was not changed.
 - No pilot, replacement pilot, exploratory study, or full study was executed.
 - Pilot authorization remains locked and pending explicit owner approval.
 - The full study remains separately locked.
@@ -575,10 +782,10 @@ At this disposition point:
 
 ## Closeout condition
 
-This supplement is the final Stage 3 disposition layer. Technical implementation is complete. Final certifications are current. Promotion-head exact CI #1316 and auxiliary workflows are green. This documentation refresh records the completed ROOT-A authority contract. It does not declare PR #104 Ready for Review, merge-ready, or merged. Stage 4 has not begun. The pilot is not authorized.
+This supplement is the final Stage 3 disposition layer. Technical implementation is complete. Final certifications are current. Promotion-head exact CI #1319 and auxiliary workflows are green. This documentation refresh records the completed resource-execution provenance repair. It does not declare PR #104 Ready for Review, merge-ready, or merged. Stage 4 has not begun. The pilot is not authorized.
 
-The current source/test authority is `b63bd6e7bcba8e57921264d13e1286f64d7e5115`. Its exact CI-produced Phase A and Phase B certifications are promoted in `9c4167add36caba74b1eac34a27c83c99c2f6736`, and promotion-head CI #1316 succeeded. The CR1–CR9 history, consolidated repair through `30914ee` / `e4e0cbf` / R7 docs head `686961ee`, and CI #1312–#1314 remain provenance only.
+The current source/test authority is `28779896db7b1bcaea08d23cd3cfc3cb92c6a66f`. Its exact CI-produced Phase A and Phase B certifications are promoted in `426ff4e6aaa64a9af178cb5bbaf674fbabfda7e9`, and promotion-head CI #1319 succeeded. The CR1–CR9 history, consolidated repair through `30914ee` / `e4e0cbf` / R7 docs head `686961ee` with CI #1312–#1314, and the ROOT-A completion through `b63bd6e` / `9c4167a` / docs head `69a6e81` with CI #1315–#1317, remain provenance only.
 
-The two fresh Codex P1 threads (`PRRT_kwDOTe7Y0c6iDKCl` and `PRRT_kwDOTe7Y0c6iDKCp`) are repaired in code and remain open pending a fresh Codex review of the resulting exact final docs head. Implementation correction landed; thread resolution is pending that review. Do not treat those threads as resolved in this document.
+The resource-provenance Codex P1 thread `PRRT_kwDOTe7Y0c6ivv7d` is repaired in code and carries current Phase A and Phase B certifications, but it remains open. Thread resolution is pending a fresh Codex review of the resulting exact final docs head. Do not treat it as resolved in this document. The two earlier ROOT-A Codex P1 threads (`PRRT_kwDOTe7Y0c6iDKCl` and `PRRT_kwDOTe7Y0c6iDKCp`) are likewise repaired in code and remain open pending that same review. Older unresolved review threads were not mutated.
 
 This documentation-only commit must complete exact-head CI. After that, a fresh Codex review of that exact docs head remains required. The status is `TECHNICAL_IMPLEMENTATION_AND_CERTIFICATION_COMPLETE_FINAL_CODEX_REVIEW_PENDING` even if this documentation commit's CI later passes, until that Codex review returns with no new blocking finding. Review threads must remain unresolved until that final review gate. No Ready-for-Review transition or merge is authorized here; merge still requires separate explicit owner authorization.
